@@ -1,6 +1,6 @@
 # NEWSFLOW Content Studio
 
-[![Quality gate](https://github.com/thrixicpa-del/newsflow-content-studio/actions/workflows/ci.yml/badge.svg)](https://github.com/thrixicpa-del/newsflow-content-studio/actions/workflows/ci.yml)
+[![Quality gate](https://github.com/borovojarkadij-png/content-studio/actions/workflows/ci.yml/badge.svg)](https://github.com/borovojarkadij-png/content-studio/actions/workflows/ci.yml)
 
 PHASE 1 строит Telegram News Hub как modular monolith. Основной режим — ручная
 модерация; автоматическая публикация не включена по умолчанию.
