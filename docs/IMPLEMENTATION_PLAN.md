@@ -16,5 +16,6 @@
 - [~] Mapping-level deterministic filters for media, advertising markers and forbidden links
 - [~] Durable mapping-scoped exact content fingerprint deduplication before EditorialGate
 - [ ] OpenAI adapter, fact guard, queues and operational workers
+- [~] Durable moderation-inbox API read model (state, latest revision and editorial decision); UI design awaits user templates
 - [ ] Dashboard onboarding, inbox, calendar, audit/history and realtime UI
 - [ ] Docker persistence E2E and full PHASE 1 quality gate

@@ -42,6 +42,10 @@
   distinct source messages before EditorialGate. A retry of an editorial reject
   preserves its original REJECTED_EDITORIAL outcome; another mapping remains
   independently eligible.
+- The Telegram moderation-inbox API projects each durable post's current state,
+  latest immutable revision and editorial decision. It opens a request-scoped
+  SQLAlchemy session from `DATABASE_URL`; integration coverage proves the
+  configured-database path without a test-only dependency override.
 
 ## PARTIALLY IMPLEMENTED
 
@@ -51,7 +55,9 @@
 ## NOT IMPLEMENTED
 
 - Telethon transport, OpenAI adapter, queues, scheduler, media, real dashboard
-  workflows and Telegram E2E.
+  workflows and Telegram E2E. PostgreSQL-backed inbox execution remains pending
+  Docker Desktop availability, although the API contract is integration-tested
+  against SQLite.
 
 ## KNOWN ISSUES
 
@@ -63,6 +69,6 @@
 
 ## NEXT STEP
 
-Expose durable moderation inbox read models through the Telegram API, with
-explicit state, revision and editorial-decision fields. Keep the existing UI
-shell unchanged; no UI design work starts in this increment.
+Backend moderation-inbox API wiring is complete. The next planned item is the
+Russian moderation-inbox UI design. Stop before starting it and wait for the
+user's design templates; keep the existing UI shell unchanged in the meantime.

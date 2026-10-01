@@ -1,13 +1,24 @@
 """Minimal Telegram configuration API; state changes remain service-owned."""
 
-from fastapi import APIRouter
+from collections.abc import Iterator
+from typing import Annotated
+
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
 from newsflow.domain.telegram import parse_donor_import
+from newsflow.persistence.database import database_session
+from newsflow.services.moderation_inbox import ModerationInboxReader
 from newsflow.services.telegram_configuration import TelegramConfigurationService
 
 router = APIRouter(prefix="/api/telegram", tags=["telegram"])
 configuration_service = TelegramConfigurationService()
+
+
+def get_moderation_inbox_reader() -> Iterator[ModerationInboxReader | None]:
+    """Create a request-scoped durable inbox reader when DATABASE_URL is set."""
+    for session in database_session():
+        yield ModerationInboxReader(session) if session is not None else None
 
 
 class DonorBulkImportRequest(BaseModel):
@@ -43,6 +54,7 @@ def create_account(request: TelegramAccountCreateRequest) -> dict[str, object]:
 
 
 @router.get("/incoming-posts")
-def list_incoming_posts() -> dict[str, list[object]]:
-    """Moderation inbox contract; persistence-backed query is added next."""
-    return {"items": []}
+def list_incoming_posts(
+    reader: Annotated[ModerationInboxReader | None, Depends(get_moderation_inbox_reader)],
+) -> dict[str, list[object]]:
+    return {"items": [] if reader is None else [item.as_dict() for item in reader.list_items()]}

@@ -16,6 +16,7 @@ dependencies = [
   "telethon>=1.42,<2",
   "alembic>=1.14,<2",
   "cryptography>=44,<46",
+  "psycopg[binary]>=3.2,<4",
 ]
 
 [project.optional-dependencies]
