@@ -48,6 +48,8 @@ class TelegramAccount(Base):
     telegram_user_id: Mapped[int] = mapped_column(Integer, unique=True, nullable=False)
     encrypted_session: Mapped[str] = mapped_column(String, nullable=False)
     health_status: Mapped[str] = mapped_column(String(32), default="DISCONNECTED", nullable=False)
+    health_checked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    cooldown_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
 class DonorChannel(Base):

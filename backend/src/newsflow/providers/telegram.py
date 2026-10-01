@@ -26,6 +26,8 @@ class TelegramMessage:
 
 
 class TelegramProvider(Protocol):
+    def verify_session(self, account_id: str) -> None: ...
+
     def fetch_message(self, account_id: str, donor_identifier: str, message_id: int) -> TelegramMessage: ...
 
     def iter_events(self, account_id: str) -> Iterator[TelegramMessage]: ...
@@ -38,9 +40,24 @@ class FakeTelegramProvider:
         self._events: dict[str, list[TelegramMessage]] = {}
         self._messages: dict[tuple[str, str, int], TelegramMessage] = {}
         self._floodwaits: dict[str, int] = {}
+        self._session_unavailable: set[str] = set()
+        self._session_probes: dict[str, int] = {}
 
     def seed_floodwait(self, account_id: str, seconds: int) -> None:
         self._floodwaits[account_id] = seconds
+
+    def seed_session_unavailable(self, account_id: str) -> None:
+        self._session_unavailable.add(account_id)
+
+    def session_probe_count(self, account_id: str) -> int:
+        return self._session_probes.get(account_id, 0)
+
+    def verify_session(self, account_id: str) -> None:
+        self._session_probes[account_id] = self.session_probe_count(account_id) + 1
+        if account_id in self._session_unavailable:
+            raise SessionUnavailable(f"No provisioned session for {account_id}")
+        if seconds := self._floodwaits.get(account_id):
+            raise FloodWait(seconds)
 
     def seed_message(self, account_id: str, donor_identifier: str, message_id: int, text: str) -> None:
         message = TelegramMessage(account_id, donor_identifier, message_id, text)
@@ -53,8 +70,7 @@ class FakeTelegramProvider:
         self._events.setdefault(account_id, []).append(event)
 
     def fetch_message(self, account_id: str, donor_identifier: str, message_id: int) -> TelegramMessage:
-        if seconds := self._floodwaits.get(account_id):
-            raise FloodWait(seconds)
+        self.verify_session(account_id)
         return self._messages[(account_id, donor_identifier, message_id)]
 
     def iter_events(self, account_id: str) -> Iterator[TelegramMessage]:
@@ -78,6 +94,10 @@ class TelethonTelegramProvider:
             return self._sessions[account_id]
         except KeyError as exc:
             raise SessionUnavailable(f"No provisioned session for {account_id}") from exc
+
+    def verify_session(self, account_id: str) -> None:
+        """Verify local session availability; live authorization is an external acceptance step."""
+        self.require_session(account_id)
 
     def build_client(self, account_id: str):
         """Build an account-isolated Telethon client without connecting or logging in."""

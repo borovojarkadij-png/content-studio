@@ -29,6 +29,9 @@
   rewrite dispatch. Regression tests cover technical reject, editorial reject,
   duplicate delivery and editorial-reject retry with zero RewriteJob and zero
   rewrite-request outbox event.
+- Account health uses persisted timestamps and per-account FloodWait cooldown;
+  unavailable sessions become SESSION_INVALID without a retry loop. This is
+  exercised through FakeTelegramProvider and a versioned migration.
 
 ## PARTIALLY IMPLEMENTED
 
@@ -37,8 +40,8 @@
 
 ## NOT IMPLEMENTED
 
-- Telethon transport, account health/reconnect, OpenAI adapter, queues,
-  scheduler, media, real dashboard workflows and Telegram E2E.
+- Telethon transport, OpenAI adapter, queues, scheduler, media, real dashboard
+  workflows and Telegram E2E.
 
 ## KNOWN ISSUES
 
@@ -50,6 +53,7 @@
 
 ## NEXT STEP
 
-Implement durable account/session health states and reconnect/backoff policy via
-FakeTelegramProvider. Cover session-unavailable and FloodWait paths without a
-real Telegram login, then extend the Telethon adapter behind the same contract.
+Extend TelethonTelegramProvider behind the verified provider contract for
+message normalization and controlled reconnect. Keep real Telegram login and
+live transport verification pending user-supplied credentials, while proving
+all deterministic behavior through FakeTelegramProvider.
