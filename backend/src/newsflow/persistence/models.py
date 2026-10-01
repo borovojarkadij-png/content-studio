@@ -133,6 +133,20 @@ class ContentRevisionModel(Base):
     )
 
 
+class MappingContentFingerprintModel(Base):
+    __tablename__ = "mapping_content_fingerprints"
+    __table_args__ = (
+        UniqueConstraint("mapping_id", "fingerprint", name="uq_mapping_content_fingerprint"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    mapping_id: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
+    fingerprint: Mapped[str] = mapped_column(String(64), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+
 class EditorialDecisionModel(Base):
     __tablename__ = "editorial_decisions"
     __table_args__ = (

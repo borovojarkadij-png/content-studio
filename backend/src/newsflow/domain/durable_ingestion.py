@@ -7,7 +7,10 @@ and rewrite-request outbox event exist only for a passing decision.
 
 from collections.abc import Sequence
 from datetime import datetime
+from hashlib import sha256
 
+from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from newsflow.domain.editorial import EditorialGate, EditorialStatus
@@ -15,7 +18,11 @@ from newsflow.domain.ingestion import IngestionResult
 from newsflow.domain.sql_editorial import DurableEditorialService
 from newsflow.domain.sql_ingestion import SqlAlchemyIngestionRepository
 from newsflow.domain.technical_filters import MappingTechnicalFilter
-from newsflow.persistence.models import OutboxEventModel
+from newsflow.persistence.models import (
+    EditorialDecisionModel,
+    MappingContentFingerprintModel,
+    OutboxEventModel,
+)
 from newsflow.providers.telegram import TelegramMessage
 
 
@@ -54,8 +61,40 @@ class DurableIngestionWorkflow:
             revision_number = repository.candidate_revision_number(event)
             if revision_number is None:
                 return IngestionResult(False, source_key, "REJECTED_DUPLICATE")
-
             content_key = f"{source_key}:revision:{revision_number}"
+            existing_decision = self._session.scalar(
+                select(EditorialDecisionModel).where(EditorialDecisionModel.content_key == content_key)
+            )
+            if existing_decision is not None:
+                status = (
+                    "REJECTED_EDITORIAL"
+                    if existing_decision.status != EditorialStatus.PASS.value
+                    or not existing_decision.rewrite_allowed
+                    else "REJECTED_DUPLICATE"
+                )
+                return IngestionResult(False, source_key, status)
+
+            fingerprint = sha256(event.text.strip().casefold().encode("utf-8")).hexdigest()
+            existing_fingerprint = self._session.scalar(
+                select(MappingContentFingerprintModel.id).where(
+                    MappingContentFingerprintModel.mapping_id == self._technical_filter.mapping_id,
+                    MappingContentFingerprintModel.fingerprint == fingerprint,
+                )
+            )
+            if existing_fingerprint is not None:
+                return IngestionResult(False, source_key, "REJECTED_DUPLICATE")
+            try:
+                with self._session.begin_nested():
+                    self._session.add(
+                        MappingContentFingerprintModel(
+                            mapping_id=self._technical_filter.mapping_id,
+                            fingerprint=fingerprint,
+                        )
+                    )
+                    self._session.flush()
+            except IntegrityError:
+                return IngestionResult(False, source_key, "REJECTED_DUPLICATE")
+
             editorial = DurableEditorialService(self._session, self._editorial_gate)
             decision = editorial.get_or_evaluate(
                 content_key,

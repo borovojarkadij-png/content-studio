@@ -38,6 +38,10 @@
 - Mapping-level deterministic filters reject unsupported media, explicit
   advertising markers and configured forbidden-link domains before editorial
   persistence, RewriteJob creation or any future AI call.
+- Mapping-scoped SHA-256 fingerprints reject exact content duplicates from
+  distinct source messages before EditorialGate. A retry of an editorial reject
+  preserves its original REJECTED_EDITORIAL outcome; another mapping remains
+  independently eligible.
 
 ## PARTIALLY IMPLEMENTED
 
@@ -59,6 +63,6 @@
 
 ## NEXT STEP
 
-Add durable mapping-scoped exact content fingerprints before EditorialGate.
-Prove that repeated content from distinct source messages stops before the
-editorial/AI path while a different mapping retains independent eligibility.
+Expose durable moderation inbox read models through the Telegram API, with
+explicit state, revision and editorial-decision fields. Keep the existing UI
+shell unchanged; no UI design work starts in this increment.

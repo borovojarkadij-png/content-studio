@@ -8,6 +8,7 @@
 | R-004 | Durable PostgreSQL/outbox | 1 | PARTIAL | SQL workflow, migrations, transactional outbox tests |
 | R-005 | Telegram accounts and sessions | 1 | PARTIAL | schema, stable key loader, SessionCipher, reconnect/cooldown and Telethon normalization tests |
 | R-009 | Mapping deterministic filters | 1 | PARTIAL | mapping technical filter and durable ingress tests |
+| R-010 | Exact dedup before editorial | 1 | PARTIAL | mapping-scoped durable fingerprint and retry regression tests |
 | R-006 | Compose persistence | 1 | PARTIAL | compose.yaml; Docker unavailable |
 | R-007 | Russian dashboard | 1 | PARTIAL | frontend shell |
 | R-008 | YouTube contracts | Future | NOT IMPLEMENTED | architecture only |

@@ -14,6 +14,7 @@
 - [~] Account health/reconnect policy with persisted FloodWait cooldown and offline tests
 - [ ] Filters, semantic dedup, events, hype, media, routing and scheduler
 - [~] Mapping-level deterministic filters for media, advertising markers and forbidden links
+- [~] Durable mapping-scoped exact content fingerprint deduplication before EditorialGate
 - [ ] OpenAI adapter, fact guard, queues and operational workers
 - [ ] Dashboard onboarding, inbox, calendar, audit/history and realtime UI
 - [ ] Docker persistence E2E and full PHASE 1 quality gate
