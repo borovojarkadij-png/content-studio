@@ -16,13 +16,7 @@ class SqlAlchemyIngestionRepository:
 
     def ingest(self, event: TelegramMessage, observed_at: datetime) -> IngestionResult:
         del observed_at
-        post = self._session.scalar(
-            select(IncomingPostModel).where(
-                IncomingPostModel.telegram_account_id == event.account_id,
-                IncomingPostModel.donor_channel_id == event.donor_identifier,
-                IncomingPostModel.telegram_message_id == event.message_id,
-            )
-        )
+        post = self._find_post(event)
         source_key = f"{event.account_id}:{event.donor_identifier}:{event.message_id}"
         if post is None:
             post = IncomingPostModel(
@@ -66,6 +60,16 @@ class SqlAlchemyIngestionRepository:
             )
         return IngestionResult(False, source_key)
 
+    def candidate_revision_number(self, event: TelegramMessage) -> int | None:
+        """Return the revision that would be persisted, or ``None`` for a duplicate."""
+        post = self._find_post(event)
+        if post is None:
+            return 1
+        latest_revision = self._latest_revision(post.id)
+        if latest_revision is None or not event.is_edit or latest_revision.source_text == event.text:
+            return None
+        return latest_revision.revision_number + 1
+
     def revision_texts(self, account_id: str, donor_channel_id: str, message_id: int) -> list[str]:
         post = self._session.scalar(
             select(IncomingPostModel).where(
@@ -82,4 +86,20 @@ class SqlAlchemyIngestionRepository:
                 .where(ContentRevisionModel.incoming_post_id == post.id)
                 .order_by(ContentRevisionModel.revision_number)
             )
+        )
+
+    def _find_post(self, event: TelegramMessage) -> IncomingPostModel | None:
+        return self._session.scalar(
+            select(IncomingPostModel).where(
+                IncomingPostModel.telegram_account_id == event.account_id,
+                IncomingPostModel.donor_channel_id == event.donor_identifier,
+                IncomingPostModel.telegram_message_id == event.message_id,
+            )
+        )
+
+    def _latest_revision(self, incoming_post_id: int) -> ContentRevisionModel | None:
+        return self._session.scalar(
+            select(ContentRevisionModel)
+            .where(ContentRevisionModel.incoming_post_id == incoming_post_id)
+            .order_by(ContentRevisionModel.revision_number.desc())
         )

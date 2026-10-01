@@ -2,6 +2,7 @@
 
 from collections.abc import Sequence
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from newsflow.domain.editorial import EditorialGate
@@ -19,9 +20,11 @@ class DurableEditorialService:
         protected_entities: Sequence[str],
         sentiment: str,
         framing: str,
+        *,
+        source_text: str | None = None,
     ) -> EditorialDecisionModel:
         decision = self._gate.evaluate(
-            text=content_key,
+            text=source_text if source_text is not None else content_key,
             protected_entities=protected_entities,
             sentiment=sentiment,
             framing=framing,
@@ -37,6 +40,29 @@ class DurableEditorialService:
         )
         self._session.add(stored)
         return stored
+
+    def get_or_evaluate(
+        self,
+        content_key: str,
+        protected_entities: Sequence[str],
+        sentiment: str,
+        framing: str,
+        *,
+        source_text: str,
+    ) -> EditorialDecisionModel:
+        """Keep the first durable editorial decision authoritative for retries."""
+        existing = self._session.scalar(
+            select(EditorialDecisionModel).where(EditorialDecisionModel.content_key == content_key)
+        )
+        if existing is not None:
+            return existing
+        return self.evaluate(
+            content_key,
+            protected_entities,
+            sentiment,
+            framing,
+            source_text=source_text,
+        )
 
     def create_rewrite_job(self, decision: EditorialDecisionModel) -> RewriteJobModel | None:
         if decision.status != "PASS" or not decision.rewrite_allowed:

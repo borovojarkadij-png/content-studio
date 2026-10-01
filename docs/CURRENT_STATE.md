@@ -24,6 +24,11 @@
   preventing redundant editorial/AI work.
 - GitHub Actions quality gate executes backend lint/tests/compile/migrations and
   frontend test/build for every push and pull request.
+- Durable SQL ingress uses a single transaction for technical filtering,
+  source-identity deduplication, editorial decision persistence and guarded
+  rewrite dispatch. Regression tests cover technical reject, editorial reject,
+  duplicate delivery and editorial-reject retry with zero RewriteJob and zero
+  rewrite-request outbox event.
 
 ## PARTIALLY IMPLEMENTED
 
@@ -32,9 +37,8 @@
 
 ## NOT IMPLEMENTED
 
-- Durable editorial workflow integration with ingestion and a transactional
-  rewrite-request outbox; Telethon transport; OpenAI adapter; queues; scheduler;
-  media; real dashboard workflows; Telegram E2E.
+- Telethon transport, account health/reconnect, OpenAI adapter, queues,
+  scheduler, media, real dashboard workflows and Telegram E2E.
 
 ## KNOWN ISSUES
 
@@ -46,7 +50,6 @@
 
 ## NEXT STEP
 
-Wire the durable SQL ingestion repository to deterministic filters, exact dedup,
-EditorialGate and guarded rewrite-job creation in one transaction. Add adversarial
-tests proving technical rejects and editorial rejects produce neither RewriteJob
-nor rewrite-request outbox event.
+Implement durable account/session health states and reconnect/backoff policy via
+FakeTelegramProvider. Cover session-unavailable and FloodWait paths without a
+real Telegram login, then extend the Telethon adapter behind the same contract.
