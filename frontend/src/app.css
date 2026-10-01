@@ -1,0 +1,15 @@
+:root { color: #e8edf7; background: #0c1220; font-family: Inter, system-ui, sans-serif; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+.app-shell { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+.sidebar { padding: 28px 20px; background: #111a2d; border-right: 1px solid #26334d; }
+.sidebar h1 { margin: 0 0 32px; font-size: 20px; }
+.sidebar nav { display: grid; gap: 6px; }
+.sidebar a { color: #bac5db; border-radius: 8px; padding: 10px 12px; text-decoration: none; }
+.sidebar a:hover { background: #1c2942; color: #fff; }
+.workspace { padding: 56px; max-width: 960px; }
+.workspace h2 { margin: 6px 0 8px; font-size: 32px; }
+.workspace p { color: #aab7ce; }
+.eyebrow { color: #7c9dff !important; font-size: 12px; font-weight: 700; letter-spacing: .12em; }
+.safe-mode { display: grid; gap: 8px; margin-top: 32px; padding: 18px; border: 1px solid #3b4d24; border-radius: 12px; background: #182216; }
+.safe-mode span { color: #b9c9ac; }

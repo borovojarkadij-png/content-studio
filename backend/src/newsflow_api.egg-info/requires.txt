@@ -1,0 +1,12 @@
+fastapi<1,>=0.115
+pydantic<3,>=2.9
+sqlalchemy<3,>=2.0
+structlog<26,>=24
+uvicorn<1,>=0.30
+telethon<2,>=1.42
+alembic<2,>=1.14
+
+[dev]
+pytest<9,>=8
+pytest-asyncio<1,>=0.24
+ruff<1,>=0.8
