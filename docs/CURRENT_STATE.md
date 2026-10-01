@@ -32,6 +32,9 @@
 - Account health uses persisted timestamps and per-account FloodWait cooldown;
   unavailable sessions become SESSION_INVALID without a retry loop. This is
   exercised through FakeTelegramProvider and a versioned migration.
+- Telethon adapter normalizes offline text/photo/video message shapes, edits and
+  album identifiers into the provider-neutral TelegramMessage contract. It does
+  not connect or authenticate without an externally provisioned live session.
 
 ## PARTIALLY IMPLEMENTED
 
@@ -53,7 +56,7 @@
 
 ## NEXT STEP
 
-Extend TelethonTelegramProvider behind the verified provider contract for
-message normalization and controlled reconnect. Keep real Telegram login and
-live transport verification pending user-supplied credentials, while proving
-all deterministic behavior through FakeTelegramProvider.
+Implement mapping-specific deterministic technical filters and durable exact
+content fingerprints before EditorialGate. Prove that repeated content, video,
+ads and forbidden links stop before any editorial/AI path, while preserving a
+separate audit outcome for each mapping.

@@ -10,7 +10,7 @@
 - [~] Telegram persistence entities/constraints and donor bulk-import API
 - [~] Offline ingestion idempotency, immutable revisions and technical/editorial prefilters
 - [~] Durable ingestion transaction: filters, exact source delivery dedup, editorial decision and guarded rewrite outbox
-- [~] Telethon adapter boundary; encrypted-session boundary and live account management pending
+- [~] Telethon adapter boundary and offline message/album normalization; encrypted-session boundary and live account management pending
 - [~] Account health/reconnect policy with persisted FloodWait cooldown and offline tests
 - [ ] Filters, semantic dedup, events, hype, media, routing and scheduler
 - [ ] OpenAI adapter, fact guard, queues and operational workers

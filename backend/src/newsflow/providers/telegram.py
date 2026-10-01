@@ -23,6 +23,7 @@ class TelegramMessage:
     text: str
     is_edit: bool = False
     media_type: str = "text"
+    album_id: str | None = None
 
 
 class TelegramProvider(Protocol):
@@ -105,3 +106,29 @@ class TelethonTelegramProvider:
         from telethon.sessions import StringSession
 
         return TelegramClient(StringSession(self.require_session(account_id)), self._api_id, self._api_hash)
+
+    @staticmethod
+    def normalize_message(
+        account_id: str, donor_identifier: str, raw_message: object
+    ) -> TelegramMessage:
+        """Map Telethon's runtime shape to the provider-neutral event contract."""
+        text = getattr(raw_message, "raw_text", None) or getattr(raw_message, "message", "") or ""
+        if getattr(raw_message, "video", None) is not None:
+            media_type = "video"
+        elif getattr(raw_message, "photo", None) is not None:
+            media_type = "photo"
+        else:
+            media_type = "text"
+        grouped_id = getattr(raw_message, "grouped_id", None)
+        message_id = getattr(raw_message, "id", None)
+        if not isinstance(message_id, int):
+            raise TypeError("Telethon message is missing an integer id")
+        return TelegramMessage(
+            account_id=account_id,
+            donor_identifier=donor_identifier,
+            message_id=message_id,
+            text=text,
+            is_edit=getattr(raw_message, "edit_date", None) is not None,
+            media_type=media_type,
+            album_id=str(grouped_id) if grouped_id is not None else None,
+        )
