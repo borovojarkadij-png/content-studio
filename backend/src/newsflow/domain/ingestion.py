@@ -25,6 +25,7 @@ class IngestionResult:
     created: bool
     source_key: str
     status: str = "INGESTED"
+    reason_code: str | None = None
 
 
 @dataclass(slots=True)

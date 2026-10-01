@@ -14,6 +14,7 @@ from newsflow.domain.editorial import EditorialGate, EditorialStatus
 from newsflow.domain.ingestion import IngestionResult
 from newsflow.domain.sql_editorial import DurableEditorialService
 from newsflow.domain.sql_ingestion import SqlAlchemyIngestionRepository
+from newsflow.domain.technical_filters import MappingTechnicalFilter
 from newsflow.persistence.models import OutboxEventModel
 from newsflow.providers.telegram import TelegramMessage
 
@@ -25,10 +26,14 @@ class DurableIngestionWorkflow:
         *,
         editorial_gate: EditorialGate | None = None,
         allowed_media_types: set[str] | None = None,
+        technical_filter: MappingTechnicalFilter | None = None,
     ) -> None:
         self._session = session
         self._editorial_gate = editorial_gate or EditorialGate()
-        self._allowed_media_types = allowed_media_types or {"text", "photo"}
+        self._technical_filter = technical_filter or MappingTechnicalFilter(
+            mapping_id="default",
+            allowed_media_types=frozenset(allowed_media_types or {"text", "photo"}),
+        )
 
     def ingest(
         self,
@@ -41,8 +46,9 @@ class DurableIngestionWorkflow:
     ) -> IngestionResult:
         source_key = f"{event.account_id}:{event.donor_identifier}:{event.message_id}"
         with self._session.begin():
-            if event.media_type not in self._allowed_media_types or not event.text.strip():
-                return IngestionResult(False, source_key, "REJECTED_TECHNICAL")
+            technical = self._technical_filter.evaluate(event)
+            if not technical.accepted:
+                return IngestionResult(False, source_key, "REJECTED_TECHNICAL", technical.reason_code)
 
             repository = SqlAlchemyIngestionRepository(self._session)
             revision_number = repository.candidate_revision_number(event)

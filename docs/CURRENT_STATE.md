@@ -35,6 +35,9 @@
 - Telethon adapter normalizes offline text/photo/video message shapes, edits and
   album identifiers into the provider-neutral TelegramMessage contract. It does
   not connect or authenticate without an externally provisioned live session.
+- Mapping-level deterministic filters reject unsupported media, explicit
+  advertising markers and configured forbidden-link domains before editorial
+  persistence, RewriteJob creation or any future AI call.
 
 ## PARTIALLY IMPLEMENTED
 
@@ -56,7 +59,6 @@
 
 ## NEXT STEP
 
-Implement mapping-specific deterministic technical filters and durable exact
-content fingerprints before EditorialGate. Prove that repeated content, video,
-ads and forbidden links stop before any editorial/AI path, while preserving a
-separate audit outcome for each mapping.
+Add durable mapping-scoped exact content fingerprints before EditorialGate.
+Prove that repeated content from distinct source messages stops before the
+editorial/AI path while a different mapping retains independent eligibility.
