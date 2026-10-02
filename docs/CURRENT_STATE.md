@@ -66,6 +66,9 @@
   screenshots captured at 1366x768, 1440x900, 1586x992, 1920x1080 and 390x844.
   Screenshot comparison is manual, not a claim of pixel-perfect equivalence.
   See UI_DARK_NAVY_VERIFICATION.md for evidence, regressions and limitations.
+- GitHub Actions run 37024393524 on implementation commit
+  bee24ba32884ab6ecc1735e4843695fca4592458 completed successfully: backend and
+  frontend jobs passed and the `ui-dark-navy` evidence artifact was uploaded.
 
 ## PARTIALLY IMPLEMENTED
 

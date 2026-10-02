@@ -44,6 +44,7 @@ Channels layouts were also inspected.
 | frontend `npm run test:e2e` | PASS: 18 Chromium tests; no skipped cases or retries |
 | axe WCAG 2/2.1 A/AA tags | PASS: default DEMO view of all eight sections |
 | independent code review | Three Important findings fixed and re-reviewed; no outstanding Critical/Important in reviewed fixes |
+| GitHub Actions on implementation commit bee24ba32884ab6ecc1735e4843695fca4592458 | PASS: backend and frontend jobs, including browser regressions and uploaded evidence |
 | Docker / PostgreSQL / Redis / worker restart and persistence E2E | NOT VERIFIED / BLOCKED BY ENVIRONMENT |
 | live Telegram login / real publication / paid AI | NOT RUN; intentionally excluded |
 
@@ -94,6 +95,12 @@ Five subdirectories: `1366x768`, `1440x900`, `1586x992` (reference size),
 Forty screenshots, plus `report/index.html` and failure traces when a run fails.
 GitHub Actions runs the same gates on main/codex pushes and pull requests; a
 configured workflow is not by itself evidence of a successful remote run.
+
+Actual successful remote run:
+[Quality gate 37024393524](https://github.com/borovojarkadij-png/content-studio/actions/runs/37024393524).
+The `ui-dark-navy` artifact was uploaded successfully. The runner emitted
+non-failing maintenance notices about action Node runtimes and the upcoming
+ubuntu-latest image transition; these are not application failures.
 
 ## Real API versus DEMO / remaining limitations
 
