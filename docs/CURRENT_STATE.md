@@ -50,7 +50,13 @@
 ## PARTIALLY IMPLEMENTED
 
 - Compose topology and persistent-volume declarations.
-- Russian dashboard shell and architecture documentation.
+- Russian dark-navy dashboard increment: eight responsive workspace shells,
+  shared navigation/top bar and a real read-only moderation-inbox fetch path.
+  The "Мои каналы" workspace now follows the reference composition with a
+  searchable channel directory, dense channel cards, selected detail panel,
+  publication windows and quiet-hours treatment. Its visible state is DEMO
+  only until corresponding API mutations exist; unavailable mutations are
+  explicitly disabled or labelled rather than simulated.
 
 ## NOT IMPLEMENTED
 
@@ -69,6 +75,8 @@
 
 ## NEXT STEP
 
-Backend moderation-inbox API wiring is complete. The next planned item is the
-Russian moderation-inbox UI design. Stop before starting it and wait for the
-user's design templates; keep the existing UI shell unchanged in the meantime.
+Continue the dark-navy UI pass against the supplied references: increase
+visual fidelity for Inbox, Donors, Connections, Planner, Accounts, Settings
+and Overview while preserving the existing API contract and explicit DEMO
+boundaries. Docker Compose/persistence E2E remains NOT VERIFIED / BLOCKED BY
+ENVIRONMENT until Docker Desktop is available.

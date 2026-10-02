@@ -16,6 +16,6 @@
 - [~] Mapping-level deterministic filters for media, advertising markers and forbidden links
 - [~] Durable mapping-scoped exact content fingerprint deduplication before EditorialGate
 - [ ] OpenAI adapter, fact guard, queues and operational workers
-- [~] Durable moderation-inbox API read model (state, latest revision and editorial decision); UI design awaits user templates
-- [ ] Dashboard onboarding, inbox, calendar, audit/history and realtime UI
+- [~] Durable moderation-inbox API read model (state, latest revision and editorial decision); dark-navy Inbox consumes its supported read endpoint, while mutation APIs remain pending
+- [~] Dark-navy dashboard UI: shared navigation, all eight responsive workspace shells and a reference-aligned Channels detail workspace are implemented; remaining visual fidelity and live workflow wiring are pending
 - [ ] Docker persistence E2E and full PHASE 1 quality gate
