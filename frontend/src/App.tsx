@@ -1,298 +1,1637 @@
-import { useEffect, useMemo, useState } from "react";
-
+import {
+  useCallback,
+  useEffect,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
+import { loadInbox } from "./api";
+import { Accounts, Connections, Planner, Settings } from "./workspaces";
+import {
+  Artwork,
+  Icon,
+  Metric,
+  Modal,
+  Notice,
+  Panel,
+  PanelTitle,
+  Search,
+  Status,
+  Toggle,
+  Unavailable,
+} from "./ui";
+import {
+  canProcess,
+  channelSettingsError,
+  createDemo,
+  navigation,
+  scheduleError,
+  validateDonors,
+  type Channel,
+  type Donor,
+  type Page,
+  type Post,
+  type StudioData,
+} from "./studio";
 import "./app.css";
 
-type Page = "overview" | "inbox" | "donors" | "channels" | "connections" | "planner" | "accounts" | "settings";
-type ApiState = "idle" | "loading" | "error" | "ready";
-
-type InboxItem = {
-  id: string;
-  source: string;
-  title: string;
-  original: string;
-  rewrite: string;
-  state: "Новый" | "На проверке" | "Готово" | "Отклонён";
-  time: string;
-  destinations: string[];
+export type WorkspaceProps = {
+  data: StudioData;
+  setData: Dispatch<SetStateAction<StudioData>>;
+  markDirty: (page: Page, dirty: boolean) => void;
+};
+const emptyData: StudioData = {
+  posts: [],
+  donors: [],
+  channels: [],
+  routes: [],
+  accounts: [],
+  scheduled: [],
 };
 
-const navigation: { id: Page; icon: string; label: string }[] = [
-  { id: "overview", icon: "⌁", label: "Обзор" },
-  { id: "inbox", icon: "▣", label: "Входящие" },
-  { id: "donors", icon: "♧", label: "Доноры" },
-  { id: "channels", icon: "➤", label: "Мои каналы" },
-  { id: "connections", icon: "⌘", label: "Связи" },
-  { id: "planner", icon: "□", label: "Планировщик" },
-  { id: "accounts", icon: "♙", label: "Аккаунты" },
-  { id: "settings", icon: "⚙", label: "Настройки" },
-];
-
-const demoInbox: InboxItem[] = [
-  {
-    id: "mars",
-    source: "Наука сегодня",
-    title: "На Марсе обнаружены следы древних рек",
-    original:
-      "Группа учёных опубликовала новые снимки высохших долин Марса. Исследователи считают, что вода могла сохраняться там значительно дольше, чем предполагалось ранее.",
-    rewrite:
-      "Новые снимки Марса показали древние русла рек. Учёные уточняют, как долго на планете могла сохраняться вода.",
-    state: "Новый",
-    time: "12:24",
-    destinations: ["Технологии сегодня", "Научные факты"],
-  },
-  {
-    id: "model",
-    source: "Технологии и люди",
-    title: "OpenAI представила обновление модели",
-    original: "Компания рассказала о новом обновлении модели и расширении инструментов для разработчиков.",
-    rewrite: "",
-    state: "На проверке",
-    time: "11:47",
-    destinations: ["Технологии сегодня"],
-  },
-  {
-    id: "forest",
-    source: "Зелёная планета",
-    title: "В Европе запустили проект по восстановлению лесов",
-    original: "Несколько регионов объединили усилия для восстановления лесных массивов и защиты редких видов.",
-    rewrite: "",
-    state: "Новый",
-    time: "09:18",
-    destinations: ["Мир вокруг нас"],
-  },
-  {
-    id: "cats",
-    source: "Котики и наука",
-    title: "Почему кошки мурлыкают",
-    original: "Исследование рассматривает разные причины мурлыканья домашних кошек.",
-    rewrite: "",
-    state: "Готово",
-    time: "Вчера",
-    destinations: ["Это интересно"],
-  },
-];
-
-const donors = [
-  ["Наука сегодня", "@science_today", "Активен", "Наука"],
-  ["Технологии и люди", "@tech_today", "Активен", "Технологии"],
-  ["Зелёная планета", "@green_world", "На проверке", "Природа"],
-  ["Космос ближе", "@cosmos_near", "На паузе", "Космос"],
-];
-const channels = [
-  ["Технологии сегодня", "124 320", "12/день", "23:00 — 08:00", "Ручной"],
-  ["Это интересно", "89 441", "8/день", "00:00 — 07:00", "Ручной"],
-  ["Научные факты", "56 213", "6/день", "22:00 — 08:00", "Ручной"],
-  ["Мир вокруг нас", "28 441", "5/день", "22:00 — 08:00", "Ручной"],
-];
-const channelDetails = [
-  { glyph: "⌁", art: "ice", category: "Технологии", today: "8 / 12", description: "Новости технологий и исследования простым языком.", link: "t.me/tech_today" },
-  { glyph: "✦", art: "sun", category: "Образование", today: "4 / 8", description: "Объясняем интересные идеи, факты и открытия.", link: "t.me/curious_today" },
-  { glyph: "◌", art: "atom", category: "Наука", today: "3 / 6", description: "Короткие проверенные материалы о науке.", link: "t.me/science_facts" },
-  { glyph: "◒", art: "leaf", category: "Природа", today: "2 / 5", description: "Материалы об экологии, климате и окружающем мире.", link: "t.me/world_around" },
-];
-
-const pageMeta: Record<Page, { title: string; description: string }> = {
-  overview: { title: "Обзор", description: "Поток материалов и состояние Telegram-каналов" },
-  inbox: { title: "Входящие", description: "Новые материалы из источников для проверки и публикации" },
-  donors: { title: "Доноры", description: "Управление источниками контента из Telegram" },
-  channels: { title: "Мои каналы", description: "Настройки публикаций и правил ваших Telegram-каналов" },
-  connections: { title: "Связи", description: "Маршрутизация контента от доноров к выходным каналам" },
-  planner: { title: "Планировщик", description: "Расписание публикаций и материалы без назначенного времени" },
-  accounts: { title: "Аккаунты", description: "Состояние подключённых Telegram-сессий" },
-  settings: { title: "Настройки", description: "Параметры рабочего пространства, модерации и публикации" },
-};
-
-const statusClass = (status: string) =>
-  status === "Активен" || status === "Готово" ? "success" : status === "На паузе" ? "muted" : status === "Новый" ? "violet" : "warning";
-
-const demoFromUrl = () => new URLSearchParams(window.location.search).get("demo") === "1";
-
-export function App({ initialDemo = demoFromUrl() }: { initialDemo?: boolean }) {
-  const [page, setPage] = useState<Page>("overview");
+export function App({
+  initialDemo = new URLSearchParams(window.location.search).get("demo") === "1",
+}: {
+  initialDemo?: boolean;
+}) {
   const [demo, setDemo] = useState(initialDemo);
-  const [apiState, setApiState] = useState<ApiState>("idle");
-  const [apiItems, setApiItems] = useState<InboxItem[]>([]);
-  const [reload, setReload] = useState(0);
-
+  const [data, setData] = useState(() =>
+    initialDemo ? createDemo() : emptyData,
+  );
+  const [page, setPage] = useState<Page>("overview");
+  const [visited, setVisited] = useState<Page[]>(["overview"]);
+  const [globalQuery, setGlobalQuery] = useState("");
+  const [dirtyPages, setDirtyPages] = useState<Set<Page>>(new Set());
+  const [pendingMode, setPendingMode] = useState<boolean | null>(null);
   useEffect(() => {
-    if (demo) {
-      setApiState("idle");
-      return;
-    }
-    let active = true;
-    setApiState("loading");
-    const baseUrl = import.meta.env.VITE_API_BASE_URL ?? "";
-    fetch(`${baseUrl}/api/telegram/incoming-posts`)
-      .then(async (response) => {
-        if (!response.ok) throw new Error("inbox request failed");
-        return response.json() as Promise<{ items: Array<Record<string, unknown>> }>;
-      })
-      .then((payload) => {
-        if (!active) return;
-        setApiItems(
-          payload.items.map((item, index) => ({
-            id: String(item.source_key ?? index),
-            source: "Telegram",
-            title: String(item.source_text ?? "Материал без текста"),
-            original: String(item.source_text ?? ""),
-            rewrite: "",
-            state: String(item.editorial_status) === "REJECT" ? "Отклонён" : "На проверке",
-            time: "сейчас",
-            destinations: [],
-          })),
-        );
-        setApiState("ready");
-      })
-      .catch(() => active && setApiState("error"));
-    return () => {
-      active = false;
+    const warn = (event: BeforeUnloadEvent) => {
+      if (dirtyPages.size) {
+        event.preventDefault();
+        event.returnValue = "";
+      }
     };
-  }, [demo, reload]);
-
-  const common = { demo, apiState, apiItems, retry: () => setReload((value) => value + 1) };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [dirtyPages]);
+  const markDirty = useCallback(
+    (key: Page, dirty: boolean) =>
+      setDirtyPages((prior) => {
+        if (prior.has(key) === dirty) return prior;
+        const next = new Set(prior);
+        dirty ? next.add(key) : next.delete(key);
+        return next;
+      }),
+    [],
+  );
+  const navigate = (next: Page) => {
+    setPage(next);
+    setVisited((prior) => (prior.includes(next) ? prior : [...prior, next]));
+  };
+  const applyMode = (next: boolean) => {
+    setDemo(next);
+    setData(next ? createDemo() : emptyData);
+    setVisited([page]);
+    setDirtyPages(new Set());
+    setPendingMode(null);
+  };
+  const changeMode = (next: boolean) => {
+    if (dirtyPages.size) setPendingMode(next);
+    else applyMode(next);
+  };
+  const meta = navigation.find((item) => item.id === page)!;
+  const workspace = { data, setData, markDirty };
   return (
     <div className="studio-shell">
-      <Sidebar page={page} onNavigate={setPage} />
+      <a className="skip-link" href="#main-content">
+        К содержимому
+      </a>
+      <aside className="sidebar" aria-label="Разделы Content Studio">
+        <div className="brand">
+          <span className="brand-mark">
+            <Icon name="channels" size={41} />
+          </span>
+          <span>
+            <b>Content Studio</b>
+            <small>для Telegram</small>
+          </span>
+        </div>
+        <nav aria-label="Основная навигация">
+          {navigation.map((item) => (
+            <button
+              key={item.id}
+              aria-label={item.label}
+              aria-current={page === item.id ? "page" : undefined}
+              title={item.label}
+              className={`nav-item ${page === item.id ? "active" : ""}`}
+              onClick={() => navigate(item.id)}
+            >
+              <Icon name={item.id} />
+              <span>{item.label}</span>
+              {item.id === "inbox" && demo && <em>{data.posts.length}</em>}
+              {dirtyPages.has(item.id) && (
+                <i className="dirty-dot" title="Несохранённые изменения" />
+              )}
+            </button>
+          ))}
+        </nav>
+        <div className="sidebar-footer">
+          <Icon name="shield" size={18} />
+          <div>
+            Ручная модерация<small>EditorialGate обязателен</small>
+          </div>
+        </div>
+      </aside>
       <div className="studio-main">
-        <Topbar demo={demo} onDemoChange={setDemo} />
+        <header className="topbar">
+          <form
+            className="global-search"
+            onSubmit={(event) => {
+              event.preventDefault();
+              navigate("inbox");
+            }}
+          >
+            <Search
+              value={globalQuery}
+              onChange={setGlobalQuery}
+              placeholder="Поиск по материалам…"
+            />
+          </form>
+          <span className={`mode-badge ${demo ? "demo" : ""}`}>
+            <Icon name="channels" size={19} />
+            {demo ? "Демо-данные — без публикации" : "Рабочий режим"}
+          </span>
+          <Toggle label="DEMO" checked={demo} onChange={changeMode} />
+          <span className="header-divider" />
+          <span className="workspace-avatar">
+            <Icon name="accounts" size={20} />
+          </span>
+          <span className="workspace-name">Рабочее пространство</span>
+        </header>
         <main className="content" id="main-content">
-          <PageHeading {...pageMeta[page]} page={page} />
-          {page === "overview" && <Overview demo={demo} onNavigate={setPage} />}
-          {page === "inbox" && <Inbox {...common} />}
-          {page === "donors" && <Donors demo={demo} />}
-          {page === "channels" && <Channels demo={demo} />}
-          {page === "connections" && <Connections demo={demo} />}
-          {page === "planner" && <Planner demo={demo} />}
-          {page === "accounts" && <Accounts demo={demo} />}
-          {page === "settings" && <Settings demo={demo} />}
+          <div className="page-heading">
+            <div>
+              <h1>{page === "overview" ? "Обзор системы" : meta.label}</h1>
+              <p>{meta.description}</p>
+            </div>
+            <span className="period-label">
+              <Icon name="planner" size={18} />
+              {demo ? "28 сен — 4 окт 2026 · DEMO" : "Текущее состояние"}
+            </span>
+          </div>
+          {visited.map((section) => (
+            <div
+              hidden={section !== page}
+              key={`${section}-${demo}`}
+              className="workspace-view"
+              data-page={section}
+            >
+              {section === "overview" && (
+                <Overview {...workspace} demo={demo} onNavigate={navigate} />
+              )}
+              {section === "inbox" && (
+                <Inbox {...workspace} demo={demo} globalQuery={globalQuery} />
+              )}
+              {section !== "overview" && section !== "inbox" && !demo && (
+                <Unavailable
+                  title={`${navigation.find((item) => item.id === section)!.label}: подключение ожидается`}
+                />
+              )}
+              {demo && section === "donors" && <Donors {...workspace} />}
+              {demo && section === "channels" && <Channels {...workspace} />}
+              {demo && section === "connections" && (
+                <Connections {...workspace} />
+              )}
+              {demo && section === "planner" && <Planner {...workspace} />}
+              {demo && section === "accounts" && <Accounts {...workspace} />}
+              {demo && section === "settings" && <Settings {...workspace} />}
+            </div>
+          ))}
         </main>
+      </div>
+      {pendingMode !== null && (
+        <Modal title="Переключить режим?" onClose={() => setPendingMode(null)}>
+          <p>
+            Несохранённые правки будут потеряны. DEMO хранит изменения только в
+            памяти этого окна.
+          </p>
+          <div className="action-row">
+            <button onClick={() => setPendingMode(null)}>Остаться</button>
+            <button
+              className="danger-button"
+              onClick={() => applyMode(pendingMode)}
+            >
+              Переключить и сбросить
+            </button>
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+function Overview({
+  data,
+  demo,
+  onNavigate,
+}: WorkspaceProps & { demo: boolean; onNavigate: (page: Page) => void }) {
+  if (!demo) return <Unavailable title="Метрики пока недоступны" />;
+  const pending = data.posts.filter((item) =>
+    ["Новый", "На проверке"].includes(item.state),
+  );
+  const colors = ["#168bff", "#27d2cd", "#a28bfa", "#6d89ae"];
+  const labels = ["Наука", "Технологии", "Природа", "Другое"];
+  const groups = data.posts.map((post) =>
+    ["mars", "space", "atom"].includes(post.art)
+      ? 0
+      : post.art === "tech"
+        ? 1
+        : post.art === "forest"
+          ? 2
+          : 3,
+  );
+  const counts = labels.map(
+    (_, index) => groups.filter((group) => group === index).length,
+  );
+  let edge = 0;
+  const gradient = counts
+    .map((count, index) => {
+      const start = edge;
+      edge += (count / Math.max(data.posts.length, 1)) * 100;
+      return `${colors[index]} ${start}% ${edge}%`;
+    })
+    .join(", ");
+  return (
+    <>
+      <div className="metric-row">
+        <Metric
+          icon="download"
+          title="Получено"
+          value={data.posts.length}
+          tone="blue"
+        />
+        <Metric
+          icon="clock"
+          title="На проверке"
+          value={pending.length}
+          tone="orange"
+        />
+        <Metric
+          icon="check"
+          title="Готово"
+          value={data.posts.filter((item) => item.state === "Готово").length}
+          tone="green"
+        />
+        <Metric
+          icon="planner"
+          title="Запланировано"
+          value={data.scheduled.length}
+          tone="violet"
+        />
+      </div>
+      <div className="overview-grid">
+        <Panel>
+          <PanelTitle title="Поток контента" icon="chart">
+            <span className="small-muted">Текущие статусы · DEMO</span>
+          </PanelTitle>
+          <div className="chart-legend">
+            <span>
+              <i className="blue" />
+              Получено
+            </span>
+            <span>
+              <i className="orange" />
+              На проверке
+            </span>
+            <span>
+              <i className="green" />
+              Готово
+            </span>
+          </div>
+          <FlowChart posts={data.posts} />
+        </Panel>
+        <Panel>
+          <PanelTitle title="Источники контента" icon="donors">
+            <button
+              className="link-button"
+              onClick={() => onNavigate("donors")}
+            >
+              Все доноры <Icon name="arrow" size={17} />
+            </button>
+          </PanelTitle>
+          <div className="source-distribution">
+            <div
+              className="donut"
+              style={{
+                background: `radial-gradient(#0c2037 0 52%, transparent 53%), conic-gradient(${gradient})`,
+              }}
+            >
+              <b>{data.posts.length}</b>
+              <small>материалов</small>
+            </div>
+            <div className="distribution-legend">
+              {labels.map((label, index) => (
+                <div key={label}>
+                  <i
+                    style={{
+                      background: colors[index],
+                    }}
+                  />
+                  <span>{label}</span>
+                  <b>
+                    {Math.round(
+                      (counts[index] / Math.max(data.posts.length, 1)) * 100,
+                    )}
+                    %
+                  </b>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Panel>
+        <Panel>
+          <PanelTitle title="Очередь модерации" icon="clock">
+            <button className="link-button" onClick={() => onNavigate("inbox")}>
+              Все ({pending.length}) <Icon name="arrow" size={17} />
+            </button>
+          </PanelTitle>
+          {pending.map((item) => (
+            <div className="compact-row" key={item.id}>
+              <Artwork kind={item.art} />
+              <div>
+                <b>{item.title}</b>
+                <small>{item.source}</small>
+              </div>
+              <span className="small-muted">{item.time}</span>
+              <Status value={item.state} />
+            </div>
+          ))}
+        </Panel>
+        <Panel>
+          <PanelTitle title="Мои каналы" icon="channels">
+            <button
+              className="link-button"
+              onClick={() => onNavigate("channels")}
+            >
+              Все каналы <Icon name="arrow" size={17} />
+            </button>
+          </PanelTitle>
+          <div className="channel-mini-header">
+            <span>Канал</span>
+            <span>Подписчики</span>
+            <span>Сегодня</span>
+          </div>
+          {data.channels.map((item) => (
+            <div className="compact-row mini-channel" key={item.id}>
+              <Artwork kind={item.art} />
+              <div>
+                <b>{item.name}</b>
+                <small>{item.category}</small>
+              </div>
+              <span>{item.subscribers}</span>
+              <span className="positive">
+                {item.today} / {item.daily}
+              </span>
+            </div>
+          ))}
+          <div className="activity-note">
+            <Icon name="shield" size={22} />
+            <div>
+              <b>Публикации под контролем редактора</b>
+              <p>DEMO не обращается к Telegram и AI-провайдерам.</p>
+            </div>
+          </div>
+        </Panel>
+      </div>
+    </>
+  );
+}
+function FlowChart({ posts }: { posts: Post[] }) {
+  // Fixture reception timestamps are explicitly Today / Yesterday within the labelled week.
+  // This chart is a current-state breakdown, not a fabricated historical event log.
+  const daily = Array.from({ length: 7 }, (_, day) =>
+    posts.filter((post) => (post.time === "Вчера" ? 3 : 4) === day),
+  );
+  const series = [
+    daily.map((items) => items.length),
+    daily.map(
+      (items) =>
+        items.filter((post) => ["Новый", "На проверке"].includes(post.state))
+          .length,
+    ),
+    daily.map(
+      (items) => items.filter((post) => post.state === "Готово").length,
+    ),
+  ];
+  const maximum = Math.max(3, ...series.flat());
+  const line = (values: number[]) =>
+    values
+      .map(
+        (value, index) =>
+          `${index === 0 ? "M" : "L"}${index * 100} ${178 - (value / maximum) * 168}`,
+      )
+      .join(" ");
+  return (
+    <div className="flow-chart">
+      <div className="y-axis">
+        <span>{maximum}</span>
+        <span>{Math.round((maximum * 2) / 3)}</span>
+        <span>{Math.round(maximum / 3)}</span>
+        <span>0</span>
+      </div>
+      <div className="plot">
+        <div className="grid-lines" />
+        <svg
+          viewBox="0 0 600 180"
+          preserveAspectRatio="none"
+          role="img"
+          aria-label="Демонстрационный поток материалов за выбранную неделю"
+        >
+          <path d={line(series[0])} stroke="#279cff" />
+          <path d={line(series[1])} stroke="#f6ac59" />
+          <path d={line(series[2])} stroke="#28d6c7" />
+        </svg>
+        <div className="x-axis">
+          {[
+            "28 сен",
+            "29 сен",
+            "30 сен",
+            "1 окт",
+            "2 окт",
+            "3 окт",
+            "4 окт",
+          ].map((label) => (
+            <span key={label}>{label}</span>
+          ))}
+        </div>
       </div>
     </div>
   );
 }
 
-function Sidebar({ page, onNavigate }: { page: Page; onNavigate: (page: Page) => void }) {
-  return (
-    <aside className="sidebar" aria-label="Разделы Content Studio">
-      <a className="brand" href="#main-content" aria-label="К содержимому">
-        <span className="brand-mark">➤</span><span><b>Content Studio</b><small>для Telegram</small></span>
-      </a>
-      <nav aria-label="Основная навигация">
-        {navigation.map((item) => (
-          <button key={item.id} className={page === item.id ? "nav-item active" : "nav-item"} onClick={() => onNavigate(item.id)}>
-            <span aria-hidden="true">{item.icon}</span>{item.label}{item.id === "inbox" && <em>4</em>}
-          </button>
-        ))}
-      </nav>
-      <div className="sidebar-footer"><span>◌</span> Ручная модерация</div>
-    </aside>
-  );
-}
-
-function Topbar({ demo, onDemoChange }: { demo: boolean; onDemoChange: (value: boolean) => void }) {
-  return (
-    <header className="topbar">
-      <label className="global-search"><span>⌕</span><input placeholder="Поиск по материалам и каналам" aria-label="Глобальный поиск" /></label>
-      <div className={demo ? "mode-badge demo" : "mode-badge"}>{demo ? "Демо-данные — без публикации" : "Рабочий режим"}</div>
-      <label className="demo-switch"><span>DEMO</span><input type="checkbox" role="switch" aria-label="Включить демо-режим" checked={demo} onChange={(event) => onDemoChange(event.target.checked)} /><i /></label>
-      <button className="icon-button" aria-label="Уведомления">♢</button>
-    </header>
-  );
-}
-
-function PageHeading({ title, description, page }: { title: string; description: string; page: Page }) {
-  const action = page === "channels" ? <button className="primary-button heading-action" disabled title="Добавление канала требует API">＋ Добавить канал <small>требуется API</small></button> : <button className="period-button">◫ Эта неделя</button>;
-  return <section className="page-heading"><div><h1>{title}</h1><p>{description}</p></div>{action}</section>;
-}
-
-function Card({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return <section className={`panel ${className}`}>{children}</section>;
-}
-
-function EmptyOrDisabled({ demo, label }: { demo: boolean; label: string }) {
-  if (demo) return null;
-  return <div className="empty-state"><b>{label}</b><span>В рабочем режиме эта возможность ожидает поддерживаемый API. Включите DEMO для безопасного просмотра интерфейса.</span></div>;
-}
-
-function Overview({ demo, onNavigate }: { demo: boolean; onNavigate: (page: Page) => void }) {
-  const stats = [["⌄", "Получено", "124", "blue"], ["◷", "На проверке", "18", "orange"], ["✓", "Готово", "36", "green"], ["➤", "Запланировано", "9", "violet"]];
-  return <><EmptyOrDisabled demo={demo} label="Метрики недоступны" />{demo && <div className="overview-grid">
-    <div className="metric-row">{stats.map(([icon, title, value, tone]) => <Card key={title} className="metric"><span className={`metric-icon ${tone}`}>{icon}</span><div><small>{title}</small><b>{value}</b><em>за неделю</em></div></Card>)}</div>
-    <Card className="wide"><PanelTitle title="Поток контента" action="По дням" /><FlowChart /></Card>
-    <Card><PanelTitle title="Источники контента" /><div className="donut"><b>124</b><span>материала</span></div><ul className="legend"><li>Наука <b>38%</b></li><li>Технологии <b>31%</b></li><li>Природа <b>19%</b></li><li>Другое <b>12%</b></li></ul></Card>
-    <Card className="wide"><PanelTitle title="Очередь модерации" action="Открыть" onAction={() => onNavigate("inbox")} />{demoInbox.slice(0, 4).map((item) => <div className="compact-row" key={item.id}><span className="avatar">{item.source[0]}</span><div><b>{item.title}</b><small>{item.source}</small></div><span className={`status ${statusClass(item.state)}`}>{item.state}</span></div>)}</Card>
-    <Card><PanelTitle title="Мои каналы" action="Управлять" onAction={() => onNavigate("channels")} />{channels.slice(0, 3).map(([name, followers]) => <div className="compact-row" key={name}><span className="avatar cyan">➤</span><div><b>{name}</b><small>{followers} подписчиков</small></div><strong className="positive">●</strong></div>)}</Card>
-  </div>}</>;
-}
-
-function PanelTitle({ title, action, onAction }: { title: string; action?: string; onAction?: () => void }) {
-  return <div className="panel-title"><h2>{title}</h2>{action && <button className="link-button" onClick={onAction}>{action} →</button>}</div>;
-}
-
-function FlowChart() {
-  return <div className="flow-chart" aria-label="График потока контента"><div className="grid-lines" />{["blue-line", "cyan-line", "violet-line", "orange-line"].map((line) => <svg key={line} className={line} viewBox="0 0 600 180" preserveAspectRatio="none"><polyline points="0,130 100,80 200,58 300,92 400,84 500,50 600,25" /></svg>)}<div className="axis"><span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span></div></div>;
-}
-
-function Inbox({ demo, apiState, apiItems, retry }: { demo: boolean; apiState: ApiState; apiItems: InboxItem[]; retry: () => void }) {
+function Inbox({
+  data,
+  setData,
+  markDirty,
+  demo,
+  globalQuery,
+}: WorkspaceProps & { demo: boolean; globalQuery: string }) {
+  const [live, setLive] = useState<Post[]>([]);
+  const [apiState, setApiState] = useState("idle");
+  const [apiError, setApiError] = useState("");
+  const [reload, setReload] = useState(0);
   const [selectedId, setSelectedId] = useState("mars");
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("Все");
   const [notice, setNotice] = useState("");
-  const [draft, setDraft] = useState("");
-  const items = demo ? demoInbox : apiItems;
-  const selected = items.find((item) => item.id === selectedId) ?? items[0];
-  const visible = items.filter((item) => (filter === "Все" || item.state === filter) && `${item.title} ${item.source}`.toLowerCase().includes(query.toLowerCase()));
-
-  if (!demo && apiState === "loading") return <Card><div className="loading">Загрузка входящих…</div></Card>;
-  if (!demo && apiState === "error") return <Card><div className="error-state"><b>Не удалось загрузить входящие</b><span>Проверьте URL API и доступность сервиса.</span><button onClick={retry}>Повторить</button></div></Card>;
-  return <div className="inbox-layout">
-    <Card className="inbox-list"><label className="field search-field"><span>⌕</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Поиск по входящим" /></label><div className="filter-row">{["Все", "Новый", "На проверке", "Готово"].map((name) => <button key={name} className={filter === name ? "filter active" : "filter"} onClick={() => setFilter(name)}>{name}</button>)}</div>{visible.length ? visible.map((item) => <button className={selected?.id === item.id ? "inbox-card selected" : "inbox-card"} key={item.id} onClick={() => { setSelectedId(item.id); setDraft(item.rewrite); setNotice(""); }}><span className="avatar">{item.source[0]}</span><span><b>{item.source}</b><strong>{item.title}</strong><small>{item.time}</small></span><em className={`status ${statusClass(item.state)}`}>{item.state}</em></button>) : <div className="empty-state">Материалы не найдены</div>}</Card>
-    <Card className="article-panel">{selected ? <><div className="article-meta"><span className="avatar">{selected.source[0]}</span><div><b>{selected.source}</b><small>Оригинал из Telegram · неизменяемый</small></div></div><h2>{selected.title}</h2><section className="source-copy"><h3>Оригинал</h3><p>{selected.original}</p></section><section className="rewrite-box"><div className="panel-title"><h3>Вариант для редактора</h3><span>Только ручное применение</span></div><textarea aria-label="Черновик варианта" value={draft || selected.rewrite} onChange={(event) => setDraft(event.target.value)} placeholder="AI-вариант будет доступен после подключения провайдера" disabled={!demo} /><button className="secondary-button" disabled={!demo || !(draft || selected.rewrite)} onClick={() => setNotice("Черновик применён только в DEMO. Оригинал сохранён без изменений.")}>Применить вариант</button></section>{notice && <p className="inline-notice" role="status">{notice}</p>}</> : <div className="empty-state">Выберите материал из списка</div>}</Card>
-    <Card className="actions-panel"><PanelTitle title="Куда публиковать" />{selected?.destinations.map((destination) => <label className="destination" key={destination}><input type="checkbox" defaultChecked disabled={!demo} /> <span>{destination}</span></label>)}<hr /><h3>Следующее действие</h3><p className="muted-copy">Одобрение не публикует материал. Запланировать и опубликовать — независимые операции.</p><button className="primary-button" aria-label="Одобрить материал" disabled={!demo || selected?.state === "Отклонён"} onClick={() => setNotice("Материал одобрен. Публикация не выполнена.")}>✓ Одобрить</button><button className="secondary-button" aria-label="Запланировать" disabled={!demo} onClick={() => setNotice("В DEMO открыт сценарий планирования; публикация не выполнялась.")}>□ Запланировать</button><button className="danger-button" aria-label="Отклонить материал" disabled={!demo} onClick={() => setNotice("Материал отклонён только в DEMO.")}>× Отклонить</button><button className="secondary-button" aria-label="Опубликовать" disabled><span>➤</span> Опубликовать <small>требуется API</small></button></Card>
-  </div>;
+  const [schedule, setSchedule] = useState(false);
+  const [pendingApplyId, setPendingApplyId] = useState<string | null>(null);
+  useEffect(() => {
+    setQuery(globalQuery);
+  }, [globalQuery]);
+  useEffect(() => {
+    if (demo) return;
+    const controller = new AbortController();
+    setApiState("loading");
+    setApiError("");
+    loadInbox(controller.signal)
+      .then((items) => {
+        setLive(items);
+        setApiState("ready");
+      })
+      .catch((error: unknown) => {
+        if (!controller.signal.aborted) {
+          setApiState("error");
+          setApiError(
+            error instanceof Error ? error.message : "Ошибка загрузки",
+          );
+        }
+      });
+    return () => controller.abort();
+  }, [demo, reload]);
+  const items = demo ? data.posts : live;
+  const visible = items.filter(
+    (item) =>
+      (filter === "Все" || item.state === filter) &&
+      `${item.title} ${item.source}`
+        .toLowerCase()
+        .includes(query.toLowerCase()),
+  );
+  const selected = visible.find((item) => item.id === selectedId);
+  const dirty = data.posts.some((item) => Boolean(item.draft));
+  useEffect(() => markDirty("inbox", dirty), [dirty, markDirty]);
+  const update = (post: Post, patch: Partial<Post>) =>
+    setData((prior) => ({
+      ...prior,
+      posts: prior.posts.map((item) =>
+        item.id === post.id ? { ...item, ...patch } : item,
+      ),
+    }));
+  const applySuggestion = (postId: string) => {
+    if (!demo) return;
+    setData((prior) => ({
+      ...prior,
+      posts: prior.posts.map((post) =>
+        post.id === postId && canProcess(post)
+          ? { ...post, draft: post.suggestion }
+          : post,
+      ),
+    }));
+    setPendingApplyId(null);
+    setNotice(
+      "Черновик применён только в DEMO. Оригинал сохранён без изменений.",
+    );
+  };
+  const apply = () => {
+    if (!demo || !selected || !canProcess(selected)) return;
+    if (selected.draft && selected.draft !== selected.suggestion) {
+      setPendingApplyId(selected.id);
+      return;
+    }
+    applySuggestion(selected.id);
+  };
+  const approve = () => {
+    if (!demo || !selected || !canProcess(selected)) return;
+    update(selected, { state: "Готово" });
+    setNotice("Материал одобрен в DEMO. Публикация не выполнена.");
+  };
+  if (!demo && apiState === "loading")
+    return (
+      <Panel>
+        <div className="empty-state" role="status">
+          Загрузка входящих…
+        </div>
+      </Panel>
+    );
+  if (!demo && apiState === "error")
+    return (
+      <Panel>
+        <div className="empty-state">
+          <Icon name="close" />
+          <h2>Не удалось загрузить входящие</h2>
+          <p role="alert">{apiError}</p>
+          <button onClick={() => setReload((prior) => prior + 1)}>
+            Повторить
+          </button>
+        </div>
+      </Panel>
+    );
+  return (
+    <div className="inbox-layout">
+      <Panel className="inbox-list">
+        <Search
+          value={query}
+          onChange={setQuery}
+          placeholder="Поиск по входящим"
+        />
+        <div className="filter-row">
+          {["Все", "Новый", "На проверке", "Готово", "Отклонён"].map(
+            (value) => (
+              <button
+                key={value}
+                className={`filter ${filter === value ? "active" : ""}`}
+                onClick={() => setFilter(value)}
+              >
+                {value}
+                <em>
+                  {value === "Все"
+                    ? items.length
+                    : items.filter((item) => item.state === value).length}
+                </em>
+              </button>
+            ),
+          )}
+        </div>
+        <div className="inbox-queue">
+          {visible.map((item) => (
+            <button
+              className={`inbox-card ${selected?.id === item.id ? "selected" : ""}`}
+              key={item.id}
+              onClick={() => {
+                setSelectedId(item.id);
+                setNotice("");
+              }}
+            >
+              <Artwork kind={item.art || "tech"} />
+              <span className="post-summary">
+                <span className="post-byline">
+                  <Icon name="channels" size={16} />
+                  <b>{item.source}</b>
+                  <small>{item.time}</small>
+                </span>
+                <strong>{item.title}</strong>
+                <Status value={item.state} />
+              </span>
+            </button>
+          ))}
+          {!visible.length && (
+            <div className="empty-state">
+              <h3>Материалы не найдены</h3>
+              <p>
+                {query
+                  ? "Измените поисковый запрос или фильтр."
+                  : "Очередь входящих пуста."}
+              </p>
+            </div>
+          )}
+        </div>
+      </Panel>
+      <Panel className="article-panel">
+        {selected ? (
+          <>
+            <div className="article-meta">
+              <Artwork kind={selected.art || "tech"} />
+              <div>
+                <b>{selected.source}</b>
+                <small>Telegram · ревизия {selected.revision}</small>
+              </div>
+              <Status value={selected.state} />
+            </div>
+            <div className="article-tags">
+              <span>
+                <Icon name="clock" size={15} />
+                {selected.time}
+              </span>
+              <span>Оригинал из Telegram · неизменяемый</span>
+            </div>
+            <h2>{selected.title}</h2>
+            <div className="original-copy" aria-label="Оригинал материала">
+              {selected.original.split("\n\n").map((paragraph, index) => (
+                <p key={index}>{paragraph}</p>
+              ))}
+            </div>
+            {demo && (
+              <div className="article-media">
+                <Artwork kind={selected.art} />
+                <span>Иллюстрация DEMO</span>
+              </div>
+            )}
+            <section className="rewrite-box">
+              <PanelTitle title="Предложение AI" icon="spark">
+                <button
+                  className="small-button"
+                  disabled={
+                    !demo || !canProcess(selected) || !selected.suggestion
+                  }
+                  onClick={apply}
+                  title={
+                    !canProcess(selected)
+                      ? "EditorialGate не разрешил рерайт"
+                      : "Применить к черновику"
+                  }
+                >
+                  Применить вариант
+                </button>
+              </PanelTitle>
+              <p>
+                {selected.suggestion ||
+                  (canProcess(selected)
+                    ? "AI-вариант пока отсутствует. Провайдер не вызывается в DEMO."
+                    : "EditorialGate не разрешил рерайт. AI-вызовы недоступны.")}
+              </p>
+            </section>
+            <label className="field">
+              Черновик редактора
+              <textarea
+                aria-label="Черновик варианта"
+                value={selected.draft}
+                disabled={!demo || !canProcess(selected)}
+                placeholder="Примените предложение или введите ручной вариант"
+                onChange={(event) =>
+                  update(selected, { draft: event.target.value })
+                }
+              />
+            </label>
+            {selected.draft && (
+              <button
+                className="small-button"
+                onClick={() => update(selected, { draft: "" })}
+              >
+                Отменить черновик
+              </button>
+            )}
+            {selected.editorial === "REJECT" && (
+              <Notice error>
+                EDITORIAL REJECT: рерайт и планирование запрещены.
+              </Notice>
+            )}
+            {notice && <Notice>{notice}</Notice>}
+          </>
+        ) : (
+          <div className="empty-state">
+            <Icon name="inbox" size={36} />
+            <h2>Выберите материал</h2>
+            <p>Оригинал и действия появятся после выбора строки.</p>
+          </div>
+        )}
+      </Panel>
+      <div className="inbox-actions">
+        <Panel>
+          <PanelTitle title="Куда публиковать" icon="channels" />
+          {demo && selected ? (
+            data.channels.map((channel) => (
+              <label className="destination" key={channel.id}>
+                <input
+                  type="checkbox"
+                  checked={selected.destinations.includes(channel.id)}
+                  onChange={(event) =>
+                    update(selected, {
+                      destinations: event.target.checked
+                        ? [...selected.destinations, channel.id]
+                        : selected.destinations.filter(
+                            (id) => id !== channel.id,
+                          ),
+                    })
+                  }
+                  disabled={!canProcess(selected)}
+                />
+                <Artwork kind={channel.art} />
+                <span>
+                  <b>{channel.name}</b>
+                  <small>{channel.subscribers} подписчиков</small>
+                </span>
+              </label>
+            ))
+          ) : (
+            <p className="help-copy">
+              Получатели появятся после подключения рабочего API маршрутов.
+            </p>
+          )}
+        </Panel>
+        <Panel>
+          <PanelTitle title="Публикация" icon="clock" />
+          <p className="help-copy">
+            Одобрение сохраняет решение редактора. Время публикации задаётся
+            отдельно в планировщике.
+          </p>
+          <div className="policy-note">
+            <Icon name="shield" size={20} />
+            <span>
+              Ручное подтверждение
+              <br />
+              <small>EditorialGate проверяется до действий</small>
+            </span>
+          </div>
+        </Panel>
+        <button
+          className="primary-button full"
+          disabled={!demo || !selected || !canProcess(selected)}
+          aria-label="Одобрить материал"
+          onClick={approve}
+        >
+          <Icon name="check" />
+          Одобрить
+        </button>
+        <button
+          className="danger-button full"
+          disabled={!demo || !selected}
+          aria-label="Отклонить материал"
+          onClick={() => {
+            if (selected) {
+              update(selected, {
+                state: "Отклонён",
+                editorial: "REJECT",
+                rewriteAllowed: false,
+                suggestion: "",
+              });
+              setData((prior) => ({
+                ...prior,
+                scheduled: prior.scheduled.filter(
+                  (job) => job.postId !== selected.id,
+                ),
+              }));
+              setNotice(
+                "Материал отклонён только в DEMO. Незавершённые планы удалены.",
+              );
+            }
+          }}
+        >
+          <Icon name="close" />
+          Отклонить
+        </button>
+        <button
+          className="full"
+          aria-label="Запланировать"
+          disabled={!demo || !selected || !canProcess(selected)}
+          onClick={() => setSchedule(true)}
+        >
+          <Icon name="planner" />
+          Запланировать
+        </button>
+        <button
+          className="full"
+          aria-label="Опубликовать"
+          disabled
+          title="API публикации пока не реализован"
+        >
+          <Icon name="channels" />
+          Опубликовать <small>требуется API</small>
+        </button>
+      </div>
+      {schedule && selected && (
+        <ScheduleDialog
+          data={data}
+          setData={setData}
+          postId={selected.id}
+          onClose={() => setSchedule(false)}
+        />
+      )}
+      {pendingApplyId && (
+        <Modal
+          title="Заменить ручной черновик?"
+          onClose={() => setPendingApplyId(null)}
+        >
+          <p>
+            AI-вариант заменит текущие ручные правки. Оригинал Telegram
+            останется неизменным.
+          </p>
+          <div className="action-row">
+            <button onClick={() => setPendingApplyId(null)}>
+              Сохранить ручной текст
+            </button>
+            <button
+              className="primary-button"
+              onClick={() => applySuggestion(pendingApplyId)}
+            >
+              Заменить вариантом AI
+            </button>
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
 }
 
-function Donors({ demo }: { demo: boolean }) {
-  const [selected, setSelected] = useState(0); const [importOpen, setImportOpen] = useState(false); const [raw, setRaw] = useState(""); const [validated, setValidated] = useState(false);
-  const lines = raw.split(/\r?\n/).map((line) => line.trim()).filter(Boolean); const invalid = lines.filter((line) => !/^@?[A-Za-z0-9_]{4,}$/.test(line)); const duplicate = lines.filter((line, index) => lines.indexOf(line) !== index);
-  return <><EmptyOrDisabled demo={demo} label="Источники недоступны" />{demo && <div className="two-column"><Card><div className="toolbar"><label className="field search-field"><span>⌕</span><input placeholder="Поиск по источникам" /></label><button className="primary-button" onClick={() => { setValidated(false); setImportOpen(true); }}>↑ Импорт</button></div><div className="table-list">{donors.map((donor, index) => <button className={index === selected ? "table-row selected" : "table-row"} key={donor[1]} onClick={() => setSelected(index)}><span className="avatar">{donor[0][0]}</span><span><b>{donor[0]}</b><small>{donor[1]}</small></span><span className={`status ${statusClass(donor[2])}`}>{donor[2]}</span><span className="chip">{donor[3]}</span></button>)}</div></Card><Card><PanelTitle title="Настройки источника" /><div className="profile-title"><span className="avatar large">{donors[selected][0][0]}</span><div><h2>{donors[selected][0]}</h2><p>{donors[selected][1]}</p></div></div><label className="toggle-row">Включён для сбора<input type="checkbox" role="switch" defaultChecked /><i /></label><label className="field">Допустимые типы<select defaultValue="text-photo"><option value="text-photo">Текст и фото</option><option value="text">Только текст</option></select></label><label className="field">Стоп-слова<input defaultValue="Реклама, криптовалюта" /></label><p className="help-copy">Проверка URL, дублей и технических фильтров выполняется до EditorialGate.</p></Card></div>}{importOpen && <Modal title="Импорт доноров" onClose={() => setImportOpen(false)}><p>По одному @username в строке. В DEMO доступна только проверка: импорт не выполняется.</p><textarea value={raw} onChange={(event) => { setRaw(event.target.value); setValidated(false); }} placeholder="@science_today\n@tech_today" aria-label="Список доноров для импорта" />{raw && <div className="validation"><span>Строк: {lines.length}</span><span className={invalid.length ? "negative" : "positive"}>Ошибок формата: {invalid.length}</span><span className={duplicate.length ? "negative" : "positive"}>Дублей: {duplicate.length}</span></div>}{validated && <p className="inline-notice">Проверка DEMO завершена: строки не были импортированы.</p>}<button className="primary-button" disabled={!lines.length || invalid.length > 0 || duplicate.length > 0} onClick={() => setValidated(true)}>Проверить строки</button></Modal>}</>;
+export function ScheduleDialog({
+  data,
+  setData,
+  postId,
+  existingJobId,
+  onClose,
+}: Pick<WorkspaceProps, "data" | "setData"> & {
+  postId: string;
+  existingJobId?: string;
+  onClose: () => void;
+}) {
+  const existing = data.scheduled.find(
+    (job) =>
+      job.postId === postId &&
+      (existingJobId
+        ? job.id === existingJobId
+        : job.channelId ===
+          data.posts.find((post) => post.id === postId)?.destinations[0]),
+  );
+  const [date, setDate] = useState(existing?.date ?? "2026-10-02");
+  const [time, setTime] = useState(existing?.time ?? "15:00");
+  const [channelId, setChannelId] = useState(
+    existing?.channelId ??
+      data.posts.find((item) => item.id === postId)?.destinations[0] ??
+      "",
+  );
+  const [error, setError] = useState("");
+  const [targetDrafts, setTargetDrafts] = useState<
+    Record<string, { date: string; time: string }>
+  >({});
+  const chooseTarget = (nextId: string) => {
+    if (!existingJobId) {
+      const saved =
+        targetDrafts[nextId] ??
+        data.scheduled.find(
+          (job) => job.postId === postId && job.channelId === nextId,
+        );
+      setTargetDrafts((prior) => ({ ...prior, [channelId]: { date, time } }));
+      if (saved) {
+        setDate(saved.date);
+        setTime(saved.time);
+      }
+    }
+    setChannelId(nextId);
+  };
+  const save = () => {
+    const problem = scheduleError(
+      data.posts.find((item) => item.id === postId),
+      data.channels.find((item) => item.id === channelId),
+      date,
+      time,
+    );
+    if (problem) {
+      setError(problem);
+      return;
+    }
+    setData((prior) => {
+      if (
+        scheduleError(
+          prior.posts.find((item) => item.id === postId),
+          prior.channels.find((item) => item.id === channelId),
+          date,
+          time,
+        )
+      )
+        return prior;
+      const id = `${postId}-${channelId}`;
+      return {
+        ...prior,
+        scheduled: [
+          ...prior.scheduled.filter(
+            (job) => job.id !== id && job.id !== existingJobId,
+          ),
+          { id, postId, channelId, date, time },
+        ],
+      };
+    });
+    onClose();
+  };
+  return (
+    <Modal title="Планирование в DEMO" onClose={onClose}>
+      <p>
+        Расписание сохраняется в памяти рабочего пространства.
+        Telegram-публикация не выполняется.
+      </p>
+      <label className="field">
+        Канал
+        <select
+          aria-label="Канал"
+          value={channelId}
+          onChange={(event) => chooseTarget(event.target.value)}
+        >
+          <option value="">Выберите канал</option>
+          {data.channels.map((item) => (
+            <option key={item.id} value={item.id}>
+              {item.name}
+            </option>
+          ))}
+        </select>
+      </label>
+      {data.scheduled.some(
+        (job) => job.postId === postId && job.channelId === channelId,
+      ) && (
+        <p className="help-copy">
+          Для этого материала и канала уже есть запись. Сохранение явно обновит
+          её дату и время, не создавая дубликат.
+        </p>
+      )}
+      <div className="form-grid">
+        <label className="field">
+          Дата
+          <input
+            type="date"
+            value={date}
+            onChange={(event) => setDate(event.target.value)}
+          />
+        </label>
+        <label className="field">
+          Время
+          <input
+            type="time"
+            value={time}
+            onChange={(event) => setTime(event.target.value)}
+          />
+        </label>
+      </div>
+      <p className="help-copy">
+        Europe/Minsk · UTC+3. Проверяются окно публикации и тихие часы.
+      </p>
+      {error && <Notice error>{error}</Notice>}
+      <div className="action-row">
+        <button onClick={onClose}>Отмена</button>
+        <button className="primary-button" onClick={save}>
+          Сохранить расписание DEMO
+        </button>
+      </div>
+    </Modal>
+  );
 }
 
-function Channels({ demo }: { demo: boolean }) {
-  const [selected, setSelected] = useState(0); const [mode, setMode] = useState("Ручной"); const [saved, setSaved] = useState(false);
-  const detail = channelDetails[selected];
-  return <><EmptyOrDisabled demo={demo} label="Каналы недоступны" />{demo && <div className="channels-layout"><Card className="channel-directory"><div className="channel-toolbar"><label className="field search-field"><span>⌕</span><input placeholder="Поиск по каналам…" /></label><button className="filter active">Все статусы</button><button className="filter">Ручной режим</button><button className="icon-button" aria-label="Вид списка">☷</button></div><div className="directory-caption"><span>{channels.length} канала</span><small>Выберите канал, чтобы настроить правила</small></div>{channels.map((channel, index) => { const item = channelDetails[index]; return <button className={selected === index ? "channel-card rich selected" : "channel-card rich"} key={channel[0]} onClick={() => { setSelected(index); setMode(channel[4]); setSaved(false); }}><span className={`channel-art ${item.art}`}>{item.glyph}</span><span className="channel-identity"><b>{channel[0]}</b><small>{channel[1]} подписчиков</small><em>{item.category}</em></span><span><small>Лимит</small><b>{channel[2]}</b></span><span><small>Тихие часы</small><b>{channel[3]}</b></span><span><small>Сегодня</small><b>{item.today}</b><i className="progress"><i style={{ width: `${Math.round((Number(item.today.split(" /")[0]) / Number(item.today.split("/")[1].trim())) * 100)}%` }} /></i></span><span className="more">⋮</span></button>; })}</Card><Card className="channel-detail"><div className="channel-profile"><span className={`channel-art large ${detail.art}`}>{detail.glyph}</span><div><div className="detail-title"><h2>{channels[selected][0]}</h2><span className="verified">✓</span></div><p>{channels[selected][1]} подписчиков</p></div><button className="icon-button" aria-label="Дополнительные действия канала">⋮</button></div><p className="channel-description">{detail.description}</p><div className="channel-link"><span>⌁</span><span>{detail.link}</span><button disabled>Открыть ↗</button></div><div className="detail-tabs" aria-label="Разделы настроек канала"><button className="active">Публикации</button><button disabled>AI-профиль</button><button disabled>Правила</button><button disabled>Статистика</button></div><section className="detail-section"><div className="section-heading"><span className="section-symbol">◷</span><div><h3>Окна публикаций</h3><p>Когда материалы могут быть запланированы</p></div></div><div className="publish-window"><span>09:00</span><b>—</b><span>12:00</span><div className="weekday-row"><em>Пн</em><em>Вт</em><em>Ср</em><em>Чт</em><em>Пт</em></div></div><div className="publish-window"><span>15:00</span><b>—</b><span>20:00</span><div className="weekday-row"><em>Пн</em><em>Вт</em><em>Ср</em><em>Чт</em><em>Пт</em></div></div></section><section className="detail-section compact-section"><div className="section-heading"><span className="section-symbol violet">☾</span><div><h3>Тихие часы</h3><p>Публикации не будут выходить в этот период</p></div></div><span className="quiet-time">23:00 — 08:00</span></section><section className="detail-section compact-section"><div className="section-heading"><span className="section-symbol cyan">➤</span><div><h3>Режим публикации</h3><p>Редактор всегда подтверждает публикацию отдельно.</p></div></div><label className="mode-select">Режим<select value={mode} onChange={(event) => { setMode(event.target.value); setSaved(false); }}><option>Ручной</option><option>С проверкой</option><option>Автоматически</option></select></label></section>{mode === "Автоматически" && <p className="warning-note">Автоматический режим в DEMO не публикует материалы и требует серверной политики.</p>}<button className="primary-button channel-save" onClick={() => setSaved(true)}>Сохранить настройки DEMO</button>{saved && <p className="inline-notice">Настройки канала сохранены только в DEMO.</p>}</Card></div>}</>;
+function Donors({ data, setData, markDirty }: WorkspaceProps) {
+  const [selectedId, setSelectedId] = useState(data.donors[0].id);
+  const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState("Все");
+  const selected = data.donors.find((item) => item.id === selectedId)!;
+  const [draft, setDraft] = useState<Donor>(selected);
+  const [notice, setNotice] = useState("");
+  const [importOpen, setImportOpen] = useState(false);
+  const [raw, setRaw] = useState("");
+  const [report, setReport] = useState("");
+  const dirty = JSON.stringify(selected) !== JSON.stringify(draft);
+  useEffect(() => markDirty("donors", dirty), [dirty, markDirty]);
+  const choose = (donor: Donor) => {
+    if (dirty) {
+      setNotice("Сохраните или отмените правки перед выбором другого донора.");
+      return;
+    }
+    setSelectedId(donor.id);
+    setDraft(donor);
+    setNotice("");
+  };
+  const parsed = validateDonors(
+    raw,
+    data.donors.map((item) => item.id),
+  );
+  const importDemo = () => {
+    const valid = parsed.filter((row) => !row.error);
+    if (!valid.length) return;
+    setData((prior) => ({
+      ...prior,
+      donors: [
+        ...prior.donors,
+        ...valid.map((row) => ({
+          id: row.id,
+          name: row.id.slice(1),
+          category: "Без категории",
+          art: "tech",
+          state: "На проверке",
+          enabled: false,
+          daily: 0,
+          synced: "Не синхронизирован",
+          words: "",
+          media: "Только текст",
+        })),
+      ],
+    }));
+    setReport(
+      `Добавлено в память DEMO: ${valid.length}. Подключение к Telegram не выполнялось.`,
+    );
+    setRaw("");
+  };
+  return (
+    <>
+      <div className="metric-row">
+        <Metric
+          title="Активные источники"
+          value={data.donors.filter((item) => item.state === "Активен").length}
+          icon="check"
+          tone="green"
+        />
+        <Metric
+          title="Требуют проверки"
+          value={
+            data.donors.filter((item) => item.state === "На проверке").length
+          }
+          icon="clock"
+          tone="orange"
+        />
+        <Metric
+          title="На паузе"
+          value={data.donors.filter((item) => !item.enabled).length}
+          icon="pause"
+          tone="muted"
+        />
+        <Metric
+          title="Всего источников"
+          value={data.donors.length}
+          icon="donors"
+          tone="blue"
+        />
+      </div>
+      <div className="donors-layout">
+        <Panel>
+          <div className="toolbar">
+            <Search
+              value={query}
+              onChange={setQuery}
+              placeholder="Поиск по источникам"
+            />
+            <button
+              onClick={() => {
+                setImportOpen(true);
+                setReport("");
+              }}
+            >
+              <Icon name="upload" size={18} />
+              Импорт
+            </button>
+          </div>
+          <div className="filter-row">
+            {["Все", "Активен", "На проверке", "На паузе"].map((value) => (
+              <button
+                className={`filter ${filter === value ? "active" : ""}`}
+                key={value}
+                onClick={() => setFilter(value)}
+              >
+                {value}
+              </button>
+            ))}
+          </div>
+          <div className="table-scroller">
+            <table className="directory-table">
+              <thead>
+                <tr>
+                  <th>Источник</th>
+                  <th>Категория</th>
+                  <th>Частота</th>
+                  <th>Статус</th>
+                  <th>Последняя синхр.</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.donors
+                  .filter(
+                    (item) =>
+                      (filter === "Все" || item.state === filter) &&
+                      `${item.name} ${item.id}`
+                        .toLowerCase()
+                        .includes(query.toLowerCase()),
+                  )
+                  .map((item) => (
+                    <tr
+                      key={item.id}
+                      className={selectedId === item.id ? "selected" : ""}
+                    >
+                      <td>
+                        <button
+                          className="table-identity"
+                          onClick={() => choose(item)}
+                        >
+                          <Artwork kind={item.art} />
+                          <span>
+                            <b>{item.name}</b>
+                            <small>{item.id}</small>
+                          </span>
+                        </button>
+                      </td>
+                      <td>
+                        <span className="chip">{item.category}</span>
+                      </td>
+                      <td>{item.daily} / день</td>
+                      <td>
+                        <Status value={item.state} />
+                      </td>
+                      <td className="small-muted">{item.synced}</td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="table-footer">
+            Всего источников: {data.donors.length}
+            <span>Только Telegram</span>
+          </div>
+        </Panel>
+        <Panel>
+          <div className="profile-title">
+            <Artwork kind={selected.art} large />
+            <div>
+              <h2>{selected.name}</h2>
+              <p>{selected.id}</p>
+            </div>
+            <Status value={selected.state} />
+          </div>
+          <p className="description">
+            Материалы источника проходят технические фильтры, проверку дублей и
+            EditorialGate.
+          </p>
+          <div className="chip-row">
+            <span className="chip">{selected.category}</span>
+            <span className="chip">Telegram</span>
+          </div>
+          <div className="section-divider" />
+          <PanelTitle title="Настройки источника" icon="settings" />
+          <Toggle
+            label="Включён для сбора"
+            checked={draft.enabled}
+            onChange={(enabled) => setDraft({ ...draft, enabled })}
+          />
+          <label className="field">
+            Допустимые типы
+            <select
+              value={draft.media}
+              onChange={(event) =>
+                setDraft({ ...draft, media: event.target.value })
+              }
+            >
+              <option>Текст и фото</option>
+              <option>Только текст</option>
+            </select>
+          </label>
+          <label className="field">
+            Стоп-слова
+            <input
+              value={draft.words}
+              onChange={(event) =>
+                setDraft({ ...draft, words: event.target.value })
+              }
+              placeholder="Через запятую"
+            />
+          </label>
+          <p className="help-copy">
+            Видео и запрещённые материалы исключаются до AI-классификации.
+          </p>
+          <DraftActions
+            dirty={dirty}
+            onCancel={() => {
+              setDraft(selected);
+              setNotice("");
+            }}
+            onSave={() => {
+              setData((prior) => ({
+                ...prior,
+                donors: prior.donors.map((item) =>
+                  item.id === draft.id
+                    ? {
+                        ...draft,
+                        state: draft.enabled ? "Активен" : "На паузе",
+                      }
+                    : item,
+                ),
+              }));
+              setDraft({
+                ...draft,
+                state: draft.enabled ? "Активен" : "На паузе",
+              });
+              setNotice("Настройки сохранены в памяти DEMO.");
+            }}
+          />
+          {notice && <Notice>{notice}</Notice>}
+          <div className="section-divider" />
+          <PanelTitle title="Сбор материалов" icon="chart" />
+          <div className="detail-metrics">
+            <div>
+              <b>{selected.daily}</b>
+              <small>в день · DEMO</small>
+            </div>
+            <div>
+              <b>{selected.synced}</b>
+              <small>последняя синхронизация</small>
+            </div>
+          </div>
+        </Panel>
+      </div>
+      {importOpen && (
+        <Modal title="Импорт доноров" onClose={() => setImportOpen(false)}>
+          <p>
+            По одному @username или https://t.me/username в строке. Источники
+            добавляются только в память DEMO.
+          </p>
+          <label className="field">
+            Список доноров
+            <textarea
+              aria-label="Список доноров для импорта"
+              value={raw}
+              onChange={(event) => setRaw(event.target.value)}
+              placeholder="@new_science\nhttps://t.me/another_source"
+            />
+          </label>
+          <div className="validation-list">
+            {parsed.map((row, index) => (
+              <div key={index}>
+                <span>{row.input}</span>
+                <span className={row.error ? "negative" : "positive"}>
+                  {row.error || "Корректно"}
+                </span>
+              </div>
+            ))}
+          </div>
+          {report && <Notice>{report}</Notice>}
+          <div className="action-row">
+            <button onClick={() => setImportOpen(false)}>Закрыть</button>
+            <button
+              className="primary-button"
+              disabled={!parsed.some((row) => !row.error)}
+              onClick={importDemo}
+            >
+              Добавить корректные в DEMO
+            </button>
+          </div>
+        </Modal>
+      )}
+    </>
+  );
 }
 
-function Connections({ demo }: { demo: boolean }) {
-  const [selected, setSelected] = useState(0); const [intake, setIntake] = useState(68); const [mix, setMix] = useState(42); const [saved, setSaved] = useState(false);
-  const routes = [["Наука сегодня", "Научные факты"], ["Технологии и люди", "Технологии сегодня"], ["Зелёная планета", "Мир вокруг нас"]];
-  return <><EmptyOrDisabled demo={demo} label="Связи недоступны" />{demo && <div className="connection-layout"><Card><PanelTitle title="Маршруты" />{routes.map((route, index) => <button key={route.join()} className={selected === index ? "route-card selected" : "route-card"} onClick={() => { setSelected(index); setSaved(false); }}><span className="avatar">{route[0][0]}</span><b>{route[0]} → {route[1]}</b><small>Ручная модерация · активна</small></button>)}</Card><Card><PanelTitle title="Настройки маршрута" /><div className="route-pair"><span>{routes[selected][0]}</span><b>→</b><span>{routes[selected][1]}</span></div><RangeField label="Доля входящих материалов" description="intake_percent: сколько материалов донора направлять на рассмотрение" value={intake} onChange={setIntake} /><RangeField label="Целевая доля в канале" description="target_mix_percent: желаемая доля донора среди публикаций канала" value={mix} onChange={setMix} /><fieldset><legend>Политика модерации</legend><label><input type="radio" name="moderation" defaultChecked /> Сначала редакторская проверка</label><label><input type="radio" name="moderation" /> Только вручную</label></fieldset><div className="action-row"><button className="secondary-button" onClick={() => { setIntake(68); setMix(42); }}>Отмена</button><button className="primary-button" onClick={() => setSaved(true)}>Сохранить изменения</button></div>{saved && <p className="inline-notice">Настройки сохранены только в DEMO.</p>}</Card></div>}</>;
+export function DraftActions({
+  dirty,
+  onSave,
+  onCancel,
+  saveLabel = "Сохранить",
+}: {
+  dirty: boolean;
+  onSave: () => void;
+  onCancel: () => void;
+  saveLabel?: string;
+}) {
+  return (
+    <div className="draft-actions">
+      <span className={dirty ? "dirty-label" : "small-muted"}>
+        {dirty
+          ? "Есть несохранённые изменения"
+          : "DEMO · изменения в памяти окна"}
+      </span>
+      <div className="action-row">
+        <button disabled={!dirty} onClick={onCancel}>
+          Отмена
+        </button>
+        <button className="primary-button" disabled={!dirty} onClick={onSave}>
+          {saveLabel}
+        </button>
+      </div>
+    </div>
+  );
 }
 
-function RangeField({ label, description, value, onChange }: { label: string; description: string; value: number; onChange: (value: number) => void }) { return <label className="range-field"><b>{label}</b><small>{description}</small><div><input type="range" min="0" max="100" value={value} onChange={(event) => onChange(Number(event.target.value))} /><output>{value}%</output></div></label>; }
-
-function Planner({ demo }: { demo: boolean }) {
-  const [selected, setSelected] = useState("mars"); const [scheduled, setScheduled] = useState<string[]>(["model", "forest"]); const days = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
-  return <><EmptyOrDisabled demo={demo} label="Планировщик недоступен" />{demo && <div className="planner-layout"><Card className="calendar"><div className="toolbar"><button className="period-button">◫ Неделя</button><button className="filter active">Сегодня</button><span className="timezone">Europe/Minsk (UTC+3)</span></div><div className="week-grid">{days.map((day, index) => <section key={day}><header><b>{day}</b><small>{index + 1}</small></header>{["09:00", "12:00", "15:00", "18:00"].map((time, slot) => <button className="calendar-slot" key={time} onClick={() => selected && setScheduled((items) => items.includes(selected) ? items : [...items, selected])}>{scheduled[(index + slot) % scheduled.length] && <span>{demoInbox.find((item) => item.id === scheduled[(index + slot) % scheduled.length])?.title.slice(0, 30)}<small>{time}</small></span>}</button>)}</section>)}</div></Card><Card><PanelTitle title="Без расписания" />{demoInbox.filter((item) => !scheduled.includes(item.id)).map((item) => <button className={selected === item.id ? "unscheduled selected" : "unscheduled"} onClick={() => setSelected(item.id)} key={item.id}><b>{item.title}</b><small>{item.source}</small></button>)}<button className="primary-button" disabled={!selected} onClick={() => setScheduled((items) => items.includes(selected) ? items : [...items, selected])}>Запланировать выбранный</button><p className="help-copy">Перенос в рабочем режиме требует серверной проверки окна и сохранения расписания.</p></Card></div>}</>;
+function Channels({ data, setData, markDirty }: WorkspaceProps) {
+  const [selectedId, setSelectedId] = useState("tech");
+  const [query, setQuery] = useState("");
+  const [modeFilter, setModeFilter] = useState("Все режимы");
+  const [tab, setTab] = useState("Публикации");
+  const selected = data.channels.find((item) => item.id === selectedId)!;
+  const [draft, setDraft] = useState<Channel>(selected);
+  const [notice, setNotice] = useState("");
+  const dirty = JSON.stringify(selected) !== JSON.stringify(draft);
+  useEffect(() => markDirty("channels", dirty), [dirty, markDirty]);
+  const choose = (item: Channel) => {
+    if (dirty) {
+      setNotice("Сохраните или отмените правки перед выбором другого канала.");
+      return;
+    }
+    setSelectedId(item.id);
+    setDraft(item);
+    setNotice("");
+  };
+  const save = () => {
+    const problem = channelSettingsError(draft);
+    if (problem) {
+      setNotice(problem);
+      return;
+    }
+    setData((prior) => ({
+      ...prior,
+      channels: prior.channels.map((item) =>
+        item.id === draft.id ? draft : item,
+      ),
+    }));
+    setNotice("Настройки канала сохранены только в DEMO.");
+  };
+  return (
+    <div className="channels-layout">
+      <div className="channel-directory">
+        <div className="toolbar">
+          <Search
+            value={query}
+            onChange={setQuery}
+            placeholder="Поиск по каналам"
+          />
+          <select
+            aria-label="Фильтр режима канала"
+            value={modeFilter}
+            onChange={(event) => setModeFilter(event.target.value)}
+          >
+            <option>Все режимы</option>
+            <option>Ручной</option>
+            <option>С проверкой</option>
+          </select>
+          <button disabled title="Создание канала требует API">
+            <Icon name="plus" size={18} />
+            Добавить канал
+          </button>
+        </div>
+        {data.channels
+          .filter(
+            (item) =>
+              item.name.toLowerCase().includes(query.toLowerCase()) &&
+              (modeFilter === "Все режимы" || item.mode === modeFilter),
+          )
+          .map((item) => (
+            <button
+              className={`channel-card ${item.id === selectedId ? "selected" : ""}`}
+              key={item.id}
+              onClick={() => choose(item)}
+            >
+              <Artwork kind={item.art} large />
+              <span className="channel-identity">
+                <b>{item.name}</b>
+                <small>{item.subscribers} подписчиков</small>
+                <em className="chip">{item.category}</em>
+              </span>
+              <span className="channel-stat">
+                <small>Лимит</small>
+                <b>{item.daily}/день</b>
+              </span>
+              <span className="channel-stat">
+                <small>Тихие часы</small>
+                <b>
+                  {item.quietStart} — {item.quietEnd}
+                </b>
+              </span>
+              <span className="channel-stat">
+                <small>Режим</small>
+                <b className="cyan-text">{item.mode}</b>
+              </span>
+              <span className="channel-stat">
+                <small>Сегодня</small>
+                <b>
+                  {item.today} / {item.daily}
+                </b>
+                <span className="progress">
+                  <i
+                    style={{
+                      width: `${Math.min(100, (item.today / item.daily) * 100)}%`,
+                    }}
+                  />
+                </span>
+              </span>
+            </button>
+          ))}
+      </div>
+      <Panel className="channel-detail">
+        <div className="profile-title">
+          <Artwork kind={selected.art} large />
+          <div>
+            <h2>{selected.name}</h2>
+            <p>{selected.subscribers} подписчиков</p>
+          </div>
+        </div>
+        <p className="description">
+          {selected.category}: материалы проходят проверку редактора перед
+          публикацией.
+        </p>
+        <div className="channel-link">
+          <Icon name="connections" size={20} />
+          <span>Telegram · DEMO-канал</span>
+        </div>
+        <div className="detail-tabs">
+          {["Публикации", "AI-профиль", "Правила", "Статистика"].map(
+            (value) => (
+              <button
+                key={value}
+                className={tab === value ? "active" : ""}
+                onClick={() => setTab(value)}
+              >
+                {value}
+              </button>
+            ),
+          )}
+        </div>
+        {tab === "Публикации" && (
+          <>
+            <section className="detail-section">
+              <PanelTitle title="Окно публикаций" icon="clock" />
+              <p className="help-copy">
+                В какое время можно планировать материалы
+              </p>
+              <div className="form-grid">
+                <label className="field">
+                  С
+                  <input
+                    type="time"
+                    value={draft.windowStart}
+                    onChange={(event) =>
+                      setDraft({ ...draft, windowStart: event.target.value })
+                    }
+                  />
+                </label>
+                <label className="field">
+                  До
+                  <input
+                    type="time"
+                    value={draft.windowEnd}
+                    onChange={(event) =>
+                      setDraft({ ...draft, windowEnd: event.target.value })
+                    }
+                  />
+                </label>
+              </div>
+              <div className="weekday-row">
+                {["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"].map((day) => (
+                  <span key={day}>{day}</span>
+                ))}
+              </div>
+            </section>
+            <section className="detail-section">
+              <PanelTitle title="Тихие часы" icon="moon" />
+              <div className="form-grid">
+                <label className="field">
+                  Начало тихих часов
+                  <input
+                    type="time"
+                    value={draft.quietStart}
+                    onChange={(event) =>
+                      setDraft({ ...draft, quietStart: event.target.value })
+                    }
+                  />
+                </label>
+                <label className="field">
+                  Конец тихих часов
+                  <input
+                    type="time"
+                    value={draft.quietEnd}
+                    onChange={(event) =>
+                      setDraft({ ...draft, quietEnd: event.target.value })
+                    }
+                  />
+                </label>
+              </div>
+            </section>
+            <section className="detail-section">
+              <PanelTitle title="Режим публикации" icon="channels" />
+              <label className="field">
+                Режим
+                <select
+                  value={draft.mode}
+                  onChange={(event) =>
+                    setDraft({ ...draft, mode: event.target.value })
+                  }
+                >
+                  <option>Ручной</option>
+                  <option>С проверкой</option>
+                </select>
+              </label>
+              <p className="help-copy">
+                Автопубликация требует серверной политики и пока недоступна.
+              </p>
+            </section>
+            <section className="detail-section">
+              <PanelTitle title="Недельное окно" icon="planner" />
+              <div className="hour-map">
+                {["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"].map((day) => (
+                  <div key={day}>
+                    <small>{day}</small>
+                    {Array.from({ length: 24 }, (_, hour) => (
+                      <i
+                        className={
+                          hour >= Number(draft.windowStart.slice(0, 2)) &&
+                          hour < Number(draft.windowEnd.slice(0, 2))
+                            ? "on"
+                            : ""
+                        }
+                        key={hour}
+                      />
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </section>
+          </>
+        )}
+        {tab === "AI-профиль" && (
+          <section className="detail-section">
+            <PanelTitle title="AI-профиль канала" icon="spark" />
+            <label className="field">
+              Стиль
+              <select
+                value={draft.profile}
+                onChange={(event) =>
+                  setDraft({ ...draft, profile: event.target.value })
+                }
+              >
+                <option>Нейтральный, без домыслов</option>
+                <option>Краткий</option>
+              </select>
+            </label>
+            <p className="help-copy">
+              Смена профиля не вызывает AI. Факты и редакторские ограничения
+              обязательны.
+            </p>
+          </section>
+        )}
+        {tab === "Правила" && (
+          <section className="detail-section">
+            <label className="field">
+              Дневной лимит
+              <input
+                type="number"
+                min="1"
+                max="100"
+                value={draft.daily}
+                onChange={(event) =>
+                  setDraft({ ...draft, daily: Number(event.target.value) })
+                }
+              />
+            </label>
+            <p className="policy-note">
+              <Icon name="shield" />
+              EditorialGate проверяется повторно перед публикацией.
+            </p>
+          </section>
+        )}
+        {tab === "Статистика" && (
+          <section className="detail-section">
+            <div className="detail-metrics">
+              <div>
+                <b>
+                  {selected.today} / {selected.daily}
+                </b>
+                <small>сегодня · DEMO</small>
+              </div>
+              <div>
+                <b>{selected.subscribers}</b>
+                <small>подписчиков · DEMO</small>
+              </div>
+            </div>
+            <p className="help-copy">
+              История и аналитика ожидают рабочий API.
+            </p>
+          </section>
+        )}
+        <DraftActions
+          dirty={dirty}
+          onCancel={() => {
+            setDraft(selected);
+            setNotice("");
+          }}
+          onSave={save}
+          saveLabel="Сохранить настройки DEMO"
+        />
+        {notice && <Notice>{notice}</Notice>}
+      </Panel>
+    </div>
+  );
 }
-
-function Accounts({ demo }: { demo: boolean }) {
-  const [wizard, setWizard] = useState(false); const [step, setStep] = useState(1); const accounts = [["Рабочий", "+7 9•• ••• •• 42", "Активен"], ["Редакция", "+7 9•• ••• •• 18", "Активен"], ["Архив", "+7 9•• ••• •• 26", "Ошибка"]];
-  return <><EmptyOrDisabled demo={demo} label="Аккаунты недоступны" />{demo && <div className="two-column"><Card><PanelTitle title="Подключённые аккаунты" />{accounts.map((account) => <div className="account-row" key={account[0]}><span className="avatar">{account[0][0]}</span><div><b>{account[0]}</b><small>{account[1]}</small></div><span className={`status ${statusClass(account[2])}`}>{account[2]}</span><button className="icon-button" aria-label={`Действия: ${account[0]}`}>⋮</button></div>)}</Card><Card><PanelTitle title="Подключение аккаунта" /><p>Мастер открывается только по действию. Для реального Telegram-входа нужен live provider; сессии и коды не хранятся в браузере.</p><button className="primary-button" onClick={() => { setWizard(true); setStep(1); }}>Подключить аккаунт DEMO</button></Card></div>}{wizard && <Modal title="Подключение Telegram в DEMO" onClose={() => setWizard(false)}><ol className="stepper">{["Номер телефона", "Код Telegram", "2FA при необходимости", "Результат"].map((name, index) => <li className={index + 1 === step ? "current" : index + 1 < step ? "done" : ""} key={name}><b>{index + 1}</b><span>{name}</span></li>)}</ol>{step < 4 ? <><label className="field">{step === 1 ? "Телефон" : step === 2 ? "Код" : "Пароль 2FA"}<input placeholder={step === 1 ? "+7 900 000-00-00" : "Не вводите реальный секрет"} /></label><button className="primary-button" onClick={() => setStep((value) => value + 1)}>Продолжить</button></> : <><p className="inline-notice">DEMO-сеанс создан только в памяти. Реальная авторизация не выполнялась.</p><button className="primary-button" onClick={() => setWizard(false)}>Закрыть</button></>}</Modal>}</>;
-}
-
-function Settings({ demo }: { demo: boolean }) {
-  const [section, setSection] = useState("Общие");
-  const [savedLanguage, setSavedLanguage] = useState("ru");
-  const [language, setLanguage] = useState("ru");
-  const [dirty, setDirty] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const sections = ["Общие", "Модерация", "Публикация", "Уведомления", "AI и перефразирование", "Безопасность"];
-  const cancel = () => { setLanguage(savedLanguage); setDirty(false); };
-  const save = () => { setSavedLanguage(language); setDirty(false); setSaved(true); };
-
-  return <><EmptyOrDisabled demo={demo} label="Настройки недоступны" />{demo && <div className="settings-layout"><Card className="settings-nav">{sections.map((name) => <button className={section === name ? "settings-tab active" : "settings-tab"} onClick={() => { setSection(name); cancel(); }} key={name}>{name}<small>{name === "Модерация" ? "Правила и фильтры" : "Параметры"}</small></button>)}</Card><Card className="settings-form"><PanelTitle title={`${section}: настройки`} /><label className="field">Язык интерфейса<select value={language} onChange={(event) => { setLanguage(event.target.value); setDirty(event.target.value !== savedLanguage); }}><option value="ru">Русский</option><option value="en">English</option></select></label><label className="field">Часовой пояс<select defaultValue="minsk" onChange={() => setDirty(true)}><option value="minsk">Europe/Minsk (UTC+3)</option></select></label>{section === "Модерация" && <><label className="field">Строгость проверки<select onChange={() => setDirty(true)}><option>Стандартная</option><option>Строгая</option></select></label><label className="toggle-row">Проверять точные дубли<input type="checkbox" role="switch" defaultChecked onChange={() => setDirty(true)} /><i /></label></>}{section === "Публикация" && <><label className="field">Режим по умолчанию<select onChange={() => setDirty(true)}><option>Ручной</option><option>С проверкой</option></select></label><p className="warning-note">Автоматическая публикация не включается интерфейсом.</p></>}{dirty && <div className="unsaved"><span>Есть несохранённые изменения</span><button className="secondary-button" onClick={cancel}>Отмена</button><button className="primary-button" onClick={save}>Сохранить</button></div>}{saved && <p className="inline-notice">Изменения сохранены только в DEMO.</p>}</Card></div>}</>;
-}
-
-function Modal({ title, children, onClose }: { title: string; children: React.ReactNode; onClose: () => void }) { return <div className="modal-backdrop" role="presentation"><section className="modal" role="dialog" aria-modal="true" aria-label={title}><div className="panel-title"><h2>{title}</h2><button className="icon-button" onClick={onClose} aria-label="Закрыть">×</button></div>{children}</section></div>; }

@@ -22,8 +22,9 @@
   provisioned master key and fails visibly if the key changes or is malformed.
 - Exact duplicate detection in the ingestion service runs before EditorialGate,
   preventing redundant editorial/AI work.
-- GitHub Actions quality gate executes backend lint/tests/compile/migrations and
-  frontend test/build for every push and pull request.
+- GitHub Actions quality gate targets main/codex branch pushes and pull requests;
+  frontend gates include browser regressions, an isolated actual API fixture,
+  automated accessibility checks and downloadable screenshots/reports.
 - Durable SQL ingress uses a single transaction for technical filtering,
   source-identity deduplication, editorial decision persistence and guarded
   rewrite dispatch. Regression tests cover technical reject, editorial reject,
@@ -46,17 +47,32 @@
   latest immutable revision and editorial decision. It opens a request-scoped
   SQLAlchemy session from `DATABASE_URL`; integration coverage proves the
   configured-database path without a test-only dependency override.
+- Dark-navy frontend: all eight section compositions, shared linear icons,
+  selected rows/cards, responsive panels and honest unavailable actions.
+- In-memory DEMO workflows: donor import preview/partial success, independent
+  routing percentages, channel forms/tabs/windows/quiet hours, planner edits,
+  grouped overlapping jobs, account scenario viewer and explicit settings Save/Cancel.
+- Manual draft survives navigation and editorial rejection; replacing it with
+  an AI suggestion requires confirmation. Original source remains immutable.
+- REJECT/PENDING blocks processing in UI; rejection removes DEMO schedules.
+  Backend reject/zero-rewrite regressions remain passing; no provider calls were
+  used for the UI checks.
+- Browser contract and actual FastAPI -> migrated isolated SQLite -> Vite proxy
+  -> inbox read path verified. API failure/malformed responses never inject DEMO.
+- Local quality gate on 2026-10-02: 55 backend tests, 18 frontend tests,
+  18 Chromium browser tests, format/typecheck/build, backend lint/compile and
+  isolated migration upgrade/downgrade/upgrade/check passed.
+- All eight default DEMO sections passed automated WCAG A/AA checks. Forty
+  screenshots captured at 1366x768, 1440x900, 1586x992, 1920x1080 and 390x844.
+  Screenshot comparison is manual, not a claim of pixel-perfect equivalence.
+  See UI_DARK_NAVY_VERIFICATION.md for evidence, regressions and limitations.
 
 ## PARTIALLY IMPLEMENTED
 
 - Compose topology and persistent-volume declarations.
-- Russian dark-navy dashboard increment: eight responsive workspace shells,
-  shared navigation/top bar and a real read-only moderation-inbox fetch path.
-  The "Мои каналы" workspace now follows the reference composition with a
-  searchable channel directory, dense channel cards, selected detail panel,
-  publication windows and quiet-hours treatment. Its visible state is DEMO
-  only until corresponding API mutations exist; unavailable mutations are
-  explicitly disabled or labelled rather than simulated.
+- Live dashboard workflows remain partial: only the existing read-only inbox
+  endpoint is wired to real state. Other sections require durable mutation/read
+  APIs before their DEMO forms can be used operationally.
 
 ## NOT IMPLEMENTED
 
@@ -72,11 +88,21 @@
 - Port 8010 was occupied by an external local process during startup validation;
   the application started successfully on port 8123.
 - Obsidian vault location is unavailable; `/docs` is the source of truth.
+- DEMO changes exist only in window memory; reload restores fixtures. No
+  real account connection, publication, scheduler execution or AI generation.
+- Reference photos are not available as separate assets. DEMO uses labelled
+  SVG illustrations; no reference PNG is used as an interface background.
 
 ## NEXT STEP
 
-Continue the dark-navy UI pass against the supplied references: increase
-visual fidelity for Inbox, Donors, Connections, Planner, Accounts, Settings
-and Overview while preserving the existing API contract and explicit DEMO
-boundaries. Docker Compose/persistence E2E remains NOT VERIFIED / BLOCKED BY
-ENVIRONMENT until Docker Desktop is available.
+The requested eight-section dark-navy UI increment and local available gates
+are complete. Next PHASE 1 implementation task: replace the in-memory Telegram
+configuration API service with service-owned durable PostgreSQL/SQLAlchemy
+account/donor/output-channel/mapping read and mutation contracts, starting with
+tests for immutable identities, validation, idempotency and editorial reject
+protection. Connect each UI workflow only after its durable contract is verified;
+never enable real publication or AI calls as a side effect of UI work.
+
+PHASE 1 IS NOT COMPLETE. Docker Compose/persistence/restart E2E remains
+NOT VERIFIED / BLOCKED BY ENVIRONMENT until Docker Desktop is available.
+Live Telegram verification, secrets and Obsidian sync remain pending.

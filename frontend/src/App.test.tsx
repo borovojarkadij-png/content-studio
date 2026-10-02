@@ -1,88 +1,254 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-
 import { App } from "./App";
 
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
 });
+const navigate = (name: string) =>
+  fireEvent.click(
+    within(
+      screen.getByRole("navigation", { name: "Основная навигация" }),
+    ).getByRole("button", { name }),
+  );
+const disabled = (name: string) =>
+  (screen.getByRole("button", { name }) as HTMLButtonElement).disabled;
 
-describe("Content Studio dark navy UI", () => {
-  it("renders all eight Russian workspaces in primary navigation", () => {
-    render(<App />);
-
-    const navigation = screen.getByRole("navigation", { name: "Основная навигация" });
-    [
-      "Обзор",
-      "Входящие",
-      "Доноры",
-      "Мои каналы",
-      "Связи",
-      "Планировщик",
-      "Аккаунты",
-      "Настройки",
-    ].forEach((item) => expect(navigation.textContent).toContain(item));
+describe("Content Studio UI contracts", () => {
+  it("confirms AI overwrites and retains a read-only manual draft after rejection", () => {
+    render(<App initialDemo />);
+    navigate("Входящие");
+    fireEvent.change(screen.getByLabelText("Черновик варианта"), {
+      target: { value: "Важная ручная редактура" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Применить вариант" }));
+    expect(
+      screen.getByRole("dialog", { name: "Заменить ручной черновик?" }),
+    ).toBeTruthy();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Сохранить ручной текст" }),
+    );
+    expect(
+      (screen.getByLabelText("Черновик варианта") as HTMLTextAreaElement).value,
+    ).toBe("Важная ручная редактура");
+    fireEvent.click(screen.getByRole("button", { name: "Отклонить материал" }));
+    expect(
+      (screen.getByLabelText("Черновик варианта") as HTMLTextAreaElement).value,
+    ).toBe("Важная ручная редактура");
+    expect(
+      (screen.getByLabelText("Черновик варианта") as HTMLTextAreaElement)
+        .disabled,
+    ).toBe(true);
   });
-
-  it("only displays fixture content after the user explicitly enables demo mode", () => {
+  it("requires explicit demo activation and never fetches real APIs in DEMO", () => {
+    const fetch = vi.fn();
+    vi.stubGlobal("fetch", fetch);
     render(<App />);
-
     expect(screen.getByText("Рабочий режим")).toBeTruthy();
-    expect(screen.queryByText("Демо-данные — без публикации")).toBeNull();
-
-    fireEvent.click(screen.getByRole("switch", { name: "Включить демо-режим" }));
-
+    fireEvent.click(screen.getByRole("switch", { name: "DEMO" }));
+    navigate("Входящие");
+    navigate("Аккаунты");
     expect(screen.getByText("Демо-данные — без публикации")).toBeTruthy();
+    expect(fetch).not.toHaveBeenCalled();
   });
-
-  it("keeps approval, scheduling and publication as separate moderation actions", async () => {
+  it("keeps original text immutable and preserves editor drafts across selection and navigation", () => {
     render(<App initialDemo />);
-
-    fireEvent.click(screen.getByRole("button", { name: /Входящие/ }));
+    navigate("Входящие");
+    const original = screen.getByLabelText("Оригинал материала").textContent;
+    fireEvent.click(screen.getByRole("button", { name: "Применить вариант" }));
+    fireEvent.change(screen.getByLabelText("Черновик варианта"), {
+      target: { value: "Ручная правка редактора" },
+    });
+    navigate("Доноры");
+    navigate("Входящие");
+    expect(
+      (screen.getByLabelText("Черновик варианта") as HTMLTextAreaElement).value,
+    ).toBe("Ручная правка редактора");
+    expect(screen.getByLabelText("Оригинал материала").textContent).toBe(
+      original,
+    );
+  });
+  it("keeps approval separate from scheduling and blocks every action after reject", () => {
+    render(<App initialDemo />);
+    navigate("Входящие");
     fireEvent.click(screen.getByRole("button", { name: "Одобрить материал" }));
-    expect(await screen.findByText("Материал одобрен. Публикация не выполнена.")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Запланировать" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Опубликовать" })).toBeTruthy();
+    expect(
+      screen.getByText("Материал одобрен в DEMO. Публикация не выполнена."),
+    ).toBeTruthy();
+    expect(disabled("Опубликовать")).toBe(true);
+    fireEvent.click(screen.getByRole("button", { name: "Отклонить материал" }));
+    expect(disabled("Применить вариант")).toBe(true);
+    expect(disabled("Одобрить материал")).toBe(true);
+    expect(disabled("Запланировать")).toBe(true);
+    expect(
+      (screen.getByLabelText("Черновик варианта") as HTMLTextAreaElement)
+        .disabled,
+    ).toBe(true);
   });
-
-  it("allows an editor to explicitly apply an available demo draft", () => {
-    render(<App initialDemo />);
-
-    fireEvent.click(screen.getByRole("button", { name: /Входящие/ }));
-
-    expect((screen.getByRole("button", { name: "Применить вариант" }) as HTMLButtonElement).disabled).toBe(false);
+  it("retains failed API state and retries without injecting demo fixtures", async () => {
+    const fetch = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: false, status: 503 })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ items: [] }) });
+    vi.stubGlobal("fetch", fetch);
+    render(<App />);
+    navigate("Входящие");
+    expect(await screen.findByText("API вернул HTTP 503")).toBeTruthy();
+    expect(
+      screen.queryByText("На Марсе обнаружены следы древних рек"),
+    ).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Повторить" }));
+    expect(await screen.findByText("Очередь входящих пуста.")).toBeTruthy();
+    expect(fetch).toHaveBeenCalledTimes(2);
   });
-
-  it("restores a settings draft when the editor cancels unsaved changes", () => {
+  it("uses the existing inbox API contract and disables live mutations", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          items: [
+            {
+              source_key: "account:@donor:42",
+              state: "REJECTED_EDITORIAL",
+              revision_number: 2,
+              source_text: "Отклонённый материал API",
+              editorial_status: "REJECT",
+              rewrite_allowed: false,
+              editorial_reason_codes: ["PROTECTED_ENTITY"],
+            },
+          ],
+        }),
+      }),
+    );
+    render(<App />);
+    navigate("Входящие");
+    fireEvent.click(
+      await screen.findByRole("button", { name: /Отклонённый материал API/ }),
+    );
+    expect(screen.getByLabelText("Оригинал материала").textContent).toBe(
+      "Отклонённый материал API",
+    );
+    expect(disabled("Применить вариант")).toBe(true);
+    expect(disabled("Запланировать")).toBe(true);
+  });
+  it("reports a malformed response as an API failure", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValue({ ok: true, json: async () => ({ wrong: [] }) }),
+    );
+    render(<App />);
+    navigate("Входящие");
+    expect(
+      await screen.findByText("Ответ API не соответствует контракту входящих"),
+    ).toBeTruthy();
+  });
+  it("saves route percentages independently for each route and cancels to saved values", () => {
     render(<App initialDemo />);
-
-    fireEvent.click(screen.getByRole("button", { name: "Настройки" }));
-    const language = screen.getByLabelText("Язык интерфейса") as HTMLSelectElement;
-    fireEvent.change(language, { target: { value: "en" } });
-    expect(language.value).toBe("en");
-
+    navigate("Связи");
+    const intake = screen.getByRole("slider", {
+      name: "Доля входящих материалов",
+    }) as HTMLInputElement;
+    const mix = screen.getByRole("slider", {
+      name: "Целевая доля в канале",
+    }) as HTMLInputElement;
+    fireEvent.change(intake, { target: { value: "25" } });
+    fireEvent.change(mix, { target: { value: "80" } });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Сохранить изменения" }),
+    );
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /Технологии и люди.*Технологии сегодня.*75/,
+      }),
+    );
+    expect(intake.value).toBe("75");
+    expect(mix.value).toBe("60");
+    fireEvent.click(
+      screen.getByRole("button", { name: /Наука сегодня.*Научные факты.*25/ }),
+    );
+    expect(intake.value).toBe("25");
+    expect(mix.value).toBe("80");
+    fireEvent.change(intake, { target: { value: "99" } });
     fireEvent.click(screen.getByRole("button", { name: "Отмена" }));
-    expect(language.value).toBe("ru");
+    expect(intake.value).toBe("25");
+    expect(mix.value).toBe("80");
   });
-
-  it("makes channel persistence explicitly demo-only instead of silently succeeding", () => {
+  it("restores all settings fields on cancel and keeps drafts when changing categories", () => {
     render(<App initialDemo />);
-
-    fireEvent.click(screen.getByRole("button", { name: "Мои каналы" }));
-    fireEvent.click(screen.getByRole("button", { name: "Сохранить настройки DEMO" }));
-
-    expect(screen.getByText("Настройки канала сохранены только в DEMO.")).toBeTruthy();
+    navigate("Настройки");
+    fireEvent.change(screen.getByLabelText("Язык интерфейса"), {
+      target: { value: "en" },
+    });
+    fireEvent.click(
+      screen.getByRole("switch", { name: "Показывать советы и подсказки" }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Модерация" }));
+    fireEvent.change(screen.getByLabelText("Строгость проверки"), {
+      target: { value: "Строгая" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Отмена" }));
+    expect(
+      (screen.getByLabelText("Строгость проверки") as HTMLSelectElement).value,
+    ).toBe("Стандартная");
+    fireEvent.click(screen.getByRole("button", { name: "Общие" }));
+    expect(
+      (screen.getByLabelText("Язык интерфейса") as HTMLSelectElement).value,
+    ).toBe("ru");
+    expect(
+      (
+        screen.getByRole("switch", {
+          name: "Показывать советы и подсказки",
+        }) as HTMLInputElement
+      ).checked,
+    ).toBe(true);
   });
-
-  it("validates demo donor input without claiming that it was imported", () => {
+  it("warns before mode switching discards a manual draft", () => {
     render(<App initialDemo />);
-
-    fireEvent.click(screen.getByRole("button", { name: "Доноры" }));
-    fireEvent.click(screen.getByRole("button", { name: /Импорт/ }));
-    fireEvent.change(screen.getByLabelText("Список доноров для импорта"), { target: { value: "@science_today" } });
-    fireEvent.click(screen.getByRole("button", { name: "Проверить строки" }));
-
-    expect(screen.getByText("Проверка DEMO завершена: строки не были импортированы.")).toBeTruthy();
+    navigate("Входящие");
+    fireEvent.change(screen.getByLabelText("Черновик варианта"), {
+      target: { value: "Не терять" },
+    });
+    fireEvent.click(screen.getByRole("switch", { name: "DEMO" }));
+    expect(
+      screen.getByRole("dialog", { name: "Переключить режим?" }),
+    ).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Остаться" }));
+    expect(
+      (screen.getByLabelText("Черновик варианта") as HTMLTextAreaElement).value,
+    ).toBe("Не терять");
+  });
+  it("saves channel changes into demo state and does not overwrite them during selection", () => {
+    render(<App initialDemo />);
+    navigate("Мои каналы");
+    fireEvent.change(screen.getByLabelText("Режим", { exact: true }), {
+      target: { value: "С проверкой" },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Сохранить настройки DEMO" }),
+    );
+    expect(
+      screen.getByText("Настройки канала сохранены только в DEMO."),
+    ).toBeTruthy();
+    fireEvent.click(
+      screen.getByRole("button", { name: /Это интересно.*89 441/ }),
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: /Технологии сегодня.*124 320/ }),
+    );
+    expect(
+      (screen.getByLabelText("Режим", { exact: true }) as HTMLSelectElement)
+        .value,
+    ).toBe("С проверкой");
   });
 });

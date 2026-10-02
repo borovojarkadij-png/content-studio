@@ -17,5 +17,7 @@
 - [~] Durable mapping-scoped exact content fingerprint deduplication before EditorialGate
 - [ ] OpenAI adapter, fact guard, queues and operational workers
 - [~] Durable moderation-inbox API read model (state, latest revision and editorial decision); dark-navy Inbox consumes its supported read endpoint, while mutation APIs remain pending
-- [~] Dark-navy dashboard UI: shared navigation, all eight responsive workspace shells and a reference-aligned Channels detail workspace are implemented; remaining visual fidelity and live workflow wiring are pending
+- [x] Requested dark-navy frontend increment: all eight reference-based section compositions, explicit in-memory DEMO interactions, original/draft protection, responsive layouts and honest unavailable live actions
+- [x] Frontend quality gate: format/typecheck/build, 18 unit/regression tests, 18 browser tests including actual isolated FastAPI integration, automated accessibility and 40 screenshots
+- [ ] Durable Telegram configuration read/mutation APIs and live frontend workflow wiring (NEXT IMPLEMENTATION TASK; preserve service-owned state)
 - [ ] Docker persistence E2E and full PHASE 1 quality gate
