@@ -12,12 +12,12 @@
 - [~] Durable ingestion transaction: filters, exact source delivery dedup, editorial decision and guarded rewrite outbox
 - [~] Telethon adapter boundary and offline message/album normalization; encrypted-session boundary and live account management pending
 - [~] Account health/reconnect policy with persisted FloodWait cooldown and offline tests
-- [ ] Filters, semantic dedup, events, hype, media, routing and scheduler
+- [~] Filters, semantic dedup, events, hype, media, routing and scheduler; durable per-channel plan/selector next
 - [~] Mapping-level deterministic filters for media, advertising markers and forbidden links
 - [~] Durable mapping-scoped exact content fingerprint deduplication before EditorialGate
 - [ ] OpenAI adapter, fact guard, queues and operational workers
 - [~] Durable moderation-inbox API read model (state, latest revision and editorial decision); dark-navy Inbox consumes its supported read endpoint, while mutation APIs remain pending
 - [x] Requested dark-navy frontend increment: all eight reference-based section compositions, explicit in-memory DEMO interactions, original/draft protection, responsive layouts and honest unavailable live actions
 - [x] Frontend quality gate: format/typecheck/build, 18 unit/regression tests, 18 browser tests including actual isolated FastAPI integration, automated accessibility and 40 screenshots
-- [ ] Durable Telegram configuration read/mutation APIs and live frontend workflow wiring (NEXT IMPLEMENTATION TASK; preserve service-owned state)
+- [~] Durable Telegram configuration read/mutation APIs: accounts, donors, output channels, mappings and pending imports; live frontend workflow wiring and publication plan/selector pending
 - [ ] Docker persistence E2E and full PHASE 1 quality gate

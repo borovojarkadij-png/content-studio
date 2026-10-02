@@ -47,6 +47,11 @@
   latest immutable revision and editorial decision. It opens a request-scoped
   SQLAlchemy session from `DATABASE_URL`; integration coverage proves the
   configured-database path without a test-only dependency override.
+- Durable Telegram configuration API contracts store accounts, donor/output
+  channels, mappings and unresolved donor imports in PostgreSQL/SQLAlchemy.
+  Natural Telegram identities are immutable; equivalent retry requests are
+  idempotent, conflicts are explicit, configuration writes never create rewrite
+  jobs or editorial decisions, and public API projections never return sessions.
 - Dark-navy frontend: all eight section compositions, shared linear icons,
   selected rows/cards, responsive panels and honest unavailable actions.
 - In-memory DEMO workflows: donor import preview/partial success, independent
@@ -95,16 +100,20 @@
   real account connection, publication, scheduler execution or AI generation.
 - Reference photos are not available as separate assets. DEMO uses labelled
   SVG illustrations; no reference PNG is used as an interface background.
+- On 2026-10-03 an Alembic validation command was accidentally run against the
+  ignored local `backend/newsflow.db` rather than an isolated test database,
+  executing downgrade/re-upgrade. It was not tracked by Git and no backup was
+  present in the workspace. Future migration checks use isolated temporary DBs.
 
 ## NEXT STEP
 
-The requested eight-section dark-navy UI increment and local available gates
-are complete. Next PHASE 1 implementation task: replace the in-memory Telegram
-configuration API service with service-owned durable PostgreSQL/SQLAlchemy
-account/donor/output-channel/mapping read and mutation contracts, starting with
-tests for immutable identities, validation, idempotency and editorial reject
-protection. Connect each UI workflow only after its durable contract is verified;
-never enable real publication or AI calls as a side effect of UI work.
+The durable Telegram configuration API increment is complete locally. Next
+PHASE 1 implementation task: add durable per-output publication plans and a
+safe automatic candidate selector. It must select only records with a current
+editorial PASS decision and `rewrite_allowed=true`, enforce per-channel daily
+limits and time windows, create idempotent planning records only, and never
+perform a real Telegram publication or OpenAI call. Connect UI flows only after
+their durable contracts are verified.
 
 PHASE 1 IS NOT COMPLETE. Docker Compose/persistence/restart E2E remains
 NOT VERIFIED / BLOCKED BY ENVIRONMENT until Docker Desktop is available.

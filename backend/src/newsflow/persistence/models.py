@@ -7,6 +7,7 @@ make an accidental invalid state impossible even when a caller bypasses it.
 from datetime import datetime
 
 from sqlalchemy import (
+    BigInteger,
     Boolean,
     CheckConstraint,
     DateTime,
@@ -45,10 +46,12 @@ class TelegramAccount(Base):
     __tablename__ = "telegram_accounts"
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
-    telegram_user_id: Mapped[int] = mapped_column(Integer, unique=True, nullable=False)
+    telegram_user_id: Mapped[int] = mapped_column(BigInteger, unique=True, nullable=False)
     encrypted_session: Mapped[str] = mapped_column(String, nullable=False)
     health_status: Mapped[str] = mapped_column(String(32), default="DISCONNECTED", nullable=False)
-    health_checked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    health_checked_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     cooldown_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
@@ -56,8 +59,10 @@ class DonorChannel(Base):
     __tablename__ = "donor_channels"
     __table_args__ = (UniqueConstraint("telegram_account_id", "telegram_channel_id"),)
     id: Mapped[int] = mapped_column(primary_key=True)
-    telegram_account_id: Mapped[int] = mapped_column(ForeignKey("telegram_accounts.id"), nullable=False)
-    telegram_channel_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    telegram_account_id: Mapped[int] = mapped_column(
+        ForeignKey("telegram_accounts.id"), nullable=False
+    )
+    telegram_channel_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
     title: Mapped[str] = mapped_column(String(255), nullable=False)
 
 
@@ -65,8 +70,10 @@ class OutputChannel(Base):
     __tablename__ = "output_channels"
     __table_args__ = (UniqueConstraint("telegram_account_id", "telegram_channel_id"),)
     id: Mapped[int] = mapped_column(primary_key=True)
-    telegram_account_id: Mapped[int] = mapped_column(ForeignKey("telegram_accounts.id"), nullable=False)
-    telegram_channel_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    telegram_account_id: Mapped[int] = mapped_column(
+        ForeignKey("telegram_accounts.id"), nullable=False
+    )
+    telegram_channel_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
     title: Mapped[str] = mapped_column(String(255), nullable=False)
 
 
@@ -82,6 +89,19 @@ class ChannelMappingModel(Base):
     output_channel_id: Mapped[int] = mapped_column(ForeignKey("output_channels.id"), nullable=False)
     intake_percent: Mapped[int] = mapped_column(Integer, nullable=False)
     target_mix_percent: Mapped[int] = mapped_column(Integer, nullable=False)
+
+
+class DonorImportModel(Base):
+    """Unresolved identifiers are not fabricated operational Telegram channels."""
+
+    __tablename__ = "donor_imports"
+    __table_args__ = (UniqueConstraint("telegram_account_id", "identifier"),)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    telegram_account_id: Mapped[int] = mapped_column(
+        ForeignKey("telegram_accounts.id"), nullable=False
+    )
+    identifier: Mapped[str] = mapped_column(String(100), nullable=False)
+    status: Mapped[str] = mapped_column(String(32), nullable=False)
 
 
 class OutboxEventModel(Base):
