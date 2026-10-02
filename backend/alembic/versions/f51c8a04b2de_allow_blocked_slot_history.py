@@ -4,9 +4,9 @@ Revision ID: f51c8a04b2de
 Revises: e39f4b81d6aa
 """
 
-from alembic import op
 import sqlalchemy as sa
 
+from alembic import op
 
 revision = "f51c8a04b2de"
 down_revision = "e39f4b81d6aa"
@@ -37,17 +37,23 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    conflicts = op.get_bind().execute(
-        sa.text(
-            "SELECT COUNT(*) FROM ("
-            "SELECT output_channel_id, scheduled_for FROM planned_publications "
-            "WHERE state = 'BLOCKED_EDITORIAL' "
-            "GROUP BY output_channel_id, scheduled_for HAVING COUNT(*) > 1"
-            ") AS blocked_slot_conflicts"
+    conflicts = (
+        op.get_bind()
+        .execute(
+            sa.text(
+                "SELECT COUNT(*) FROM ("
+                "SELECT output_channel_id, scheduled_for FROM planned_publications "
+                "WHERE state = 'BLOCKED_EDITORIAL' "
+                "GROUP BY output_channel_id, scheduled_for HAVING COUNT(*) > 1"
+                ") AS blocked_slot_conflicts"
+            )
         )
-    ).scalar_one()
+        .scalar_one()
+    )
     if conflicts:
-        raise RuntimeError("Unsafe downgrade: multiple blocked reservations share a historical slot")
+        raise RuntimeError(
+            "Unsafe downgrade: multiple blocked reservations share a historical slot"
+        )
     op.drop_index("uq_planned_publication_active_slot", table_name="planned_publications")
     if op.get_bind().dialect.name == "sqlite":
         with op.batch_alter_table("planned_publications") as batch:

@@ -4,9 +4,9 @@ Revision ID: a2c5e8f1b7d4
 Revises: f4d90c1a2b6e
 """
 
-from alembic import op
 import sqlalchemy as sa
 
+from alembic import op
 
 revision = "a2c5e8f1b7d4"
 down_revision = "f4d90c1a2b6e"
@@ -38,5 +38,8 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.drop_index(op.f("ix_mapping_content_fingerprints_mapping_id"), table_name="mapping_content_fingerprints")
+    op.drop_index(
+        op.f("ix_mapping_content_fingerprints_mapping_id"),
+        table_name="mapping_content_fingerprints",
+    )
     op.drop_table("mapping_content_fingerprints")

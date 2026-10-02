@@ -4,9 +4,9 @@ Revision ID: ca71b8e32f09
 Revises: a2c5e8f1b7d4
 """
 
-from alembic import op
 import sqlalchemy as sa
 
+from alembic import op
 
 revision = "ca71b8e32f09"
 down_revision = "a2c5e8f1b7d4"
@@ -24,7 +24,9 @@ def _alter_telegram_identity_types(type_: sa.types.TypeEngine) -> None:
             with op.batch_alter_table(table) as batch:
                 batch.alter_column("telegram_channel_id", existing_type=sa.Integer(), type_=type_)
         return
-    op.alter_column("telegram_accounts", "telegram_user_id", existing_type=sa.Integer(), type_=type_)
+    op.alter_column(
+        "telegram_accounts", "telegram_user_id", existing_type=sa.Integer(), type_=type_
+    )
     for table in ("donor_channels", "output_channels"):
         op.alter_column(table, "telegram_channel_id", existing_type=sa.Integer(), type_=type_)
 

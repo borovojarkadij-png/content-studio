@@ -4,9 +4,9 @@ Revision ID: d12e5f93a7c4
 Revises: ca71b8e32f09
 """
 
-from alembic import op
 import sqlalchemy as sa
 
+from alembic import op
 
 revision = "d12e5f93a7c4"
 down_revision = "ca71b8e32f09"
@@ -50,7 +50,9 @@ def upgrade() -> None:
         ),
         sa.ForeignKeyConstraint(["output_channel_id"], ["output_channels.id"]),
         sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint("output_channel_id", "content_key", name="uq_publication_candidate_content"),
+        sa.UniqueConstraint(
+            "output_channel_id", "content_key", name="uq_publication_candidate_content"
+        ),
     )
     op.create_index(
         op.f("ix_publication_candidates_output_channel_id"),
@@ -75,7 +77,9 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(["output_channel_id"], ["output_channels.id"]),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("candidate_id", name="uq_planned_publication_candidate"),
-        sa.UniqueConstraint("output_channel_id", "scheduled_for", name="uq_planned_publication_slot"),
+        sa.UniqueConstraint(
+            "output_channel_id", "scheduled_for", name="uq_planned_publication_slot"
+        ),
     )
     op.create_index(
         op.f("ix_planned_publications_scheduled_for"),
@@ -88,7 +92,9 @@ def upgrade() -> None:
 def downgrade() -> None:
     op.drop_index(op.f("ix_planned_publications_scheduled_for"), table_name="planned_publications")
     op.drop_table("planned_publications")
-    op.drop_index(op.f("ix_publication_candidates_output_channel_id"), table_name="publication_candidates")
+    op.drop_index(
+        op.f("ix_publication_candidates_output_channel_id"), table_name="publication_candidates"
+    )
     op.drop_table("publication_candidates")
     op.drop_index(op.f("ix_publication_plans_output_channel_id"), table_name="publication_plans")
     op.drop_table("publication_plans")
