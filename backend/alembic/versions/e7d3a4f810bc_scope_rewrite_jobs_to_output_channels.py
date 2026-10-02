@@ -5,8 +5,8 @@ Revises: f51c8a04b2de
 """
 
 import sqlalchemy as sa
-from alembic import op
 
+from alembic import op
 
 revision = "e7d3a4f810bc"
 down_revision = "f51c8a04b2de"
@@ -49,6 +49,93 @@ def _create_rewrite_jobs_table(name: str, *, scoped: bool) -> None:
     op.create_table(name, *columns)
 
 
+def _scope_legacy_jobs(bind) -> None:
+    """Make pending legacy fan-out explicit instead of cross-activating it.
+
+    A former global rewrite job can safely retain its state only if precisely
+    one awaiting candidate exists. More than one output needs independently
+    styled rewrites, so preserve the old job as audit evidence and create fresh
+    per-output dispatches.
+    """
+    legacy_jobs = bind.execute(
+        sa.text("SELECT id, content_key FROM rewrite_jobs WHERE output_channel_id IS NULL")
+    ).mappings()
+    for job in legacy_jobs:
+        output_ids = (
+            bind.execute(
+                sa.text(
+                    "SELECT DISTINCT output_channel_id FROM publication_candidates "
+                    "WHERE content_key = :content_key"
+                ),
+                {"content_key": job["content_key"]},
+            )
+            .scalars()
+            .all()
+        )
+        if len(output_ids) == 1:
+            output_channel_id = output_ids[0]
+            idempotency_key = f"rewrite.requested:{job['content_key']}:{output_channel_id}"
+            bind.execute(
+                sa.text(
+                    "UPDATE rewrite_jobs SET output_channel_id = :output_channel_id, "
+                    "idempotency_key = :idempotency_key WHERE id = :id"
+                ),
+                {
+                    "id": job["id"],
+                    "output_channel_id": output_channel_id,
+                    "idempotency_key": idempotency_key,
+                },
+            )
+            bind.execute(
+                sa.text(
+                    "UPDATE outbox_events SET idempotency_key = :idempotency_key "
+                    "WHERE idempotency_key = :legacy_key"
+                ),
+                {
+                    "idempotency_key": idempotency_key,
+                    "legacy_key": f"rewrite.requested:{job['content_key']}",
+                },
+            )
+            continue
+        if len(output_ids) < 2:
+            continue
+        bind.execute(
+            sa.text("UPDATE rewrite_jobs SET state = 'SUPERSEDED' WHERE id = :id"),
+            {"id": job["id"]},
+        )
+        bind.execute(
+            sa.text(
+                "UPDATE outbox_events SET event_type = 'rewrite.superseded' "
+                "WHERE idempotency_key = :legacy_key"
+            ),
+            {"legacy_key": f"rewrite.requested:{job['content_key']}"},
+        )
+        for output_channel_id in output_ids:
+            idempotency_key = f"rewrite.requested:{job['content_key']}:{output_channel_id}"
+            bind.execute(
+                sa.text(
+                    "INSERT INTO rewrite_jobs "
+                    "(content_key, output_channel_id, idempotency_key, state) "
+                    "VALUES (:content_key, :output_channel_id, :idempotency_key, 'DISPATCHED')"
+                ),
+                {
+                    "content_key": job["content_key"],
+                    "output_channel_id": output_channel_id,
+                    "idempotency_key": idempotency_key,
+                },
+            )
+            bind.execute(
+                sa.text(
+                    "INSERT INTO outbox_events (event_type, aggregate_key, idempotency_key) "
+                    "VALUES ('rewrite.requested', :content_key, :idempotency_key)"
+                ),
+                {
+                    "content_key": job["content_key"],
+                    "idempotency_key": idempotency_key,
+                },
+            )
+
+
 def upgrade() -> None:
     bind = op.get_bind()
     if bind.dialect.name == "sqlite":
@@ -66,6 +153,7 @@ def upgrade() -> None:
             ["output_channel_id"],
             unique=False,
         )
+        _scope_legacy_jobs(bind)
         return
 
     op.add_column(
@@ -89,6 +177,7 @@ def upgrade() -> None:
         ["output_channel_id"],
         unique=False,
     )
+    _scope_legacy_jobs(bind)
 
 
 def downgrade() -> None:

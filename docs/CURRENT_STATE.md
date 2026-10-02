@@ -70,6 +70,10 @@
   stay independent. Stale source deliveries after an edit cannot route a newer
   revision; locked editorial reads and unique candidate rows prevent a reject
   or concurrent retry from bypassing the gate.
+- The output-scoped rewrite-job migration safely adopts a legacy job when it
+  backed exactly one candidate. A legacy fan-out job becomes `SUPERSEDED` and
+  emits fresh per-output `DISPATCHED` jobs; downgrade refuses to collapse that
+  audit history.
 - Dark-navy frontend: all eight section compositions, shared linear icons,
   selected rows/cards, responsive panels and honest unavailable actions.
 - In-memory DEMO workflows: donor import preview/partial success, independent
