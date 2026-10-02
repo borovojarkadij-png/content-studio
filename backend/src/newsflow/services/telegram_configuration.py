@@ -45,6 +45,19 @@ def _percent(value: int) -> int:
     return value
 
 
+def _persistable_import_identifier(identifier: str) -> str | None:
+    """Reject parser candidates that cannot be represented by durable storage."""
+    identifier = identifier.lower()
+    if len(identifier) > 100:
+        return None
+    if identifier.startswith("-100"):
+        try:
+            _identity(int(identifier))
+        except ValueError:
+            return None
+    return identifier
+
+
 def _project(row) -> dict[str, object]:
     if isinstance(row, TelegramAccount):
         return {
@@ -222,9 +235,12 @@ class TelegramConfigurationService:
                     )
                 )
             )
-            accepted, duplicates = [], []
+            accepted, duplicates, rejected = [], [], list(parsed.rejected)
             for entry in parsed.accepted:
-                identifier = entry.canonical_identifier.lower()
+                identifier = _persistable_import_identifier(entry.canonical_identifier)
+                if identifier is None:
+                    rejected.append(entry.canonical_identifier)
+                    continue
                 if identifier in known:
                     duplicates.append(identifier)
                     continue
@@ -247,7 +263,7 @@ class TelegramConfigurationService:
             return {
                 "accepted": accepted,
                 "duplicates": duplicates,
-                "rejected": list(parsed.rejected),
+                "rejected": rejected,
                 "status": "PENDING_RESOLUTION",
             }
         except Exception:

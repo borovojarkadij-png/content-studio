@@ -84,6 +84,21 @@ def test_bulk_import_is_durable_case_insensitive_and_does_not_fake_resolution(en
         assert service.list_donor_imports()[0]["identifier"] == "@source_one"
 
 
+def test_bulk_import_rejects_out_of_range_numeric_identity_without_rolling_back_valid_rows(engine):
+    too_large = "-100" + "1" * 101
+    with Session(engine) as session:
+        service = TelegramConfigurationService(session)
+        account = service.create_account("Primary", 1001)
+        result = service.bulk_import_donors(account["id"], f"@valid_source\n{too_large}")
+        assert result["accepted"] == ["@valid_source"]
+        assert result["rejected"] == [too_large]
+    with Session(engine) as session:
+        assert TelegramConfigurationService(session).list_donor_imports() == [{
+            "id": 1, "telegram_account_id": account["id"], "identifier": "@valid_source",
+            "status": "PENDING_RESOLUTION",
+        }]
+
+
 def test_configuration_mutations_leave_editorial_reject_and_jobs_untouched(engine):
     with Session(engine) as session:
         session.add(
