@@ -139,3 +139,65 @@ def test_stale_editorial_reject_blocks_candidate_after_rewrite_completes() -> No
 
         assert RewriteCandidateActivationService(session).activate(content_key) == 0
         assert session.scalar(select(PublicationCandidateModel)).state == "BLOCKED_EDITORIAL"
+
+
+def test_same_source_fans_out_to_each_mapping_without_repeat_rewrite_dispatch() -> None:
+    engine = create_engine("sqlite://")
+    Base.metadata.create_all(engine)
+    with Session(engine) as session:
+        account = TelegramAccount(
+            name="Primary",
+            telegram_user_id=1001,
+            encrypted_session="",
+            health_status="DISCONNECTED",
+        )
+        session.add(account)
+        session.flush()
+        first_output = OutputChannel(
+            telegram_account_id=account.id, telegram_channel_id=-1001234567890, title="First"
+        )
+        second_output = OutputChannel(
+            telegram_account_id=account.id, telegram_channel_id=-1009876543210, title="Second"
+        )
+        session.add_all((first_output, second_output))
+        session.flush()
+        first_output_id = first_output.id
+        second_output_id = second_output.id
+        session.commit()
+
+        event = TelegramMessage("account-a", "@donor", 10, "shared source")
+        first = DurableIngestionWorkflow(
+            session,
+            technical_filter=MappingTechnicalFilter(
+                mapping_id="mapping-1", output_channel_id=first_output_id
+            ),
+        ).ingest(event, observed_at=datetime.now(UTC))
+        second = DurableIngestionWorkflow(
+            session,
+            technical_filter=MappingTechnicalFilter(
+                mapping_id="mapping-2", output_channel_id=second_output_id
+            ),
+        ).ingest(event, observed_at=datetime.now(UTC))
+
+        assert first.status == second.status == "REWRITE_QUEUED"
+        assert [
+            candidate.output_channel_id
+            for candidate in session.scalars(
+                select(PublicationCandidateModel).order_by(
+                    PublicationCandidateModel.output_channel_id
+                )
+            )
+        ] == [first_output_id, second_output_id]
+        assert len(session.scalars(select(RewriteJobModel)).all()) == 1
+        session.commit()
+        assert (
+            DurableIngestionWorkflow(
+                session,
+                technical_filter=MappingTechnicalFilter(
+                    mapping_id="mapping-2", output_channel_id=second_output_id
+                ),
+            )
+            .ingest(event, observed_at=datetime.now(UTC))
+            .status
+            == "REJECTED_DUPLICATE"
+        )

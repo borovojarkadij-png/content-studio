@@ -27,7 +27,11 @@ class SqlAlchemyIngestionRepository:
             )
             self._session.add(post)
             self._session.flush()
-            self._session.add(ContentRevisionModel(incoming_post_id=post.id, revision_number=1, source_text=event.text))
+            self._session.add(
+                ContentRevisionModel(
+                    incoming_post_id=post.id, revision_number=1, source_text=event.text
+                )
+            )
             self._session.add(
                 OutboxEventModel(
                     event_type="incoming_post.created",
@@ -42,7 +46,11 @@ class SqlAlchemyIngestionRepository:
             .where(ContentRevisionModel.incoming_post_id == post.id)
             .order_by(ContentRevisionModel.revision_number.desc())
         )
-        if event.is_edit and latest_revision is not None and latest_revision.source_text != event.text:
+        if (
+            event.is_edit
+            and latest_revision is not None
+            and latest_revision.source_text != event.text
+        ):
             next_number = latest_revision.revision_number + 1
             self._session.add(
                 ContentRevisionModel(
@@ -66,9 +74,21 @@ class SqlAlchemyIngestionRepository:
         if post is None:
             return 1
         latest_revision = self._latest_revision(post.id)
-        if latest_revision is None or not event.is_edit or latest_revision.source_text == event.text:
+        if (
+            latest_revision is None
+            or not event.is_edit
+            or latest_revision.source_text == event.text
+        ):
             return None
         return latest_revision.revision_number + 1
+
+    def current_revision_number(self, event: TelegramMessage) -> int | None:
+        """Return the persisted latest revision for a duplicate source delivery."""
+        post = self._find_post(event)
+        if post is None:
+            return None
+        latest_revision = self._latest_revision(post.id)
+        return None if latest_revision is None else latest_revision.revision_number
 
     def revision_texts(self, account_id: str, donor_channel_id: str, message_id: int) -> list[str]:
         post = self._session.scalar(
