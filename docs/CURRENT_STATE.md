@@ -63,6 +63,11 @@
   rechecks the current editorial decision; a stale reject becomes
   `BLOCKED_EDITORIAL`. Editorial rejects create neither a candidate nor a
   rewrite job.
+- One accepted current source revision can fan out idempotently to multiple
+  output mappings while retaining a single rewrite job and rewrite-request
+  outbox event. Stale source deliveries after an edit cannot route a newer
+  revision; locked editorial reads and unique candidate rows prevent a reject
+  or concurrent retry from bypassing the gate.
 - Dark-navy frontend: all eight section compositions, shared linear icons,
   selected rows/cards, responsive panels and honest unavailable actions.
 - In-memory DEMO workflows: donor import preview/partial success, independent

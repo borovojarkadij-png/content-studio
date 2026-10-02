@@ -201,3 +201,60 @@ def test_same_source_fans_out_to_each_mapping_without_repeat_rewrite_dispatch() 
             .status
             == "REJECTED_DUPLICATE"
         )
+
+
+def test_stale_source_replay_cannot_fan_out_newer_edited_revision() -> None:
+    engine = create_engine("sqlite://")
+    Base.metadata.create_all(engine)
+    with Session(engine) as session:
+        account = TelegramAccount(
+            name="Primary",
+            telegram_user_id=1001,
+            encrypted_session="",
+            health_status="DISCONNECTED",
+        )
+        session.add(account)
+        session.flush()
+        first_output = OutputChannel(
+            telegram_account_id=account.id, telegram_channel_id=-1001234567890, title="First"
+        )
+        second_output = OutputChannel(
+            telegram_account_id=account.id, telegram_channel_id=-1009876543210, title="Second"
+        )
+        session.add_all((first_output, second_output))
+        session.flush()
+        first_output_id = first_output.id
+        second_output_id = second_output.id
+        session.commit()
+
+        original = TelegramMessage("account-a", "@donor", 11, "permitted news")
+        DurableIngestionWorkflow(
+            session,
+            technical_filter=MappingTechnicalFilter(
+                mapping_id="mapping-1", output_channel_id=first_output_id
+            ),
+        ).ingest(original, observed_at=datetime.now(UTC))
+        edited = TelegramMessage(
+            "account-a", "@donor", 11, "https://blocked.example altered", is_edit=True
+        )
+        DurableIngestionWorkflow(
+            session,
+            technical_filter=MappingTechnicalFilter(
+                mapping_id="mapping-1", output_channel_id=first_output_id
+            ),
+        ).ingest(edited, observed_at=datetime.now(UTC))
+
+        replay = DurableIngestionWorkflow(
+            session,
+            technical_filter=MappingTechnicalFilter(
+                mapping_id="mapping-2",
+                output_channel_id=second_output_id,
+                blocked_domains=frozenset({"blocked.example"}),
+            ),
+        ).ingest(original, observed_at=datetime.now(UTC))
+
+        assert replay.status == "REJECTED_DUPLICATE"
+        assert all(
+            candidate.output_channel_id == first_output_id
+            for candidate in session.scalars(select(PublicationCandidateModel))
+        )

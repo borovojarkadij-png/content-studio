@@ -140,7 +140,9 @@ class DurableIngestionWorkflow:
             return IngestionResult(False, source_key, "REJECTED_DUPLICATE")
         content_key = f"{source_key}:revision:{revision_number}"
         decision = self._session.scalar(
-            select(EditorialDecisionModel).where(EditorialDecisionModel.content_key == content_key)
+            select(EditorialDecisionModel)
+            .where(EditorialDecisionModel.content_key == content_key)
+            .with_for_update()
         )
         if decision is None:
             return IngestionResult(False, source_key, "REJECTED_DUPLICATE")
@@ -173,12 +175,19 @@ class DurableIngestionWorkflow:
         )
         if existing is not None:
             return False
-        self._session.add(
-            PublicationCandidateModel(
-                output_channel_id=output_channel_id,
-                content_key=content_key,
-                priority=0,
-                state="AWAITING_REWRITE",
-            )
-        )
-        return True
+        try:
+            # A concurrent mapping retry can pass the read above; the durable
+            # unique constraint is the final idempotency arbiter.
+            with self._session.begin_nested():
+                self._session.add(
+                    PublicationCandidateModel(
+                        output_channel_id=output_channel_id,
+                        content_key=content_key,
+                        priority=0,
+                        state="AWAITING_REWRITE",
+                    )
+                )
+                self._session.flush()
+            return True
+        except IntegrityError:
+            return False

@@ -83,12 +83,19 @@ class SqlAlchemyIngestionRepository:
         return latest_revision.revision_number + 1
 
     def current_revision_number(self, event: TelegramMessage) -> int | None:
-        """Return the persisted latest revision for a duplicate source delivery."""
+        """Return the revision only for an exact delivery of the latest source text.
+
+        A stale original delivery after a later Telegram edit must not fan out
+        the newer revision to a mapping whose deterministic filter saw the old
+        payload.
+        """
         post = self._find_post(event)
         if post is None:
             return None
         latest_revision = self._latest_revision(post.id)
-        return None if latest_revision is None else latest_revision.revision_number
+        if latest_revision is None or latest_revision.source_text != event.text:
+            return None
+        return latest_revision.revision_number
 
     def revision_texts(self, account_id: str, donor_channel_id: str, message_id: int) -> list[str]:
         post = self._session.scalar(
