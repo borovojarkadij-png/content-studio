@@ -12,10 +12,12 @@ from sqlalchemy import (
     CheckConstraint,
     DateTime,
     ForeignKey,
+    Index,
     Integer,
     String,
     UniqueConstraint,
     func,
+    text,
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
@@ -149,8 +151,13 @@ class PlannedPublicationModel(Base):
     __tablename__ = "planned_publications"
     __table_args__ = (
         UniqueConstraint("candidate_id", name="uq_planned_publication_candidate"),
-        UniqueConstraint(
-            "output_channel_id", "scheduled_for", "state", name="uq_planned_publication_slot_state"
+        Index(
+            "uq_planned_publication_active_slot",
+            "output_channel_id",
+            "scheduled_for",
+            unique=True,
+            sqlite_where=text("state = 'PLANNED'"),
+            postgresql_where=text("state = 'PLANNED'"),
         ),
     )
     id: Mapped[int] = mapped_column(primary_key=True)

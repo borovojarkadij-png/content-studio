@@ -21,6 +21,10 @@ Telegram send, OpenAI call or rewrite-job creation.
 - A stale `REJECT` or `rewrite_allowed=false` candidate cannot consume a slot.
 - Re-running a day returns its existing durable reservations rather than adding
   duplicates; unique database constraints arbitrate concurrent planners.
+- If an already reserved candidate is later editorially blocked, the scheduler
+  records `BLOCKED_EDITORIAL`, releases only its active slot and deterministically
+  fills that vacancy with the next eligible candidate. Historical blocked slots
+  do not conflict with active-slot uniqueness.
 - A later rewrite/approval/publisher worker must still perform its own current
   hard-constraint validation before transport.
 - Mapping-aware candidate production remains a later worker integration because
@@ -30,4 +34,6 @@ Telegram send, OpenAI call or rewrite-job creation.
 
 Unit/integration tests cover priority ordering, daily limits and slots, manual
 mode, stale editorial rejection, idempotency and migration upgrade/downgrade on
-an isolated SQLite database.
+an isolated SQLite database. The final migration refuses an unsafe downgrade if
+multiple blocked historical reservations share a slot, rather than deleting
+audit evidence to recreate the older uniqueness rule.

@@ -164,10 +164,20 @@ class PublicationPlanningService:
             zone = _zone(plan.timezone)
             self._reconcile_stale_reservations(plan, day, zone)
             existing = self._existing_for_day(plan, day, zone)
-            if existing or plan.mode == "MANUAL":
+            if plan.mode == "MANUAL" or len(existing) >= plan.daily_limit:
                 self._session.commit()
                 return existing
             slots = tuple(int(value) for value in plan.slot_minutes.split(",") if value)
+            occupied_slots = {
+                datetime.fromisoformat(str(item["scheduled_for"])).astimezone(UTC)
+                for item in existing
+            }
+            available_slots = [
+                datetime.combine(day, time(minute // 60, minute % 60), zone).astimezone(UTC)
+                for minute in slots
+                if datetime.combine(day, time(minute // 60, minute % 60), zone).astimezone(UTC)
+                not in occupied_slots
+            ]
             candidates = self._session.scalars(
                 select(PublicationCandidateModel)
                 .where(
@@ -178,14 +188,11 @@ class PublicationPlanningService:
             ).all()
             scheduled: list[dict[str, object]] = []
             for candidate in candidates:
-                if len(scheduled) >= plan.daily_limit:
+                if len(existing) + len(scheduled) >= plan.daily_limit:
                     break
                 if not self._is_currently_editorial_pass(candidate.content_key):
                     continue
-                minute = slots[len(scheduled)]
-                scheduled_for = datetime.combine(
-                    day, time(minute // 60, minute % 60), zone
-                ).astimezone(UTC)
+                scheduled_for = available_slots[len(scheduled)]
                 try:
                     with self._session.begin_nested():
                         item = PlannedPublicationModel(
@@ -202,7 +209,7 @@ class PublicationPlanningService:
                     # A concurrent planner reserved the candidate/slot; it remains non-published.
                     continue
             self._session.commit()
-            return scheduled
+            return sorted(existing + scheduled, key=lambda item: str(item["scheduled_for"]))
         except Exception:
             self._session.rollback()
             raise

@@ -166,3 +166,59 @@ def test_scheduler_releases_an_existing_stale_reservation_before_replanning(sess
         )
         == "BLOCKED_EDITORIAL"
     )
+
+
+def test_scheduler_keeps_multiple_blocked_reservation_history_for_the_same_slot(session) -> None:
+    database, output_id = session
+    service = PublicationPlanningService(database)
+    plan = service.configure_plan(output_id, "AUTOMATIC", 1, (540,))
+    for content_key in ("content:first", "content:second", "content:third"):
+        approve(database, content_key)
+        service.register_candidate(output_id, content_key, priority=10)
+        scheduled = service.plan_day(plan["id"], date(2026, 10, 5))
+        assert scheduled[0]["content_key"] == content_key
+        if content_key != "content:third":
+            decision = database.scalar(
+                select(EditorialDecisionModel).where(
+                    EditorialDecisionModel.content_key == content_key
+                )
+            )
+            assert decision is not None
+            decision.status = "REJECT"
+            decision.rewrite_allowed = False
+            database.commit()
+
+    assert (
+        database.scalar(
+            select(func.count())
+            .select_from(PlannedPublicationModel)
+            .where(PlannedPublicationModel.state == "BLOCKED_EDITORIAL")
+        )
+        == 2
+    )
+
+
+def test_scheduler_refills_a_slot_released_from_a_partially_planned_day(session) -> None:
+    database, output_id = session
+    for content_key in ("content:first", "content:second", "content:fresh"):
+        approve(database, content_key)
+    service = PublicationPlanningService(database)
+    plan = service.configure_plan(output_id, "AUTOMATIC", 2, (540, 900))
+    service.register_candidate(output_id, "content:first", priority=100)
+    service.register_candidate(output_id, "content:second", priority=90)
+    service.plan_day(plan["id"], date(2026, 10, 5))
+    decision = database.scalar(
+        select(EditorialDecisionModel).where(EditorialDecisionModel.content_key == "content:first")
+    )
+    assert decision is not None
+    decision.status = "REJECT"
+    decision.rewrite_allowed = False
+    database.commit()
+    service.register_candidate(output_id, "content:fresh", priority=80)
+
+    replanned = service.plan_day(plan["id"], date(2026, 10, 5))
+
+    assert [(item["content_key"], item["scheduled_for"]) for item in replanned] == [
+        ("content:fresh", "2026-10-05T09:00:00+00:00"),
+        ("content:second", "2026-10-05T15:00:00+00:00"),
+    ]
