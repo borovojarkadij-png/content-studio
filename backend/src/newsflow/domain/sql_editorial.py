@@ -64,12 +64,22 @@ class DurableEditorialService:
             source_text=source_text,
         )
 
-    def create_rewrite_job(self, decision: EditorialDecisionModel) -> RewriteJobModel | None:
+    def create_rewrite_job(
+        self, decision: EditorialDecisionModel, *, output_channel_id: int | None = None
+    ) -> RewriteJobModel | None:
         if decision.status != "PASS" or not decision.rewrite_allowed:
             return None
+        suffix = str(output_channel_id) if output_channel_id is not None else "default"
+        idempotency_key = f"rewrite.requested:{decision.content_key}:{suffix}"
+        existing = self._session.scalar(
+            select(RewriteJobModel).where(RewriteJobModel.idempotency_key == idempotency_key)
+        )
+        if existing is not None:
+            return existing
         job = RewriteJobModel(
             content_key=decision.content_key,
-            idempotency_key=f"rewrite.requested:{decision.content_key}",
+            output_channel_id=output_channel_id,
+            idempotency_key=idempotency_key,
             state="DISPATCHED",
         )
         self._session.add(job)

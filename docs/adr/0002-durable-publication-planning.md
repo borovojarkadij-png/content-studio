@@ -22,11 +22,18 @@ it to `READY` only when the persisted rewrite job is `SUCCEEDED` and the current
 editorial decision still allows rewrite. This keeps unfinished or subsequently
 blocked content outside the selector.
 
+The EditorialGate decision is shared by an immutable source revision, but every
+output mapping gets an independent rewrite job and outbox event. This allows
+each output channel to use its own selected rewrite model and editorial style;
+completion of one job cannot make another channel's candidate schedulable.
+
 ## Consequences
 
 - A stale `REJECT` or `rewrite_allowed=false` candidate cannot consume a slot.
 - An editorial reject never creates a candidate or rewrite job; a later stale
   reject blocks any awaiting candidate instead of making it schedulable.
+- One source mapped to several outputs has several independent rewrite jobs,
+  but never bypasses the shared current editorial decision.
 - Re-running a day returns its existing durable reservations rather than adding
   duplicates; unique database constraints arbitrate concurrent planners.
 - If an already reserved candidate is later editorially blocked, the scheduler

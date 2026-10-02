@@ -16,24 +16,27 @@ class RewriteCandidateActivationService:
     def __init__(self, session: Session) -> None:
         self._session = session
 
-    def activate(self, content_key: str) -> int:
+    def activate(self, rewrite_job_id: int) -> int:
         with self._session.begin():
             job = self._session.scalar(
                 select(RewriteJobModel)
-                .where(RewriteJobModel.content_key == content_key)
+                .where(RewriteJobModel.id == rewrite_job_id)
                 .with_for_update()
             )
             if job is None or job.state != "SUCCEEDED":
                 return 0
             decision = self._session.scalar(
                 select(EditorialDecisionModel)
-                .where(EditorialDecisionModel.content_key == content_key)
+                .where(EditorialDecisionModel.content_key == job.content_key)
                 .with_for_update()
             )
+            if job.output_channel_id is None:
+                return 0
             candidates = self._session.scalars(
                 select(PublicationCandidateModel)
                 .where(
-                    PublicationCandidateModel.content_key == content_key,
+                    PublicationCandidateModel.content_key == job.content_key,
+                    PublicationCandidateModel.output_channel_id == job.output_channel_id,
                     PublicationCandidateModel.state == "AWAITING_REWRITE",
                 )
                 .with_for_update()

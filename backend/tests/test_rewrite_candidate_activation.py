@@ -55,9 +55,9 @@ def test_passing_mapped_ingestion_creates_awaiting_rewrite_candidate_then_activa
         job = session.scalar(select(RewriteJobModel))
         assert job is not None
         job.state = "SUCCEEDED"
-        content_key = job.content_key
+        job_id = job.id
         session.commit()
-        assert RewriteCandidateActivationService(session).activate(content_key) == 1
+        assert RewriteCandidateActivationService(session).activate(job_id) == 1
         assert session.scalar(select(PublicationCandidateModel)).state == "READY"
 
 
@@ -134,10 +134,10 @@ def test_stale_editorial_reject_blocks_candidate_after_rewrite_completes() -> No
         decision.status = "REJECT"
         decision.rewrite_allowed = False
         job.state = "SUCCEEDED"
-        content_key = job.content_key
+        job_id = job.id
         session.commit()
 
-        assert RewriteCandidateActivationService(session).activate(content_key) == 0
+        assert RewriteCandidateActivationService(session).activate(job_id) == 0
         assert session.scalar(select(PublicationCandidateModel)).state == "BLOCKED_EDITORIAL"
 
 
@@ -188,7 +188,19 @@ def test_same_source_fans_out_to_each_mapping_without_repeat_rewrite_dispatch() 
                 )
             )
         ] == [first_output_id, second_output_id]
-        assert len(session.scalars(select(RewriteJobModel)).all()) == 1
+        jobs = session.scalars(
+            select(RewriteJobModel).order_by(RewriteJobModel.output_channel_id)
+        ).all()
+        assert [job.output_channel_id for job in jobs] == [first_output_id, second_output_id]
+        assert len(jobs) == 2
+        jobs[0].state = "SUCCEEDED"
+        first_job_id = jobs[0].id
+        session.commit()
+        assert RewriteCandidateActivationService(session).activate(first_job_id) == 1
+        candidates = session.scalars(
+            select(PublicationCandidateModel).order_by(PublicationCandidateModel.output_channel_id)
+        ).all()
+        assert [candidate.state for candidate in candidates] == ["READY", "AWAITING_REWRITE"]
         session.commit()
         assert (
             DurableIngestionWorkflow(

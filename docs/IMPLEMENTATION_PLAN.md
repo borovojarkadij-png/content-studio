@@ -9,7 +9,7 @@
 - [~] Telegram provider contract and deterministic FakeTelegramProvider
 - [~] Telegram persistence entities/constraints and donor bulk-import API
 - [~] Offline ingestion idempotency, immutable revisions and technical/editorial prefilters
-- [~] Durable ingestion transaction: filters, exact source delivery dedup, editorial decision and guarded rewrite outbox
+- [~] Durable ingestion transaction: filters, exact source delivery dedup, editorial decision and guarded per-output rewrite outbox
 - [~] Telethon adapter boundary and offline message/album normalization; encrypted-session boundary and live account management pending
 - [~] Account health/reconnect policy with persisted FloodWait cooldown and offline tests
 - [~] Filters, semantic dedup, events, hype, media, routing and scheduler; durable manual/automatic per-channel plan, mapping-aware `AWAITING_REWRITE` candidate production and post-rewrite editorial-gated activation complete; mapping publication policies and operational scheduler remain pending

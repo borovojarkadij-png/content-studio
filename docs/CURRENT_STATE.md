@@ -64,8 +64,10 @@
   `BLOCKED_EDITORIAL`. Editorial rejects create neither a candidate nor a
   rewrite job.
 - One accepted current source revision can fan out idempotently to multiple
-  output mappings while retaining a single rewrite job and rewrite-request
-  outbox event. Stale source deliveries after an edit cannot route a newer
+  output mappings. It retains one shared editorial decision but creates a
+  separate output-scoped rewrite job and rewrite-request outbox event for each
+  channel, so channel-specific style/model choices and later rewrite results
+  stay independent. Stale source deliveries after an edit cannot route a newer
   revision; locked editorial reads and unique candidate rows prevent a reject
   or concurrent retry from bypassing the gate.
 - Dark-navy frontend: all eight section compositions, shared linear icons,
@@ -126,10 +128,10 @@
 The durable configuration, mapping-aware candidate source and
 publication-planning contracts are complete locally. Next PHASE 1 task: store
 mapping publication policies (immediate versus delayed eligibility, priority
-and permitted media) and persist rewrite output/approval state, then wire the
-Planner UI to durable read/mutation APIs. Keep the current editorial recheck
-and never perform real Telegram publication or OpenAI calls as a side effect of
-UI work.
+and permitted media), persist per-output rewrite output/approval state and
+secure OpenAI rewrite configuration, then wire the Planner UI to durable
+read/mutation APIs. Keep the current editorial recheck and never perform real
+Telegram publication as a side effect of UI work.
 
 PHASE 1 IS NOT COMPLETE. Docker Compose/persistence/restart E2E remains
 NOT VERIFIED / BLOCKED BY ENVIRONMENT until Docker Desktop is available.

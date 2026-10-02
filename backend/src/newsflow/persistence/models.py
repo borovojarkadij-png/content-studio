@@ -261,9 +261,15 @@ class EditorialDecisionModel(Base):
 
 class RewriteJobModel(Base):
     __tablename__ = "rewrite_jobs"
+    __table_args__ = (
+        UniqueConstraint("content_key", "output_channel_id", name="uq_rewrite_job_content_output"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    content_key: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    content_key: Mapped[str] = mapped_column(String(255), nullable=False)
+    output_channel_id: Mapped[int | None] = mapped_column(
+        ForeignKey("output_channels.id"), nullable=True, index=True
+    )
     idempotency_key: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     state: Mapped[str] = mapped_column(String(32), nullable=False)
     created_at: Mapped[datetime] = mapped_column(

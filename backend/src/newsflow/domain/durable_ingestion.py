@@ -114,17 +114,13 @@ class DurableIngestionWorkflow:
                 return IngestionResult(False, source_key, "REJECTED_EDITORIAL")
 
             persisted = repository.ingest(event, observed_at)
-            job = editorial.create_rewrite_job(decision)
+            job = editorial.create_rewrite_job(
+                decision, output_channel_id=self._technical_filter.output_channel_id
+            )
             if job is None:
                 raise RuntimeError("Passing editorial decision did not create a rewrite job")
             self._ensure_publication_candidate(content_key)
-            self._session.add(
-                OutboxEventModel(
-                    event_type="rewrite.requested",
-                    aggregate_key=content_key,
-                    idempotency_key=f"rewrite.requested:{content_key}",
-                )
-            )
+            self._ensure_rewrite_outbox(job)
             return IngestionResult(persisted.created, source_key, "REWRITE_QUEUED")
 
     def _route_existing_source(
@@ -150,16 +146,33 @@ class DurableIngestionWorkflow:
             return IngestionResult(False, source_key, "REJECTED_EDITORIAL")
         if self._technical_filter.output_channel_id is None:
             return IngestionResult(False, source_key, "REJECTED_DUPLICATE")
+        editorial = DurableEditorialService(self._session, self._editorial_gate)
+        job = editorial.create_rewrite_job(
+            decision, output_channel_id=self._technical_filter.output_channel_id
+        )
+        if job is None:
+            raise RuntimeError("Passing editorial decision did not create a rewrite job")
+        candidate_created = self._ensure_publication_candidate(content_key)
+        self._ensure_rewrite_outbox(job)
+        status = "REWRITE_QUEUED" if candidate_created else "REJECTED_DUPLICATE"
+        return IngestionResult(candidate_created, source_key, status)
+
+    def _ensure_rewrite_outbox(self, job: RewriteJobModel) -> None:
         if (
             self._session.scalar(
-                select(RewriteJobModel.id).where(RewriteJobModel.content_key == content_key)
+                select(OutboxEventModel.id).where(
+                    OutboxEventModel.idempotency_key == job.idempotency_key
+                )
             )
             is None
         ):
-            raise RuntimeError("Passing editorial decision did not create a rewrite job")
-        candidate_created = self._ensure_publication_candidate(content_key)
-        status = "REWRITE_QUEUED" if candidate_created else "REJECTED_DUPLICATE"
-        return IngestionResult(candidate_created, source_key, status)
+            self._session.add(
+                OutboxEventModel(
+                    event_type="rewrite.requested",
+                    aggregate_key=job.content_key,
+                    idempotency_key=job.idempotency_key,
+                )
+            )
 
     def _ensure_publication_candidate(self, content_key: str) -> bool:
         output_channel_id = self._technical_filter.output_channel_id
