@@ -15,6 +15,11 @@ rewrite and publication. The invariant is absolute:
 Both orchestration and `RewriteService` enforce it; `PublicationService` checks
 the current decision, cancellation, expiry, schedule and idempotency again.
 
+`PublicationPlanningService` only reserves durable `PLANNED` slots. It rechecks
+the current editorial record before a reservation and never calls a Telegram
+publisher or an AI provider; a later worker remains responsible for final
+approval and transport revalidation.
+
 ## Persistence
 
 All business entities, state transitions, audit events, outbox records,

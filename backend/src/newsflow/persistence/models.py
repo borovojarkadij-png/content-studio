@@ -104,6 +104,67 @@ class DonorImportModel(Base):
     status: Mapped[str] = mapped_column(String(32), nullable=False)
 
 
+class PublicationPlanModel(Base):
+    """Per-output policy for manual or automatic daily planning."""
+
+    __tablename__ = "publication_plans"
+    __table_args__ = (
+        CheckConstraint("mode IN ('MANUAL', 'AUTOMATIC')", name="ck_publication_plan_mode"),
+        CheckConstraint("daily_limit BETWEEN 1 AND 24", name="ck_publication_plan_daily_limit"),
+    )
+    id: Mapped[int] = mapped_column(primary_key=True)
+    output_channel_id: Mapped[int] = mapped_column(
+        ForeignKey("output_channels.id"), unique=True, nullable=False, index=True
+    )
+    mode: Mapped[str] = mapped_column(String(16), nullable=False)
+    daily_limit: Mapped[int] = mapped_column(Integer, nullable=False)
+    timezone: Mapped[str] = mapped_column(String(64), nullable=False)
+    slot_minutes: Mapped[str] = mapped_column(String(128), nullable=False)
+
+
+class PublicationCandidateModel(Base):
+    """Durable candidate eligible for planning, not a publication instruction."""
+
+    __tablename__ = "publication_candidates"
+    __table_args__ = (
+        UniqueConstraint(
+            "output_channel_id", "content_key", name="uq_publication_candidate_content"
+        ),
+    )
+    id: Mapped[int] = mapped_column(primary_key=True)
+    output_channel_id: Mapped[int] = mapped_column(
+        ForeignKey("output_channels.id"), nullable=False, index=True
+    )
+    content_key: Mapped[str] = mapped_column(String(255), nullable=False)
+    priority: Mapped[int] = mapped_column(Integer, nullable=False)
+    state: Mapped[str] = mapped_column(String(32), nullable=False, default="READY")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+
+class PlannedPublicationModel(Base):
+    """An idempotent reserved slot; a later publication worker still approves it."""
+
+    __tablename__ = "planned_publications"
+    __table_args__ = (
+        UniqueConstraint("candidate_id", name="uq_planned_publication_candidate"),
+        UniqueConstraint("output_channel_id", "scheduled_for", name="uq_planned_publication_slot"),
+    )
+    id: Mapped[int] = mapped_column(primary_key=True)
+    candidate_id: Mapped[int] = mapped_column(
+        ForeignKey("publication_candidates.id"), nullable=False
+    )
+    output_channel_id: Mapped[int] = mapped_column(ForeignKey("output_channels.id"), nullable=False)
+    scheduled_for: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, index=True
+    )
+    state: Mapped[str] = mapped_column(String(32), nullable=False, default="PLANNED")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+
 class OutboxEventModel(Base):
     __tablename__ = "outbox_events"
     id: Mapped[int] = mapped_column(primary_key=True)

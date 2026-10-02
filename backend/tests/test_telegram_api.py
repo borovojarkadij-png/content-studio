@@ -173,3 +173,63 @@ def test_identity_conflict_and_missing_reference_are_safe_http_errors(client):
         ).status_code
         == 404
     )
+
+
+def test_publication_plan_api_persists_channel_daily_limit_and_slots(client):
+    account = client.post(
+        "/api/telegram/accounts", json={"name": "Primary", "telegram_user_id": 1001}
+    ).json()
+    output = client.post(
+        "/api/telegram/output-channels",
+        json={
+            "telegram_account_id": account["id"],
+            "telegram_channel_id": -1001234567890,
+            "title": "Destination",
+        },
+    ).json()
+
+    configured = client.put(
+        f"/api/telegram/output-channels/{output['id']}/publication-plan",
+        json={"mode": "AUTOMATIC", "daily_limit": 2, "slot_minutes": [540, 900], "timezone": "UTC"},
+    )
+
+    assert configured.status_code == 200
+    assert configured.json() == {
+        "id": 1,
+        "output_channel_id": output["id"],
+        "mode": "AUTOMATIC",
+        "daily_limit": 2,
+        "timezone": "UTC",
+        "slot_minutes": [540, 900],
+    }
+    planned = client.post(
+        f"/api/telegram/publication-plans/{configured.json()['id']}:plan-day",
+        json={"day": "2026-10-05"},
+    )
+    assert planned.status_code == 200
+    assert planned.json() == {"items": []}
+
+
+def test_publication_plan_api_rejects_an_unknown_timezone_and_extra_fields(client):
+    account = client.post(
+        "/api/telegram/accounts", json={"name": "Primary", "telegram_user_id": 1001}
+    ).json()
+    output = client.post(
+        "/api/telegram/output-channels",
+        json={
+            "telegram_account_id": account["id"],
+            "telegram_channel_id": -1001234567890,
+            "title": "Destination",
+        },
+    ).json()
+    response = client.put(
+        f"/api/telegram/output-channels/{output['id']}/publication-plan",
+        json={
+            "mode": "AUTOMATIC",
+            "daily_limit": 1,
+            "slot_minutes": [540],
+            "timezone": "Mars/Olympus",
+            "publish_now": True,
+        },
+    )
+    assert response.status_code == 422

@@ -52,6 +52,10 @@
   Natural Telegram identities are immutable; equivalent retry requests are
   idempotent, conflicts are explicit, configuration writes never create rewrite
   jobs or editorial decisions, and public API projections never return sessions.
+- Durable per-output publication planning supports `MANUAL`/`AUTOMATIC` mode,
+  daily limits, IANA timezones and fixed slots. It deterministically prioritizes
+  editorially eligible candidates and stores `PLANNED` reservations only; it
+  has no Telegram transport, OpenAI or rewrite-job side effect.
 - Dark-navy frontend: all eight section compositions, shared linear icons,
   selected rows/cards, responsive panels and honest unavailable actions.
 - In-memory DEMO workflows: donor import preview/partial success, independent
@@ -107,13 +111,12 @@
 
 ## NEXT STEP
 
-The durable Telegram configuration API increment is complete locally. Next
-PHASE 1 implementation task: add durable per-output publication plans and a
-safe automatic candidate selector. It must select only records with a current
-editorial PASS decision and `rewrite_allowed=true`, enforce per-channel daily
-limits and time windows, create idempotent planning records only, and never
-perform a real Telegram publication or OpenAI call. Connect UI flows only after
-their durable contracts are verified.
+The durable configuration and publication-planning contracts are complete
+locally. Next PHASE 1 task: connect the scheduler's candidate source to the
+mapping-aware ingestion/rewrite workflow, persist rewrite output and approval
+state, then wire the Planner UI to durable read/mutation APIs. Keep the current
+editorial recheck and never perform real Telegram publication or OpenAI calls
+as a side effect of UI work.
 
 PHASE 1 IS NOT COMPLETE. Docker Compose/persistence/restart E2E remains
 NOT VERIFIED / BLOCKED BY ENVIRONMENT until Docker Desktop is available.

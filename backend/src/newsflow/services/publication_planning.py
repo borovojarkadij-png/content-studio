@@ -1,0 +1,237 @@
+"""Durable, deterministic publication planning with no transport side effects."""
+
+from datetime import UTC, date, datetime, time
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+
+from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
+
+from newsflow.persistence.models import (
+    EditorialDecisionModel,
+    OutputChannel,
+    PlannedPublicationModel,
+    PublicationCandidateModel,
+    PublicationPlanModel,
+)
+
+
+class CandidateBlocked(PermissionError):
+    """The current editorial decision cannot safely enter planning."""
+
+
+class PlanValidationError(ValueError):
+    """A publication-plan policy is malformed or conflicts with durable state."""
+
+
+def _slots(slot_minutes: tuple[int, ...]) -> tuple[int, ...]:
+    if not slot_minutes or len(slot_minutes) > 24 or len(set(slot_minutes)) != len(slot_minutes):
+        raise PlanValidationError("Publication slots must be unique daily minutes")
+    if any(type(minute) is not int or not 0 <= minute < 24 * 60 for minute in slot_minutes):
+        raise PlanValidationError("Publication slot minute is outside the day")
+    return tuple(sorted(slot_minutes))
+
+
+def _zone(timezone: str) -> ZoneInfo:
+    try:
+        return ZoneInfo(timezone)
+    except ZoneInfoNotFoundError as exc:
+        raise PlanValidationError("Publication plan timezone is unknown") from exc
+
+
+def _plan_projection(plan: PublicationPlanModel) -> dict[str, object]:
+    return {
+        "id": plan.id,
+        "output_channel_id": plan.output_channel_id,
+        "mode": plan.mode,
+        "daily_limit": plan.daily_limit,
+        "timezone": plan.timezone,
+        "slot_minutes": tuple(int(value) for value in plan.slot_minutes.split(",") if value),
+    }
+
+
+def _item_projection(
+    item: PlannedPublicationModel, candidate: PublicationCandidateModel
+) -> dict[str, object]:
+    scheduled_for = item.scheduled_for
+    if scheduled_for.tzinfo is None:
+        scheduled_for = scheduled_for.replace(tzinfo=UTC)
+    return {
+        "id": item.id,
+        "candidate_id": candidate.id,
+        "content_key": candidate.content_key,
+        "output_channel_id": item.output_channel_id,
+        "scheduled_for": scheduled_for.astimezone(UTC).isoformat(),
+        "state": item.state,
+    }
+
+
+class PublicationPlanningService:
+    """Writes only plan/candidate/slot records; it never publishes or rewrites."""
+
+    def __init__(self, session: Session) -> None:
+        self._session = session
+
+    def configure_plan(
+        self,
+        output_channel_id: int,
+        mode: str,
+        daily_limit: int,
+        slot_minutes: tuple[int, ...],
+        timezone: str = "UTC",
+    ) -> dict[str, object]:
+        if mode not in {"MANUAL", "AUTOMATIC"}:
+            raise PlanValidationError("Publication mode must be MANUAL or AUTOMATIC")
+        if type(daily_limit) is not int or not 1 <= daily_limit <= 24:
+            raise PlanValidationError("Daily publication limit must be between 1 and 24")
+        slots = _slots(slot_minutes)
+        if len(slots) < daily_limit:
+            raise PlanValidationError("Daily limit cannot exceed configured slots")
+        _zone(timezone)
+        try:
+            if self._session.get(OutputChannel, output_channel_id) is None:
+                raise LookupError("Output channel was not found")
+            plan = self._session.scalar(
+                select(PublicationPlanModel).where(
+                    PublicationPlanModel.output_channel_id == output_channel_id
+                )
+            )
+            if plan is None:
+                plan = PublicationPlanModel(
+                    output_channel_id=output_channel_id,
+                    mode=mode,
+                    daily_limit=daily_limit,
+                    timezone=timezone,
+                    slot_minutes=",".join(str(minute) for minute in slots),
+                )
+                self._session.add(plan)
+            else:
+                plan.mode = mode
+                plan.daily_limit = daily_limit
+                plan.timezone = timezone
+                plan.slot_minutes = ",".join(str(minute) for minute in slots)
+            self._session.flush()
+            result = _plan_projection(plan)
+            self._session.commit()
+            return result
+        except Exception:
+            self._session.rollback()
+            raise
+
+    def register_candidate(
+        self, output_channel_id: int, content_key: str, *, priority: int
+    ) -> dict[str, object]:
+        if not content_key.strip() or len(content_key) > 255 or type(priority) is not int:
+            raise PlanValidationError("Candidate content key or priority is invalid")
+        try:
+            if self._session.get(OutputChannel, output_channel_id) is None:
+                raise LookupError("Output channel was not found")
+            self._require_editorial_pass(content_key)
+            candidate = self._session.scalar(
+                select(PublicationCandidateModel).where(
+                    PublicationCandidateModel.output_channel_id == output_channel_id,
+                    PublicationCandidateModel.content_key == content_key,
+                )
+            )
+            if candidate is None:
+                candidate = PublicationCandidateModel(
+                    output_channel_id=output_channel_id,
+                    content_key=content_key,
+                    priority=priority,
+                    state="READY",
+                )
+                self._session.add(candidate)
+                self._session.flush()
+            elif candidate.priority != priority:
+                raise PlanValidationError("Candidate already exists with a different priority")
+            result = {
+                "id": candidate.id,
+                "content_key": candidate.content_key,
+                "priority": candidate.priority,
+                "state": candidate.state,
+            }
+            self._session.commit()
+            return result
+        except Exception:
+            self._session.rollback()
+            raise
+
+    def plan_day(self, plan_id: int, day: date) -> list[dict[str, object]]:
+        try:
+            plan = self._session.get(PublicationPlanModel, plan_id)
+            if plan is None:
+                raise LookupError("Publication plan was not found")
+            zone = _zone(plan.timezone)
+            existing = self._existing_for_day(plan, day, zone)
+            if existing or plan.mode == "MANUAL":
+                self._session.commit()
+                return existing
+            slots = tuple(int(value) for value in plan.slot_minutes.split(",") if value)
+            candidates = self._session.scalars(
+                select(PublicationCandidateModel)
+                .where(
+                    PublicationCandidateModel.output_channel_id == plan.output_channel_id,
+                    PublicationCandidateModel.state == "READY",
+                )
+                .order_by(PublicationCandidateModel.priority.desc(), PublicationCandidateModel.id)
+            ).all()
+            scheduled: list[dict[str, object]] = []
+            for candidate in candidates:
+                if len(scheduled) >= plan.daily_limit:
+                    break
+                if not self._is_currently_editorial_pass(candidate.content_key):
+                    continue
+                minute = slots[len(scheduled)]
+                scheduled_for = datetime.combine(
+                    day, time(minute // 60, minute % 60), zone
+                ).astimezone(UTC)
+                try:
+                    with self._session.begin_nested():
+                        item = PlannedPublicationModel(
+                            candidate_id=candidate.id,
+                            output_channel_id=plan.output_channel_id,
+                            scheduled_for=scheduled_for,
+                            state="PLANNED",
+                        )
+                        self._session.add(item)
+                        self._session.flush()
+                    candidate.state = "SCHEDULED"
+                    scheduled.append(_item_projection(item, candidate))
+                except IntegrityError:
+                    # A concurrent planner reserved the candidate/slot; it remains non-published.
+                    continue
+            self._session.commit()
+            return scheduled
+        except Exception:
+            self._session.rollback()
+            raise
+
+    def _existing_for_day(
+        self, plan: PublicationPlanModel, day: date, zone: ZoneInfo
+    ) -> list[dict[str, object]]:
+        starts_at = datetime.combine(day, time.min, zone).astimezone(UTC)
+        ends_at = datetime.combine(day, time.max, zone).astimezone(UTC)
+        rows = self._session.execute(
+            select(PlannedPublicationModel, PublicationCandidateModel)
+            .join(
+                PublicationCandidateModel,
+                PlannedPublicationModel.candidate_id == PublicationCandidateModel.id,
+            )
+            .where(
+                PlannedPublicationModel.output_channel_id == plan.output_channel_id,
+                PlannedPublicationModel.scheduled_for >= starts_at,
+                PlannedPublicationModel.scheduled_for <= ends_at,
+            )
+            .order_by(PlannedPublicationModel.scheduled_for)
+        )
+        return [_item_projection(item, candidate) for item, candidate in rows]
+
+    def _require_editorial_pass(self, content_key: str) -> None:
+        if not self._is_currently_editorial_pass(content_key):
+            raise CandidateBlocked("EDITORIAL_HARD_CONSTRAINT_BLOCKED")
+
+    def _is_currently_editorial_pass(self, content_key: str) -> bool:
+        decision = self._session.scalar(
+            select(EditorialDecisionModel).where(EditorialDecisionModel.content_key == content_key)
+        )
+        return decision is not None and decision.status == "PASS" and decision.rewrite_allowed

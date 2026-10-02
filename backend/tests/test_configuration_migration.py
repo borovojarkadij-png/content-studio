@@ -14,12 +14,21 @@ def test_configuration_schema_upgrade_creates_pending_import_storage(tmp_path) -
     engine = create_engine(database_url)
     try:
         inspector = inspect(engine)
-        assert "donor_imports" in inspector.get_table_names()
+        assert {
+            "donor_imports",
+            "publication_plans",
+            "publication_candidates",
+            "planned_publications",
+        } <= set(inspector.get_table_names())
         columns = {column["name"] for column in inspector.get_columns("donor_imports")}
         assert columns == {"id", "telegram_account_id", "identifier", "status"}
         assert any(
             index["column_names"] == ["telegram_account_id"]
             for index in inspector.get_indexes("donor_imports")
+        )
+        assert any(
+            index["column_names"] == ["output_channel_id"]
+            for index in inspector.get_indexes("publication_plans")
         )
     finally:
         engine.dispose()

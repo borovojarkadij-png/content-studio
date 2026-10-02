@@ -1,7 +1,8 @@
 """Minimal Telegram configuration API; state changes remain service-owned."""
 
 from collections.abc import Iterator
-from typing import Annotated
+from datetime import date
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, ConfigDict, Field
@@ -9,6 +10,11 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from newsflow.persistence.database import database_session
 from newsflow.services.moderation_inbox import ModerationInboxReader
+from newsflow.services.publication_planning import (
+    CandidateBlocked,
+    PlanValidationError,
+    PublicationPlanningService,
+)
 from newsflow.services.telegram_configuration import (
     ConfigurationConflict,
     TelegramConfigurationService,
@@ -36,6 +42,29 @@ def get_configuration_service() -> Iterator[TelegramConfigurationService]:
 
 
 Configuration = Annotated[TelegramConfigurationService, Depends(get_configuration_service)]
+
+
+def get_publication_planning_service() -> Iterator[PublicationPlanningService]:
+    for session in database_session():
+        if session is None:
+            raise HTTPException(503, "Durable database is not configured")
+        try:
+            yield PublicationPlanningService(session)
+        except CandidateBlocked as exc:
+            raise HTTPException(409, str(exc)) from None
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from None
+        except PlanValidationError as exc:
+            raise HTTPException(422, str(exc)) from None
+        except SQLAlchemyError:
+            raise HTTPException(
+                503, "Durable database is unavailable or requires migrations"
+            ) from None
+
+
+PublicationPlanning = Annotated[
+    PublicationPlanningService, Depends(get_publication_planning_service)
+]
 
 
 def get_moderation_inbox_reader() -> Iterator[ModerationInboxReader | None]:
@@ -78,6 +107,17 @@ class MappingUpdateRequest(StrictRequest):
 class MappingCreateRequest(MappingUpdateRequest):
     donor_channel_id: int = Field(gt=0, strict=True)
     output_channel_id: int = Field(gt=0, strict=True)
+
+
+class PublicationPlanRequest(StrictRequest):
+    mode: Literal["MANUAL", "AUTOMATIC"]
+    daily_limit: int = Field(ge=1, le=24, strict=True)
+    slot_minutes: tuple[int, ...] = Field(min_length=1, max_length=24)
+    timezone: str = Field(min_length=1, max_length=64)
+
+
+class PlanDayRequest(StrictRequest):
+    day: date
 
 
 @router.post("/donors:bulk-import")
@@ -169,6 +209,26 @@ def update_mapping(
 @router.get("/donor-imports")
 def list_donor_imports(service: Configuration) -> dict[str, list]:
     return {"items": service.list_donor_imports()}
+
+
+@router.put("/output-channels/{output_channel_id}/publication-plan")
+def configure_publication_plan(
+    output_channel_id: int, request: PublicationPlanRequest, service: PublicationPlanning
+) -> dict[str, object]:
+    return service.configure_plan(
+        output_channel_id,
+        request.mode,
+        request.daily_limit,
+        request.slot_minutes,
+        request.timezone,
+    )
+
+
+@router.post("/publication-plans/{plan_id}:plan-day")
+def plan_publications_for_day(
+    plan_id: int, request: PlanDayRequest, service: PublicationPlanning
+) -> dict[str, list[dict[str, object]]]:
+    return {"items": service.plan_day(plan_id, request.day)}
 
 
 @router.get("/incoming-posts")
