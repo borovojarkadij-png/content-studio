@@ -35,7 +35,7 @@ def _slots(slot_minutes: tuple[int, ...]) -> tuple[int, ...]:
 def _zone(timezone: str) -> ZoneInfo:
     try:
         return ZoneInfo(timezone)
-    except ZoneInfoNotFoundError as exc:
+    except (ValueError, ZoneInfoNotFoundError) as exc:
         raise PlanValidationError("Publication plan timezone is unknown") from exc
 
 
@@ -162,6 +162,7 @@ class PublicationPlanningService:
             if plan is None:
                 raise LookupError("Publication plan was not found")
             zone = _zone(plan.timezone)
+            self._reconcile_stale_reservations(plan, day, zone)
             existing = self._existing_for_day(plan, day, zone)
             if existing or plan.mode == "MANUAL":
                 self._session.commit()
@@ -219,6 +220,7 @@ class PublicationPlanningService:
             )
             .where(
                 PlannedPublicationModel.output_channel_id == plan.output_channel_id,
+                PlannedPublicationModel.state == "PLANNED",
                 PlannedPublicationModel.scheduled_for >= starts_at,
                 PlannedPublicationModel.scheduled_for <= ends_at,
             )
@@ -226,12 +228,39 @@ class PublicationPlanningService:
         )
         return [_item_projection(item, candidate) for item, candidate in rows]
 
+    def _reconcile_stale_reservations(
+        self, plan: PublicationPlanModel, day: date, zone: ZoneInfo
+    ) -> None:
+        starts_at = datetime.combine(day, time.min, zone).astimezone(UTC)
+        ends_at = datetime.combine(day, time.max, zone).astimezone(UTC)
+        rows = self._session.execute(
+            select(PlannedPublicationModel, PublicationCandidateModel)
+            .join(
+                PublicationCandidateModel,
+                PlannedPublicationModel.candidate_id == PublicationCandidateModel.id,
+            )
+            .where(
+                PlannedPublicationModel.output_channel_id == plan.output_channel_id,
+                PlannedPublicationModel.state == "PLANNED",
+                PlannedPublicationModel.scheduled_for >= starts_at,
+                PlannedPublicationModel.scheduled_for <= ends_at,
+            )
+            .with_for_update()
+        )
+        for item, candidate in rows:
+            if not self._is_currently_editorial_pass(candidate.content_key):
+                item.state = "BLOCKED_EDITORIAL"
+                candidate.state = "BLOCKED_EDITORIAL"
+        self._session.flush()
+
     def _require_editorial_pass(self, content_key: str) -> None:
         if not self._is_currently_editorial_pass(content_key):
             raise CandidateBlocked("EDITORIAL_HARD_CONSTRAINT_BLOCKED")
 
     def _is_currently_editorial_pass(self, content_key: str) -> bool:
         decision = self._session.scalar(
-            select(EditorialDecisionModel).where(EditorialDecisionModel.content_key == content_key)
+            select(EditorialDecisionModel)
+            .where(EditorialDecisionModel.content_key == content_key)
+            .with_for_update()
         )
         return decision is not None and decision.status == "PASS" and decision.rewrite_allowed

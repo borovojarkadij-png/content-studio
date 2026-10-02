@@ -134,3 +134,35 @@ def test_scheduler_skips_stale_reject_without_wasting_a_daily_slot(session) -> N
     assert [(item["content_key"], item["scheduled_for"]) for item in scheduled] == [
         ("content:fresh", "2026-10-05T09:00:00+00:00"),
     ]
+
+
+def test_scheduler_releases_an_existing_stale_reservation_before_replanning(session) -> None:
+    database, output_id = session
+    approve(database, "content:stale")
+    approve(database, "content:fresh")
+    service = PublicationPlanningService(database)
+    plan = service.configure_plan(output_id, "AUTOMATIC", 1, (540,))
+    service.register_candidate(output_id, "content:stale", priority=100)
+    assert service.plan_day(plan["id"], date(2026, 10, 5))[0]["content_key"] == "content:stale"
+    stale = database.scalar(
+        select(EditorialDecisionModel).where(EditorialDecisionModel.content_key == "content:stale")
+    )
+    assert stale is not None
+    stale.status = "REJECT"
+    stale.rewrite_allowed = False
+    database.commit()
+    service.register_candidate(output_id, "content:fresh", priority=90)
+
+    replanned = service.plan_day(plan["id"], date(2026, 10, 5))
+
+    assert [(item["content_key"], item["scheduled_for"]) for item in replanned] == [
+        ("content:fresh", "2026-10-05T09:00:00+00:00"),
+    ]
+    assert (
+        database.scalar(
+            select(PlannedPublicationModel.state).where(
+                PlannedPublicationModel.state == "BLOCKED_EDITORIAL"
+            )
+        )
+        == "BLOCKED_EDITORIAL"
+    )

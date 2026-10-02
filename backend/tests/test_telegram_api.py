@@ -222,14 +222,24 @@ def test_publication_plan_api_rejects_an_unknown_timezone_and_extra_fields(clien
             "title": "Destination",
         },
     ).json()
-    response = client.put(
+    unknown_timezone = client.put(
         f"/api/telegram/output-channels/{output['id']}/publication-plan",
         json={
             "mode": "AUTOMATIC",
             "daily_limit": 1,
             "slot_minutes": [540],
             "timezone": "Mars/Olympus",
+        },
+    )
+    extra_field = client.put(
+        f"/api/telegram/output-channels/{output['id']}/publication-plan",
+        json={
+            "mode": "AUTOMATIC",
+            "daily_limit": 1,
+            "slot_minutes": [540],
+            "timezone": "UTC",
             "publish_now": True,
         },
     )
-    assert response.status_code == 422
+    assert unknown_timezone.status_code == 422
+    assert extra_field.status_code == 422

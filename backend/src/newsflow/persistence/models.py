@@ -149,7 +149,9 @@ class PlannedPublicationModel(Base):
     __tablename__ = "planned_publications"
     __table_args__ = (
         UniqueConstraint("candidate_id", name="uq_planned_publication_candidate"),
-        UniqueConstraint("output_channel_id", "scheduled_for", name="uq_planned_publication_slot"),
+        UniqueConstraint(
+            "output_channel_id", "scheduled_for", "state", name="uq_planned_publication_slot_state"
+        ),
     )
     id: Mapped[int] = mapped_column(primary_key=True)
     candidate_id: Mapped[int] = mapped_column(
