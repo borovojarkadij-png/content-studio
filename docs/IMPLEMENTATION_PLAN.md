@@ -12,7 +12,7 @@
 - [~] Durable ingestion transaction: filters, exact source delivery dedup, editorial decision and guarded rewrite outbox
 - [~] Telethon adapter boundary and offline message/album normalization; encrypted-session boundary and live account management pending
 - [~] Account health/reconnect policy with persisted FloodWait cooldown and offline tests
-- [~] Filters, semantic dedup, events, hype, media, routing and scheduler; durable manual/automatic per-channel plan and selector foundation complete, mapping-aware candidate production pending
+- [~] Filters, semantic dedup, events, hype, media, routing and scheduler; durable manual/automatic per-channel plan, mapping-aware `AWAITING_REWRITE` candidate production and post-rewrite editorial-gated activation complete; mapping publication policies and operational scheduler remain pending
 - [~] Mapping-level deterministic filters for media, advertising markers and forbidden links
 - [~] Durable mapping-scoped exact content fingerprint deduplication before EditorialGate
 - [ ] OpenAI adapter, fact guard, queues and operational workers

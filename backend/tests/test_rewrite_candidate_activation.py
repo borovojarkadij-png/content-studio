@@ -1,0 +1,141 @@
+from datetime import UTC, datetime
+
+from sqlalchemy import create_engine, select
+from sqlalchemy.orm import Session
+
+from newsflow.domain.durable_ingestion import DurableIngestionWorkflow
+from newsflow.domain.technical_filters import MappingTechnicalFilter
+from newsflow.persistence.models import (
+    Base,
+    EditorialDecisionModel,
+    OutputChannel,
+    PublicationCandidateModel,
+    RewriteJobModel,
+    TelegramAccount,
+)
+from newsflow.providers.telegram import TelegramMessage
+from newsflow.services.publication_candidate_activation import RewriteCandidateActivationService
+
+
+def test_passing_mapped_ingestion_creates_awaiting_rewrite_candidate_then_activates_it() -> None:
+    engine = create_engine("sqlite://")
+    Base.metadata.create_all(engine)
+    with Session(engine) as session:
+        account = TelegramAccount(
+            name="Primary",
+            telegram_user_id=1001,
+            encrypted_session="",
+            health_status="DISCONNECTED",
+        )
+        session.add(account)
+        session.flush()
+        output = OutputChannel(
+            telegram_account_id=account.id, telegram_channel_id=-1001234567890, title="Destination"
+        )
+        session.add(output)
+        session.flush()
+        output_id = output.id
+        session.commit()
+        workflow = DurableIngestionWorkflow(
+            session,
+            technical_filter=MappingTechnicalFilter(
+                mapping_id="mapping-1", output_channel_id=output_id
+            ),
+        )
+
+        result = workflow.ingest(
+            TelegramMessage("account-a", "@donor", 7, "permitted news"),
+            observed_at=datetime.now(UTC),
+        )
+        candidate = session.scalar(select(PublicationCandidateModel))
+        assert result.status == "REWRITE_QUEUED"
+        assert candidate is not None
+        assert candidate.state == "AWAITING_REWRITE"
+
+        job = session.scalar(select(RewriteJobModel))
+        assert job is not None
+        job.state = "SUCCEEDED"
+        content_key = job.content_key
+        session.commit()
+        assert RewriteCandidateActivationService(session).activate(content_key) == 1
+        assert session.scalar(select(PublicationCandidateModel)).state == "READY"
+
+
+def test_editorial_reject_never_creates_or_activates_a_candidate() -> None:
+    engine = create_engine("sqlite://")
+    Base.metadata.create_all(engine)
+    with Session(engine) as session:
+        account = TelegramAccount(
+            name="Primary",
+            telegram_user_id=1001,
+            encrypted_session="",
+            health_status="DISCONNECTED",
+        )
+        session.add(account)
+        session.flush()
+        output = OutputChannel(
+            telegram_account_id=account.id, telegram_channel_id=-1001234567890, title="Destination"
+        )
+        session.add(output)
+        session.flush()
+        output_id = output.id
+        session.commit()
+        result = DurableIngestionWorkflow(
+            session,
+            technical_filter=MappingTechnicalFilter(
+                mapping_id="mapping-1", output_channel_id=output_id
+            ),
+        ).ingest(
+            TelegramMessage("account-a", "@donor", 8, "hostile claim"),
+            observed_at=datetime.now(UTC),
+            protected_entities=["Belarus"],
+            sentiment="negative",
+            framing="hostile",
+        )
+        assert result.status == "REJECTED_EDITORIAL"
+        assert session.scalars(select(PublicationCandidateModel)).all() == []
+        assert session.scalar(select(EditorialDecisionModel)).rewrite_allowed is False
+        assert session.scalars(select(RewriteJobModel)).all() == []
+
+
+def test_stale_editorial_reject_blocks_candidate_after_rewrite_completes() -> None:
+    engine = create_engine("sqlite://")
+    Base.metadata.create_all(engine)
+    with Session(engine) as session:
+        account = TelegramAccount(
+            name="Primary",
+            telegram_user_id=1001,
+            encrypted_session="",
+            health_status="DISCONNECTED",
+        )
+        session.add(account)
+        session.flush()
+        output = OutputChannel(
+            telegram_account_id=account.id, telegram_channel_id=-1001234567890, title="Destination"
+        )
+        session.add(output)
+        session.flush()
+        output_id = output.id
+        session.commit()
+
+        DurableIngestionWorkflow(
+            session,
+            technical_filter=MappingTechnicalFilter(
+                mapping_id="mapping-1", output_channel_id=output_id
+            ),
+        ).ingest(
+            TelegramMessage("account-a", "@donor", 9, "permitted news"),
+            observed_at=datetime.now(UTC),
+        )
+        decision = session.scalar(select(EditorialDecisionModel))
+        job = session.scalar(select(RewriteJobModel))
+        assert decision is not None
+        assert job is not None
+        decision.status = "REJECT"
+        decision.rewrite_allowed = False
+        job.state = "SUCCEEDED"
+        content_key = job.content_key
+        session.commit()
+
+        assert RewriteCandidateActivationService(session).activate(content_key) == 0
+        assert session.scalar(select(PublicationCandidateModel)).state == "BLOCKED_EDITORIAL"

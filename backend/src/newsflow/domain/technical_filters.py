@@ -19,7 +19,10 @@ class TechnicalFilterDecision:
 @dataclass(frozen=True, slots=True)
 class MappingTechnicalFilter:
     mapping_id: str
-    allowed_media_types: frozenset[str] = field(default_factory=lambda: frozenset({"text", "photo"}))
+    output_channel_id: int | None = None
+    allowed_media_types: frozenset[str] = field(
+        default_factory=lambda: frozenset({"text", "photo"})
+    )
     blocked_domains: frozenset[str] = field(default_factory=frozenset)
     ad_markers: tuple[str, ...] = _AD_MARKERS
 

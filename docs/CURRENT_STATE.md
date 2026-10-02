@@ -56,6 +56,13 @@
   daily limits, IANA timezones and fixed slots. It deterministically prioritizes
   editorially eligible candidates and stores `PLANNED` reservations only; it
   has no Telegram transport, OpenAI or rewrite-job side effect.
+- A mapping that names an output channel creates a durable
+  `AWAITING_REWRITE` publication candidate only after the technical filters,
+  source deduplication and EditorialGate pass. A separate activation worker
+  makes it `READY` only after the persisted rewrite job is `SUCCEEDED` and
+  rechecks the current editorial decision; a stale reject becomes
+  `BLOCKED_EDITORIAL`. Editorial rejects create neither a candidate nor a
+  rewrite job.
 - Dark-navy frontend: all eight section compositions, shared linear icons,
   selected rows/cards, responsive panels and honest unavailable actions.
 - In-memory DEMO workflows: donor import preview/partial success, independent
@@ -111,12 +118,13 @@
 
 ## NEXT STEP
 
-The durable configuration and publication-planning contracts are complete
-locally. Next PHASE 1 task: connect the scheduler's candidate source to the
-mapping-aware ingestion/rewrite workflow, persist rewrite output and approval
-state, then wire the Planner UI to durable read/mutation APIs. Keep the current
-editorial recheck and never perform real Telegram publication or OpenAI calls
-as a side effect of UI work.
+The durable configuration, mapping-aware candidate source and
+publication-planning contracts are complete locally. Next PHASE 1 task: store
+mapping publication policies (immediate versus delayed eligibility, priority
+and permitted media) and persist rewrite output/approval state, then wire the
+Planner UI to durable read/mutation APIs. Keep the current editorial recheck
+and never perform real Telegram publication or OpenAI calls as a side effect of
+UI work.
 
 PHASE 1 IS NOT COMPLETE. Docker Compose/persistence/restart E2E remains
 NOT VERIFIED / BLOCKED BY ENVIRONMENT until Docker Desktop is available.

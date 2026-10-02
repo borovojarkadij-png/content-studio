@@ -22,6 +22,8 @@ from newsflow.persistence.models import (
     EditorialDecisionModel,
     MappingContentFingerprintModel,
     OutboxEventModel,
+    OutputChannel,
+    PublicationCandidateModel,
 )
 from newsflow.providers.telegram import TelegramMessage
 
@@ -55,7 +57,9 @@ class DurableIngestionWorkflow:
         with self._session.begin():
             technical = self._technical_filter.evaluate(event)
             if not technical.accepted:
-                return IngestionResult(False, source_key, "REJECTED_TECHNICAL", technical.reason_code)
+                return IngestionResult(
+                    False, source_key, "REJECTED_TECHNICAL", technical.reason_code
+                )
 
             repository = SqlAlchemyIngestionRepository(self._session)
             revision_number = repository.candidate_revision_number(event)
@@ -63,7 +67,9 @@ class DurableIngestionWorkflow:
                 return IngestionResult(False, source_key, "REJECTED_DUPLICATE")
             content_key = f"{source_key}:revision:{revision_number}"
             existing_decision = self._session.scalar(
-                select(EditorialDecisionModel).where(EditorialDecisionModel.content_key == content_key)
+                select(EditorialDecisionModel).where(
+                    EditorialDecisionModel.content_key == content_key
+                )
             )
             if existing_decision is not None:
                 status = (
@@ -110,6 +116,20 @@ class DurableIngestionWorkflow:
             job = editorial.create_rewrite_job(decision)
             if job is None:
                 raise RuntimeError("Passing editorial decision did not create a rewrite job")
+            if self._technical_filter.output_channel_id is not None:
+                if (
+                    self._session.get(OutputChannel, self._technical_filter.output_channel_id)
+                    is None
+                ):
+                    raise LookupError("Configured output channel was not found")
+                self._session.add(
+                    PublicationCandidateModel(
+                        output_channel_id=self._technical_filter.output_channel_id,
+                        content_key=content_key,
+                        priority=0,
+                        state="AWAITING_REWRITE",
+                    )
+                )
             self._session.add(
                 OutboxEventModel(
                     event_type="rewrite.requested",

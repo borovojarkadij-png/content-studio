@@ -16,9 +16,17 @@ priority, rechecks the current durable EditorialGate decision immediately before
 each reservation, and creates idempotent `PLANNED` records only. It performs no
 Telegram send, OpenAI call or rewrite-job creation.
 
+Mapped ingestion creates a candidate in `AWAITING_REWRITE` only after its
+technical checks and EditorialGate pass. A rewrite-completion worker can promote
+it to `READY` only when the persisted rewrite job is `SUCCEEDED` and the current
+editorial decision still allows rewrite. This keeps unfinished or subsequently
+blocked content outside the selector.
+
 ## Consequences
 
 - A stale `REJECT` or `rewrite_allowed=false` candidate cannot consume a slot.
+- An editorial reject never creates a candidate or rewrite job; a later stale
+  reject blocks any awaiting candidate instead of making it schedulable.
 - Re-running a day returns its existing durable reservations rather than adding
   duplicates; unique database constraints arbitrate concurrent planners.
 - If an already reserved candidate is later editorially blocked, the scheduler
