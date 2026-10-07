@@ -295,10 +295,9 @@ it("restores the newly saved plan after switching channels without accepting sta
   });
   resolveOldReviews(json({ items: [draft] }));
   expect(
-    await screen.findByText(
-      "Сохранённых вариантов пока нет. Рабочий rewrite-worker ещё не подключён.",
-    ),
+    await screen.findByText(/Сохранённых вариантов пока нет/),
   ).toBeTruthy();
+  expect(screen.queryByText(/rewrite-worker ещё не подключён/)).toBeNull();
   expect(screen.queryByText(draft.rewritten_text)).toBeNull();
   fireEvent.change(screen.getByLabelText("Канал плана"), {
     target: { value: "1" },

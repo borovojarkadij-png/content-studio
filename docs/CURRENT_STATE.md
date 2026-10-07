@@ -13,6 +13,12 @@
   HTTP 409 for the old draft; the old PLANNED reservation became BLOCKED_SOURCE.
   Fixture history/volumes retained and stack stopped; no network AI/Telegram send.
   Updated operational images are healthy; PostgreSQL drift check still passes.
+- Planner empty-state wording now distinguishes an empty review queue from an
+  unimplemented worker; provider/source setup and explicit network enablement are
+  required. Regression failed before the wording fix. Frontend 26 / browser 19,
+  format/typecheck/build and audit passed again with current source fixtures.
+- Source-guard commit 4704d3e GitHub run 37687849103 is running; backend passed,
+  frontend and both Docker matrix jobs pending completion. No overall PASS claimed.
 - OpenRouter commit a9c6e72 GitHub run 37686789050: backend and both synthetic Docker
   provider jobs passed; frontend browser installation is still in progress.
   Do not claim an overall CI PASS until the run actually completes.
