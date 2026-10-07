@@ -2,6 +2,15 @@
 
 ## VERIFIED WORKING
 
+- Telegram health regressions reproduced/fixed: implicit SQLAlchemy transactions
+  previously lost FloodWait cooldown on session close, and cached accounts could
+  hide external cooldown updates. Dedicated health mutations now commit/rollback,
+  refresh locked rows and normalize persisted UTC timestamps. Naive input time
+  fails before DB/provider access. Backend 364 tests PASS; targeted 6 health tests,
+  lint/compile PASS. This proves fake-provider persistence, not live Telegram auth.
+- Durable-media commit 56a8ef7955576ab423c6e99383a19ff74120c717 pushed to the correct
+  origin branch. CI run 37694252178 is IN PROGRESS: backend passed; remaining jobs
+  must be checked, not reported as overall PASS yet.
 - Durable internet-media jobs, bounded committed attempts, 60-second leases,
   stale-owner fencing, 30-second persisted transient retry and atomic selected
   asset/completion are implemented locally. Worker opt-in defaults disabled.
@@ -362,10 +371,10 @@ implemented; channel-specific natural tabloid style is wired to actual Planner A
 Bounded free-only OpenRouter structured execution is implemented and passes the
 offline provider/factory/worker gate, including refusals/rate limits/fact changes
 and no paid fallback (OPENROUTER_REWRITE_VERIFICATION.md).
-Exact NEXT_STEP: commit/push the locally and Docker-verified durable-media
-increment and track its CI. Then implement operational Telegram ingestion
-orchestration with FakeTelegramProvider first: account health/FloodWait cooldown,
-persisted donor cursors/replay, current mapping filters and durable ingestion.
+Exact NEXT_STEP: commit/push the tested health cooldown fix, then implement durable
+donor ingestion cursors/replay and current mapping-filter orchestration using
+FakeTelegramProvider, followed by encrypted/live adapter wiring. Health cooldown
+persistence is now fixed/tested, so do not redo it. Track media CI 37694252178.
 Live authorization is separate; no synthetic account may be promoted as real.
 Windows project newsflow-verification-media20261008 completed acceptance; it
 retains terminal revoked-release history, so never rerun its seed.

@@ -1,10 +1,10 @@
 """Durable Telegram account health and reconnect cooldown policy."""
 
-from contextlib import nullcontext
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from newsflow.persistence.models import TelegramAccount
@@ -31,28 +31,49 @@ class AccountHealthService:
         self._provider = provider
 
     def reconnect(self, account_id: int, *, now: datetime) -> AccountHealthResult:
-        transaction = nullcontext() if self._session.in_transaction() else self._session.begin()
-        with transaction:
-            account = self._session.get(TelegramAccount, account_id)
-            if account is None:
-                raise LookupError(f"Telegram account {account_id} was not found")
-            if account.cooldown_until is not None and now < account.cooldown_until:
-                account.health_status = AccountHealthStatus.COOLDOWN.value
-                account.health_checked_at = now
-                return AccountHealthResult(AccountHealthStatus.COOLDOWN, reconnect_attempted=False)
-            try:
-                self._provider.verify_session(str(account.id))
-            except FloodWait as exc:
-                account.health_status = AccountHealthStatus.COOLDOWN.value
-                account.health_checked_at = now
-                account.cooldown_until = now + timedelta(seconds=exc.seconds)
-                return AccountHealthResult(AccountHealthStatus.COOLDOWN, reconnect_attempted=True)
-            except SessionUnavailable:
-                account.health_status = AccountHealthStatus.SESSION_INVALID.value
-                account.health_checked_at = now
-                account.cooldown_until = None
-                return AccountHealthResult(AccountHealthStatus.SESSION_INVALID, reconnect_attempted=True)
-            account.health_status = AccountHealthStatus.CONNECTED.value
+        """Own the health transaction, including SQLAlchemy's implicit autobegin."""
+        if now.tzinfo is None or now.utcoffset() is None:
+            raise ValueError("Account health time must be timezone-aware")
+        now = now.astimezone(UTC)
+        try:
+            result = self._reconnect(account_id, now=now)
+            self._session.commit()
+            return result
+        except Exception:
+            self._session.rollback()
+            raise
+
+    def _reconnect(self, account_id: int, *, now: datetime) -> AccountHealthResult:
+        account = self._session.scalar(
+            select(TelegramAccount)
+            .where(TelegramAccount.id == account_id)
+            .execution_options(populate_existing=True)
+            .with_for_update()
+        )
+        if account is None:
+            raise LookupError(f"Telegram account {account_id} was not found")
+        cooldown = account.cooldown_until
+        if cooldown is not None and cooldown.tzinfo is None:
+            cooldown = cooldown.replace(tzinfo=UTC)  # SQLite round-trip of UTC storage.
+        if cooldown is not None and now < cooldown:
+            account.health_status = AccountHealthStatus.COOLDOWN.value
+            account.health_checked_at = now
+            return AccountHealthResult(AccountHealthStatus.COOLDOWN, reconnect_attempted=False)
+        try:
+            self._provider.verify_session(str(account.id))
+        except FloodWait as exc:
+            account.health_status = AccountHealthStatus.COOLDOWN.value
+            account.health_checked_at = now
+            account.cooldown_until = now + timedelta(seconds=exc.seconds)
+            return AccountHealthResult(AccountHealthStatus.COOLDOWN, reconnect_attempted=True)
+        except SessionUnavailable:
+            account.health_status = AccountHealthStatus.SESSION_INVALID.value
             account.health_checked_at = now
             account.cooldown_until = None
-            return AccountHealthResult(AccountHealthStatus.CONNECTED, reconnect_attempted=True)
+            return AccountHealthResult(
+                AccountHealthStatus.SESSION_INVALID, reconnect_attempted=True
+            )
+        account.health_status = AccountHealthStatus.CONNECTED.value
+        account.health_checked_at = now
+        account.cooldown_until = None
+        return AccountHealthResult(AccountHealthStatus.CONNECTED, reconnect_attempted=True)

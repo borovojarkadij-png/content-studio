@@ -1,5 +1,6 @@
 from datetime import UTC, datetime, timedelta
 
+import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
@@ -65,3 +66,52 @@ def test_unavailable_session_requires_reauthentication_without_a_retry_loop() ->
 
         assert result.status is AccountHealthStatus.SESSION_INVALID
         assert account.health_status == "SESSION_INVALID"
+
+
+def test_floodwait_survives_session_close_and_reloads_utc_cooldown(tmp_path):
+    engine = create_engine(f"sqlite:///{tmp_path / 'health.db'}")
+    Base.metadata.create_all(engine)
+    provider = FakeTelegramProvider()
+    now = datetime(2026, 10, 1, tzinfo=UTC)
+    with Session(engine) as session:
+        account_id = _account(session).id  # Access starts SQLAlchemy's implicit transaction.
+        provider.seed_floodwait(str(account_id), seconds=30)
+        assert (
+            AccountHealthService(session, provider).reconnect(account_id, now=now).status
+            is AccountHealthStatus.COOLDOWN
+        )
+    with Session(engine) as session:
+        account = session.get(TelegramAccount, account_id)
+        assert account.health_status == "COOLDOWN"
+        result = AccountHealthService(session, provider).reconnect(
+            account_id, now=now + timedelta(seconds=10)
+        )
+        assert result.reconnect_attempted is False
+    assert provider.session_probe_count(str(account_id)) == 1
+    engine.dispose()
+
+
+def test_cached_account_does_not_hide_external_cooldown(tmp_path):
+    engine = create_engine(f"sqlite:///{tmp_path / 'health.db'}")
+    Base.metadata.create_all(engine)
+    provider = FakeTelegramProvider()
+    now = datetime(2026, 10, 1, tzinfo=UTC)
+    with Session(engine) as session:
+        account = _account(session)
+        assert account.cooldown_until is None
+        with Session(engine) as other:
+            other.get(TelegramAccount, account.id).cooldown_until = now + timedelta(seconds=30)
+            other.commit()
+        result = AccountHealthService(session, provider).reconnect(account.id, now=now)
+        assert result.reconnect_attempted is False
+        assert provider.session_probe_count(str(account.id)) == 0
+    engine.dispose()
+
+
+def test_naive_reconnect_time_is_rejected_before_database_or_provider():
+    provider = FakeTelegramProvider()
+    with pytest.raises(ValueError, match="timezone-aware"):
+        AccountHealthService(None, provider).reconnect(
+            1, now=datetime(2026, 10, 1, tzinfo=UTC).replace(tzinfo=None)
+        )
+    assert provider.session_probe_count("1") == 0
