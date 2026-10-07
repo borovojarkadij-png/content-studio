@@ -58,6 +58,13 @@ Unsafe/unrepresentable JS integer IDs fail closed rather than being rounded.
 The in-app browser automation runtime could not initialize (kernel asset path
 error); local Chromium/Playwright performed browser verification instead.
 
+GitHub UI checkpoint `96fece5` run `37701042107`: frontend passed, backend lint
+failed due to Alembic import sorting from a different working directory. The
+exact CI backend-directory command reproduced it. Restored its import ordering
+and formatted the changed fixture with backend configuration; full exact CI lint
+then passed locally. Corrective checkpoint follows; this failed run is not an
+overall success. Import checkpoint `b20885e` run `37700522102` passed all four jobs.
+
 ## Remaining boundaries
 
 Live Telegram login/session provisioning and sending-rights verification remain

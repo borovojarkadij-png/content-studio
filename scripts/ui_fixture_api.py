@@ -6,10 +6,11 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 import uvicorn
-from alembic import command
 from alembic.config import Config
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
+
+from alembic import command
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "backend" / "src"))
@@ -85,9 +86,7 @@ def main() -> None:
             donor = configuration.create_donor(
                 account.id, -1002222222222, "Изолированный донор API"
             )
-            configuration.create_donor(
-                account.id, -1003333333333, "Другой изолированный донор API"
-            )
+            configuration.create_donor(account.id, -1003333333333, "Другой изолированный донор API")
             configuration.create_mapping(donor["id"], output_id, 100, 50)
             for number in (1, 2):
                 key = f"ui-planner:@planner_donor:{number}:revision:1"

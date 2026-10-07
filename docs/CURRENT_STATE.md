@@ -2,6 +2,14 @@
 
 ## VERIFIED WORKING
 
+- UI checkpoint 96fece5e888a02ac056dc3a634622e5b8af808e2 pushed to correct origin.
+  CI 37701042107 frontend PASS; backend Lint failed because checking the fixture
+  from repository root classified Alembic imports differently from CI's backend
+  directory. Exact backend-directory lint reproduced and passed after restoring
+  import ordering; corrective fixture-only checkpoint follows. Docker jobs still
+  running at last inspection, not an overall CI PASS. Import CI 37700522102 for
+  b20885e completed SUCCESS in all four jobs.
+
 - Real configuration UI wired for Accounts/Donors/My Channels/Connections:
   public health, metadata create/rename, pending donor import, route create and
   delivery/media/technical-filter editing. Manual drafts/partial failures/late
@@ -471,12 +479,18 @@ newsflow-verification-donorimports20261008 (18015/15188/18095; CrashRecovery +
 IngestionGuard + PeerGuard + MappingGuard + ResolutionGuard), including resolved
 API state and actual PostgreSQL drift; stopped retaining history/volumes.
 CI 37699179678 for d1fd02c completed SUCCESS in all four jobs.
-Exact NEXT_STEP: commit/push the separately verified configuration UI increment,
-track both CI checkpoints, then implement test-first bounded album/media batching
-and source acquisition before guarded publication execution. Frontend 40 units,
-21 browser regressions, format/typecheck/build/audit PASS, new screenshots visually
-inspected; operational UI rebuilt/read-only verified with zero writes. Do not
-repeat already completed configuration UI or isolated fixture seeding.
+Exact NEXT_STEP: commit/push fixture-only CI lint correction, then complete actual
+media guard Docker verification (shell session 72200; isolated
+newsflow-verification-mediaguards20261008, 18016/15189/18096; CrashRecovery +
+SemanticGuard + MediaGuard). New media changes remain separate in progress:
+bounded real single-frame decoding, fresh source/current-approval/technical/
+editorial reads and post-decode revalidation, real PNG test fixtures. Local
+backend 472 tests/lint/compile and isolated migration gate PASS; actual Docker
+media verification is not yet complete. Then check PG drift/API, stop fixture
+retaining history/volumes, deploy operational flags 0 and document/commit/push.
+Afterwards bounded album batching/source acquisition remains next independent
+task. Track corrective UI CI and media CI separately. Frontend 40 units / 21
+browser/format/typecheck/build/audit PASS. Do not reseed existing fixtures.
 Never rerun existing fixture seeds or enable actual sends as a side effect.
 f19af6d CI 37696430337 completed SUCCESS. Track next commit CI.
 Do not rerun either fixture seed; existing histories are intentionally retained.
