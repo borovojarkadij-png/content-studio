@@ -98,6 +98,21 @@ def test_review_approval_atomically_activates_only_its_candidate_and_is_idempote
         assert session.scalar(select(func.count()).select_from(OutboxEventModel)) == 0
 
 
+def test_automatic_approval_policy_defaults_manual_and_cannot_accept_client_verdict(review_store):
+    client, _, channel_id, _, draft_id = review_store
+    path = f"/api/telegram/output-channels/{channel_id}/approval-policy"
+    response = client.get(path)
+    assert response.status_code == 200
+    assert response.json()["mode"] == "MANUAL"
+    assert client.put(path, json={"mode": "VERIFIED", "release_id": 123}).status_code == 409
+    assert client.put(path, json={"mode": "MANUAL", "verdict": "PRESERVED"}).status_code == 422
+    assert (
+        client.post(f"/api/telegram/rewrite-outputs/{draft_id}:auto-approve", json={}).status_code
+        == 404
+    )
+    assert client.get(path).json()["mode"] == "MANUAL"
+
+
 def test_review_api_rechecks_latest_immutable_source_revision(review_store):
     client, engine, _, _, draft_id = review_store
     with Session(engine) as session:

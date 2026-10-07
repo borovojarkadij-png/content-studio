@@ -103,10 +103,35 @@ class OpenAIRewriteProvider:
         self._prices, self._timeout = prices, timeout_seconds
         self._style = style
         self.last_usage: RewriteUsage | None = None
+        self.last_response_model: str | None = None
 
     def rewrite(self, text: str) -> str:
         self.last_usage = None
         FactGuard().validate_source(text)
+        value = self.generate_json(
+            text,
+            instructions=rewrite_instructions(self._style),
+            name="newsflow_rewrite",
+            schema={
+                "type": "object",
+                "properties": {"rewritten_text": {"type": "string"}},
+                "required": ["rewritten_text"],
+                "additionalProperties": False,
+            },
+        )
+        if set(value) != {"rewritten_text"}:
+            raise ProviderResponseInvalid("OPENAI_SCHEMA_INVALID")
+        result = value["rewritten_text"]
+        if not isinstance(result, str) or not result.strip() or len(result) > 32000:
+            raise ProviderResponseInvalid("OPENAI_TEXT_INVALID")
+        return result
+
+    def generate_json(self, text: str, *, instructions: str, schema: dict, name: str) -> dict:
+        """Shared bounded JSON transport; operation-specific guards live above it."""
+        self.last_usage = None
+        self.last_response_model = None
+        if not isinstance(text, str) or not text.strip() or len(text) > 131072:
+            raise ProviderConfigurationInvalid("STRUCTURED_INPUT_INVALID")
         payload = {
             "model": self._model,
             "store": False,
@@ -114,21 +139,16 @@ class OpenAIRewriteProvider:
             "input": [
                 {
                     "role": "developer",
-                    "content": rewrite_instructions(self._style),
+                    "content": instructions,
                 },
                 {"role": "user", "content": text},
             ],
             "text": {
                 "format": {
                     "type": "json_schema",
-                    "name": "newsflow_rewrite",
+                    "name": name,
                     "strict": True,
-                    "schema": {
-                        "type": "object",
-                        "properties": {"rewritten_text": {"type": "string"}},
-                        "required": ["rewritten_text"],
-                        "additionalProperties": False,
-                    },
+                    "schema": schema,
                 }
             },
         }
@@ -165,6 +185,7 @@ class OpenAIRewriteProvider:
         try:
             body = json.loads(raw, object_pairs_hook=unique_json_object)
             self.last_usage = self._usage(body["usage"])
+            self.last_response_model = body.get("model")
             if body.get("status") != "completed" or body.get("error") is not None:
                 raise ProviderResponseInvalid("OPENAI_RESPONSE_INCOMPLETE")
             messages = [item for item in body["output"] if item["type"] == "message"]
@@ -174,12 +195,9 @@ class OpenAIRewriteProvider:
             if len(content) != 1 or content[0]["type"] != "output_text":
                 raise ProviderResponseInvalid("OPENAI_RESPONSE_REFUSED")
             value = json.loads(content[0]["text"], object_pairs_hook=unique_json_object)
-            if not isinstance(value, dict) or set(value) != {"rewritten_text"}:
+            if not isinstance(value, dict):
                 raise ProviderResponseInvalid("OPENAI_SCHEMA_INVALID")
-            result = value["rewritten_text"]
-            if not isinstance(result, str) or not result.strip() or len(result) > 32000:
-                raise ProviderResponseInvalid("OPENAI_TEXT_INVALID")
-            return result
+            return value
         except (KeyError, TypeError, IndexError, ValueError, UnicodeDecodeError):
             raise ProviderResponseInvalid("OPENAI_RESPONSE_INVALID") from None
 

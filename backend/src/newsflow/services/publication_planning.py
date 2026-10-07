@@ -14,7 +14,9 @@ from newsflow.persistence.models import (
     PlannedPublicationModel,
     PublicationCandidateModel,
     PublicationPlanModel,
+    RewriteOutputModel,
 )
+from newsflow.services.automatic_approval import approval_is_current
 from newsflow.services.source_revisions import source_is_current
 
 
@@ -258,6 +260,8 @@ class PublicationPlanningService:
                     continue
                 if not source_is_current(self._session, candidate.content_key):
                     continue
+                if not self._review_is_current(candidate):
+                    continue
                 slot_index = next(
                     (
                         index
@@ -337,7 +341,21 @@ class PublicationPlanningService:
             elif not source_is_current(self._session, candidate.content_key):
                 item.state = "BLOCKED_SOURCE"
                 candidate.state = "BLOCKED_SOURCE"
+            elif not self._review_is_current(candidate):
+                item.state = "BLOCKED_REVIEW"
+                candidate.state = "BLOCKED_REVIEW"
         self._session.flush()
+
+    def _review_is_current(self, candidate: PublicationCandidateModel) -> bool:
+        output = self._session.scalar(
+            select(RewriteOutputModel).where(
+                RewriteOutputModel.content_key == candidate.content_key,
+                RewriteOutputModel.output_channel_id == candidate.output_channel_id,
+            )
+        )
+        # Preserve the no-rewrite domain prototype. Actual ingestion candidates
+        # remain AWAITING_REWRITE until a draft has been explicitly approved.
+        return output is None or approval_is_current(self._session, output)
 
     def _require_editorial_pass(self, content_key: str) -> None:
         if not self._is_currently_editorial_pass(content_key):

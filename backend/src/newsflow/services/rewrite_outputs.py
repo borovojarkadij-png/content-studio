@@ -13,6 +13,7 @@ from newsflow.persistence.models import (
     RewriteJobModel,
     RewriteOutputModel,
 )
+from newsflow.services.automatic_approval import automatic_evidence_is_current
 from newsflow.services.source_revisions import source_is_current
 
 
@@ -118,11 +119,19 @@ class RewriteOutputService:
     def approve(self, output_id: int, *, activate_candidate: bool = False) -> dict[str, object]:
         return self._review(output_id, approve=True, activate_candidate=activate_candidate)
 
+    def auto_approve(
+        self, output_id: int, *, activate_candidate: bool = False
+    ) -> dict[str, object]:
+        """Internal guarded transition, never an HTTP client-supplied verdict."""
+        return self._review(
+            output_id, approve=True, activate_candidate=activate_candidate, automatic=True
+        )
+
     def reject(self, output_id: int) -> dict[str, object]:
         return self._review(output_id, approve=False, activate_candidate=False)
 
     def _review(
-        self, output_id: int, *, approve: bool, activate_candidate: bool
+        self, output_id: int, *, approve: bool, activate_candidate: bool, automatic: bool = False
     ) -> dict[str, object]:
         try:
             # All rewrite paths lock job -> editorial -> draft -> candidate.
@@ -154,7 +163,10 @@ class RewriteOutputService:
                     raise RewriteOutputBlocked("Rewrite output no longer matches its job")
                 if output.approval_state == "REJECTED":
                     raise RewriteOutputBlocked("Rejected rewrite output cannot be approved")
+                if automatic and not automatic_evidence_is_current(self._session, output):
+                    raise RewriteOutputBlocked("SEMANTIC_EVIDENCE_NOT_CURRENT_OR_QUALIFIED")
                 output.approval_state = "APPROVED"
+                output.approval_method = "AUTOMATIC" if automatic else "MANUAL"
                 if output.approved_at is None:
                     output.approved_at = datetime.now(UTC)
             else:

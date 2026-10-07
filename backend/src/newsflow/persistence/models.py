@@ -386,6 +386,9 @@ class RewriteOutputModel(Base):
             "approval_state IN ('PENDING', 'APPROVED', 'REJECTED')",
             name="ck_rewrite_output_approval_state",
         ),
+        CheckConstraint(
+            "approval_method IN ('MANUAL', 'AUTOMATIC')", name="ck_rewrite_approval_method"
+        ),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -402,6 +405,84 @@ class RewriteOutputModel(Base):
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
     approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    approval_method: Mapped[str] = mapped_column(
+        String(16), nullable=False, default="MANUAL", server_default="MANUAL"
+    )
+
+
+class SemanticVerifierReleaseModel(Base):
+    """Trusted evaluation registry. No public mutation/API-generated qualifications."""
+
+    __tablename__ = "semantic_verifier_releases"
+    __table_args__ = (
+        CheckConstraint("provider IN ('OPENAI', 'OPENROUTER')"),
+        CheckConstraint("length(report_sha256) = 64"),
+        UniqueConstraint(
+            "provider", "model", "prompt_version", "benchmark_version", "report_sha256"
+        ),
+    )
+    id: Mapped[int] = mapped_column(primary_key=True)
+    provider: Mapped[str] = mapped_column(String(16), nullable=False)
+    model: Mapped[str] = mapped_column(String(255), nullable=False)
+    prompt_version: Mapped[str] = mapped_column(String(64), nullable=False)
+    benchmark_version: Mapped[str] = mapped_column(String(64), nullable=False)
+    report_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    active: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="false"
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+
+class AutomaticApprovalPolicyModel(Base):
+    __tablename__ = "automatic_approval_policies"
+    __table_args__ = (
+        CheckConstraint("mode IN ('MANUAL', 'VERIFIED')"),
+        CheckConstraint("mode <> 'VERIFIED' OR release_id IS NOT NULL"),
+    )
+    output_channel_id: Mapped[int] = mapped_column(
+        ForeignKey("output_channels.id"), primary_key=True
+    )
+    mode: Mapped[str] = mapped_column(String(16), nullable=False, default="MANUAL")
+    release_id: Mapped[int | None] = mapped_column(
+        ForeignKey("semantic_verifier_releases.id"), nullable=True
+    )
+
+
+class SemanticEvidenceModel(Base):
+    __tablename__ = "semantic_evidence"
+    __table_args__ = (
+        UniqueConstraint(
+            "rewrite_output_id",
+            "release_id",
+            "source_sha256",
+            "draft_sha256",
+            name="uq_semantic_evidence_binding",
+        ),
+        CheckConstraint("verdict IN ('PRESERVED', 'CHANGED', 'UNCERTAIN', 'ERROR')"),
+        CheckConstraint("length(source_sha256) = 64 AND length(draft_sha256) = 64"),
+        CheckConstraint("length(release_sha256) = 64"),
+    )
+    id: Mapped[int] = mapped_column(primary_key=True)
+    rewrite_output_id: Mapped[int] = mapped_column(
+        ForeignKey("rewrite_outputs.id"), nullable=False, index=True
+    )
+    source_revision_id: Mapped[int] = mapped_column(
+        ForeignKey("incoming_post_revisions.id"), nullable=False
+    )
+    release_id: Mapped[int] = mapped_column(
+        ForeignKey("semantic_verifier_releases.id"), nullable=False
+    )
+    source_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    draft_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    release_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    verdict: Mapped[str] = mapped_column(String(16), nullable=False)
+    reason_codes: Mapped[str] = mapped_column(String(1024), nullable=False)
+    evidence_json: Mapped[str] = mapped_column(String, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
 
 
 class RewriteUsageModel(Base):

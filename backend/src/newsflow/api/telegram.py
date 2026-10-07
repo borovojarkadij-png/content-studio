@@ -11,6 +11,10 @@ from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.exc import SQLAlchemyError
 
 from newsflow.persistence.database import database_session
+from newsflow.services.automatic_approval import (
+    AutomaticApprovalBlocked,
+    AutomaticApprovalPolicyService,
+)
 from newsflow.services.media_selection import (
     LocalMediaSelectionService,
     MediaSelectionBlocked,
@@ -54,6 +58,45 @@ def get_configuration_service() -> Iterator[TelegramConfigurationService]:
 
 
 Configuration = Annotated[TelegramConfigurationService, Depends(get_configuration_service)]
+
+
+def get_approval_policy_service() -> Iterator[AutomaticApprovalPolicyService]:
+    for session in database_session():
+        if session is None:
+            raise HTTPException(503, "Durable database is not configured")
+        try:
+            yield AutomaticApprovalPolicyService(session)
+        except AutomaticApprovalBlocked as exc:
+            raise HTTPException(409, str(exc)) from None
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from None
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from None
+        except SQLAlchemyError:
+            raise HTTPException(
+                503, "Durable database is unavailable or requires migrations"
+            ) from None
+
+
+ApprovalPolicies = Annotated[AutomaticApprovalPolicyService, Depends(get_approval_policy_service)]
+
+
+class ApprovalPolicyRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    mode: Literal["MANUAL", "VERIFIED"]
+    release_id: int | None = Field(default=None, gt=0, strict=True)
+
+
+@router.get("/output-channels/{channel_id}/approval-policy")
+def get_approval_policy(channel_id: int, service: ApprovalPolicies) -> dict[str, object]:
+    return service.get_policy(channel_id)
+
+
+@router.put("/output-channels/{channel_id}/approval-policy")
+def configure_approval_policy(
+    channel_id: int, request: ApprovalPolicyRequest, service: ApprovalPolicies
+) -> dict[str, object]:
+    return service.configure(channel_id, request.mode, request.release_id)
 
 
 class RewriteStyleRequest(BaseModel):

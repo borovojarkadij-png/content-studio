@@ -2,6 +2,20 @@
 
 ## VERIFIED WORKING
 
+- Semantic evidence/guarded automatic approval contract implemented: default
+  MANUAL per-channel policy, trusted exact-model release registry (no public
+  qualification/verdict endpoint), immutable source/draft/release digest binding,
+  explicit approval method and current-review scheduling reconciliation. Synthetic
+  evidence survives actual PostgreSQL down/up; revocation blocks its old slot.
+  See SEMANTIC_APPROVAL_VERIFICATION.md. No operational model is qualified;
+  runtime verification leases/factory/worker wiring and live eval are next.
+- Fresh local semantic checkpoint: 298 backend tests passed after the separate
+  verification-adapter increment; that adapter's targeted 60-test gate passed too.
+  Frontend 26 units / 19 Chromium E2E, format/typecheck/build passed with migrated
+  isolated API. Backend lint and compile passed as well.
+- GitHub Actions 37688114933 for a72cf2e completed SUCCESS: backend, frontend,
+  synthetic Docker OPENAI and OPENROUTER jobs all passed. This predates the current
+  semantic increment; its CI result must be tracked separately after pushing.
 - Source-edit adversarial bypass was reproduced and fixed before automatic
   approval work: old/missing source revisions cannot record/approve drafts,
   activate candidates or obtain/retain active publication slots. Shared immutable
@@ -17,8 +31,8 @@
   unimplemented worker; provider/source setup and explicit network enablement are
   required. Regression failed before the wording fix. Frontend 26 / browser 19,
   format/typecheck/build and audit passed again with current source fixtures.
-- Source-guard commit 4704d3e GitHub run 37687849103 is running; backend passed,
-  frontend and both Docker matrix jobs pending completion. No overall PASS claimed.
+- Earlier source-guard CI checkpoint was superseded by the four-job successful
+  a72cf2e run above; do not interpret old in-progress reports as current status.
 - OpenRouter commit a9c6e72 GitHub run 37686789050: backend and both synthetic Docker
   provider jobs passed; frontend browser installation is still in progress.
   Do not claim an overall CI PASS until the run actually completes.
@@ -306,9 +320,12 @@ implemented; channel-specific natural tabloid style is wired to actual Planner A
 Bounded free-only OpenRouter structured execution is implemented and passes the
 offline provider/factory/worker gate, including refusals/rate limits/fact changes
 and no paid fallback (OPENROUTER_REWRITE_VERIFICATION.md).
-Exact NEXT_STEP: implement semantic fact verification and configurable guarded
-automatic approval, with versioned synthetic evals and fail-closed evidence; anchor
-equality alone must never authorize it. Live OpenAI smoke verification remains
+Exact NEXT_STEP: add durable leased semantic verification jobs, committed attempt
+budgets/fencing/recovery and per-attempt usage; then connect the encrypted verifier
+factory and explicit opt-in worker. The semantic contract/policy/evidence/approval
+boundary and pinned structured adapters are implemented; no qualified operational
+release exists and runtime verification must not run before recovery is guarded.
+Anchor equality alone never authorizes automatic approval. Live OpenAI smoke remains
 blocked by the current file's missing usable key; never expose/store keys in Git.
 User donor inputs are recorded in USER_CHANNELS.md, not fake runtime accounts.
 Add a free licensed internet-image search/acquisition provider, not just local

@@ -49,10 +49,34 @@ class StructuredFreeOpenRouterProvider:
         self._key, self._models, self._style = api_key, models, style
         self._open, self._clock = opener or build_opener(NoRedirect()).open, clock
         self.last_usage: RewriteUsage | None = None
+        self.last_response_model: str | None = None
 
     def rewrite(self, text: str) -> str:
         self.last_usage = None
         FactGuard().validate_source(text)
+        value = self.generate_json(
+            text,
+            instructions=rewrite_instructions(self._style),
+            name="newsflow_rewrite",
+            schema={
+                "type": "object",
+                "properties": {"rewritten_text": {"type": "string"}},
+                "required": ["rewritten_text"],
+                "additionalProperties": False,
+            },
+        )
+        if set(value) != {"rewritten_text"}:
+            raise ProviderResponseInvalid("OPENROUTER_SCHEMA_INVALID")
+        result = value["rewritten_text"]
+        if not isinstance(result, str) or not result.strip() or len(result) > 32000:
+            raise ProviderResponseInvalid("OPENROUTER_TEXT_INVALID")
+        return result
+
+    def generate_json(self, text: str, *, instructions: str, schema: dict, name: str) -> dict:
+        self.last_usage = None
+        self.last_response_model = None
+        if not isinstance(text, str) or not text.strip() or len(text) > 131072:
+            raise ProviderConfigurationInvalid("STRUCTURED_INPUT_INVALID")
         deadline = self._clock() + 30
         for model in self._models:
             remaining = deadline - self._clock()
@@ -63,7 +87,7 @@ class StructuredFreeOpenRouterProvider:
                 "max_tokens": 4096,
                 "stream": False,
                 "messages": [
-                    {"role": "system", "content": rewrite_instructions(self._style)},
+                    {"role": "system", "content": instructions},
                     {"role": "user", "content": text},
                 ],
                 "provider": {
@@ -74,14 +98,9 @@ class StructuredFreeOpenRouterProvider:
                 "response_format": {
                     "type": "json_schema",
                     "json_schema": {
-                        "name": "newsflow_rewrite",
+                        "name": name,
                         "strict": True,
-                        "schema": {
-                            "type": "object",
-                            "properties": {"rewritten_text": {"type": "string"}},
-                            "required": ["rewritten_text"],
-                            "additionalProperties": False,
-                        },
+                        "schema": schema,
                     },
                 },
             }
@@ -119,7 +138,7 @@ class StructuredFreeOpenRouterProvider:
             return self._parse(raw, model)
         raise ProviderUnavailable("OPENROUTER_FREE_MODELS_UNAVAILABLE")
 
-    def _parse(self, raw: bytes, model: str) -> str:
+    def _parse(self, raw: bytes, model: str) -> dict:
         try:
             body = json.loads(raw, object_pairs_hook=unique_json_object)
             usage = body["usage"]
@@ -138,6 +157,7 @@ class StructuredFreeOpenRouterProvider:
             self.last_usage = RewriteUsage(
                 model, input_count, cached, output_count, None, self._style, "OPENROUTER"
             )
+            self.last_response_model = body.get("model")
             if "error" in body and body["error"] is not None:
                 raise ProviderResponseInvalid("OPENROUTER_RESPONSE_ERROR")
             if "cost" in usage and usage["cost"] != 0:
@@ -149,11 +169,8 @@ class StructuredFreeOpenRouterProvider:
             if message.get("refusal"):
                 raise ProviderResponseInvalid("OPENROUTER_REFUSED")
             value = json.loads(message["content"], object_pairs_hook=unique_json_object)
-            if not isinstance(value, dict) or set(value) != {"rewritten_text"}:
+            if not isinstance(value, dict):
                 raise ProviderResponseInvalid("OPENROUTER_SCHEMA_INVALID")
-            result = value["rewritten_text"]
-            if not isinstance(result, str) or not result.strip() or len(result) > 32000:
-                raise ProviderResponseInvalid("OPENROUTER_TEXT_INVALID")
-            return result
+            return value
         except (KeyError, TypeError, ValueError, IndexError, AttributeError, UnicodeDecodeError):
             raise ProviderResponseInvalid("OPENROUTER_RESPONSE_INVALID") from None

@@ -6,6 +6,7 @@ param(
     [switch]$CrashRecovery,
     [switch]$RewriteRecovery,
     [switch]$SourceGuard,
+    [switch]$SemanticGuard,
     [ValidateSet('OPENAI', 'OPENROUTER')]
     [string]$RewriteProvider = 'OPENAI'
 )
@@ -13,6 +14,11 @@ param(
 $ErrorActionPreference = 'Stop'
 if ($SourceGuard -and -not $RewriteRecovery) {
     throw 'SourceGuard requires a fresh synthetic RewriteRecovery run.'
+}
+function Invoke-SemanticProbe([string]$Mode) {
+    Get-Content -LiteralPath (Join-Path $PSScriptRoot 'docker_semantic_probe.py') -Raw |
+        & docker @composeArgs exec -T worker python - $Mode
+    if ($LASTEXITCODE -ne 0) { throw "Synthetic semantic probe failed: $Mode" }
 }
 if ($Project -notmatch '^newsflow-verification-[a-z0-9-]+$') {
     throw 'Only an isolated newsflow-verification-* project is permitted.'
@@ -148,6 +154,13 @@ if ($RewriteRecovery) {
             & docker @composeArgs exec -T worker python -
         if ($LASTEXITCODE -ne 0) { throw 'Synthetic source-edit guard failed.' }
     }
+}
+if ($SemanticGuard) {
+    Invoke-SemanticProbe 'seed'
+    Invoke-VerificationCompose down
+    Invoke-VerificationCompose up -d --wait --wait-timeout 180
+    Invoke-SemanticProbe 'verify'
+    Invoke-SemanticProbe 'revoke'
 }
 Write-Output "Synthetic persistence checks passed. Stack retained: $Project"
 Write-Output 'No real Telegram authorization, network AI calls or publications.'
