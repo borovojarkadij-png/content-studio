@@ -21,6 +21,7 @@
 - [x] Read-only username/broadcast-channel/full-hash resolution, durable import jobs/leases/session fencing, alias idempotency/manual title preservation and atomic resolved outbox; 462-test local gate
 - [x] Actual synthetic donor-import Windows Docker recovery, stale owner/alias/outbox/encrypted peer persistence, packaged PostgreSQL drift and resolved import/donor API
 - [ ] Full Telegram update-difference/deletion recovery, album batching/download and live encrypted authorization restart acceptance
+- [x] Bounded sparse album observation in provider/factory/fake, explicit incomplete-membership contract and ingress/stale-worker/manual-review/planner fail-closed gate; 500-test backend verification
 - [~] Filters, semantic dedup, events, hype, media, routing and scheduler; durable per-channel plan/timer, mapping-aware candidates, immediate/delayed/priority/media snapshots and gated activation complete; semantic dedup/events/hype, media acquisition and publication execution remain pending
 - [~] Mapping-level deterministic filters for media, advertising markers and forbidden links
 - [x] Persisted mapping-filter GET/PUT API and ingress integration, canonical blocked domains, mandatory advertising markers and fresh worker/review/calendar policy guards; 442-test local gate

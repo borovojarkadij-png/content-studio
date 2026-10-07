@@ -91,6 +91,9 @@ def mapping_filter(session, mapping, *, intake=True):
 
 
 def candidate_technical_allowed(session, candidate):
+    revision = source_revision(session, candidate.content_key)
+    if revision is not None and revision.album_id is not None:
+        return False
     # Keep the isolated legacy no-mapping domain prototype distinct from actual
     # mapped ingestion. No HTTP endpoint can clear a candidate's mapping.
     if candidate.mapping_id is None:
@@ -102,7 +105,6 @@ def candidate_technical_allowed(session, candidate):
     )
     if mapping is None or mapping.output_channel_id != candidate.output_channel_id:
         return False
-    revision = source_revision(session, candidate.content_key)
     if revision is None:
         return False
     post = session.get(IncomingPostModel, revision.incoming_post_id)
@@ -123,6 +125,9 @@ def candidate_technical_allowed(session, candidate):
 
 
 def output_technical_allowed(session, content_key, output_channel_id):
+    revision = source_revision(session, content_key)
+    if revision is not None and revision.album_id is not None:
+        return False
     candidate = session.scalar(
         select(PublicationCandidateModel)
         .where(

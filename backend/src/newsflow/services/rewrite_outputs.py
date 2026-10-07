@@ -68,6 +68,9 @@ class RewriteOutputService:
                         and job.output_channel_id == output.output_channel_id
                         and job.content_key == output.content_key
                         and source_is_current(self._session, output.content_key)
+                        and output_technical_allowed(
+                            self._session, output.content_key, output.output_channel_id
+                        )
                     ),
                 }
             )

@@ -32,6 +32,26 @@ def test_technical_rejection_creates_no_editorial_decision_rewrite_job_or_outbox
         assert session.scalars(select(OutboxEventModel)).all() == []
 
 
+def test_incomplete_album_caption_cannot_be_rewritten_as_a_single_photo_post():
+    engine = create_engine("sqlite://")
+    Base.metadata.create_all(engine)
+    with Session(engine) as session:
+        result = DurableIngestionWorkflow(session).ingest(
+            TelegramMessage(
+                "a", "@donor", 20, "Allowed caption", media_type="photo", album_id="77"
+            ),
+            observed_at=datetime.now(UTC),
+            sentiment="neutral",
+            framing="neutral",
+        )
+        assert result.status == "REJECTED_TECHNICAL"
+        assert result.reason_code == "ALBUM_NORMALIZATION_REQUIRED"
+        assert session.scalars(select(EditorialDecisionModel)).all() == []
+        assert session.scalars(select(RewriteJobModel)).all() == []
+        item = ModerationInboxReader(session).list_items()[0]
+        assert item.source_text == "Allowed caption"
+
+
 def test_editorial_reject_never_creates_rewrite_job_or_rewrite_outbox_event() -> None:
     engine = create_engine("sqlite://")
     Base.metadata.create_all(engine)

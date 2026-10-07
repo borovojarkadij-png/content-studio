@@ -98,6 +98,23 @@ def test_review_approval_atomically_activates_only_its_candidate_and_is_idempote
         assert session.scalar(select(func.count()).select_from(OutboxEventModel)) == 0
 
 
+def test_legacy_album_draft_api_does_not_offer_or_allow_manual_approval(review_store):
+    client, engine, channel_id, _, draft_id = review_store
+    with Session(engine) as session:
+        revision = session.scalar(select(ContentRevisionModel))
+        revision.album_id, revision.media_type = "77", "photo"
+        session.commit()
+    listing = client.get(f"/api/telegram/rewrite-outputs?output_channel_id={channel_id}")
+    assert listing.status_code == 200
+    assert listing.json()["items"][0]["approve_allowed"] is False
+    assert (
+        client.post(f"/api/telegram/rewrite-outputs/{draft_id}:approve", json={}).status_code == 409
+    )
+    with Session(engine) as session:
+        assert session.scalar(select(PublicationCandidateModel.state)) == "AWAITING_REWRITE"
+        assert session.scalar(select(func.count()).select_from(RewriteJobModel)) == 1
+
+
 def test_automatic_approval_policy_defaults_manual_and_cannot_accept_client_verdict(review_store):
     client, _, channel_id, _, draft_id = review_store
     path = f"/api/telegram/output-channels/{channel_id}/approval-policy"

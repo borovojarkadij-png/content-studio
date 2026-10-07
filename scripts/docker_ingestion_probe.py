@@ -75,6 +75,17 @@ def main(mode):
     provider.seed_message(str(account_id), str(CHANNEL), 1, "Synthetic permitted source")
     provider.seed_message(str(account_id), str(CHANNEL), 2, "Synthetic hostile source")
     provider.seed_message(str(account_id), str(CHANNEL), 3, "Unclassified source")
+    album_members = (
+        TelegramMessage(
+            str(account_id), str(CHANNEL), 4, "Album caption", media_type="photo", album_id="777"
+        ),
+        TelegramMessage(str(account_id), str(CHANNEL), 5, "", media_type="video", album_id="777"),
+    )
+    for member in album_members:
+        provider._messages[(member.account_id, member.donor_identifier, member.message_id)] = member
+    album = provider.album_window(str(account_id), str(CHANNEL), anchor_id=4)
+    assert album.message_ids == (4, 5) and album.media_types == ("photo", "video")
+    assert not album.membership_complete and not album.rewrite_allowed
     poller = DonorIngestionRunner(factory, provider=provider)
     if mode == "seed":
         assert poller.claim(donor_id, now=now) is not None
@@ -105,6 +116,12 @@ def main(mode):
                 ).status
                 == "REJECTED_EDITORIAL"
             )
+        for member in album_members:
+            with factory() as session:
+                result = DurableIngestionWorkflow(session, configured_mapping_id=mapping_id).ingest(
+                    member, observed_at=now, sentiment="neutral", framing="neutral"
+                )
+                assert result.status == "REJECTED_TECHNICAL"
     elif mode == "recover":
         with factory() as session:
             cursor = session.get(DonorIngestionCursorModel, donor_id)
@@ -155,13 +172,13 @@ def main(mode):
         ).one()
         assert rejected.status == "REJECT" and not rejected.rewrite_allowed
         if mode != "seed":
-            assert cursor.last_message_id == 3 and cursor.claim_token is None
+            assert cursor.last_message_id == 5 and cursor.claim_token is None
             items = [
                 item
                 for item in ModerationInboxReader(session).list_items()
                 if item.source_key.startswith(prefix)
             ]
-            assert len(items) == 3
+            assert len(items) == 5
             assert (
                 next(item for item in items if item.source_key == f"{prefix}3").editorial_status
                 == "MANUAL_REVIEW"
@@ -174,8 +191,13 @@ def main(mode):
                         )
                     ).all()
                 )
-                == 3
+                == 5
             )
+            for message_id in (4, 5):
+                item = next(item for item in items if item.source_key == f"{prefix}{message_id}")
+                assert item.state == "REJECTED_TECHNICAL" and item.editorial_status is None
+                revision = source_revision(session, f"{prefix}{message_id}:revision:1")
+                assert revision.album_id == "777"
         if mode in {"edit", "verify-edit"}:
             assert not source_is_current(session, f"{prefix}1:revision:1")
             revision = source_revision(session, f"{prefix}1:revision:2")

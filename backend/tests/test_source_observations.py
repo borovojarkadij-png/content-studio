@@ -38,7 +38,8 @@ def test_media_only_edit_invalidates_old_source_even_with_identical_text():
         ).first()
         assert latest.media_type == "video"
         assert latest.album_id == "20"
-        assert len(session.scalars(select(RewriteJobModel)).all()) == 1
+        # Even the earlier photo member was incomplete, not an approved album.
+        assert len(session.scalars(select(RewriteJobModel)).all()) == 0
 
 
 def test_stale_edit_timestamp_cannot_roll_back_latest_revision():

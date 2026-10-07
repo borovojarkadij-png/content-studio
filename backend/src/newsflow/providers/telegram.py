@@ -64,7 +64,123 @@ class TelegramMessage:
     source_updated_at: datetime | None = None
 
 
+@dataclass(frozen=True, slots=True)
+class TelegramAlbumObservation:
+    """Observed members, not proof of a complete album or permission to rewrite.
+
+    Telegram history windows may omit members. Keeping that uncertainty explicit
+    prevents a truncated photo/video group from becoming an approved text post.
+    """
+
+    account_id: str
+    donor_identifier: str
+    album_id: str
+    members: tuple[TelegramMessage, ...]
+    lower_id: int
+    upper_id: int
+
+    @property
+    def message_ids(self) -> tuple[int, ...]:
+        return tuple(member.message_id for member in self.members)
+
+    @property
+    def text(self) -> str:
+        return "\n\n".join(member.text for member in self.members if member.text.strip())
+
+    @property
+    def media_types(self) -> tuple[str, ...]:
+        return tuple(member.media_type for member in self.members)
+
+    @property
+    def membership_complete(self) -> bool:
+        return False
+
+    @property
+    def rewrite_allowed(self) -> bool:
+        return False
+
+
+def observe_album_window(
+    messages: tuple[TelegramMessage, ...],
+    *,
+    account_id: str,
+    donor_identifier: str,
+    anchor_id: int,
+    lower_id: int,
+    upper_id: int,
+) -> TelegramAlbumObservation:
+    if (
+        not isinstance(messages, tuple)
+        or len(messages) > 100
+        or not isinstance(account_id, str)
+        or not account_id
+        or not isinstance(donor_identifier, str)
+        or not donor_identifier
+        or any(type(value) is not int for value in (anchor_id, lower_id, upper_id))
+        or not 1 <= lower_id <= anchor_id <= upper_id <= 2**31 - 1
+        or upper_id - lower_id >= 100
+    ):
+        raise ValueError("Invalid bounded Telegram album window")
+    by_id: dict[int, TelegramMessage] = {}
+    for message in messages:
+        if (
+            not isinstance(message, TelegramMessage)
+            or message.account_id != account_id
+            or message.donor_identifier != donor_identifier
+            or type(message.message_id) is not int
+            or not lower_id <= message.message_id <= upper_id
+            or not isinstance(message.text, str)
+            or message.media_type not in {"text", "photo", "video", "unsupported"}
+            or (
+                message.source_updated_at is not None
+                and (
+                    not isinstance(message.source_updated_at, datetime)
+                    or message.source_updated_at.tzinfo is None
+                    or message.source_updated_at.utcoffset() is None
+                )
+            )
+            or (
+                message.album_id is not None
+                and (
+                    not isinstance(message.album_id, str)
+                    or re.fullmatch(r"-?(?:0|[1-9][0-9]{0,18})", message.album_id) is None
+                    or str(int(message.album_id)) != message.album_id
+                    or not -(2**63) <= int(message.album_id) < 2**63
+                    or message.media_type == "text"
+                )
+            )
+        ):
+            raise ValueError("Malformed or foreign Telegram album observation")
+        previous = by_id.get(message.message_id)
+        if previous is not None and previous != message:
+            raise ValueError("Conflicting Telegram album member observations")
+        by_id[message.message_id] = message
+    anchor = by_id.get(anchor_id)
+    if anchor is None:
+        raise LookupError("Telegram album anchor no longer exists")
+    if anchor.album_id is None:
+        raise ValueError("Telegram message is not an album anchor")
+    members = tuple(
+        message for _, message in sorted(by_id.items()) if message.album_id == anchor.album_id
+    )
+    if len(members) > 10:
+        raise ValueError("Telegram album exceeds its member bound")
+    return TelegramAlbumObservation(
+        account_id, donor_identifier, anchor.album_id, members, lower_id, upper_id
+    )
+
+
+def _album_bounds(anchor_id: int) -> tuple[int, int]:
+    if type(anchor_id) is not int or not 1 <= anchor_id <= 2**31 - 1:
+        raise ValueError("Invalid Telegram album anchor identity")
+    return max(1, anchor_id - 49), min(2**31 - 1, anchor_id + 50)
+
+
 class TelegramProvider(Protocol):
+    def album_window(
+        self, account_id: str, donor_identifier: str, *, anchor_id: int
+    ) -> TelegramAlbumObservation: ...
+
     def resolve_channel(self, account_id: str, identifier: str) -> TelegramChannelResolution: ...
 
     def verify_session(self, account_id: str) -> None: ...
@@ -135,6 +251,23 @@ class FakeTelegramProvider:
     ) -> TelegramMessage:
         self.verify_session(account_id)
         return self._messages[(account_id, donor_identifier, message_id)]
+
+    def album_window(self, account_id, donor_identifier, *, anchor_id):
+        lower, upper = _album_bounds(anchor_id)
+        self.verify_session(account_id)
+        messages = tuple(
+            message
+            for (account, donor, message_id), message in self._messages.items()
+            if account == account_id and donor == donor_identifier and lower <= message_id <= upper
+        )
+        return observe_album_window(
+            messages,
+            account_id=account_id,
+            donor_identifier=donor_identifier,
+            anchor_id=anchor_id,
+            lower_id=lower,
+            upper_id=upper,
+        )
 
     def iter_events(self, account_id: str) -> Iterator[TelegramMessage]:
         yield from self._events.get(account_id, [])
@@ -389,6 +522,33 @@ class TelethonTelegramProvider:
 
         return self._run(account_id, read)
 
+    def album_window(self, account_id, donor_identifier, *, anchor_id):
+        lower, upper = _album_bounds(anchor_id)
+        channel = self._channel_id(donor_identifier)
+
+        async def read(client):
+            peer = await self._input_channel(client, account_id, channel)
+            raws = await client.get_messages(peer, ids=list(range(lower, upper + 1)))
+            if not isinstance(raws, (list, tuple)) or len(raws) > upper - lower + 1:
+                raise ValueError("Telegram album response exceeded its bound")
+            messages = []
+            for raw in raws:
+                if raw is None:
+                    continue
+                if getattr(raw, "chat_id", None) != channel:
+                    raise ValueError("Telegram album source identity mismatch")
+                messages.append(self.normalize_message(account_id, donor_identifier, raw))
+            return observe_album_window(
+                tuple(messages),
+                account_id=account_id,
+                donor_identifier=donor_identifier,
+                anchor_id=anchor_id,
+                lower_id=lower,
+                upper_id=upper,
+            )
+
+        return self._run(account_id, read)
+
     def recent(self, account_id, donor_identifier, *, limit):
         if isinstance(limit, bool) or not isinstance(limit, int) or not 1 <= limit <= 100:
             raise ValueError("Invalid recent history bound")
@@ -450,8 +610,12 @@ class TelethonTelegramProvider:
             media_type = "text"
         grouped_id = getattr(raw_message, "grouped_id", None)
         message_id = getattr(raw_message, "id", None)
-        if not isinstance(message_id, int):
+        if type(message_id) is not int or not 1 <= message_id <= 2**31 - 1:
             raise TypeError("Telethon message is missing an integer id")
+        if grouped_id is not None and (
+            type(grouped_id) is not int or not -(2**63) <= grouped_id < 2**63
+        ):
+            raise ValueError("Telethon album identity is malformed")
         return TelegramMessage(
             account_id=account_id,
             donor_identifier=donor_identifier,

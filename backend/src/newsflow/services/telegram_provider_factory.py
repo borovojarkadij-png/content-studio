@@ -211,3 +211,8 @@ class ConfiguredTelegramProvider:
         return self._adapter(account_id, donor_identifier).recent(
             account_id, donor_identifier, limit=limit
         )
+
+    def album_window(self, account_id, donor_identifier, *, anchor_id):
+        return self._adapter(account_id, donor_identifier).album_window(
+            account_id, donor_identifier, anchor_id=anchor_id
+        )

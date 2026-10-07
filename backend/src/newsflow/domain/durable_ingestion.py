@@ -97,7 +97,11 @@ class DurableIngestionWorkflow:
                 repository.set_state(event, "RECEIVED")
             technical = self._technical_filter.evaluate(event)
             if not technical.accepted:
-                if observed_edit:
+                if event.album_id is not None:
+                    # Preserve captionless/video members too; never manufacture
+                    # a complete group from just the first publishable caption.
+                    repository.ingest(event, observed_at)
+                if observed_edit or event.album_id is not None:
                     repository.set_state(event, "REJECTED_TECHNICAL")
                 return IngestionResult(
                     False, source_key, "REJECTED_TECHNICAL", technical.reason_code

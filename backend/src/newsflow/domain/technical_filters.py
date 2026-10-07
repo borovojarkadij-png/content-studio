@@ -45,6 +45,11 @@ class MappingTechnicalFilter:
             return TechnicalFilterDecision(False, "ADVERTISING")
         if any(self._is_blocked_host(urlparse(url).hostname) for url in _URL.findall(text)):
             return TechnicalFilterDecision(False, "FORBIDDEN_LINK")
+        if message.album_id is not None:
+            # A single caption is not proof that every album member passed the
+            # media/advertising/link policy. Until a durable complete manifest
+            # is validated, neither ingress nor a stale/manual task may rewrite it.
+            return TechnicalFilterDecision(False, "ALBUM_NORMALIZATION_REQUIRED")
         return TechnicalFilterDecision(True)
 
     def _is_blocked_host(self, host: str | None) -> bool:

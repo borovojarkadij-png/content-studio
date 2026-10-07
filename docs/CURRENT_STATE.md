@@ -2,6 +2,17 @@
 
 ## VERIFIED WORKING
 
+- Bounded sparse album observation implemented in provider/Telethon/encrypted
+  factory/fake, never claiming complete membership. Grouped captions cannot
+  reach editorial/rewrite individually; grouped blank/video sources are retained.
+  Legacy/missing-candidate stale tasks and manual review cannot bypass the gate.
+  Backend 500 tests/lint/compile/format/isolated migration round-trip PASS.
+  Actual album Windows Docker acceptance in progress, not verified yet; see
+  TELEGRAM_ALBUM_VERIFICATION.md. Full durable album workflow/download pending.
+- CI 37701614150 for corrective UI checkpoint d03719f completed SUCCESS in all
+  four jobs. Media checkpoint d430d88973bf60b7623fbe321019d9be67ab1a52 pushed;
+  CI 37702104802 backend PASS, remaining jobs in progress at last inspection.
+
 - Bounded actual single-frame photo decoding and fresh pre/post-selection
   editorial/source/review/technical bindings verified. Backend 472 tests,
   lint/compile/isolated migration gate PASS; actual Windows Docker media guard
@@ -490,14 +501,16 @@ newsflow-verification-donorimports20261008 (18015/15188/18095; CrashRecovery +
 IngestionGuard + PeerGuard + MappingGuard + ResolutionGuard), including resolved
 API state and actual PostgreSQL drift; stopped retaining history/volumes.
 CI 37699179678 for d1fd02c completed SUCCESS in all four jobs.
-Exact NEXT_STEP: commit/push media checkpoint (actual Docker acceptance and PG
-drift now PASS; fixture stopped retaining volumes/history), then implement bounded
-album observation/provider integration and prevent incomplete groups from becoming
-individual rewriteable posts. Album normalization tests/source are separate
-uncommitted work: 12 test-first regressions now PASS; not yet a persisted complete
-album workflow. Finish adapter/factory/ingress regression gate, then deploy backend
-with operational flags 0, document/commit/push and continue album persistence/source
-acquisition. Track corrective UI CI and media CI separately. Frontend 40 units / 21
+Exact NEXT_STEP: commit/push album guard checkpoint, finish Windows Docker album
+acceptance (active session 23498, newsflow-verification-albumguards20261008,
+18017/15190/18097, CrashRecovery + IngestionGuard), packaged PG drift and real
+inbox inspection; stop only that fixture retaining history/volumes. Operational
+backend rebuild/check is session 59387: confirm exit/PG drift/flags 0/health.
+Then bounded read-only source-photo download/acquisition with explicit rights,
+fresh pre/post-provider bindings and create-only persistent storage; no protected
+content download, overwrite or sends. Full album manifests/deletion/batching
+remain pending and must not be inferred from the observation seam. Track media
+and subsequent album CI separately. Frontend 40 units / 21
 browser/format/typecheck/build/audit PASS. Do not reseed existing fixtures.
 Never rerun existing fixture seeds or enable actual sends as a side effect.
 f19af6d CI 37696430337 completed SUCCESS. Track next commit CI.

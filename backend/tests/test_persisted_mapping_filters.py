@@ -114,6 +114,39 @@ def queued_source(factory):
         )
 
 
+@pytest.mark.parametrize(
+    "candidate_kind, expected",
+    [
+        ("mapped", "BLOCKED_TECHNICAL"),
+        ("legacy", "BLOCKED_TECHNICAL"),
+        ("missing", "SUPERSEDED"),
+    ],
+)
+def test_stale_album_task_never_constructs_an_ai_provider(filter_store, candidate_kind, expected):
+    from newsflow.persistence.models import ContentRevisionModel, PublicationCandidateModel
+    from newsflow.services.durable_rewrite_runner import DurableRewriteRunner
+    from newsflow.services.mapping_filters import output_technical_allowed
+
+    queued_source(filter_store)
+    with filter_store.begin() as session:
+        # Model an older checkpoint that incorrectly created an album rewrite.
+        session.scalar(select(ContentRevisionModel)).album_id = "77"
+        candidate = session.scalar(select(PublicationCandidateModel))
+        if candidate_kind == "legacy":
+            candidate.mapping_id = None
+        elif candidate_kind == "missing":
+            session.delete(candidate)
+        session.flush()
+        job = session.scalar(select(RewriteJobModel))
+        assert not output_technical_allowed(session, job.content_key, job.output_channel_id)
+
+    def forbidden(_):
+        raise AssertionError("Incomplete album reached AI")
+
+    runner = DurableRewriteRunner(filter_store, provider_for_channel=forbidden, clock=lambda: NOW)
+    assert runner.run_next(now=NOW) == expected
+
+
 def test_policy_change_during_ai_cannot_record_a_draft(filter_store):
     from newsflow.persistence.models import RewriteOutputModel
     from newsflow.services.durable_rewrite_runner import DurableRewriteRunner
