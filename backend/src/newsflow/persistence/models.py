@@ -236,6 +236,40 @@ class MediaAssetModel(Base):
     )
 
 
+class MediaAcquisitionJobModel(Base):
+    """Internet illustration acquisition; selected bytes never live only in a container."""
+
+    __tablename__ = "media_acquisition_jobs"
+    __table_args__ = (
+        UniqueConstraint("candidate_id", "binding_sha256", name="uq_media_job_binding"),
+        CheckConstraint(
+            "state IN ('QUEUED', 'RUNNING', 'SUCCEEDED', 'NO_MATCH', 'BLOCKED', 'FAILED')"
+        ),
+        CheckConstraint("attempts BETWEEN 0 AND 2"),
+        CheckConstraint("length(binding_sha256) = 64"),
+        CheckConstraint(
+            "state <> 'RUNNING' OR (claim_token IS NOT NULL AND lease_expires_at IS NOT NULL)"
+        ),
+        CheckConstraint("state <> 'SUCCEEDED' OR selected_asset_id IS NOT NULL"),
+    )
+    id: Mapped[int] = mapped_column(primary_key=True)
+    candidate_id: Mapped[int] = mapped_column(
+        ForeignKey("publication_candidates.id"), nullable=False, index=True
+    )
+    binding_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    state: Mapped[str] = mapped_column(String(16), nullable=False)
+    attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
+    available_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    claim_token: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    lease_expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    selected_asset_id: Mapped[int | None] = mapped_column(
+        ForeignKey("media_assets.id"), nullable=True
+    )
+    last_error_code: Mapped[str | None] = mapped_column(String(64), nullable=True)
+
+
 class PlannedPublicationModel(Base):
     """An idempotent reserved slot; a later publication worker still approves it."""
 

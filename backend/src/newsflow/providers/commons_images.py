@@ -26,6 +26,10 @@ class ImageProviderUnavailable(ValueError):
     """Safe terminal error; never leak provider body/private query in exceptions."""
 
 
+class ImageProviderRetryable(ImageProviderUnavailable):
+    """Transient connection/rate-limit failure, bounded by durable job attempts."""
+
+
 class NoRedirect(HTTPRedirectHandler):
     def redirect_request(self, req, fp, code, msg, headers, newurl):
         return None
@@ -211,7 +215,7 @@ class CommonsImageProvider:
                 read = getattr(response, "read1", response.read)
                 while True:
                     if monotonic() >= deadline:
-                        raise ImageProviderUnavailable("IMAGE_TIMEOUT")
+                        raise ImageProviderRetryable("IMAGE_TIMEOUT")
                     chunk = read(min(65536, limit + 1 - len(content)))
                     if not chunk:
                         break
@@ -219,8 +223,12 @@ class CommonsImageProvider:
                     if len(content) > limit:
                         raise ImageProviderUnavailable("IMAGE_RESPONSE_TOO_LARGE")
                 return bytes(content)
-        except (HTTPError, URLError, OSError, TimeoutError):
-            raise ImageProviderUnavailable("IMAGE_NETWORK_UNAVAILABLE") from None
+        except HTTPError as error:
+            if error.code == 429 or error.code >= 500:
+                raise ImageProviderRetryable("IMAGE_NETWORK_UNAVAILABLE") from None
+            raise ImageProviderUnavailable("IMAGE_HTTP_INVALID") from None
+        except (URLError, OSError, TimeoutError):
+            raise ImageProviderRetryable("IMAGE_NETWORK_UNAVAILABLE") from None
 
     def search(self, text: str, *, limit: int = 5) -> list[ImageSearchResult]:
         if type(limit) is not int or not 1 <= limit <= 5:

@@ -7,11 +7,20 @@ param(
     [switch]$RewriteRecovery,
     [switch]$SourceGuard,
     [switch]$SemanticGuard,
+    [switch]$MediaGuard,
     [ValidateSet('OPENAI', 'OPENROUTER')]
     [string]$RewriteProvider = 'OPENAI'
 )
 
 $ErrorActionPreference = 'Stop'
+if ($MediaGuard -and -not $SemanticGuard) {
+    throw 'MediaGuard requires a fresh synthetic SemanticGuard run.'
+}
+function Invoke-MediaProbe([string]$Mode) {
+    Get-Content -LiteralPath (Join-Path $PSScriptRoot 'docker_media_probe.py') -Raw |
+        & docker @composeArgs exec -T worker python - $Mode
+    if ($LASTEXITCODE -ne 0) { throw "Synthetic media probe failed: $Mode" }
+}
 if ($SourceGuard -and -not $RewriteRecovery) {
     throw 'SourceGuard requires a fresh synthetic RewriteRecovery run.'
 }
@@ -164,7 +173,18 @@ if ($SemanticGuard) {
     Invoke-SemanticProbe 'recover'
     Invoke-VerificationCompose restart worker
     Invoke-SemanticProbe 'verify'
+    if ($MediaGuard) {
+        Invoke-MediaProbe 'seed'
+        Invoke-VerificationCompose down
+        Invoke-VerificationCompose up -d --wait --wait-timeout 180
+        Write-Output 'Waiting for the synthetic media acquisition lease to expire.'
+        for ($tick = 0; $tick -lt 13; $tick++) { Start-Sleep -Seconds 5 }
+        Invoke-MediaProbe 'recover'
+        Invoke-VerificationCompose restart worker
+        Invoke-MediaProbe 'verify'
+    }
     Invoke-SemanticProbe 'revoke'
+    if ($MediaGuard) { Invoke-MediaProbe 'blocked' }
 }
 Write-Output "Synthetic persistence checks passed. Stack retained: $Project"
 Write-Output 'No real Telegram authorization, network AI calls or publications.'

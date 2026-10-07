@@ -38,4 +38,5 @@
 - [ ] Actual fixed-model semantic benchmark and reviewed operational release qualification; synthetic fixtures do not qualify models
 - [ ] Local free internet-image agent: semantic search, rights-aware acquisition into persistent library, optional original-source media reuse; local keyword lookup alone does not satisfy internet-search mode
 - [x] Free Commons topic-search/download provider and guarded persistent acquisition seam: explicit rights/credit, allowlisted bounded decoded photos, immutable create-only storage, editorial/source/review rechecks, adversarial tests and free live in-memory search/download smoke
-- [ ] Durable internet-media jobs/leases/fencing/recovery, selected-asset results and explicit worker/UI controls; visual-semantic relevance and caption attribution before publication
+- [x] Durable internet-media jobs/leases/fencing/recovery, selected-asset results, bounded persisted transient retry, opt-in worker and read-only status API: local tests/migration gate and actual synthetic Windows Docker down/up/API/revocation recovery passed
+- [ ] Internet-media UI controls, visual-semantic/cross-language relevance and caption attribution at guarded publication

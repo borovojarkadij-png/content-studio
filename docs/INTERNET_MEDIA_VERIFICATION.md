@@ -55,12 +55,52 @@ is performed. Durable acquisition jobs/reconciliation are the next increment.
 - Semantic-runtime commit `59f4d4817dc248c191e489ec9f0d222661e994d6` CI run
   `37692242447` completed SUCCESS in all four jobs. This precedes this media change.
 
-## Not yet implemented / not verified
+## Durable runtime increment
 
-Durable media acquisition jobs/leases/recovery and explicit opt-in worker/UI
-wiring; automatic caption attribution at Telegram send; visual-semantic ranking,
-cross-language query quality and video acquisition. This provider seam is not
-yet an unattended media daemon. No paid service or real publication was tested.
+Migration `e93b0a4217d6` adds durable jobs with immutable candidate/binding digest,
+two committed attempts maximum, 60-second recoverable leases and selected-asset
+FK. Downgrade refuses populated history. Expired tokens cannot search, download,
+register or select; registry and completion commit together. A final lease expiry
+rolls back registration without claiming filesystem/DB distributed atomicity.
+HTTP 429/5xx/connection failures get one persisted 30-second retry; malformed
+metadata/photos and exhausted budgets fail terminally. NO_MATCH/BLOCKED/FAILED
+do not repeatedly enqueue. `NEWSFLOW_INTERNET_MEDIA_ENABLED=0` is the default;
+enabling it still does not authorize or execute Telegram publication.
+
+GET `/api/telegram/publication-candidates/{id}/media-acquisition` is read-only:
+state/attempts/history plus current `selected_allowed`, reason and qualified asset.
+It never performs network calls. A historical SUCCEEDED row remains in history
+after a reject, but stale/blocked/missing-byte assets are not offered as usable.
+
+Latest local gate: **361 backend PASS**, lint/compile/format and isolated actual
+upgrade/check/downgrade/base/re-upgrade/check PASS; 19 Chromium E2E passed again.
+Additional tests cover expired owners, reject after enqueue, expiry during
+download/disk-write, persisted bounded retries, atomic result rollback, downgrade
+history protection and actual API queued/success/reject/missing-file projections.
+Windows Docker media-job recovery **PASS** in `newsflow-verification-media20261008`
+(ports 18010 / 15183 / 18090):
+
+```powershell
+./scripts/verify-persistence.ps1 -Project newsflow-verification-media20261008 -ApiPort 18010 -WebPort 15183 -ProductionPort 18090 -CrashRecovery -RewriteRecovery -SourceGuard -SemanticGuard -MediaGuard -RewriteProvider OPENROUTER
+```
+
+Actual build/startup/migrate/proxy-IP-change/Redis-loss/PostgreSQL-crash checks
+passed. Rewrite and semantic expired-claim recovery passed, then an unfinished
+media claim survived another real down/up. Attempt 2 fenced attempt 1 before
+requests; injected synthetic photos were atomically registered/selected. Asset
+bytes/hash/CC0 test provenance and job completion survived worker restart. Actual
+GET status API reported usable success, then disabled selection after release
+revocation; acquisition made zero requests after revocation. There were no live
+AI/Telegram/media-provider calls in this drill. It uses a real decoded synthetic
+PNG, not a Commons permission claim. Fixture volumes/history retained, stack stopped.
+Current PostgreSQL drift checks passed there and on the rebuilt healthy operational
+stack. Socket-rate retries/read API changes after the initial fixture image build
+passed local regressions and were packaged operationally; CI tests latest images.
+Provider-only commit 5faf7227 CI run 37692967241 passed all four jobs.
+
+Remaining: explicit UI controls, automatic caption attribution at Telegram send,
+visual-semantic ranking, cross-language query quality and video acquisition.
+No paid service or real publication was tested.
 
 Primary documentation consulted: [MediaWiki imageinfo](https://www.mediawiki.org/wiki/API:Imageinfo/en),
 [Commons API](https://commons.wikimedia.org/wiki/Commons:API/MediaWiki),

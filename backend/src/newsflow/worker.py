@@ -5,6 +5,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from os import getenv
+from pathlib import Path
 from threading import Event
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
@@ -17,6 +18,7 @@ from newsflow.persistence.database import configured_session_factory
 from newsflow.persistence.models import PublicationPlanModel
 from newsflow.security.master_key import load_runtime_master_key
 from newsflow.security.session_cipher import SessionCipher
+from newsflow.services.durable_media_runner import DurableMediaRunner
 from newsflow.services.durable_rewrite_runner import DurableRewriteRunner
 from newsflow.services.durable_semantic_runner import DurableSemanticRunner
 from newsflow.services.publication_planning import PlanValidationError, PublicationPlanningService
@@ -76,6 +78,16 @@ def run_semantic_tick(
     return execution.run_next(now=now)
 
 
+def run_media_tick(
+    session_factory, *, media_root: Path, enabled: bool, now: datetime, provider=None
+) -> str:
+    if not enabled:
+        return "DISABLED"
+    execution = DurableMediaRunner(session_factory, media_root, provider=provider)
+    execution.enqueue_pending(now=now)
+    return execution.run_next(now=now)
+
+
 def run_scheduler_tick(
     session_factory: Callable[[], Session], *, now: datetime
 ) -> SchedulerTickResult:
@@ -112,6 +124,7 @@ def main() -> None:
         raise ValueError("Scheduler polling interval must be between 5 and 60 seconds")
     network_enabled = rewrite_enabled(getenv("NEWSFLOW_REWRITE_ENABLED", "0"))
     semantic_enabled = rewrite_enabled(getenv("NEWSFLOW_SEMANTIC_VERIFICATION_ENABLED", "0"))
+    media_enabled = rewrite_enabled(getenv("NEWSFLOW_INTERNET_MEDIA_ENABLED", "0"))
     provider = getenv("NEWSFLOW_REWRITE_PROVIDER", "OPENAI")
     if provider not in {"OPENAI", "OPENROUTER"}:
         raise ValueError("NEWSFLOW_REWRITE_PROVIDER must be OPENAI or OPENROUTER")
@@ -149,6 +162,17 @@ def main() -> None:
                 logger.info("semantic.tick", outcome=outcome)
             except Exception:  # noqa: BLE001 - preserve committed lease, never log secrets
                 logger.warning("semantic.execution_interrupted", recovery="persisted_lease")
+        if media_enabled and not stopped.is_set():
+            try:
+                outcome = run_media_tick(
+                    factory,
+                    enabled=True,
+                    media_root=Path(getenv("NEWSFLOW_MEDIA_ROOT", "/var/lib/newsflow/media")),
+                    now=datetime.now(UTC),
+                )
+                logger.info("media.tick", outcome=outcome)
+            except Exception:  # noqa: BLE001 - retain committed lease, never log private data
+                logger.warning("media.execution_interrupted", recovery="persisted_lease")
         stopped.wait(interval)
 
 

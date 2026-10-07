@@ -86,7 +86,8 @@ class InternetMediaAcquisition:
             .with_for_update()
         )
         if (
-            candidate.content_key != key
+            candidate is None
+            or candidate.content_key != key
             or candidate.output_channel_id != channel_id
             or candidate.state not in {"READY", "SCHEDULED"}
             or candidate.media_policy != "LICENSED_LIBRARY"
@@ -132,20 +133,31 @@ class InternetMediaAcquisition:
             temporary.unlink()  # Only this invocation's validated staging file.
         return "internet/" + name
 
-    def acquire(self, candidate_id: int) -> dict[str, object]:
+    def acquire(
+        self, candidate_id: int, *, execution_guard=None, completion=None
+    ) -> dict[str, object]:
         with self._factory() as session:
+            if execution_guard:
+                execution_guard(session)
             binding = self._binding(session, candidate_id)
         # Free remote topic retrieval; first eligible metadata only, no paid fallback.
         query = search_terms(binding[-1])
         results = self._provider.search(query, limit=5)
         if not results:
             with self._factory() as session:
+                if execution_guard:
+                    execution_guard(session)
                 if self._binding(session, candidate_id) != binding:
                     raise MediaSelectionBlocked("MEDIA_BINDING_CHANGED")
+                if completion:
+                    completion(session, None)
+                session.commit()
             return {"status": "NO_MATCH", "items": [], "illustration": True}
         result = results[0]
         content = self._provider.download(result)
         with self._factory() as session:
+            if execution_guard:
+                execution_guard(session)
             if self._binding(session, candidate_id) != binding:
                 raise MediaSelectionBlocked("MEDIA_BINDING_CHANGED")
             key = self._persist(content, result.attribution, result.mime_type)
@@ -155,5 +167,9 @@ class InternetMediaAcquisition:
                 license_code=result.license_code,
                 attribution=result.attribution,
                 tags=tuple(sorted(set(result.tags + tuple(query.split())))),
+                commit=False,
             )
+            if completion:
+                completion(session, asset["id"])
+            session.commit()
         return {"status": "ACQUIRED", "items": [asset], "illustration": True}

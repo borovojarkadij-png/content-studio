@@ -15,6 +15,7 @@ from newsflow.services.automatic_approval import (
     AutomaticApprovalBlocked,
     AutomaticApprovalPolicyService,
 )
+from newsflow.services.media_job_read import MediaJobReader
 from newsflow.services.media_selection import (
     LocalMediaSelectionService,
     MediaSelectionBlocked,
@@ -180,6 +181,29 @@ def get_media_selection_service() -> Iterator[LocalMediaSelectionService]:
 
 
 MediaSelection = Annotated[LocalMediaSelectionService, Depends(get_media_selection_service)]
+
+
+def get_media_job_reader() -> Iterator[MediaJobReader]:
+    for session in database_session():
+        if session is None:
+            raise HTTPException(503, "Durable database is not configured")
+        root = getenv("NEWSFLOW_MEDIA_ROOT", "").strip()
+        try:
+            yield MediaJobReader(session, Path(root) if root else None)
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from None
+        except SQLAlchemyError:
+            raise HTTPException(
+                503, "Durable database is unavailable or requires migrations"
+            ) from None
+
+
+@router.get("/publication-candidates/{candidate_id}/media-acquisition")
+def get_media_acquisition_status(
+    candidate_id: int,
+    reader: Annotated[MediaJobReader, Depends(get_media_job_reader)],
+) -> dict[str, object]:
+    return reader.get_status(candidate_id)
 
 
 def get_moderation_inbox_reader() -> Iterator[ModerationInboxReader | None]:

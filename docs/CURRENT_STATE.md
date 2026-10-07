@@ -2,6 +2,20 @@
 
 ## VERIFIED WORKING
 
+- Durable internet-media jobs, bounded committed attempts, 60-second leases,
+  stale-owner fencing, 30-second persisted transient retry and atomic selected
+  asset/completion are implemented locally. Worker opt-in defaults disabled.
+  Read-only acquisition-status API checks current source/editorial/review and
+  persistent byte integrity; historical success alone never permits selection.
+  Latest backend 361 tests / lint / compile / isolated migration gate PASS;
+  19 Chromium browser regressions passed again. Actual Windows Docker media-job
+  recovery PASS: down/up, old-owner fencing, selected-asset bytes/hash/rights,
+  atomic durable completion and real status API survive worker restart. Revoked
+  automatic approval blocks acquisition and API selection without network calls.
+  PostgreSQL drift passed in isolated and rebuilt operational stacks; health and
+  proxied inbox returned 200. Synthetic fixture stopped, volumes retained.
+- GitHub Actions 37692967241 for 5faf7227 completed SUCCESS in all four jobs;
+  this precedes the durable media-job increment.
 - Free internet-image provider/acquisition boundary implemented and tested:
   allowlisted Commons topic search, explicit rights/credit, bounded decoded photos,
   fresh editorial/source/review gates and atomic create-only persistent storage.
@@ -348,12 +362,17 @@ implemented; channel-specific natural tabloid style is wired to actual Planner A
 Bounded free-only OpenRouter structured execution is implemented and passes the
 offline provider/factory/worker gate, including refusals/rate limits/fact changes
 and no paid fallback (OPENROUTER_REWRITE_VERIFICATION.md).
-Exact NEXT_STEP: wrap the implemented free Commons acquisition seam in durable
-media jobs/leases with committed bounded attempts, snapshot binding, stale-owner
-fencing, persistent selected-asset results and opt-in worker. Test recovery and
-rejection with injected providers; do not expose arbitrary download URLs or enable
-real Telegram send. UI controls and visual-semantic/cross-language relevance need
-separate verification; topic search alone is not full semantic image matching.
+Exact NEXT_STEP: commit/push the locally and Docker-verified durable-media
+increment and track its CI. Then implement operational Telegram ingestion
+orchestration with FakeTelegramProvider first: account health/FloodWait cooldown,
+persisted donor cursors/replay, current mapping filters and durable ingestion.
+Live authorization is separate; no synthetic account may be promoted as real.
+Windows project newsflow-verification-media20261008 completed acceptance; it
+retains terminal revoked-release history, so never rerun its seed.
+Media jobs/fencing/worker/status API are now implemented; UI controls and
+visual-semantic/cross-language relevance still need separate verification.
+Topic search alone is not full semantic image matching. Never enable actual send
+as a side effect or qualify an operational model with synthetic fixtures.
 Durable semantic jobs/factory/opt-in worker are implemented and tested; no qualified
 operational release exists. Track CI for this increment after committing/pushing.
 Anchor equality alone never authorizes automatic approval. Live OpenAI smoke remains

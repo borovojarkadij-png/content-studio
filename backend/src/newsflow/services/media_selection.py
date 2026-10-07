@@ -91,6 +91,7 @@ class LocalMediaSelectionService:
         attribution: str,
         tags: tuple[str, ...],
         source_content_key: str | None = None,
+        commit: bool = True,
     ) -> dict[str, object]:
         attribution = attribution.strip()
         if (
@@ -136,7 +137,8 @@ class LocalMediaSelectionService:
                 self._session.add(asset)
                 self._session.flush()
                 result = _project(asset)
-            self._session.commit()
+            if commit:
+                self._session.commit()
             return result
         except IntegrityError:
             self._session.rollback()

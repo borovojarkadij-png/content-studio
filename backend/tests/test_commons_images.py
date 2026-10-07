@@ -185,3 +185,22 @@ def test_malformed_catalog_fails_closed_without_private_error_text(payload):
     )
     with pytest.raises(ImageProviderUnavailable):
         images.search("factory")
+
+
+@pytest.mark.parametrize("status,retryable", [(429, True), (503, True), (404, False)])
+def test_http_failures_distinguish_bounded_retry_from_terminal_error(status, retryable):
+    from urllib.error import HTTPError
+
+    from newsflow.providers.commons_images import (
+        CommonsImageProvider,
+        ImageProviderRetryable,
+        ImageProviderUnavailable,
+    )
+
+    def fail(request, timeout):
+        raise HTTPError(request.full_url, status, "private upstream message", {}, None)
+
+    with pytest.raises(ImageProviderUnavailable) as failure:
+        CommonsImageProvider(opener=fail).search("factory")
+    assert isinstance(failure.value, ImageProviderRetryable) is retryable
+    assert "private" not in str(failure.value)
