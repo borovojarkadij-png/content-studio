@@ -2,10 +2,12 @@
 
 from fastapi import FastAPI
 
+from newsflow.api.settings import router as settings_router
 from newsflow.api.telegram import router as telegram_router
 
 app = FastAPI(title="NEWSFLOW Content Studio", version="0.1.0")
 app.include_router(telegram_router)
+app.include_router(settings_router)
 
 
 @app.get("/healthz", tags=["system"])

@@ -20,6 +20,7 @@ def test_configuration_schema_upgrade_creates_pending_import_storage(tmp_path) -
             "publication_plans",
             "publication_candidates",
             "planned_publications",
+            "rewrite_provider_settings",
         } <= set(inspector.get_table_names())
         columns = {column["name"] for column in inspector.get_columns("donor_imports")}
         assert columns == {"id", "telegram_account_id", "identifier", "status"}
@@ -37,6 +38,16 @@ def test_configuration_schema_upgrade_creates_pending_import_storage(tmp_path) -
             index["column_names"] == ["output_channel_id"]
             for index in inspector.get_indexes("rewrite_jobs")
         )
+        provider_columns = {
+            column["name"] for column in inspector.get_columns("rewrite_provider_settings")
+        }
+        assert provider_columns == {
+            "provider",
+            "encrypted_api_key",
+            "primary_model",
+            "fallback_models",
+            "updated_at",
+        }
     finally:
         engine.dispose()
 

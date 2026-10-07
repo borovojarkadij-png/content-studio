@@ -74,6 +74,11 @@
   backed exactly one candidate. A legacy fan-out job becomes `SUPERSEDED` and
   emits fresh per-output `DISPATCHED` jobs; downgrade refuses to collapse that
   audit history.
+- Rewrite-provider settings persist encrypted OpenAI/OpenRouter credentials and
+  selected rewrite models without exposing plaintext through API projections.
+  OpenRouter accepts only explicit free models (`:free` or `openrouter/free`)
+  and retries the configured fallbacks in order when a model is unavailable.
+  Catalog lookup is a read-only provider request; it is separate from rewrite.
 - Dark-navy frontend: all eight section compositions, shared linear icons,
   selected rows/cards, responsive panels and honest unavailable actions.
 - In-memory DEMO workflows: donor import preview/partial success, independent
@@ -133,9 +138,10 @@ The durable configuration, mapping-aware candidate source and
 publication-planning contracts are complete locally. Next PHASE 1 task: store
 mapping publication policies (immediate versus delayed eligibility, priority
 and permitted media), persist per-output rewrite output/approval state and
-secure OpenAI rewrite configuration, then wire the Planner UI to durable
-read/mutation APIs. Keep the current editorial recheck and never perform real
-Telegram publication as a side effect of UI work.
+wire Settings/Planner UI to durable read/mutation APIs. Add the two safe media
+policies (reuse source media and licensed local-library lookup) before any real
+download or Telegram publication. Keep the current editorial recheck and never
+perform real Telegram publication as a side effect of UI work.
 
 PHASE 1 IS NOT COMPLETE. Docker Compose/persistence/restart E2E remains
 NOT VERIFIED / BLOCKED BY ENVIRONMENT until Docker Desktop is available.

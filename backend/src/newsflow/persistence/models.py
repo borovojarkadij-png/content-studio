@@ -124,6 +124,24 @@ class PublicationPlanModel(Base):
     slot_minutes: Mapped[str] = mapped_column(String(128), nullable=False)
 
 
+class RewriteProviderSettingModel(Base):
+    """Encrypted provider credential and rewrite-model policy, never projected raw."""
+
+    __tablename__ = "rewrite_provider_settings"
+    __table_args__ = (
+        CheckConstraint(
+            "provider IN ('OPENAI', 'OPENROUTER')", name="ck_rewrite_provider_setting_provider"
+        ),
+    )
+    provider: Mapped[str] = mapped_column(String(32), primary_key=True)
+    encrypted_api_key: Mapped[str] = mapped_column(String, nullable=False)
+    primary_model: Mapped[str] = mapped_column(String(255), nullable=False)
+    fallback_models: Mapped[str] = mapped_column(String(2048), nullable=False, default="")
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+
 class PublicationCandidateModel(Base):
     """Durable candidate eligible for planning, not a publication instruction."""
 

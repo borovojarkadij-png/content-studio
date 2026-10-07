@@ -1,4 +1,5 @@
 import pytest
+from cryptography.fernet import Fernet
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 
@@ -9,9 +10,12 @@ from newsflow.persistence.models import Base
 @pytest.fixture
 def client(monkeypatch, tmp_path):
     database_url = f"sqlite:///{tmp_path / 'api.db'}"
+    master_key_path = tmp_path / "master-key"
+    master_key_path.write_text(Fernet.generate_key().decode("ascii"), encoding="utf-8")
     engine = create_engine(database_url)
     Base.metadata.create_all(engine)
     monkeypatch.setenv("DATABASE_URL", database_url)
+    monkeypatch.setenv("NEWSFLOW_MASTER_KEY_FILE", str(master_key_path))
     with TestClient(app) as client:
         yield client
     engine.dispose()
@@ -243,3 +247,45 @@ def test_publication_plan_api_rejects_an_unknown_timezone_and_extra_fields(clien
     )
     assert unknown_timezone.status_code == 422
     assert extra_field.status_code == 422
+
+
+def test_openrouter_rewrite_settings_encrypt_key_and_never_return_it(client):
+    configured = client.put(
+        "/api/settings/rewrite-providers/openrouter",
+        json={
+            "api_key": "synthetic-openrouter-key",
+            "fallback_models": ["alpha/rewrite:free", "beta/rewrite:free"],
+        },
+    )
+
+    assert configured.status_code == 200
+    assert configured.json() == {
+        "provider": "OPENROUTER",
+        "configured": True,
+        "primary_model": "alpha/rewrite:free",
+        "fallback_models": ["alpha/rewrite:free", "beta/rewrite:free"],
+    }
+    listed = client.get("/api/settings/rewrite-providers")
+    assert listed.status_code == 200
+    assert listed.json() == {"items": [configured.json()]}
+    assert "synthetic-openrouter-key" not in listed.text
+    assert client.delete("/api/settings/rewrite-providers/openrouter").json() == {
+        "provider": "OPENROUTER",
+        "configured": False,
+    }
+
+
+def test_openai_rewrite_settings_store_model_without_returning_key(client):
+    configured = client.put(
+        "/api/settings/rewrite-providers/openai",
+        json={"api_key": "synthetic-openai-key", "model": "gpt-test-rewrite"},
+    )
+
+    assert configured.status_code == 200
+    assert configured.json() == {
+        "provider": "OPENAI",
+        "configured": True,
+        "primary_model": "gpt-test-rewrite",
+        "fallback_models": [],
+    }
+    assert "synthetic-openai-key" not in client.get("/api/settings/rewrite-providers").text
