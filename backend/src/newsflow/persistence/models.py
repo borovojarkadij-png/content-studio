@@ -83,9 +83,7 @@ class ChannelMappingModel(Base):
     __tablename__ = "channel_mappings"
     __table_args__ = (
         UniqueConstraint("donor_channel_id", "output_channel_id"),
-        CheckConstraint(
-            "intake_percent BETWEEN 0 AND 100", name="ck_mapping_intake_percent"
-        ),
+        CheckConstraint("intake_percent BETWEEN 0 AND 100", name="ck_mapping_intake_percent"),
         CheckConstraint(
             "target_mix_percent BETWEEN 0 AND 100", name="ck_mapping_target_mix_percent"
         ),
@@ -112,9 +110,7 @@ class ChannelMappingModel(Base):
     eligibility_mode: Mapped[str] = mapped_column(String(16), nullable=False, default="IMMEDIATE")
     delay_minutes: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     priority: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    media_policy: Mapped[str] = mapped_column(
-        String(32), nullable=False, default="REUSE_SOURCE"
-    )
+    media_policy: Mapped[str] = mapped_column(String(32), nullable=False, default="REUSE_SOURCE")
 
 
 class DonorImportModel(Base):
@@ -187,10 +183,45 @@ class PublicationCandidateModel(Base):
     eligible_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
-    media_policy: Mapped[str] = mapped_column(
-        String(32), nullable=False, default="REUSE_SOURCE"
-    )
+    media_policy: Mapped[str] = mapped_column(String(32), nullable=False, default="REUSE_SOURCE")
     state: Mapped[str] = mapped_column(String(32), nullable=False, default="READY")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+
+class MediaAssetModel(Base):
+    """Immutable local media identity/rights; bytes live on persistent storage."""
+
+    __tablename__ = "media_assets"
+    __table_args__ = (
+        CheckConstraint("origin IN ('SOURCE', 'LICENSED_LIBRARY')", name="ck_media_asset_origin"),
+        CheckConstraint(
+            "license_code IN ('OWNED', 'PERMISSION', 'CC0', 'CC-BY')", name="ck_media_asset_license"
+        ),
+        CheckConstraint("mime_type IN ('image/png', 'image/jpeg')", name="ck_media_asset_mime"),
+        CheckConstraint(
+            "origin <> 'SOURCE' OR (source_content_key IS NOT NULL AND license_code IN ('OWNED', 'PERMISSION'))",
+            name="ck_media_source_rights",
+        ),
+        CheckConstraint(
+            "origin <> 'LICENSED_LIBRARY' OR source_content_key IS NULL",
+            name="ck_media_library_source",
+        ),
+        CheckConstraint(
+            "license_code NOT IN ('PERMISSION', 'CC-BY') OR length(attribution) > 0",
+            name="ck_media_asset_attribution",
+        ),
+    )
+    id: Mapped[int] = mapped_column(primary_key=True)
+    storage_key: Mapped[str] = mapped_column(String(512), unique=True, nullable=False)
+    sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    mime_type: Mapped[str] = mapped_column(String(32), nullable=False)
+    origin: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
+    source_content_key: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
+    license_code: Mapped[str] = mapped_column(String(16), nullable=False)
+    attribution: Mapped[str] = mapped_column(String(2048), nullable=False)
+    tags: Mapped[str] = mapped_column(String(2048), nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

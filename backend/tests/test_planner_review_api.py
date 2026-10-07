@@ -183,3 +183,42 @@ def test_review_and_planner_missing_state_fails_honestly(review_store, monkeypat
     monkeypatch.delenv("DATABASE_URL")
     for path in ("rewrite-outputs", "publication-plans"):
         assert client.get(f"/api/telegram/{path}").status_code == 503
+
+
+def test_media_http_registry_and_selection_use_persistent_root_without_remote_download(
+    review_store, tmp_path, monkeypatch
+):
+    client, engine, _, _, draft_id = review_store
+    root = tmp_path / "persistent-media"
+    root.mkdir()
+    (root / "source.png").write_bytes(b"\x89PNG\r\n\x1a\nsynthetic-api-photo")
+    monkeypatch.setenv("NEWSFLOW_MEDIA_ROOT", str(root))
+    payload = {
+        "storage_key": "source.png",
+        "origin": "SOURCE",
+        "license_code": "PERMISSION",
+        "attribution": "@authorized_synthetic",
+        "source_content_key": "synthetic:revision:1",
+        "tags": ["science"],
+    }
+    registered = client.post("/api/telegram/media-assets", json=payload)
+    assert registered.status_code == 201
+    assert str(root) not in registered.text
+    with TestClient(app) as restarted:
+        assert (
+            restarted.post("/api/telegram/media-assets", json=payload).json() == registered.json()
+        )
+    client.post(f"/api/telegram/rewrite-outputs/{draft_id}:approve", json={})
+    with Session(engine) as session:
+        candidate_id = session.scalar(select(PublicationCandidateModel.id))
+    path = f"/api/telegram/publication-candidates/{candidate_id}/media-selection"
+    selected = client.get(path)
+    assert selected.status_code == 200
+    assert selected.json()["items"][0]["storage_key"] == "source.png"
+    with Session(engine) as session:
+        decision = session.scalar(select(EditorialDecisionModel))
+        decision.status, decision.rewrite_allowed = "REJECT", False
+        session.commit()
+    assert client.get(path).status_code == 409
+    monkeypatch.delenv("NEWSFLOW_MEDIA_ROOT")
+    assert client.get(path).status_code == 503

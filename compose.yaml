@@ -31,6 +31,9 @@ services:
     env_file: .env
     environment:
       NEWSFLOW_MASTER_KEY_FILE: /run/secrets/newsflow_master_key
+      NEWSFLOW_MEDIA_ROOT: /var/lib/newsflow/media
+    volumes:
+      - media_data:/var/lib/newsflow/media:ro
     secrets:
       - newsflow_master_key
     depends_on:
@@ -61,10 +64,17 @@ services:
         condition: service_healthy
 
   worker:
-    profiles: ["production"]
+    profiles: ["dev", "production"]
     build: ./backend
     command: python -m newsflow.worker
     env_file: .env
+    environment:
+      NEWSFLOW_MASTER_KEY_FILE: /run/secrets/newsflow_master_key
+      NEWSFLOW_MEDIA_ROOT: /var/lib/newsflow/media
+    secrets:
+      - newsflow_master_key
+    volumes:
+      - media_data:/var/lib/newsflow/media
     depends_on:
       postgres:
         condition: service_healthy
@@ -73,6 +83,7 @@ volumes:
   postgres_data:
   redis_data:
   frontend_node_modules:
+  media_data:
 
 secrets:
   newsflow_master_key:

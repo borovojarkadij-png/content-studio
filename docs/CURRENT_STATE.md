@@ -118,6 +118,17 @@
   desktop/mobile screenshots. See PLANNER_REVIEW_VERIFICATION.md.
 - GitHub Actions run 37677475228 passed both quality-gate jobs for c1888c0
   in the correct `borovojarkadij-png/content-studio` repository.
+- Source-photo reuse and licensed local-library lookup now have durable immutable
+  metadata, bounded read-only file validation, SHA-256 integrity checks, rights/
+  attribution constraints and guarded HTTP selection. They never substitute a
+  different source revision, download remotely, call AI or send Telegram messages.
+  Media migration preserves existing state and refuses populated downgrade.
+  Backend regression: 132 passed; lint and two migrated actual-API browser
+  regressions passed. See MEDIA_SELECTION.md for precise boundaries.
+- Compose dev/production configuration parsed successfully with sample env and
+  `--no-env-resolution --quiet`; shared persistent media volume is declared.
+  This is config-only evidence, not a daemon or volume-persistence check.
+- GitHub Actions run 37678283573 passed both jobs for Planner/review commit bf4396c.
 - Dark-navy frontend: all eight section compositions, shared linear icons,
   selected rows/cards, responsive panels and honest unavailable actions.
 - In-memory DEMO workflows: donor import preview/partial success, independent
@@ -160,8 +171,10 @@
 
 ## KNOWN ISSUES
 
-- Docker Desktop is not installed on this workstation, so Compose startup and
-  persistence/restart E2E are pending environment availability.
+- Docker Desktop CLI/Compose are now installed, but `docker version` cannot
+  connect to `dockerDesktopLinuxEngine` (missing named pipe), including after
+  starting Docker Desktop on 2026-10-07. No local `.env`/master-key file exists.
+  Compose build/startup/persistence/restart E2E remain environment-blocked.
 - Port 8010 was occupied by an external local process during startup validation;
   the application started successfully on port 8123.
 - Obsidian vault location is unavailable; `/docs` is the source of truth.
@@ -184,10 +197,14 @@ The durable configuration, mapping-aware candidate source, publication-planning
 contracts, mapping delivery-policy configuration and secure live AI-provider
 settings and durable per-output rewrite approval state are complete locally.
 Review/approval APIs and live Planner wiring are now verified locally.
-Next PHASE 1 task: add the two safe media policies
-(reuse source media and licensed local-library lookup) before any real download
-or Telegram publication. Keep the current editorial recheck and never perform
-real Telegram publication as a side effect of UI work.
+Safe media selection/registry is implemented and verified offline.
+Next PHASE 1 task: replace placeholder worker with timer-driven durable automatic
+plan selection, retaining current gate/approval rules and no transport side effect.
+Then implement guarded rewrite/fact verification plus configurable automatic
+approval so unattended delivery does not require every post to be clicked manually.
+Add a free licensed internet-image search/acquisition provider, not just local
+library lookup, while retaining source-photo reuse as the other mode.
+Keep current editorial rechecks; never publish as a side effect of UI work.
 
 PHASE 1 IS NOT COMPLETE. Docker Compose/persistence/restart E2E remains
 NOT VERIFIED / BLOCKED BY ENVIRONMENT until Docker Desktop is available.

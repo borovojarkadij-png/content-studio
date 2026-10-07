@@ -2,6 +2,8 @@
 
 from collections.abc import Iterator
 from datetime import date
+from os import getenv
+from pathlib import Path
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -9,6 +11,11 @@ from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.exc import SQLAlchemyError
 
 from newsflow.persistence.database import database_session
+from newsflow.services.media_selection import (
+    LocalMediaSelectionService,
+    MediaSelectionBlocked,
+    MediaUnavailable,
+)
 from newsflow.services.moderation_inbox import ModerationInboxReader
 from newsflow.services.publication_planning import (
     CandidateBlocked,
@@ -91,6 +98,30 @@ def get_rewrite_output_service() -> Iterator[RewriteOutputService]:
 RewriteOutputs = Annotated[RewriteOutputService, Depends(get_rewrite_output_service)]
 
 
+def get_media_selection_service() -> Iterator[LocalMediaSelectionService]:
+    for session in database_session():
+        if session is None:
+            raise HTTPException(503, "Durable database is not configured")
+        media_root = getenv("NEWSFLOW_MEDIA_ROOT", "").strip()
+        if not media_root:
+            raise HTTPException(503, "Persistent media root is not configured")
+        try:
+            yield LocalMediaSelectionService(session, Path(media_root))
+        except (MediaSelectionBlocked, MediaUnavailable) as exc:
+            raise HTTPException(409, str(exc)) from None
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from None
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from None
+        except SQLAlchemyError:
+            raise HTTPException(
+                503, "Durable database is unavailable or requires migrations"
+            ) from None
+
+
+MediaSelection = Annotated[LocalMediaSelectionService, Depends(get_media_selection_service)]
+
+
 def get_moderation_inbox_reader() -> Iterator[ModerationInboxReader | None]:
     """Create a request-scoped durable inbox reader when DATABASE_URL is set."""
     for session in database_session():
@@ -99,6 +130,15 @@ def get_moderation_inbox_reader() -> Iterator[ModerationInboxReader | None]:
 
 class StrictRequest(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+
+class MediaAssetRequest(StrictRequest):
+    storage_key: str = Field(min_length=1, max_length=512)
+    origin: Literal["SOURCE", "LICENSED_LIBRARY"]
+    license_code: Literal["OWNED", "PERMISSION", "CC0", "CC-BY"]
+    attribution: str = Field(default="", max_length=2048)
+    tags: tuple[str, ...] = Field(default=(), max_length=100)
+    source_content_key: str | None = Field(default=None, min_length=1, max_length=255)
 
 
 class DonorBulkImportRequest(StrictRequest):
@@ -313,3 +353,18 @@ def reject_rewrite_output(
     output_id: int, request: StrictRequest, service: RewriteOutputs
 ) -> dict[str, object]:
     return service.reject(output_id)
+
+
+@router.post("/media-assets", status_code=201)
+def register_media_asset(request: MediaAssetRequest, service: MediaSelection) -> dict[str, object]:
+    return service.register_asset(**request.model_dump())
+
+
+@router.get("/publication-candidates/{candidate_id}/media-selection")
+def select_candidate_media(
+    candidate_id: int,
+    service: MediaSelection,
+    query: Annotated[str, Query(max_length=10000)] = "",
+    limit: Annotated[int, Query(ge=1, le=10)] = 10,
+) -> dict[str, object]:
+    return service.select_for_candidate(candidate_id, query=query, limit=limit)

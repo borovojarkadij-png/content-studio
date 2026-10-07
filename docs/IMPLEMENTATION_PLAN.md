@@ -23,4 +23,6 @@
 - [ ] Docker persistence E2E and full PHASE 1 quality gate
 - [x] Durable per-channel rewrite review read/approve/reject APIs; atomic approved-candidate activation, stale-job/editorial regression checks
 - [x] Live Planner API wiring: daily limits, slots/timezones, approval and explicit automatic selection; reload/channel-switch/error handling, isolated real API browser E2E and desktop/mobile screenshots
-- [ ] Safe source-media reuse and licensed local-library selection; acquisition/transport pending
+- [x] Safe source-media reuse and licensed local-library selection: immutable durable registry, rights/attribution, file containment/integrity, read-only API, guarded migration and offline regression tests
+- [ ] Fully unattended channel automation: user-defined limits/delays/priorities/filters, timer-driven planning, configurable guarded automatic approval and durable publication worker; a manual click is not the final automatic-mode behavior
+- [ ] Local free internet-image agent: semantic search, rights-aware acquisition into persistent library, optional original-source media reuse; local keyword lookup alone does not satisfy internet-search mode

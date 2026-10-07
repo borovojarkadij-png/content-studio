@@ -23,6 +23,7 @@ def test_configuration_schema_upgrade_creates_pending_import_storage(tmp_path) -
             "planned_publications",
             "rewrite_provider_settings",
             "rewrite_outputs",
+            "media_assets",
         } <= set(inspector.get_table_names())
         columns = {column["name"] for column in inspector.get_columns("donor_imports")}
         assert columns == {"id", "telegram_account_id", "identifier", "status"}
