@@ -81,6 +81,8 @@ def main() -> None:
                     media_type="photo",
                 ),
                 observed_at=datetime.now(UTC),
+                sentiment="neutral",
+                framing="neutral",
             )
             assert result.status in {"REWRITE_QUEUED", "DEDUPLICATED"}
             file.write_bytes(content)

@@ -22,10 +22,14 @@ def test_same_content_in_one_mapping_is_deduplicated_before_editorial() -> None:
         first = workflow.ingest(
             TelegramMessage("account-a", "@donor-a", 1, "Same headline"),
             observed_at=datetime.now(UTC),
+            sentiment="neutral",
+            framing="neutral",
         )
         duplicate = workflow.ingest(
             TelegramMessage("account-a", "@donor-b", 2, " same headline "),
             observed_at=datetime.now(UTC),
+            sentiment="neutral",
+            framing="neutral",
         )
 
         assert first.status == "REWRITE_QUEUED"
@@ -51,10 +55,14 @@ def test_same_content_remains_independently_eligible_in_another_mapping() -> Non
         first = mapping_one.ingest(
             TelegramMessage("account-a", "@donor-a", 1, "Same headline"),
             observed_at=datetime.now(UTC),
+            sentiment="neutral",
+            framing="neutral",
         )
         second = mapping_two.ingest(
             TelegramMessage("account-a", "@donor-b", 2, "Same headline"),
             observed_at=datetime.now(UTC),
+            sentiment="neutral",
+            framing="neutral",
         )
 
         assert first.status == second.status == "REWRITE_QUEUED"

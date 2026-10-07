@@ -50,6 +50,19 @@ class EditorialGate:
                 sentiment=sentiment,
                 framing=framing,
             )
+        if sentiment.lower() not in {"negative", "neutral", "positive"} or framing.lower() not in {
+            "hostile",
+            "neutral",
+            "positive",
+        }:
+            return EditorialDecision(
+                status=EditorialStatus.MANUAL_REVIEW,
+                rewrite_allowed=False,
+                reason_codes=("CLASSIFICATION_REQUIRED",),
+                protected_entities=tuple(protected_entities),
+                sentiment=sentiment,
+                framing=framing,
+            )
         return EditorialDecision(
             status=EditorialStatus.PASS,
             rewrite_allowed=True,

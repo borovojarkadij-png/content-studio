@@ -61,6 +61,8 @@ def test_explicit_free_worker_executes_saved_free_model_without_openai_credentia
         ).ingest(
             TelegramMessage("synthetic", "@donor", 1, "Открыто 10 объектов"),
             observed_at=datetime.now(UTC),
+            sentiment="neutral",
+            framing="neutral",
         )
         RewriteProviderSettingsService(session, cipher=cipher).configure_openrouter(
             api_key="synthetic", fallback_models=("a/model:free",)

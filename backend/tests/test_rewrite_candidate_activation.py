@@ -49,6 +49,8 @@ def test_passing_mapped_ingestion_creates_awaiting_rewrite_candidate_then_activa
         result = workflow.ingest(
             TelegramMessage("account-a", "@donor", 7, "permitted news"),
             observed_at=datetime.now(UTC),
+            sentiment="neutral",
+            framing="neutral",
         )
         candidate = session.scalar(select(PublicationCandidateModel))
         assert result.status == "REWRITE_QUEUED"
@@ -118,6 +120,8 @@ def test_ingestion_snapshots_delayed_mapping_delivery_policy_onto_candidate() ->
         ).ingest(
             TelegramMessage("account-a", "@donor", 70, "permitted news"),
             observed_at=observed_at,
+            sentiment="neutral",
+            framing="neutral",
         )
 
         candidate = session.scalar(select(PublicationCandidateModel))
@@ -125,9 +129,7 @@ def test_ingestion_snapshots_delayed_mapping_delivery_policy_onto_candidate() ->
         assert candidate is not None
         assert candidate.mapping_id == mapping_id
         assert candidate.priority == 80
-        assert candidate.eligible_at.replace(tzinfo=UTC) == datetime(
-            2026, 10, 7, 9, 45, tzinfo=UTC
-        )
+        assert candidate.eligible_at.replace(tzinfo=UTC) == datetime(2026, 10, 7, 9, 45, tzinfo=UTC)
         assert candidate.media_policy == "LICENSED_LIBRARY"
         configured_mapping = session.get(ChannelMappingModel, mapping_id)
         assert configured_mapping is not None
@@ -204,6 +206,8 @@ def test_stale_editorial_reject_blocks_candidate_after_rewrite_completes() -> No
         ).ingest(
             TelegramMessage("account-a", "@donor", 9, "permitted news"),
             observed_at=datetime.now(UTC),
+            sentiment="neutral",
+            framing="neutral",
         )
         decision = session.scalar(select(EditorialDecisionModel))
         job = session.scalar(select(RewriteJobModel))
@@ -249,13 +253,13 @@ def test_same_source_fans_out_to_each_mapping_without_repeat_rewrite_dispatch() 
             technical_filter=MappingTechnicalFilter(
                 mapping_id="mapping-1", output_channel_id=first_output_id
             ),
-        ).ingest(event, observed_at=datetime.now(UTC))
+        ).ingest(event, observed_at=datetime.now(UTC), sentiment="neutral", framing="neutral")
         second = DurableIngestionWorkflow(
             session,
             technical_filter=MappingTechnicalFilter(
                 mapping_id="mapping-2", output_channel_id=second_output_id
             ),
-        ).ingest(event, observed_at=datetime.now(UTC))
+        ).ingest(event, observed_at=datetime.now(UTC), sentiment="neutral", framing="neutral")
 
         assert first.status == second.status == "REWRITE_QUEUED"
         assert [
@@ -291,7 +295,7 @@ def test_same_source_fans_out_to_each_mapping_without_repeat_rewrite_dispatch() 
                     mapping_id="mapping-2", output_channel_id=second_output_id
                 ),
             )
-            .ingest(event, observed_at=datetime.now(UTC))
+            .ingest(event, observed_at=datetime.now(UTC), sentiment="neutral", framing="neutral")
             .status
             == "REJECTED_DUPLICATE"
         )
@@ -327,7 +331,7 @@ def test_stale_source_replay_cannot_fan_out_newer_edited_revision() -> None:
             technical_filter=MappingTechnicalFilter(
                 mapping_id="mapping-1", output_channel_id=first_output_id
             ),
-        ).ingest(original, observed_at=datetime.now(UTC))
+        ).ingest(original, observed_at=datetime.now(UTC), sentiment="neutral", framing="neutral")
         edited = TelegramMessage(
             "account-a", "@donor", 11, "https://blocked.example altered", is_edit=True
         )
@@ -336,7 +340,7 @@ def test_stale_source_replay_cannot_fan_out_newer_edited_revision() -> None:
             technical_filter=MappingTechnicalFilter(
                 mapping_id="mapping-1", output_channel_id=first_output_id
             ),
-        ).ingest(edited, observed_at=datetime.now(UTC))
+        ).ingest(edited, observed_at=datetime.now(UTC), sentiment="neutral", framing="neutral")
 
         replay = DurableIngestionWorkflow(
             session,
@@ -345,7 +349,7 @@ def test_stale_source_replay_cannot_fan_out_newer_edited_revision() -> None:
                 output_channel_id=second_output_id,
                 blocked_domains=frozenset({"blocked.example"}),
             ),
-        ).ingest(original, observed_at=datetime.now(UTC))
+        ).ingest(original, observed_at=datetime.now(UTC), sentiment="neutral", framing="neutral")
 
         assert replay.status == "REJECTED_DUPLICATE"
         assert all(

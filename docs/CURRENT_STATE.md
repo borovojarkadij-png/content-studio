@@ -2,6 +2,16 @@
 
 ## VERIFIED WORKING
 
+- Durable ingestion now defaults unclassified content to MANUAL_REVIEW, retains
+  its source for inbox review and creates no rewrite. Unknown annotation values
+  fail closed in EditorialGate. Rejected/technical/exact-duplicate edits now
+  invalidate old source revisions instead of leaving them publishable.
+  Test-first regressions and backend 372-test gate PASS; see
+  INGESTION_RUNTIME_VERIFICATION.md. This is not a semantic text classifier.
+- GitHub Actions 37694252178 for durable-media commit 56a8ef7 completed SUCCESS
+  in all four jobs. Health checkpoint b9d4b93 run 37694461555: backend/frontend
+  passed, Docker jobs still in progress at last inspection.
+
 - Telegram health regressions reproduced/fixed: implicit SQLAlchemy transactions
   previously lost FloodWait cooldown on session close, and cached accounts could
   hide external cooldown updates. Dedicated health mutations now commit/rollback,
@@ -371,10 +381,11 @@ implemented; channel-specific natural tabloid style is wired to actual Planner A
 Bounded free-only OpenRouter structured execution is implemented and passes the
 offline provider/factory/worker gate, including refusals/rate limits/fact changes
 and no paid fallback (OPENROUTER_REWRITE_VERIFICATION.md).
-Exact NEXT_STEP: commit/push the tested health cooldown fix, then implement durable
-donor ingestion cursors/replay and current mapping-filter orchestration using
-FakeTelegramProvider, followed by encrypted/live adapter wiring. Health cooldown
-persistence is now fixed/tested, so do not redo it. Track media CI 37694252178.
+Exact NEXT_STEP: commit/push the tested unclassified/editorial-edit safety fix,
+then implement durable donor ingestion cursors/replay and current mapping-filter
+orchestration using FakeTelegramProvider, followed by encrypted/live adapter
+wiring. Health cooldown fix is committed as b9d4b93; do not redo it.
+Track the next ingestion-safety CI; media CI 37694252178 completed SUCCESS.
 Live authorization is separate; no synthetic account may be promoted as real.
 Windows project newsflow-verification-media20261008 completed acceptance; it
 retains terminal revoked-release history, so never rerun its seed.

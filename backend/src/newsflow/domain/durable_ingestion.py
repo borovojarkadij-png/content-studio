@@ -52,19 +52,30 @@ class DurableIngestionWorkflow:
         *,
         observed_at: datetime,
         protected_entities: Sequence[str] = (),
-        sentiment: str = "neutral",
-        framing: str = "neutral",
+        sentiment: str = "unknown",
+        framing: str = "unknown",
     ) -> IngestionResult:
+        if observed_at.tzinfo is None or observed_at.utcoffset() is None:
+            raise ValueError("Ingestion observation time must be timezone-aware")
         source_key = f"{event.account_id}:{event.donor_identifier}:{event.message_id}"
         with self._session.begin():
+            repository = SqlAlchemyIngestionRepository(self._session)
+            revision_number = repository.candidate_revision_number(event)
+            observed_edit = revision_number is not None and revision_number > 1
+            if observed_edit:
+                # Observing a changed known source is independent of a mapping's
+                # acceptance. Even video/ad/exact-duplicate edits invalidate the
+                # former source before returning a cheap rejection.
+                repository.ingest(event, observed_at)
+                repository.set_state(event, "RECEIVED")
             technical = self._technical_filter.evaluate(event)
             if not technical.accepted:
+                if observed_edit:
+                    repository.set_state(event, "REJECTED_TECHNICAL")
                 return IngestionResult(
                     False, source_key, "REJECTED_TECHNICAL", technical.reason_code
                 )
 
-            repository = SqlAlchemyIngestionRepository(self._session)
-            revision_number = repository.candidate_revision_number(event)
             if revision_number is None:
                 return self._route_existing_source(repository, event, source_key, observed_at)
             content_key = f"{source_key}:revision:{revision_number}"
@@ -75,7 +86,7 @@ class DurableIngestionWorkflow:
             )
             if existing_decision is not None:
                 status = (
-                    "REJECTED_EDITORIAL"
+                    self._blocked_status(existing_decision)
                     if not editorial_allows_rewrite(existing_decision)
                     else "REJECTED_DUPLICATE"
                 )
@@ -89,6 +100,8 @@ class DurableIngestionWorkflow:
                 )
             )
             if existing_fingerprint is not None:
+                if observed_edit:
+                    repository.set_state(event, "REJECTED_DUPLICATE")
                 return IngestionResult(False, source_key, "REJECTED_DUPLICATE")
             try:
                 with self._session.begin_nested():
@@ -110,10 +123,15 @@ class DurableIngestionWorkflow:
                 framing,
                 source_text=event.text,
             )
-            if not editorial_allows_rewrite(decision):
-                return IngestionResult(False, source_key, "REJECTED_EDITORIAL")
-
+            # An editorial reject is still a real source observation. Persist it
+            # before returning, otherwise a previous approved revision remains
+            # deceptively current and can be published after a hostile edit.
             persisted = repository.ingest(event, observed_at)
+            if not editorial_allows_rewrite(decision):
+                status = self._blocked_status(decision)
+                repository.set_state(event, status)
+                return IngestionResult(persisted.created, source_key, status)
+
             job = editorial.create_rewrite_job(
                 decision, output_channel_id=self._technical_filter.output_channel_id
             )
@@ -139,11 +157,12 @@ class DurableIngestionWorkflow:
             select(EditorialDecisionModel)
             .where(EditorialDecisionModel.content_key == content_key)
             .with_for_update()
+            .execution_options(populate_existing=True)
         )
         if decision is None:
             return IngestionResult(False, source_key, "REJECTED_DUPLICATE")
         if not editorial_allows_rewrite(decision):
-            return IngestionResult(False, source_key, "REJECTED_EDITORIAL")
+            return IngestionResult(False, source_key, self._blocked_status(decision))
         if self._technical_filter.output_channel_id is None:
             return IngestionResult(False, source_key, "REJECTED_DUPLICATE")
         editorial = DurableEditorialService(self._session, self._editorial_gate)
@@ -156,6 +175,10 @@ class DurableIngestionWorkflow:
         self._ensure_rewrite_outbox(job)
         status = "REWRITE_QUEUED" if candidate_created else "REJECTED_DUPLICATE"
         return IngestionResult(candidate_created, source_key, status)
+
+    @staticmethod
+    def _blocked_status(decision: EditorialDecisionModel) -> str:
+        return "MANUAL_REVIEW" if decision.status == "MANUAL_REVIEW" else "REJECTED_EDITORIAL"
 
     def _ensure_rewrite_outbox(self, job: RewriteJobModel) -> None:
         if (

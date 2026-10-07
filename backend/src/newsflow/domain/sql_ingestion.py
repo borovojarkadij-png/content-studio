@@ -115,13 +115,22 @@ class SqlAlchemyIngestionRepository:
             )
         )
 
+    def set_state(self, event: TelegramMessage, state: str) -> None:
+        post = self._find_post(event)
+        if post is None:
+            raise LookupError("Source observation has not been persisted")
+        post.state = state
+
     def _find_post(self, event: TelegramMessage) -> IncomingPostModel | None:
         return self._session.scalar(
-            select(IncomingPostModel).where(
+            select(IncomingPostModel)
+            .where(
                 IncomingPostModel.telegram_account_id == event.account_id,
                 IncomingPostModel.donor_channel_id == event.donor_identifier,
                 IncomingPostModel.telegram_message_id == event.message_id,
             )
+            .with_for_update()
+            .execution_options(populate_existing=True)
         )
 
     def _latest_revision(self, incoming_post_id: int) -> ContentRevisionModel | None:

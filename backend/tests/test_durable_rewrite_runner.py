@@ -172,7 +172,10 @@ def rewrite_store(tmp_path):
                     mapping_id=str(mapping["id"]), output_channel_id=output["id"]
                 ),
             ).ingest(
-                TelegramMessage("synthetic", "@donor", 1, "Открыто 10 объектов"), observed_at=NOW
+                TelegramMessage("synthetic", "@donor", 1, "Открыто 10 объектов"),
+                observed_at=NOW,
+                sentiment="neutral",
+                framing="neutral",
             )
     yield factory
     engine.dispose()
@@ -288,6 +291,8 @@ def test_superseded_source_revision_is_not_rewritten(rewrite_store):
         ).ingest(
             TelegramMessage("synthetic", "@donor", 1, "Открыто 11 объектов", is_edit=True),
             observed_at=NOW,
+            sentiment="neutral",
+            framing="neutral",
         )
     provider = SafeSyntheticProvider()
     runner = DurableRewriteRunner(rewrite_store, provider_for_channel=lambda _: provider)
@@ -309,6 +314,8 @@ def test_completed_draft_from_old_source_revision_cannot_be_approved_after_edit(
         ).ingest(
             TelegramMessage("synthetic", "@donor", 1, "Открыто 11 объектов", is_edit=True),
             observed_at=NOW,
+            sentiment="neutral",
+            framing="neutral",
         )
         draft = session.scalar(select(RewriteOutputModel))
         assert RewriteOutputService(session).list_outputs(1)[0]["approve_allowed"] is False
@@ -335,6 +342,8 @@ def test_previously_approved_old_draft_cannot_be_activated_after_source_edit(rew
         ).ingest(
             TelegramMessage("synthetic", "@donor", 1, "Открыто 11 объектов", is_edit=True),
             observed_at=NOW,
+            sentiment="neutral",
+            framing="neutral",
         )
         assert RewriteCandidateActivationService(session).activate(job_id) == 0
         assert session.get(PublicationCandidateModel, 1).state != "READY"
@@ -368,6 +377,8 @@ def test_edited_source_cannot_keep_or_gain_a_publication_reservation(
         ).ingest(
             TelegramMessage("synthetic", "@donor", 1, "Открыто 11 объектов", is_edit=True),
             observed_at=NOW,
+            sentiment="neutral",
+            framing="neutral",
         )
         assert planner.plan_day(plan["id"], day) == []
         if planned_before_edit:

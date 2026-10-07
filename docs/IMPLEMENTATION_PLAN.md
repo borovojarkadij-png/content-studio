@@ -13,6 +13,7 @@
 - [~] Telethon adapter boundary and offline message/album normalization; encrypted-session boundary and live account management pending
 - [~] Account health/reconnect policy with persisted FloodWait cooldown and offline tests
 - [x] Health restart/cached-state regressions: dedicated commit/rollback after implicit autobegin, fresh cooldown read, UTC round-trip handling and fail-closed naive-time input; fake-provider verification only
+- [x] Unclassified durable ingress defaults to MANUAL_REVIEW; unknown editorial annotations fail closed; rejected/technical/duplicate source edits persist and invalidate prior eligible revisions; inbox retention and zero-rewrite regressions
 - [~] Filters, semantic dedup, events, hype, media, routing and scheduler; durable per-channel plan/timer, mapping-aware candidates, immediate/delayed/priority/media snapshots and gated activation complete; semantic dedup/events/hype, media acquisition and publication execution remain pending
 - [~] Mapping-level deterministic filters for media, advertising markers and forbidden links
 - [~] Durable mapping-scoped exact content fingerprint deduplication before EditorialGate
