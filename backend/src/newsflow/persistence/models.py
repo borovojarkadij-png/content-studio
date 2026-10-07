@@ -87,6 +87,27 @@ class OutputChannel(Base):
     )
 
 
+class DonorIngestionCursorModel(Base):
+    """A bounded history poll lease and its committed high-water mark."""
+
+    __tablename__ = "donor_ingestion_cursors"
+    __table_args__ = (
+        CheckConstraint("last_message_id >= 0"),
+        CheckConstraint(
+            "(claim_token IS NULL AND lease_expires_at IS NULL) OR "
+            "(claim_token IS NOT NULL AND lease_expires_at IS NOT NULL)"
+        ),
+    )
+    donor_channel_id: Mapped[int] = mapped_column(ForeignKey("donor_channels.id"), primary_key=True)
+    last_message_id: Mapped[int] = mapped_column(BigInteger, nullable=False, server_default="0")
+    available_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    claim_token: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    lease_expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    last_error_code: Mapped[str | None] = mapped_column(String(64), nullable=True)
+
+
 class ChannelMappingModel(Base):
     __tablename__ = "channel_mappings"
     __table_args__ = (

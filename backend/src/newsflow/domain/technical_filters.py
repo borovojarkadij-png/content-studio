@@ -2,6 +2,7 @@
 
 import re
 from dataclasses import dataclass, field
+from hashlib import sha256
 from urllib.parse import urlparse
 
 from newsflow.providers.telegram import TelegramMessage
@@ -25,8 +26,15 @@ class MappingTechnicalFilter:
     )
     blocked_domains: frozenset[str] = field(default_factory=frozenset)
     ad_markers: tuple[str, ...] = _AD_MARKERS
+    intake_percent: int = 100
 
     def evaluate(self, message: TelegramMessage) -> TechnicalFilterDecision:
+        if not 0 <= self.intake_percent <= 100:
+            raise ValueError("Intake percent must be between zero and 100")
+        seed = f"{self.mapping_id}:{message.account_id}:{message.donor_identifier}:{message.message_id}"
+        bucket = int.from_bytes(sha256(seed.encode()).digest()[:8], "big") % 100
+        if bucket >= self.intake_percent:
+            return TechnicalFilterDecision(False, "INTAKE_SAMPLE")
         if message.media_type not in self.allowed_media_types:
             return TechnicalFilterDecision(False, "UNSUPPORTED_MEDIA")
         text = message.text.strip()

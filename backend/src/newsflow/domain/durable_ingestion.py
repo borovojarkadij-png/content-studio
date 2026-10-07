@@ -5,7 +5,7 @@ identity deduplication always run before an editorial decision; a RewriteJob
 and rewrite-request outbox event exist only for a passing decision.
 """
 
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from datetime import UTC, datetime, timedelta
 from hashlib import sha256
 
@@ -38,9 +38,13 @@ class DurableIngestionWorkflow:
         editorial_gate: EditorialGate | None = None,
         allowed_media_types: set[str] | None = None,
         technical_filter: MappingTechnicalFilter | None = None,
+        configured_mapping_id: int | None = None,
+        transaction_guard: Callable[[Session], bool] | None = None,
     ) -> None:
         self._session = session
         self._editorial_gate = editorial_gate or EditorialGate()
+        self._configured_mapping_id = configured_mapping_id
+        self._transaction_guard = transaction_guard
         self._technical_filter = technical_filter or MappingTechnicalFilter(
             mapping_id="default",
             allowed_media_types=frozenset(allowed_media_types or {"text", "photo"}),
@@ -59,6 +63,22 @@ class DurableIngestionWorkflow:
             raise ValueError("Ingestion observation time must be timezone-aware")
         source_key = f"{event.account_id}:{event.donor_identifier}:{event.message_id}"
         with self._session.begin():
+            if self._transaction_guard is not None and not self._transaction_guard(self._session):
+                return IngestionResult(False, source_key, "STALE_CLAIM")
+            if self._configured_mapping_id is not None:
+                mapping = self._session.scalar(
+                    select(ChannelMappingModel)
+                    .where(ChannelMappingModel.id == self._configured_mapping_id)
+                    .with_for_update()
+                    .execution_options(populate_existing=True)
+                )
+                if mapping is None:
+                    return IngestionResult(False, source_key, "MAPPING_REMOVED")
+                self._technical_filter = MappingTechnicalFilter(
+                    mapping_id=str(mapping.id),
+                    output_channel_id=mapping.output_channel_id,
+                    intake_percent=mapping.intake_percent,
+                )
             repository = SqlAlchemyIngestionRepository(self._session)
             revision_number = repository.candidate_revision_number(event)
             observed_edit = revision_number is not None and revision_number > 1

@@ -43,7 +43,7 @@ class AccountHealthService:
             self._session.rollback()
             raise
 
-    def _reconnect(self, account_id: int, *, now: datetime) -> AccountHealthResult:
+    def _account(self, account_id: int) -> TelegramAccount:
         account = self._session.scalar(
             select(TelegramAccount)
             .where(TelegramAccount.id == account_id)
@@ -52,28 +52,45 @@ class AccountHealthService:
         )
         if account is None:
             raise LookupError(f"Telegram account {account_id} was not found")
-        cooldown = account.cooldown_until
-        if cooldown is not None and cooldown.tzinfo is None:
-            cooldown = cooldown.replace(tzinfo=UTC)  # SQLite round-trip of UTC storage.
+        return account
+
+    @staticmethod
+    def _utc(value: datetime | None) -> datetime | None:
+        return value.replace(tzinfo=UTC) if value is not None and value.tzinfo is None else value
+
+    def _reconnect(self, account_id: int, *, now: datetime) -> AccountHealthResult:
+        account = self._account(account_id)
+        cooldown = self._utc(account.cooldown_until)
         if cooldown is not None and now < cooldown:
             account.health_status = AccountHealthStatus.COOLDOWN.value
             account.health_checked_at = now
             return AccountHealthResult(AccountHealthStatus.COOLDOWN, reconnect_attempted=False)
+        # A real RPC can refresh its encrypted session in another transaction.
+        # Release the health row before calling it; holding this lock would
+        # deadlock that callback and retain a transaction during network waits.
+        self._session.commit()
+        outcome = AccountHealthStatus.CONNECTED
+        next_cooldown = None
         try:
-            self._provider.verify_session(str(account.id))
+            self._provider.verify_session(str(account_id))
         except FloodWait as exc:
-            account.health_status = AccountHealthStatus.COOLDOWN.value
-            account.health_checked_at = now
-            account.cooldown_until = now + timedelta(seconds=exc.seconds)
-            return AccountHealthResult(AccountHealthStatus.COOLDOWN, reconnect_attempted=True)
+            outcome = AccountHealthStatus.COOLDOWN
+            next_cooldown = now + timedelta(seconds=max(1, exc.seconds))
         except SessionUnavailable:
-            account.health_status = AccountHealthStatus.SESSION_INVALID.value
-            account.health_checked_at = now
-            account.cooldown_until = None
+            outcome = AccountHealthStatus.SESSION_INVALID
+
+        account = self._account(account_id)
+        concurrent_cooldown = self._utc(account.cooldown_until)
+        if concurrent_cooldown is not None and concurrent_cooldown > now:
+            outcome = AccountHealthStatus.COOLDOWN
+            next_cooldown = max(concurrent_cooldown, next_cooldown or concurrent_cooldown)
+        checked = self._utc(account.health_checked_at)
+        if checked is not None and checked > now:
+            # An older network response must not clobber a newer health probe.
             return AccountHealthResult(
-                AccountHealthStatus.SESSION_INVALID, reconnect_attempted=True
+                AccountHealthStatus(account.health_status), reconnect_attempted=True
             )
-        account.health_status = AccountHealthStatus.CONNECTED.value
+        account.health_status = outcome.value
         account.health_checked_at = now
-        account.cooldown_until = None
-        return AccountHealthResult(AccountHealthStatus.CONNECTED, reconnect_attempted=True)
+        account.cooldown_until = next_cooldown
+        return AccountHealthResult(outcome, reconnect_attempted=True)

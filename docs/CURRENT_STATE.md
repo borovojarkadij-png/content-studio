@@ -2,6 +2,23 @@
 
 ## VERIFIED WORKING
 
+- Durable donor new-message polling/cursors, bounded history, current mapping
+  intake, partial fan-out replay, leases/fencing and persisted FloodWait/retry
+  are implemented. Windows Docker ingestion acceptance PASS in isolated
+  newsflow-verification-ingestion20261008 (down/up, stale owner, incomplete mapping
+  recovery, REJECT/manual inbox retention), actual PostgreSQL drift PASS; stopped
+  with volumes retained. Never rerun seed. See INGESTION_RUNTIME_VERIFICATION.md.
+- Read-only Telethon RPC/auth/history and encrypted current-session factory,
+  CAS-protected session refresh, opt-in ingestion tick (default disabled), separate
+  optional credential mount and health network/DB-lock separation implemented.
+  Contract tests are synthetic, NOT live login. Latest backend 406 / frontend 26
+  / browser 19 PASS; lint/compile/format/build and isolated migration gate PASS.
+  Latest operational images rebuilt and migrations applied; all services healthy,
+  actual PostgreSQL drift PASS, proxied health/inbox HTTP 200. All four network
+  enablement flags remain 0; no real authorization or send was enabled.
+- GitHub Actions 37695104475 for ingestion-safety 3606cee and 37694461555 for
+  health b9d4b93 both completed SUCCESS in all four jobs. Next increment CI separate.
+
 - Durable ingestion now defaults unclassified content to MANUAL_REVIEW, retains
   its source for inbox review and creates no rewrite. Unknown annotation values
   fail closed in EditorialGate. Rejected/technical/exact-duplicate edits now
@@ -381,11 +398,13 @@ implemented; channel-specific natural tabloid style is wired to actual Planner A
 Bounded free-only OpenRouter structured execution is implemented and passes the
 offline provider/factory/worker gate, including refusals/rate limits/fact changes
 and no paid fallback (OPENROUTER_REWRITE_VERIFICATION.md).
-Exact NEXT_STEP: commit/push the tested unclassified/editorial-edit safety fix,
-then implement durable donor ingestion cursors/replay and current mapping-filter
-orchestration using FakeTelegramProvider, followed by encrypted/live adapter
-wiring. Health cooldown fix is committed as b9d4b93; do not redo it.
-Track the next ingestion-safety CI; media CI 37694252178 completed SUCCESS.
+Exact NEXT_STEP: commit/push tested donor-cursor/Telethon/factory/worker increment
+and track its CI. Operational rebuilt health/PostgreSQL drift checks passed.
+Then add source media/album/edit-timestamp revision identity plus stale-edit and
+bounded edit-replay regressions; follow with persistent donor entity resolution
+and configurable mapping filters. New-message polling alone is NOT full edit
+recovery. Do not redo passing fixture newsflow-verification-ingestion20261008.
+3606cee ingestion-safety CI 37695104475 completed SUCCESS; newer CI is separate.
 Live authorization is separate; no synthetic account may be promoted as real.
 Windows project newsflow-verification-media20261008 completed acceptance; it
 retains terminal revoked-release history, so never rerun its seed.

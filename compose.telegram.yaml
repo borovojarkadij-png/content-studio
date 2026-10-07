@@ -1,0 +1,11 @@
+# Explicit optional read-only credential mount. Does not enable ingestion by itself.
+services:
+  worker:
+    environment:
+      NEWSFLOW_TELEGRAM_CREDENTIALS_FILE: /run/secrets/telegram_credentials
+    secrets:
+      - telegram_credentials
+
+secrets:
+  telegram_credentials:
+    file: ${NEWSFLOW_TELEGRAM_CREDENTIALS_SOURCE:?provision an existing persistent Telegram credentials JSON outside Git}

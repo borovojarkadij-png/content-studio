@@ -10,20 +10,31 @@ from threading import Event
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import structlog
-from sqlalchemy import select
+from sqlalchemy import func, or_, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from newsflow.persistence.database import configured_session_factory
-from newsflow.persistence.models import PublicationPlanModel
+from newsflow.persistence.models import (
+    ChannelMappingModel,
+    DonorChannel,
+    DonorIngestionCursorModel,
+    PublicationPlanModel,
+    TelegramAccount,
+)
 from newsflow.security.master_key import load_runtime_master_key
 from newsflow.security.session_cipher import SessionCipher
+from newsflow.services.donor_ingestion_runner import DonorIngestionRunner
 from newsflow.services.durable_media_runner import DurableMediaRunner
 from newsflow.services.durable_rewrite_runner import DurableRewriteRunner
 from newsflow.services.durable_semantic_runner import DurableSemanticRunner
 from newsflow.services.publication_planning import PlanValidationError, PublicationPlanningService
 from newsflow.services.rewrite_provider_factory import ConfiguredRewriteProviderFactory
 from newsflow.services.semantic_verifier_factory import ConfiguredSemanticVerifierFactory
+from newsflow.services.telegram_provider_factory import (
+    ConfiguredTelegramProvider,
+    load_telegram_credentials,
+)
 
 logger = structlog.get_logger()
 
@@ -88,6 +99,73 @@ def run_media_tick(
     return execution.run_next(now=now)
 
 
+def run_ingestion_tick(
+    session_factory,
+    *,
+    enabled: bool,
+    cipher: SessionCipher | None,
+    now: datetime,
+    credentials_path: Path | None = None,
+    provider=None,
+) -> tuple[tuple[int, str], ...]:
+    if not enabled:
+        return ()
+    if cipher is None:
+        raise ValueError("Explicit stable cipher is required for Telegram ingestion")
+    if now.tzinfo is None or now.utcoffset() is None:
+        raise ValueError("Ingestion time must be timezone-aware")
+    if provider is None:
+        if credentials_path is None:
+            raise ValueError("Provision Telegram credentials before enabling ingestion")
+        api_id, api_hash = load_telegram_credentials(credentials_path)
+        provider = ConfiguredTelegramProvider(
+            session_factory, cipher=cipher, api_id=api_id, api_hash=api_hash
+        )
+    with session_factory() as session:
+        donors = list(
+            session.scalars(
+                select(DonorChannel.id)
+                .join(TelegramAccount)
+                .outerjoin(DonorIngestionCursorModel)
+                .where(
+                    select(ChannelMappingModel.id)
+                    .where(ChannelMappingModel.donor_channel_id == DonorChannel.id)
+                    .exists(),
+                    TelegramAccount.health_status != "SESSION_INVALID",
+                    func.length(TelegramAccount.encrypted_session) > 0,
+                    or_(
+                        TelegramAccount.cooldown_until.is_(None),
+                        TelegramAccount.cooldown_until <= now,
+                    ),
+                    or_(
+                        DonorIngestionCursorModel.available_at.is_(None),
+                        DonorIngestionCursorModel.available_at <= now,
+                    ),
+                    or_(
+                        DonorIngestionCursorModel.lease_expires_at.is_(None),
+                        DonorIngestionCursorModel.lease_expires_at <= now,
+                    ),
+                )
+                .order_by(
+                    DonorIngestionCursorModel.available_at.asc().nulls_first(), DonorChannel.id
+                )
+                .limit(4)
+            )
+        )
+    outcomes = []
+    poller = DonorIngestionRunner(session_factory, provider=provider)
+    for donor_id in donors:
+        try:
+            outcome = poller.run_donor(donor_id, now=now)
+        except (SQLAlchemyError, ValueError, LookupError):
+            outcome = "INTERRUPTED"
+            logger.warning(
+                "ingestion.donor_interrupted", donor_id=donor_id, recovery="persisted_lease"
+            )
+        outcomes.append((donor_id, outcome))
+    return tuple(outcomes)
+
+
 def run_scheduler_tick(
     session_factory: Callable[[], Session], *, now: datetime
 ) -> SchedulerTickResult:
@@ -125,11 +203,14 @@ def main() -> None:
     network_enabled = rewrite_enabled(getenv("NEWSFLOW_REWRITE_ENABLED", "0"))
     semantic_enabled = rewrite_enabled(getenv("NEWSFLOW_SEMANTIC_VERIFICATION_ENABLED", "0"))
     media_enabled = rewrite_enabled(getenv("NEWSFLOW_INTERNET_MEDIA_ENABLED", "0"))
+    ingestion_enabled = rewrite_enabled(getenv("NEWSFLOW_TELEGRAM_INGESTION_ENABLED", "0"))
     provider = getenv("NEWSFLOW_REWRITE_PROVIDER", "OPENAI")
     if provider not in {"OPENAI", "OPENROUTER"}:
         raise ValueError("NEWSFLOW_REWRITE_PROVIDER must be OPENAI or OPENROUTER")
     cipher = (
-        SessionCipher(load_runtime_master_key()) if network_enabled or semantic_enabled else None
+        SessionCipher(load_runtime_master_key())
+        if network_enabled or semantic_enabled or ingestion_enabled
+        else None
     )
     stopped = Event()
     for signum in (signal.SIGTERM, signal.SIGINT):
@@ -145,6 +226,23 @@ def main() -> None:
             )
         except SQLAlchemyError:
             logger.warning("scheduler.database_unavailable", retry="next_tick")
+        if ingestion_enabled and not stopped.is_set():
+            try:
+                outcomes = run_ingestion_tick(
+                    factory,
+                    enabled=True,
+                    cipher=cipher,
+                    now=datetime.now(UTC),
+                    credentials_path=Path(
+                        getenv(
+                            "NEWSFLOW_TELEGRAM_CREDENTIALS_FILE",
+                            "/run/secrets/telegram_credentials",
+                        )
+                    ),
+                )
+                logger.info("ingestion.tick", outcomes=outcomes)
+            except Exception:  # noqa: BLE001 - retain progress/leases, never expose provider secrets
+                logger.warning("ingestion.execution_interrupted", recovery="persisted_lease")
         if network_enabled and not stopped.is_set():
             try:
                 outcome = run_rewrite_tick(

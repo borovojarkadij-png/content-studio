@@ -1,6 +1,7 @@
 """Telegram provider contract and offline fake implementation."""
 
-from collections.abc import Iterator
+import asyncio
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from typing import Protocol
 
@@ -29,9 +30,13 @@ class TelegramMessage:
 class TelegramProvider(Protocol):
     def verify_session(self, account_id: str) -> None: ...
 
-    def fetch_message(self, account_id: str, donor_identifier: str, message_id: int) -> TelegramMessage: ...
+    def fetch_message(
+        self, account_id: str, donor_identifier: str, message_id: int
+    ) -> TelegramMessage: ...
 
-    def iter_events(self, account_id: str) -> Iterator[TelegramMessage]: ...
+    def history(
+        self, account_id: str, donor_identifier: str, *, after_id: int, limit: int
+    ) -> tuple[TelegramMessage, ...]: ...
 
 
 class FakeTelegramProvider:
@@ -60,7 +65,9 @@ class FakeTelegramProvider:
         if seconds := self._floodwaits.get(account_id):
             raise FloodWait(seconds)
 
-    def seed_message(self, account_id: str, donor_identifier: str, message_id: int, text: str) -> None:
+    def seed_message(
+        self, account_id: str, donor_identifier: str, message_id: int, text: str
+    ) -> None:
         message = TelegramMessage(account_id, donor_identifier, message_id, text)
         self._messages[(account_id, donor_identifier, message_id)] = message
         self._events.setdefault(account_id, []).append(message)
@@ -70,12 +77,30 @@ class FakeTelegramProvider:
         self._messages[(account_id, donor_identifier, message_id)] = event
         self._events.setdefault(account_id, []).append(event)
 
-    def fetch_message(self, account_id: str, donor_identifier: str, message_id: int) -> TelegramMessage:
+    def fetch_message(
+        self, account_id: str, donor_identifier: str, message_id: int
+    ) -> TelegramMessage:
         self.verify_session(account_id)
         return self._messages[(account_id, donor_identifier, message_id)]
 
     def iter_events(self, account_id: str) -> Iterator[TelegramMessage]:
         yield from self._events.get(account_id, [])
+
+    def history(
+        self, account_id: str, donor_identifier: str, *, after_id: int, limit: int
+    ) -> tuple[TelegramMessage, ...]:
+        if after_id < 0 or not 1 <= limit <= 100:
+            raise ValueError("Invalid history bounds")
+        self.verify_session(account_id)
+        messages = sorted(
+            (
+                m
+                for (account, donor, _), m in self._messages.items()
+                if account == account_id and donor == donor_identifier and m.message_id > after_id
+            ),
+            key=lambda m: m.message_id,
+        )
+        return tuple(messages[:limit])
 
 
 class TelethonTelegramProvider:
@@ -85,10 +110,24 @@ class TelethonTelegramProvider:
     refuses to create a client until that repository supplies a session.
     """
 
-    def __init__(self, *, api_id: int, api_hash: str, sessions: dict[str, str] | None = None) -> None:
+    def __init__(
+        self,
+        *,
+        api_id: int,
+        api_hash: str,
+        sessions: dict[str, str] | None = None,
+        client_factory: Callable[[str], object] | None = None,
+        on_session_updated: Callable[[str, str], None] | None = None,
+        request_timeout: float = 15,
+    ) -> None:
+        if not 0 < request_timeout <= 30:
+            raise ValueError("Telegram request deadline must be within 30 seconds")
         self._api_id = api_id
         self._api_hash = api_hash
-        self._sessions = sessions or {}
+        self._sessions = dict(sessions or {})
+        self._client_factory = client_factory
+        self._on_session_updated = on_session_updated
+        self._request_timeout = request_timeout
 
     def require_session(self, account_id: str) -> str:
         try:
@@ -97,15 +136,133 @@ class TelethonTelegramProvider:
             raise SessionUnavailable(f"No provisioned session for {account_id}") from exc
 
     def verify_session(self, account_id: str) -> None:
-        """Verify local session availability; live authorization is an external acceptance step."""
-        self.require_session(account_id)
+        """Check actual authorization; never call start(), sign_in(), or send a code."""
+
+        async def nothing(client):
+            return None
+
+        self._run(account_id, nothing)
 
     def build_client(self, account_id: str):
         """Build an account-isolated Telethon client without connecting or logging in."""
         from telethon import TelegramClient
         from telethon.sessions import StringSession
 
-        return TelegramClient(StringSession(self.require_session(account_id)), self._api_id, self._api_hash)
+        return TelegramClient(
+            StringSession(self.require_session(account_id)),
+            self._api_id,
+            self._api_hash,
+            timeout=5,
+            request_retries=0,
+            connection_retries=0,
+            auto_reconnect=False,
+            flood_sleep_threshold=0,
+            receive_updates=False,
+        )
+
+    def _run(self, account_id, operation):
+        if not self.require_session(account_id):
+            raise SessionUnavailable("No provisioned Telegram session")
+        try:
+            asyncio.get_running_loop()
+        except RuntimeError:
+            pass
+        else:
+            raise RuntimeError("Synchronous Telegram adapter must run outside an async event loop")
+        return asyncio.run(self._connected(account_id, operation))
+
+    async def _connected(self, account_id, operation):
+        from telethon.errors import FloodWaitError, RPCError, UnauthorizedError
+
+        try:
+            client = (
+                self._client_factory(account_id)
+                if self._client_factory
+                else self.build_client(account_id)
+            )
+        except (ValueError, TypeError):
+            raise SessionUnavailable("Provisioned Telegram session is malformed") from None
+        try:
+            async with asyncio.timeout(self._request_timeout):
+                await client.connect()
+                if not await client.is_user_authorized():
+                    raise SessionUnavailable("Telegram session requires manual authorization")
+                self._save_session(account_id, client)
+                result = await operation(client)
+                self._save_session(account_id, client)
+                return result
+        except FloodWaitError as exc:
+            raise FloodWait(max(1, exc.seconds)) from None
+        except UnauthorizedError:
+            raise SessionUnavailable("Telegram session requires manual authorization") from None
+        except RPCError:
+            raise ConnectionError("Telegram RPC temporarily unavailable") from None
+        finally:
+            try:
+                await asyncio.wait_for(client.disconnect(), timeout=3)
+            except (TimeoutError, OSError):
+                pass  # asyncio.run cancels remaining tasks; preserve the primary failure.
+
+    def _save_session(self, account_id, client):
+        if self._on_session_updated is None:
+            return
+        updated = client.session.save()
+        if not updated:
+            raise SessionUnavailable("Telegram session cannot be preserved")
+        if updated != self._sessions[account_id]:
+            self._on_session_updated(account_id, updated)
+            self._sessions[account_id] = updated
+
+    @staticmethod
+    def _channel_id(donor_identifier):
+        try:
+            value = int(donor_identifier)
+        except (TypeError, ValueError):
+            raise ValueError("History requires canonical numeric donor identity") from None
+        if value >= 0 or str(value) != donor_identifier:
+            raise ValueError("History requires canonical numeric donor identity")
+        return value
+
+    def history(self, account_id, donor_identifier, *, after_id, limit):
+        if (
+            isinstance(after_id, bool)
+            or not isinstance(after_id, int)
+            or after_id < 0
+            or isinstance(limit, bool)
+            or not isinstance(limit, int)
+            or not 1 <= limit <= 100
+        ):
+            raise ValueError("Invalid history bounds")
+        channel = self._channel_id(donor_identifier)
+
+        async def read(client):
+            result = []
+            async for raw in client.iter_messages(
+                channel, min_id=after_id, limit=limit, reverse=True, wait_time=0
+            ):
+                if getattr(raw, "chat_id", None) != channel:
+                    raise ValueError("Telegram source identity mismatch")
+                result.append(self.normalize_message(account_id, donor_identifier, raw))
+                if len(result) > limit:
+                    raise ValueError("Telegram history exceeded its bound")
+            return tuple(result)
+
+        return self._run(account_id, read)
+
+    def fetch_message(self, account_id, donor_identifier, message_id):
+        channel = self._channel_id(donor_identifier)
+        if isinstance(message_id, bool) or not isinstance(message_id, int) or message_id <= 0:
+            raise ValueError("Invalid message identity")
+
+        async def read(client):
+            raw = await client.get_messages(channel, ids=message_id)
+            if raw is None:
+                raise LookupError("Telegram message no longer exists")
+            if getattr(raw, "chat_id", None) != channel or getattr(raw, "id", None) != message_id:
+                raise ValueError("Telegram source identity mismatch")
+            return self.normalize_message(account_id, donor_identifier, raw)
+
+        return self._run(account_id, read)
 
     @staticmethod
     def normalize_message(
@@ -117,6 +274,8 @@ class TelethonTelegramProvider:
             media_type = "video"
         elif getattr(raw_message, "photo", None) is not None:
             media_type = "photo"
+        elif getattr(raw_message, "media", None) is not None:
+            media_type = "unsupported"
         else:
             media_type = "text"
         grouped_id = getattr(raw_message, "grouped_id", None)

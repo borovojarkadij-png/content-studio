@@ -115,3 +115,49 @@ def test_naive_reconnect_time_is_rejected_before_database_or_provider():
             1, now=datetime(2026, 10, 1, tzinfo=UTC).replace(tzinfo=None)
         )
     assert provider.session_probe_count("1") == 0
+
+
+def test_reconnect_does_not_hold_database_transaction_during_session_rpc():
+    engine = create_engine("sqlite://")
+    Base.metadata.create_all(engine)
+    with Session(engine) as session:
+        account_id = _account(session).id
+
+        class Probe(FakeTelegramProvider):
+            def verify_session(self, account_id):
+                assert not session.in_transaction(), (
+                    "Health lock would deadlock the session refresh callback"
+                )
+                super().verify_session(account_id)
+
+        assert (
+            AccountHealthService(session, Probe())
+            .reconnect(account_id, now=datetime.now(UTC))
+            .status
+            is AccountHealthStatus.CONNECTED
+        )
+    engine.dispose()
+
+
+def test_concurrent_floodwait_during_rpc_cannot_be_overwritten_by_connected_result(tmp_path):
+    engine = create_engine(f"sqlite:///{tmp_path / 'concurrent-health.db'}")
+    Base.metadata.create_all(engine)
+    now = datetime(2030, 1, 1, tzinfo=UTC)
+    with Session(engine) as session:
+        account_id = _account(session).id
+
+        class Probe(FakeTelegramProvider):
+            def verify_session(self, account):
+                with Session(engine) as other:
+                    current = other.get(TelegramAccount, account_id)
+                    current.cooldown_until = now + timedelta(minutes=2)
+                    current.health_status = "COOLDOWN"
+                    current.health_checked_at = now
+                    other.commit()
+
+        result = AccountHealthService(session, Probe()).reconnect(account_id, now=now)
+        assert result.status is AccountHealthStatus.COOLDOWN
+        assert session.get(TelegramAccount, account_id).cooldown_until.replace(
+            tzinfo=UTC
+        ) == now + timedelta(minutes=2)
+    engine.dispose()

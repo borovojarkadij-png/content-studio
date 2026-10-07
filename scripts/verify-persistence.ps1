@@ -8,6 +8,7 @@ param(
     [switch]$SourceGuard,
     [switch]$SemanticGuard,
     [switch]$MediaGuard,
+    [switch]$IngestionGuard,
     [ValidateSet('OPENAI', 'OPENROUTER')]
     [string]$RewriteProvider = 'OPENAI'
 )
@@ -20,6 +21,11 @@ function Invoke-MediaProbe([string]$Mode) {
     Get-Content -LiteralPath (Join-Path $PSScriptRoot 'docker_media_probe.py') -Raw |
         & docker @composeArgs exec -T worker python - $Mode
     if ($LASTEXITCODE -ne 0) { throw "Synthetic media probe failed: $Mode" }
+}
+function Invoke-IngestionProbe([string]$Mode) {
+    Get-Content -LiteralPath (Join-Path $PSScriptRoot 'docker_ingestion_probe.py') -Raw |
+        & docker @composeArgs exec -T worker python - $Mode
+    if ($LASTEXITCODE -ne 0) { throw "Synthetic ingestion probe failed: $Mode" }
 }
 if ($SourceGuard -and -not $RewriteRecovery) {
     throw 'SourceGuard requires a fresh synthetic RewriteRecovery run.'
@@ -185,6 +191,16 @@ if ($SemanticGuard) {
     }
     Invoke-SemanticProbe 'revoke'
     if ($MediaGuard) { Invoke-MediaProbe 'blocked' }
+}
+if ($IngestionGuard) {
+    Invoke-IngestionProbe 'seed'
+    Invoke-VerificationCompose down
+    Invoke-VerificationCompose up -d --wait --wait-timeout 180
+    Write-Output 'Waiting for the synthetic donor polling lease to expire.'
+    for ($tick = 0; $tick -lt 13; $tick++) { Start-Sleep -Seconds 5 }
+    Invoke-IngestionProbe 'recover'
+    Invoke-VerificationCompose restart worker
+    Invoke-IngestionProbe 'verify'
 }
 Write-Output "Synthetic persistence checks passed. Stack retained: $Project"
 Write-Output 'No real Telegram authorization, network AI calls or publications.'
