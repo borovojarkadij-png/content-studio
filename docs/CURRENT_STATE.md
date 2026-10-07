@@ -2,6 +2,15 @@
 
 ## VERIFIED WORKING
 
+- Free internet-image provider/acquisition boundary implemented and tested:
+  allowlisted Commons topic search, explicit rights/credit, bounded decoded photos,
+  fresh editorial/source/review gates and atomic create-only persistent storage.
+  32 new tests / full backend 346 PASS; lint/format/compile PASS. Actual free live
+  search and 2,643,989-byte CC-BY photo decode passed in memory, no operational
+  data changed. Worker/UI/visual-semantic ranking still pending; illustrations
+  are not claimed to depict actual post events. See INTERNET_MEDIA_VERIFICATION.md.
+- GitHub Actions 37692242447 for 59f4d481 completed SUCCESS in all four jobs,
+  including both leased-semantic Docker variants. Media increment CI is separate.
 - Durable semantic verification runtime now implemented: PostgreSQL jobs, committed
   two-attempt budget, 60-second leases/fencing, exact binding rechecks, per-attempt
   known usage, encrypted pinned-model factory and opt-in worker (default disabled).
@@ -339,17 +348,18 @@ implemented; channel-specific natural tabloid style is wired to actual Planner A
 Bounded free-only OpenRouter structured execution is implemented and passes the
 offline provider/factory/worker gate, including refusals/rate limits/fact changes
 and no paid fallback (OPENROUTER_REWRITE_VERIFICATION.md).
-Exact NEXT_STEP: implement the free licensed internet-image search/acquisition
-provider into the existing persistent media library, with no paid AI/search,
-bounded allowlisted downloads, rights/attribution provenance and current editorial/
-source/review checks. Add adversarial offline tests before connecting execution.
+Exact NEXT_STEP: wrap the implemented free Commons acquisition seam in durable
+media jobs/leases with committed bounded attempts, snapshot binding, stale-owner
+fencing, persistent selected-asset results and opt-in worker. Test recovery and
+rejection with injected providers; do not expose arbitrary download URLs or enable
+real Telegram send. UI controls and visual-semantic/cross-language relevance need
+separate verification; topic search alone is not full semantic image matching.
 Durable semantic jobs/factory/opt-in worker are implemented and tested; no qualified
 operational release exists. Track CI for this increment after committing/pushing.
 Anchor equality alone never authorizes automatic approval. Live OpenAI smoke remains
 blocked by the current file's missing usable key; never expose/store keys in Git.
 User donor inputs are recorded in USER_CHANNELS.md, not fake runtime accounts.
-Add a free licensed internet-image search/acquisition provider, not just local
-library lookup, while retaining source-photo reuse as the other mode.
+Keep free internet acquisition and source-photo reuse as distinct policy intents.
 Keep current editorial rechecks; never publish as a side effect of UI work.
 
 PHASE 1 IS NOT COMPLETE. Docker foundation/storage checks are VERIFIED only for

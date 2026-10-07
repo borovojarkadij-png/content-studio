@@ -7,10 +7,10 @@ Two policy intents are persisted per mapping and snapshotted per candidate:
   locally registered photo tags. Ranking is overlap count then immutable asset ID.
   No match returns `NO_MATCH`, never silently switches to unrelated/source photos.
 
-This local lookup is **not** the requested internet-search agent yet. The target
-second mode must search suitable reusable images online, download them into this
-persistent store and preserve rights/credit. Its network provider, acquisition
-worker, semantic query construction and UI controls remain pending.
+Local lookup alone is **not** the requested internet-search agent. A free Commons
+topic-search/download provider and guarded acquisition service now populate this
+persistent library with explicit attribution; see INTERNET_MEDIA_VERIFICATION.md.
+Durable acquisition worker, visual-semantic ranking and UI controls remain pending.
 
 ## Storage and API
 

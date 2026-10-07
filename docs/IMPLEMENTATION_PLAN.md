@@ -37,3 +37,5 @@
 - [x] Durable semantic verification jobs/leases/fencing, two-attempt committed budget, per-attempt known usage, encrypted pinned verifier factory, opt-in worker, atomic approval/completion, cached-state regressions and actual synthetic Windows Docker recovery
 - [ ] Actual fixed-model semantic benchmark and reviewed operational release qualification; synthetic fixtures do not qualify models
 - [ ] Local free internet-image agent: semantic search, rights-aware acquisition into persistent library, optional original-source media reuse; local keyword lookup alone does not satisfy internet-search mode
+- [x] Free Commons topic-search/download provider and guarded persistent acquisition seam: explicit rights/credit, allowlisted bounded decoded photos, immutable create-only storage, editorial/source/review rechecks, adversarial tests and free live in-memory search/download smoke
+- [ ] Durable internet-media jobs/leases/fencing/recovery, selected-asset results and explicit worker/UI controls; visual-semantic relevance and caption attribution before publication
