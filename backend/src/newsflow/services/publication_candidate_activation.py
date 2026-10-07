@@ -7,6 +7,7 @@ from newsflow.persistence.models import (
     EditorialDecisionModel,
     PublicationCandidateModel,
     RewriteJobModel,
+    RewriteOutputModel,
 )
 
 
@@ -44,6 +45,14 @@ class RewriteCandidateActivationService:
             if decision is None or decision.status != "PASS" or not decision.rewrite_allowed:
                 for candidate in candidates:
                     candidate.state = "BLOCKED_EDITORIAL"
+                return 0
+            approved_output = self._session.scalar(
+                select(RewriteOutputModel.id).where(
+                    RewriteOutputModel.rewrite_job_id == job.id,
+                    RewriteOutputModel.approval_state == "APPROVED",
+                )
+            )
+            if approved_output is None:
                 return 0
             for candidate in candidates:
                 candidate.state = "READY"

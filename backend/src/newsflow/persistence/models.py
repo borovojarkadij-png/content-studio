@@ -326,3 +326,31 @@ class RewriteJobModel(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
+
+
+class RewriteOutputModel(Base):
+    """Per-channel rewrite text and its independent editorial approval state."""
+
+    __tablename__ = "rewrite_outputs"
+    __table_args__ = (
+        UniqueConstraint("rewrite_job_id", name="uq_rewrite_output_job"),
+        CheckConstraint(
+            "approval_state IN ('PENDING', 'APPROVED', 'REJECTED')",
+            name="ck_rewrite_output_approval_state",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    rewrite_job_id: Mapped[int] = mapped_column(
+        ForeignKey("rewrite_jobs.id"), nullable=False, index=True
+    )
+    output_channel_id: Mapped[int] = mapped_column(
+        ForeignKey("output_channels.id"), nullable=False, index=True
+    )
+    content_key: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    rewritten_text: Mapped[str] = mapped_column(String, nullable=False)
+    approval_state: Mapped[str] = mapped_column(String(16), nullable=False, default="PENDING")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

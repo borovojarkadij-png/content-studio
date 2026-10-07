@@ -15,7 +15,7 @@
 - [~] Filters, semantic dedup, events, hype, media, routing and scheduler; durable manual/automatic per-channel plan, mapping-aware `AWAITING_REWRITE` candidate production, per-mapping immediate/delayed/priority/media policies, immutable policy snapshotting, delayed eligibility and post-rewrite editorial-gated activation complete; operational scheduler and media execution remain pending
 - [~] Mapping-level deterministic filters for media, advertising markers and forbidden links
 - [~] Durable mapping-scoped exact content fingerprint deduplication before EditorialGate
-- [~] OpenAI/OpenRouter rewrite-provider settings: encrypted server-only credentials, selected model, free-only OpenRouter fallback contract and live server-side catalog/Settings wiring complete; fact guard, queues and operational workers pending
+- [~] OpenAI/OpenRouter rewrite-provider settings: encrypted server-only credentials, selected model, free-only OpenRouter fallback contract, durable per-output draft/approval state and live server-side catalog/Settings wiring complete; fact guard, queues and operational workers pending
 - [~] Durable moderation-inbox API read model (state, latest revision and editorial decision); dark-navy Inbox consumes its supported read endpoint, while mutation APIs remain pending
 - [x] Requested dark-navy frontend increment: all eight reference-based section compositions, explicit in-memory DEMO interactions, original/draft protection, responsive layouts and honest unavailable live actions
 - [x] Frontend quality gate: format/typecheck/build, 18 unit/regression tests, 18 browser tests including actual isolated FastAPI integration, automated accessibility and 40 screenshots

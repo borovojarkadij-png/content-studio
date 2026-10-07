@@ -17,6 +17,7 @@ from newsflow.persistence.models import (
 )
 from newsflow.providers.telegram import TelegramMessage
 from newsflow.services.publication_candidate_activation import RewriteCandidateActivationService
+from newsflow.services.rewrite_outputs import RewriteOutputService
 
 
 def test_passing_mapped_ingestion_creates_awaiting_rewrite_candidate_then_activates_it() -> None:
@@ -59,6 +60,11 @@ def test_passing_mapped_ingestion_creates_awaiting_rewrite_candidate_then_activa
         job.state = "SUCCEEDED"
         job_id = job.id
         session.commit()
+        assert RewriteCandidateActivationService(session).activate(job_id) == 0
+        output = RewriteOutputService(session).record_succeeded_output(job_id, "Rewritten text")
+        assert output["approval_state"] == "PENDING"
+        assert RewriteCandidateActivationService(session).activate(job_id) == 0
+        RewriteOutputService(session).approve(output["id"])
         assert RewriteCandidateActivationService(session).activate(job_id) == 1
         assert session.scalar(select(PublicationCandidateModel)).state == "READY"
 
@@ -268,6 +274,10 @@ def test_same_source_fans_out_to_each_mapping_without_repeat_rewrite_dispatch() 
         jobs[0].state = "SUCCEEDED"
         first_job_id = jobs[0].id
         session.commit()
+        rewritten = RewriteOutputService(session).record_succeeded_output(
+            first_job_id, "First channel rewrite"
+        )
+        RewriteOutputService(session).approve(rewritten["id"])
         assert RewriteCandidateActivationService(session).activate(first_job_id) == 1
         candidates = session.scalars(
             select(PublicationCandidateModel).order_by(PublicationCandidateModel.output_channel_id)
