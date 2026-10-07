@@ -4,7 +4,7 @@ from collections.abc import Iterator
 from datetime import date
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -14,6 +14,11 @@ from newsflow.services.publication_planning import (
     CandidateBlocked,
     PlanValidationError,
     PublicationPlanningService,
+)
+from newsflow.services.rewrite_outputs import (
+    RewriteOutputBlocked,
+    RewriteOutputConflict,
+    RewriteOutputService,
 )
 from newsflow.services.telegram_configuration import (
     ConfigurationConflict,
@@ -65,6 +70,25 @@ def get_publication_planning_service() -> Iterator[PublicationPlanningService]:
 PublicationPlanning = Annotated[
     PublicationPlanningService, Depends(get_publication_planning_service)
 ]
+
+
+def get_rewrite_output_service() -> Iterator[RewriteOutputService]:
+    for session in database_session():
+        if session is None:
+            raise HTTPException(503, "Durable database is not configured")
+        try:
+            yield RewriteOutputService(session)
+        except (RewriteOutputBlocked, RewriteOutputConflict) as exc:
+            raise HTTPException(409, str(exc)) from None
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from None
+        except SQLAlchemyError:
+            raise HTTPException(
+                503, "Durable database is unavailable or requires migrations"
+            ) from None
+
+
+RewriteOutputs = Annotated[RewriteOutputService, Depends(get_rewrite_output_service)]
 
 
 def get_moderation_inbox_reader() -> Iterator[ModerationInboxReader | None]:
@@ -256,3 +280,36 @@ def list_incoming_posts(
     reader: Annotated[ModerationInboxReader | None, Depends(get_moderation_inbox_reader)],
 ) -> dict[str, list[object]]:
     return {"items": [] if reader is None else [item.as_dict() for item in reader.list_items()]}
+
+
+@router.get("/publication-plans")
+def list_publication_plans(service: PublicationPlanning) -> dict[str, list[dict[str, object]]]:
+    return {"items": service.list_plans()}
+
+
+@router.get("/publication-plans/{plan_id}/publications")
+def list_planned_publications(
+    plan_id: int, day: date, service: PublicationPlanning
+) -> dict[str, list[dict[str, object]]]:
+    return {"items": service.list_publications(plan_id, day)}
+
+
+@router.get("/rewrite-outputs")
+def list_rewrite_outputs(
+    service: RewriteOutputs, output_channel_id: Annotated[int | None, Query(gt=0)] = None
+) -> dict[str, list[dict[str, object]]]:
+    return {"items": service.list_outputs(output_channel_id)}
+
+
+@router.post("/rewrite-outputs/{output_id}:approve")
+def approve_rewrite_output(
+    output_id: int, request: StrictRequest, service: RewriteOutputs
+) -> dict[str, object]:
+    return service.approve(output_id, activate_candidate=True)
+
+
+@router.post("/rewrite-outputs/{output_id}:reject")
+def reject_rewrite_output(
+    output_id: int, request: StrictRequest, service: RewriteOutputs
+) -> dict[str, object]:
+    return service.reject(output_id)

@@ -1249,6 +1249,39 @@ svg {
 .form-grid .field {
   min-width: 0;
 }
+.live-planner {
+  display: grid;
+  gap: 20px;
+}
+.live-planner-fields {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  min-width: 0;
+}
+.live-slot-list {
+  padding: 0;
+  list-style: none;
+}
+.live-slot-list li,
+.live-review-list article {
+  padding: 14px 0;
+  border-top: 1px solid var(--border);
+  display: grid;
+  gap: 8px;
+  overflow-wrap: anywhere;
+}
+.live-review-list small {
+  color: #bbd0ef;
+}
+.live-rewrite-text {
+  white-space: pre-wrap;
+}
+@media (max-width: 600px) {
+  .live-planner .form-grid {
+    grid-template-columns: 1fr;
+  }
+}
 .detail-metrics {
   display: grid;
   grid-template-columns: 1fr 1fr;

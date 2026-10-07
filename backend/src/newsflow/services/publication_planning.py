@@ -76,6 +76,48 @@ class PublicationPlanningService:
     def __init__(self, session: Session) -> None:
         self._session = session
 
+    def list_plans(self) -> list[dict[str, object]]:
+        return [
+            _plan_projection(plan)
+            for plan in self._session.scalars(
+                select(PublicationPlanModel).order_by(PublicationPlanModel.output_channel_id)
+            )
+        ]
+
+    def list_publications(self, plan_id: int, day: date) -> list[dict[str, object]]:
+        plan = self._session.get(PublicationPlanModel, plan_id)
+        if plan is None:
+            raise LookupError("Publication plan was not found")
+        zone = _zone(plan.timezone)
+        starts_at = datetime.combine(day, time.min, zone).astimezone(UTC)
+        ends_at = datetime.combine(day, time.max, zone).astimezone(UTC)
+        rows = self._session.execute(
+            select(PlannedPublicationModel, PublicationCandidateModel, EditorialDecisionModel)
+            .join(
+                PublicationCandidateModel,
+                PlannedPublicationModel.candidate_id == PublicationCandidateModel.id,
+            )
+            .outerjoin(
+                EditorialDecisionModel,
+                EditorialDecisionModel.content_key == PublicationCandidateModel.content_key,
+            )
+            .where(
+                PlannedPublicationModel.output_channel_id == plan.output_channel_id,
+                PlannedPublicationModel.scheduled_for >= starts_at,
+                PlannedPublicationModel.scheduled_for <= ends_at,
+            )
+            .order_by(PlannedPublicationModel.scheduled_for, PlannedPublicationModel.id)
+        )
+        return [
+            {
+                **_item_projection(item, candidate),
+                "editorial_allowed": (
+                    decision is not None and decision.status == "PASS" and decision.rewrite_allowed
+                ),
+            }
+            for item, candidate, decision in rows
+        ]
+
     def configure_plan(
         self,
         output_channel_id: int,

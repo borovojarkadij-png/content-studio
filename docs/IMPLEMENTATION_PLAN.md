@@ -21,3 +21,6 @@
 - [x] Frontend quality gate: format/typecheck/build, 18 unit/regression tests, 18 browser tests including actual isolated FastAPI integration, automated accessibility and 40 screenshots
 - [~] Durable Telegram configuration read/mutation APIs: accounts, donors, output channels, mappings, pending imports and output plan settings; live frontend workflow wiring and mapping-aware scheduled-candidate production pending
 - [ ] Docker persistence E2E and full PHASE 1 quality gate
+- [x] Durable per-channel rewrite review read/approve/reject APIs; atomic approved-candidate activation, stale-job/editorial regression checks
+- [x] Live Planner API wiring: daily limits, slots/timezones, approval and explicit automatic selection; reload/channel-switch/error handling, isolated real API browser E2E and desktop/mobile screenshots
+- [ ] Safe source-media reuse and licensed local-library selection; acquisition/transport pending

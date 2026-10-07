@@ -52,6 +52,70 @@ const navigate = async (page: Page, name: string) => {
     .click();
 };
 
+test("live planner persists approval and per-channel daily plan through the migrated isolated API", async ({
+  page,
+}) => {
+  const unsafeCalls: string[] = [];
+  page.on("request", (request) => {
+    if (/publish-now|openai|openrouter/.test(request.url()))
+      unsafeCalls.push(request.url());
+  });
+  await page.goto("/");
+  await navigate(page, "Планировщик");
+  await expect(page.getByLabel("Постов в день")).toHaveValue("1");
+  await expect(
+    page.getByRole("button", { name: "Одобрить рерайт 2" }),
+  ).toBeDisabled();
+  await page.getByLabel("Режим планирования").selectOption("AUTOMATIC");
+  await page.getByLabel("Постов в день").fill("2");
+  await page.getByLabel("Слоты публикаций").fill("09:00, 15:00");
+  await page
+    .getByRole("button", { name: "Сохранить план", exact: true })
+    .click();
+  await expect(page.getByText("План сохранён в базе данных.")).toBeVisible();
+  await page.getByRole("button", { name: "Одобрить рерайт 1" }).click();
+  await expect(
+    page.getByText("Рерайт одобрен. Публикация не выполнена."),
+  ).toBeVisible();
+  await page.getByLabel("Дата плана").fill("2030-01-02");
+  await page
+    .getByRole("button", { name: "Подобрать публикации на день" })
+    .click();
+  await expect(page.getByText("Слот #1", { exact: true })).toBeVisible();
+  await page.reload();
+  await navigate(page, "Планировщик");
+  await expect(page.getByLabel("Постов в день")).toHaveValue("2");
+  await expect(page.getByLabel("Слоты публикаций")).toHaveValue("09:00, 15:00");
+  await page.getByLabel("Дата плана").fill("2030-01-02");
+  await expect(page.getByText("Слот #1", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Одобрить рерайт 1" }),
+  ).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: "Одобрить рерайт 2" }),
+  ).toBeDisabled();
+  const accessibility = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa"])
+    .analyze();
+  expect(accessibility.violations).toEqual([]);
+  await page.screenshot({
+    path: path.resolve("../.artifacts/ui-dark-navy/live-planner-1440x900.png"),
+    fullPage: true,
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.getByLabel("Слоты публикаций")).toBeVisible();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+  ).toBe(true);
+  await page.screenshot({
+    path: path.resolve("../.artifacts/ui-dark-navy/live-planner-390x844.png"),
+    fullPage: true,
+  });
+  expect(unsafeCalls).toEqual([]);
+});
+
 test("inbox repeated scheduling keeps saved date and time", async ({
   page,
 }) => {

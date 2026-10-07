@@ -6,6 +6,7 @@ import {
   type SetStateAction,
 } from "react";
 import { loadInbox } from "./api";
+import { LivePlanner } from "./LivePlanner";
 import { Accounts, Connections, Planner, Settings } from "./workspaces";
 import {
   Artwork,
@@ -194,6 +195,7 @@ export function App({
               {section !== "overview" &&
                 section !== "inbox" &&
                 section !== "settings" &&
+                section !== "planner" &&
                 !demo && (
                   <Unavailable
                     title={`${navigation.find((item) => item.id === section)!.label}: подключение ожидается`}
@@ -205,6 +207,9 @@ export function App({
                 <Connections {...workspace} />
               )}
               {demo && section === "planner" && <Planner {...workspace} />}
+              {!demo && section === "planner" && (
+                <LivePlanner markDirty={markDirty} />
+              )}
               {demo && section === "accounts" && <Accounts {...workspace} />}
               {section === "settings" && (
                 <Settings {...workspace} demo={demo} />

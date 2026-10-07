@@ -102,6 +102,22 @@
   draft recording and approval recheck the current `EditorialGate` decision;
   a stale reject blocks them. This adds no provider call or publication side
   effect.
+- Durable review APIs list per-channel drafts with current approval eligibility.
+  Explicit approve atomically persists approval and activates only the matching
+  candidate; reject is terminal for pending drafts. Superseded/mismatched jobs,
+  stale editorial rejects and injected control fields fail closed.
+- Working-mode Planner reads actual output channels, policies and day reservations,
+  saves per-channel daily limits/timezones/slots, reviews per-channel rewrites and
+  explicitly requests deterministic slot selection. Reload retains database state;
+  channel switching retains newly saved plans and discards stale responses.
+  No Telegram send, AI call or DEMO fallback occurs.
+- Local gate on 2026-10-07: 115 backend tests, 24 frontend tests and all 19
+  Chromium E2E tests passed; backend lint/compile, frontend format/typecheck/build
+  and isolated migration tests passed. The new live Planner E2E uses real
+  FastAPI + migrated temporary SQLite + Vite proxy, checks WCAG AA and captures
+  desktop/mobile screenshots. See PLANNER_REVIEW_VERIFICATION.md.
+- GitHub Actions run 37677475228 passed both quality-gate jobs for c1888c0
+  in the correct `borovojarkadij-png/content-studio` repository.
 - Dark-navy frontend: all eight section compositions, shared linear icons,
   selected rows/cards, responsive panels and honest unavailable actions.
 - In-memory DEMO workflows: donor import preview/partial success, independent
@@ -128,14 +144,17 @@
 ## PARTIALLY IMPLEMENTED
 
 - Compose topology and persistent-volume declarations.
-- Live dashboard workflows remain partial: only the existing read-only inbox
-  endpoint is wired to real state. Other sections require durable mutation/read
-  APIs before their DEMO forms can be used operationally.
+- Live dashboard workflows remain partial: Inbox reads, AI-provider Settings
+  and review/plan configuration in Planner use actual API state. Donors, Channels,
+  Connections and Accounts still need live frontend wiring; their operational
+  configuration APIs already exist.
 
 ## NOT IMPLEMENTED
 
-- Telethon transport, OpenAI adapter, queues, scheduler, media, real dashboard
-  workflows and Telegram E2E. PostgreSQL-backed inbox execution remains pending
+- Operational Telethon ingestion/publication transport, rewrite execution worker,
+  fact guard, durable job runner/recovery, timer-driven scheduler and media
+  execution remain pending (provider contracts/plan selection already exist).
+  PostgreSQL-backed inbox execution remains pending
   Docker Desktop availability, although the API contract is integration-tested
   against SQLite.
 
@@ -164,8 +183,8 @@
 The durable configuration, mapping-aware candidate source, publication-planning
 contracts, mapping delivery-policy configuration and secure live AI-provider
 settings and durable per-output rewrite approval state are complete locally.
-Next PHASE 1 task: expose review/approval and Planner state through durable
-read/mutation APIs, then wire Planner UI. Add the two safe media policies
+Review/approval APIs and live Planner wiring are now verified locally.
+Next PHASE 1 task: add the two safe media policies
 (reuse source media and licensed local-library lookup) before any real download
 or Telegram publication. Keep the current editorial recheck and never perform
 real Telegram publication as a side effect of UI work.

@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from newsflow.persistence.models import (
     EditorialDecisionModel,
+    PublicationCandidateModel,
     RewriteJobModel,
     RewriteOutputModel,
 )
@@ -36,7 +37,41 @@ class RewriteOutputService:
     def __init__(self, session: Session) -> None:
         self._session = session
 
-    def record_succeeded_output(self, rewrite_job_id: int, rewritten_text: str) -> dict[str, object]:
+    def list_outputs(self, output_channel_id: int | None = None) -> list[dict[str, object]]:
+        query = (
+            select(RewriteOutputModel, RewriteJobModel, EditorialDecisionModel)
+            .outerjoin(RewriteJobModel, RewriteJobModel.id == RewriteOutputModel.rewrite_job_id)
+            .outerjoin(
+                EditorialDecisionModel,
+                EditorialDecisionModel.content_key == RewriteOutputModel.content_key,
+            )
+            .order_by(RewriteOutputModel.id)
+        )
+        if output_channel_id is not None:
+            query = query.where(RewriteOutputModel.output_channel_id == output_channel_id)
+        items = []
+        for output, job, decision in self._session.execute(query):
+            items.append(
+                {
+                    **_project(output),
+                    "editorial_status": decision.status if decision else None,
+                    "approve_allowed": (
+                        output.approval_state != "REJECTED"
+                        and decision is not None
+                        and decision.status == "PASS"
+                        and decision.rewrite_allowed
+                        and job is not None
+                        and job.state == "SUCCEEDED"
+                        and job.output_channel_id == output.output_channel_id
+                        and job.content_key == output.content_key
+                    ),
+                }
+            )
+        return items
+
+    def record_succeeded_output(
+        self, rewrite_job_id: int, rewritten_text: str
+    ) -> dict[str, object]:
         text = rewritten_text.strip()
         if not text:
             raise ValueError("Rewritten text is required")
@@ -78,8 +113,29 @@ class RewriteOutputService:
             self._session.rollback()
             raise
 
-    def approve(self, output_id: int) -> dict[str, object]:
+    def approve(self, output_id: int, *, activate_candidate: bool = False) -> dict[str, object]:
+        return self._review(output_id, approve=True, activate_candidate=activate_candidate)
+
+    def reject(self, output_id: int) -> dict[str, object]:
+        return self._review(output_id, approve=False, activate_candidate=False)
+
+    def _review(
+        self, output_id: int, *, approve: bool, activate_candidate: bool
+    ) -> dict[str, object]:
         try:
+            # All rewrite paths lock job -> editorial -> draft -> candidate.
+            job_id = self._session.scalar(
+                select(RewriteOutputModel.rewrite_job_id).where(RewriteOutputModel.id == output_id)
+            )
+            if job_id is None:
+                raise LookupError("Rewrite output was not found")
+            job = self._session.scalar(
+                select(RewriteJobModel).where(RewriteJobModel.id == job_id).with_for_update()
+            )
+            if approve:
+                if job is None or job.state != "SUCCEEDED":
+                    raise RewriteOutputBlocked("Rewrite job is no longer succeeded")
+                self._require_editorial_pass(job.content_key)
             output = self._session.scalar(
                 select(RewriteOutputModel)
                 .where(RewriteOutputModel.id == output_id)
@@ -87,11 +143,35 @@ class RewriteOutputService:
             )
             if output is None:
                 raise LookupError("Rewrite output was not found")
-            self._require_editorial_pass(output.content_key)
-            if output.approval_state == "REJECTED":
-                raise RewriteOutputBlocked("Rejected rewrite output cannot be approved")
-            output.approval_state = "APPROVED"
-            output.approved_at = datetime.now(UTC)
+            if approve:
+                if (
+                    job.output_channel_id != output.output_channel_id
+                    or job.content_key != output.content_key
+                ):
+                    raise RewriteOutputBlocked("Rewrite output no longer matches its job")
+                if output.approval_state == "REJECTED":
+                    raise RewriteOutputBlocked("Rejected rewrite output cannot be approved")
+                output.approval_state = "APPROVED"
+                if output.approved_at is None:
+                    output.approved_at = datetime.now(UTC)
+            else:
+                if output.approval_state == "APPROVED":
+                    raise RewriteOutputBlocked(
+                        "Approved output cannot be rejected through pending review"
+                    )
+                output.approval_state = "REJECTED"
+            if activate_candidate or not approve:
+                candidates = self._session.scalars(
+                    select(PublicationCandidateModel)
+                    .where(
+                        PublicationCandidateModel.content_key == output.content_key,
+                        PublicationCandidateModel.output_channel_id == output.output_channel_id,
+                        PublicationCandidateModel.state == "AWAITING_REWRITE",
+                    )
+                    .with_for_update()
+                ).all()
+                for candidate in candidates:
+                    candidate.state = "READY" if approve else "REJECTED_REVIEW"
             self._session.flush()
             result = _project(output)
             self._session.commit()
