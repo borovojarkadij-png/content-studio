@@ -2,6 +2,13 @@
 
 ## VERIFIED WORKING
 
+- Actual album Windows Docker acceptance resumed after a probe-order correction:
+  recover/worker-restart/verify/edit/down-up/verify-edit PASS, packaged PostgreSQL
+  drift PASS, real inbox retained both grouped photo/video members without
+  editorial/rewrite. Fixture stopped retaining histories/volumes, never reseeded.
+  Operational media/album backend rebuilt: packaged PG drift/flags 0/health/inbox
+  HTTP 200 PASS. Media CI 37702104802 completed SUCCESS in all four jobs.
+
 - Bounded sparse album observation implemented in provider/Telethon/encrypted
   factory/fake, never claiming complete membership. Grouped captions cannot
   reach editorial/rewrite individually; grouped blank/video sources are retained.
@@ -501,12 +508,16 @@ newsflow-verification-donorimports20261008 (18015/15188/18095; CrashRecovery +
 IngestionGuard + PeerGuard + MappingGuard + ResolutionGuard), including resolved
 API state and actual PostgreSQL drift; stopped retaining history/volumes.
 CI 37699179678 for d1fd02c completed SUCCESS in all four jobs.
-Exact NEXT_STEP: commit/push album guard checkpoint, finish Windows Docker album
-acceptance (active session 23498, newsflow-verification-albumguards20261008,
-18017/15190/18097, CrashRecovery + IngestionGuard), packaged PG drift and real
-inbox inspection; stop only that fixture retaining history/volumes. Operational
-backend rebuild/check is session 59387: confirm exit/PG drift/flags 0/health.
-Then bounded read-only source-photo download/acquisition with explicit rights,
+Exact NEXT_STEP: commit/push corrected album probe/docs (actual recovery resumed
+and verified in session 76697, fixture stopped retaining history). Track original
+album c2bd2da CI 37702733554 and its corrected follow-up separately: original
+contains the reproduced probe-counter bug, backend/frontend PASS, Docker pending.
+New source-photo provider work is separate uncommitted: 13 test-first adapter/fake
+tests PASS, bounded chunks/16 MiB, protected/grouped content blocked, stream closed,
+original bytes plus source/photo identity re-fetched before return. Media identity
+is currently provider-only, NOT durable yet; no source-acquisition service/API.
+Continue signed media identity/protection in immutable revisions with guarded
+migration/regressions, then source-photo acquisition with explicit rights,
 fresh pre/post-provider bindings and create-only persistent storage; no protected
 content download, overwrite or sends. Full album manifests/deletion/batching
 remain pending and must not be inferred from the observation seam. Track media

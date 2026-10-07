@@ -83,9 +83,6 @@ def main(mode):
     )
     for member in album_members:
         provider._messages[(member.account_id, member.donor_identifier, member.message_id)] = member
-    album = provider.album_window(str(account_id), str(CHANNEL), anchor_id=4)
-    assert album.message_ids == (4, 5) and album.media_types == ("photo", "video")
-    assert not album.membership_complete and not album.rewrite_allowed
     poller = DonorIngestionRunner(factory, provider=provider)
     if mode == "seed":
         assert poller.claim(donor_id, now=now) is not None
@@ -152,6 +149,11 @@ def main(mode):
             )
     elif mode not in {"verify", "verify-edit"}:
         raise ValueError("Unsupported probe mode")
+    # Check the observation seam after stale-owner zero-RPC assertions, not
+    # before: this explicitly authorized fake read increments its session probe.
+    album = provider.album_window(str(account_id), str(CHANNEL), anchor_id=4)
+    assert album.message_ids == (4, 5) and album.media_types == ("photo", "video")
+    assert not album.membership_complete and not album.rewrite_allowed
     with factory() as session:
         cursor = session.get(DonorIngestionCursorModel, donor_id)
         prefix = f"{account_id}:{CHANNEL}:"

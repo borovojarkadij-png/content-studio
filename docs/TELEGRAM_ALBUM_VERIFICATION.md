@@ -38,13 +38,22 @@ expecting BLOCKED_TECHNICAL for an absent candidate was corrected to the existin
 SUPERSEDED terminal behavior; it still proves zero provider construction and a
 false shared technical permission. No ignored database was used or reset.
 
-Actual Windows Docker acceptance is IN PROGRESS, session 23498:
+Actual Windows Docker acceptance completed PASS after a fixture correction:
 `verify-persistence.ps1 -Project newsflow-verification-albumguards20261008
 -ApiPort 18017 -WebPort 15190 -ProductionPort 18097 -CrashRecovery -IngestionGuard`.
 Extended create-only fixture checks photo/video group members retain source and
-produce zero editorial/rewrite while cursor/partial fan-out recover. Do not mark
-it VERIFIED until completion and packaged PostgreSQL drift have actually passed.
-Never reseed retained fixtures. Operational network flags remain disabled.
+produce zero editorial/rewrite while cursor/partial fan-out recover. The initial
+run's recover assertion failed because a preliminary fake album read incremented
+the session probe counter before the stale-owner zero-RPC assertion. Moved that
+read after the assertion, waited for the committed replacement lease to expire,
+then resumed ONLY recover/worker-restart/verify/edit/down-up/verify-edit without
+reseed or data deletion. Every resumed probe PASS; packaged PostgreSQL drift
+PASS and actual inbox HTTP 200 retained both grouped members. Fixture stopped
+with volumes/history preserved. Operational media/album backend rebuilt,
+packaged PostgreSQL drift/flags 0/health/inbox 200 PASS. No real providers/sends.
+Original commit c2bd2da8c06296dad6e54c708345aec5e8946327 CI backend/frontend PASS;
+Docker jobs still running at last inspection and will contain the original probe
+ordering. Track the corrected probe checkpoint separately; do not call it PASS.
 
 ## Primary protocol references
 

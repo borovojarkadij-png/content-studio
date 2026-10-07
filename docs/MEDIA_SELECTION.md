@@ -81,4 +81,7 @@ media bytes/hash/rights and real selection/status API passed; revoked approval
 returns 409 and creates no provider calls. Invalid persisted PNG was not registered
 or overwritten. Packaged PostgreSQL drift PASS. Fixture stopped with all volumes
 and histories retained; never reseed it. Network AI/Telegram calls and sends: zero.
-Operational deployment of this checkpoint is pending the next provider gate.
+Operational backend subsequently rebuilt with the 500-test album guard checkpoint;
+packaged PostgreSQL drift and proxied health/inbox 200 PASS. All four network
+enablement flags remain 0. CI 37702104802 for media checkpoint
+d430d88973bf60b7623fbe321019d9be67ab1a52 completed SUCCESS in all four jobs.
