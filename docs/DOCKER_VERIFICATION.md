@@ -109,7 +109,13 @@ an explicit random private subnet; operational Compose networking is unchanged.
 The corrected full procedure passed on Windows as
 `newsflow-verification-ipam20261007` (18005 / 15178 / 18085), including actual
 address change, crash recovery, lease expiry and fenced PENDING completion.
-Linux CI re-verification is required before claiming that job fixed there.
+GitHub Actions 37684482444 subsequently passed all three jobs, including the
+corrected Linux persistence/recovery procedure for commit 1a88983.
+The following OpenAI adapter/style/usage increment also passed extended Windows
+acceptance as newsflow-verification-openai20261007 (18006 / 15179 / 18086),
+using structured synthetic HTTP responses and encrypted synthetic credentials.
+Real provider requests remain unverified; the operational worker is disabled
+for network rewriting and still has no Telegram publication transport.
 
 ## Local operational instance
 

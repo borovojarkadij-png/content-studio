@@ -14,6 +14,7 @@ import {
   type PlannedPublication,
 } from "./plannerApi";
 import { Notice, Panel, PanelTitle } from "./ui";
+import { RewriteStylePanel } from "./rewriteStyle";
 
 const errorText = (error: unknown) =>
   error instanceof Error ? error.message : "Ошибка запроса API";
@@ -263,6 +264,7 @@ function ChannelPlanner({
   };
   return (
     <>
+      <RewriteStylePanel key={channelId} channelId={channelId} />
       <Panel>
         <PanelTitle title="Правила подбора" icon="settings" />
         <fieldset disabled={busy} className="live-planner-fields">

@@ -15,7 +15,7 @@
 - [~] Filters, semantic dedup, events, hype, media, routing and scheduler; durable per-channel plan/timer, mapping-aware candidates, immediate/delayed/priority/media snapshots and gated activation complete; semantic dedup/events/hype, media acquisition and publication execution remain pending
 - [~] Mapping-level deterministic filters for media, advertising markers and forbidden links
 - [~] Durable mapping-scoped exact content fingerprint deduplication before EditorialGate
-- [~] OpenAI/OpenRouter rewrite-provider settings: encrypted credentials, selected models/free-only fallbacks, per-output drafts/review and live catalog/Settings complete; deterministic fact anchors and leased injected runner complete; structured OpenAI network worker, semantic guard and usage/cost pending
+- [~] OpenAI/OpenRouter: encrypted settings/models, drafts/review, catalog and fact anchors complete; strict OpenAI adapter/encrypted factory, explicitly opt-in worker, known token usage and per-channel natural tabloid style complete offline; bounded OpenRouter daemon, live provider verification, semantic guard, rate configuration/cache/dashboard pending
 - [~] Durable moderation-inbox API read model (state, latest revision and editorial decision); dark-navy Inbox consumes its supported read endpoint, while mutation APIs remain pending
 - [x] Requested dark-navy frontend increment: all eight reference-based section compositions, explicit in-memory DEMO interactions, original/draft protection, responsive layouts and honest unavailable live actions
 - [x] Frontend quality gate: format/typecheck/build, 18 unit/regression tests, 18 browser tests including actual isolated FastAPI integration, automated accessibility and 40 screenshots
@@ -29,4 +29,5 @@
 - [x] Packaged runtime Alembic upgrades before API/worker startup, Windows dev reload override, production static frontend/nginx API proxy and repeatable isolated PowerShell persistence procedure
 - [x] Conservative deterministic fact-anchor benchmark/guard; no semantic-proof or automatic-approval claim
 - [x] Durable injected rewrite runner: per-output calls, pre-call committed attempt budget, leases/fencing, bounded persisted retries, stale editorial/source rechecks, atomic PENDING draft/outbox, guarded migration and synthetic Docker recovery
+- [x] Natural tabloid rewrite style: persisted per-channel API policy, actual Planner buttons/reload/error handling, protected-entity and fact guards unchanged; no automatic approval or publication
 - [ ] Local free internet-image agent: semantic search, rights-aware acquisition into persistent library, optional original-source media reuse; local keyword lookup alone does not satisfy internet-search mode

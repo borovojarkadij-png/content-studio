@@ -2,6 +2,20 @@
 
 ## VERIFIED WORKING
 
+- OpenAI strict structured rewrite adapter, encrypted-settings factory and explicitly
+  opt-in worker are implemented and tested offline. Default worker still plans only;
+  network rewriting remains disabled in the operational stack. Known tokens persist
+  per attempt; unknown tariff is NULL. No Telegram send is enabled by that flag.
+- Per-channel natural tabloid style is saved by real Planner API buttons and retained
+  after reload. It never bypasses editorial/fact/review gates or modifies old drafts.
+  Backend 207 / frontend 26 / browser 19 tests passed; see AI_REWRITE_VERIFICATION.md.
+- Windows Docker acceptance of encrypted OpenAI factory/style/known usage and
+  structured synthetic HTTP recovery passed in newsflow-verification-openai20261007.
+  Latest code deployed on operational stack; PostgreSQL schema drift check passed.
+- GitHub Actions 37684482444 passed all three jobs for Linux verification IPAM fix
+  1a88983. Previous runner run 37683423581 failed only on unconfigured test subnet;
+  the fixture override fixed it. This CI success predates the OpenAI/style increment.
+
 - Fact-anchor guard blocks changed numeric/date/link/mention/quote facts after
   rewrite and retains zero provider calls for rejected/disabled editorial decisions.
   It explicitly does NOT prove full semantics or authorize automatic approval.
@@ -35,7 +49,7 @@
   timezone, future slots, durable quota serialization and current EditorialGate.
   Restart/idempotency, stale reject, invalid timezone isolation and naive timestamp
   regressions pass. The worker has no rewrite/publication transport yet.
-- Latest local quality gate: 139 backend tests, 24 frontend tests and 19 Chromium
+- Foundation local quality gate: 139 backend tests, 24 frontend tests and 19 Chromium
   E2E passed; backend lint/compile, frontend format/typecheck/build and npm audit
   (zero vulnerabilities) passed. Production nginx and Windows reload configuration
   are implemented; stable externally mounted keys are not generated at startup.
@@ -206,13 +220,18 @@
 
 ## NOT IMPLEMENTED
 
-- Operational Telethon ingestion/publication transport, network-provider execution
-  worker, semantic fact verification/guarded auto-approval and media
+- Operational Telethon ingestion/publication transport, bounded free OpenRouter
+  execution worker, semantic fact verification/guarded auto-approval and media
   execution remain pending (provider contracts/plan selection already exist).
   PostgreSQL-backed inbox read is now verified on Docker Desktop; live ingestion
   and transport execution remain pending.
 
 ## KNOWN ISSUES
+
+- Live OpenAI smoke is blocked by current credentials: authorized local `апи.txt`
+  exists but no supported key candidate was found in UTF-8/UTF-16 encodings.
+  No provider call or credential persistence occurred. Continue offline independent
+  tasks; live verification needs a usable credential via Settings/local secret.
 
 - Docker Desktop stale runtime socket failure was recovered using stopped-service
   directory quarantine; see DOCKER_VERIFICATION.md. Synthetic Compose acceptance
@@ -248,13 +267,16 @@ Timer-driven durable automatic plan selection and synthetic Docker storage
 acceptance are now implemented and verified (DOCKER_VERIFICATION.md).
 Fact-anchor guard and leased durable runner component are now implemented;
 see REWRITE_RECOVERY_VERIFICATION.md. Do not repeat the Docker repair/setup.
-Exact NEXT_STEP: implement the server-side OpenAI structured rewrite adapter and
-provider factory for DurableRewriteRunner, including bounded responses, usage/cost
-tracking and credential-safe unavailable/configuration handling; test with injected
-HTTP responses, no paid calls. Then wire an explicit network-worker enable policy,
-semantic fact verification and configurable guarded automatic approval so unattended
-delivery does not require every post to be clicked manually. Anchor equality alone
-must never trigger automatic approval.
+OpenAI structured adapter/factory, known usage and explicitly opt-in worker are
+implemented; channel-specific natural tabloid style is wired to actual Planner API.
+Exact NEXT_STEP: extend the server-side factory/worker with bounded free-only
+OpenRouter structured rewrite/failover under one overall lease budget, preserving
+current editorial checks, known-usage records and no paid fallback. Test injected
+HTTP refusals/rate limits/invalid content and re-run Docker recovery. Then implement
+semantic fact verification and configurable guarded automatic approval; anchor
+equality alone must never authorize it. Live OpenAI smoke verification remains
+blocked by the current file's missing usable key; never expose/store keys in Git.
+User donor inputs are recorded in USER_CHANNELS.md, not fake runtime accounts.
 Add a free licensed internet-image search/acquisition provider, not just local
 library lookup, while retaining source-photo reuse as the other mode.
 Keep current editorial rechecks; never publish as a side effect of UI work.

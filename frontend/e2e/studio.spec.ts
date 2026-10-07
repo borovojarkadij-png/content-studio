@@ -63,6 +63,10 @@ test("live planner persists approval and per-channel daily plan through the migr
   await page.goto("/");
   await navigate(page, "Планировщик");
   await expect(page.getByLabel("Постов в день")).toHaveValue("1");
+  await page.getByRole("button", { name: "В стиле жёлтой прессы" }).click();
+  await expect(
+    page.getByText("Стиль сохранён. Применится к следующим рерайтам."),
+  ).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Одобрить рерайт 2" }),
   ).toBeDisabled();
@@ -85,6 +89,12 @@ test("live planner persists approval and per-channel daily plan through the migr
   await page.reload();
   await navigate(page, "Планировщик");
   await expect(page.getByLabel("Постов в день")).toHaveValue("2");
+  await expect(
+    page.getByRole("button", { name: "В стиле жёлтой прессы" }),
+  ).toHaveAttribute("aria-pressed", "true");
+  await expect(
+    page.getByRole("button", { name: "В стиле жёлтой прессы" }),
+  ).toHaveCSS("border-top-color", "rgb(38, 186, 255)");
   await expect(page.getByLabel("Слоты публикаций")).toHaveValue("09:00, 15:00");
   await page.getByLabel("Дата плана").fill("2030-01-02");
   await expect(page.getByText("Слот #1", { exact: true })).toBeVisible();
@@ -98,6 +108,10 @@ test("live planner persists approval and per-channel daily plan through the migr
     .withTags(["wcag2a", "wcag2aa"])
     .analyze();
   expect(accessibility.violations).toEqual([]);
+  await page.evaluate(() => {
+    (document.activeElement as HTMLElement)?.blur();
+    window.scrollTo(0, 0);
+  });
   await page.screenshot({
     path: path.resolve("../.artifacts/ui-dark-navy/live-planner-1440x900.png"),
     fullPage: true,
@@ -109,6 +123,10 @@ test("live planner persists approval and per-channel daily plan through the migr
       () => document.documentElement.scrollWidth <= window.innerWidth,
     ),
   ).toBe(true);
+  await page.evaluate(() => {
+    (document.activeElement as HTMLElement)?.blur();
+    window.scrollTo(0, 0);
+  });
   await page.screenshot({
     path: path.resolve("../.artifacts/ui-dark-navy/live-planner-390x844.png"),
     fullPage: true,

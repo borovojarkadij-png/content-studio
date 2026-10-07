@@ -1,5 +1,6 @@
 """Isolated synthetic runner acceptance, never a network provider or Telegram send."""
 
+import io
 import json
 import os
 import sys
@@ -14,23 +15,60 @@ from newsflow.persistence.models import (
     PublicationCandidateModel,
     RewriteJobModel,
     RewriteOutputModel,
+    RewriteUsageModel,
     TelegramAccount,
 )
 from newsflow.security.master_key import load_runtime_master_key
 from newsflow.security.session_cipher import SessionCipher
 from newsflow.services.durable_rewrite_runner import DurableRewriteRunner, RewriteClaim
+from newsflow.services.rewrite_provider_factory import ConfiguredRewriteProviderFactory
+from newsflow.services.rewrite_provider_settings import RewriteProviderSettingsService
+from newsflow.services.telegram_configuration import TelegramConfigurationService
 
 CONTENT_KEY = "synthetic-persistence:@synthetic_donor:1:revision:1"
 
 
-class SyntheticProvider:
+class SyntheticHttp:
     def __init__(self) -> None:
         self.calls = 0
 
-    def rewrite(self, text: str) -> str:
+    def __call__(self, request, *, timeout):
         self.calls += 1
-        assert text == "Permitted synthetic news"
-        return "Synthetic rewrite: " + text
+        payload = json.loads(request.data)
+        assert request.full_url == "https://api.openai.com/v1/responses"
+        assert payload["model"] == "synthetic-model"
+        assert payload["input"][1]["content"] == "Permitted synthetic news"
+        assert "tabloid" in payload["input"][0]["content"].lower()
+        return io.BytesIO(
+            json.dumps(
+                {
+                    "status": "completed",
+                    "error": None,
+                    "output": [
+                        {
+                            "type": "message",
+                            "status": "completed",
+                            "content": [
+                                {
+                                    "type": "output_text",
+                                    "text": json.dumps(
+                                        {
+                                            "rewritten_text": "Synthetic rewrite: Permitted synthetic news"
+                                        }
+                                    ),
+                                }
+                            ],
+                        }
+                    ],
+                    "usage": {
+                        "input_tokens": 100,
+                        "output_tokens": 20,
+                        "total_tokens": 120,
+                        "input_tokens_details": {"cached_tokens": 40},
+                    },
+                }
+            ).encode()
+        )
 
 
 def main() -> None:
@@ -57,8 +95,15 @@ def main() -> None:
         ).one()
         job_id = job.id
         previous_token = job.claim_token
-    provider = SyntheticProvider()
-    runner = DurableRewriteRunner(factory, provider_for_channel=lambda _: provider)
+        if sys.argv[1] == "claim":
+            channel_id = job.output_channel_id
+            RewriteProviderSettingsService(session, cipher=cipher).configure_openai(
+                api_key="synthetic-not-a-real-credential", model="synthetic-model"
+            )
+            TelegramConfigurationService(session).configure_rewrite_style(channel_id, "TABLOID")
+    provider = SyntheticHttp()
+    configured = ConfiguredRewriteProviderFactory(factory, cipher=cipher, opener=provider)
+    runner = DurableRewriteRunner(factory, provider_for_channel=configured)
     now = datetime.now(UTC)
     if sys.argv[1] == "claim":
         claimed = runner.claim_next(now=now)
@@ -132,6 +177,11 @@ def verify(factory, job_id: int) -> None:
             )
         ).one()
         assert candidate.state == "AWAITING_REWRITE"
+        usage = session.scalars(
+            select(RewriteUsageModel).where(RewriteUsageModel.rewrite_job_id == job_id)
+        ).one()
+        assert (usage.attempt, usage.input_tokens, usage.output_tokens) == (2, 100, 20)
+        assert usage.style == "TABLOID" and usage.estimated_cost_usd is None
         assert (
             session.scalar(
                 select(func.count())

@@ -83,6 +83,20 @@ def test_review_approval_atomically_activates_only_its_candidate_and_is_idempote
         assert session.scalar(select(func.count()).select_from(OutboxEventModel)) == 0
 
 
+def test_channel_style_is_durable_validated_and_has_no_job_or_approval_side_effect(review_store):
+    client, engine, channel_id, _, _ = review_store
+    path = f"/api/telegram/output-channels/{channel_id}/rewrite-style"
+    assert client.get(path).json() == {"output_channel_id": channel_id, "style": "NEUTRAL"}
+    assert client.put(path, json={"style": "TABLOID"}).status_code == 200
+    assert client.get(path).json()["style"] == "TABLOID"
+    assert client.put(path, json={"style": "INVENT_FACTS"}).status_code == 422
+    assert client.put(path, json={"style": "TABLOID", "rewrite_allowed": True}).status_code == 422
+    assert client.get("/api/telegram/output-channels/999/rewrite-style").status_code == 404
+    with Session(engine) as session:
+        assert session.scalar(select(func.count()).select_from(RewriteJobModel)) == 1
+        assert session.scalar(select(func.count()).select_from(OutboxEventModel)) == 0
+
+
 @pytest.mark.parametrize("failure", ["editorial_reject", "superseded_job", "mismatched_output"])
 def test_stale_or_mismatched_review_cannot_activate_or_schedule(review_store, failure):
     client, engine, channel_id, job_id, draft_id = review_store

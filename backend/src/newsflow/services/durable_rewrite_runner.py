@@ -20,6 +20,12 @@ from newsflow.persistence.models import (
     OutboxEventModel,
     PublicationCandidateModel,
     RewriteJobModel,
+    RewriteUsageModel,
+)
+from newsflow.providers.openai_rewrite import (
+    ProviderConfigurationInvalid,
+    ProviderResponseInvalid,
+    RewriteUsage,
 )
 from newsflow.providers.openrouter import ProviderUnavailable
 from newsflow.services.fact_guard import FactGuard, FactPreservationBlocked
@@ -153,27 +159,57 @@ class DurableRewriteRunner:
             )
             try:
                 FactGuard().validate_source(revision.source_text)
-                rewritten = RewriteService(self._provider(job.output_channel_id)).rewrite(
-                    revision.source_text, snapshot
+                provider = self._provider(job.output_channel_id)
+                try:
+                    rewritten = RewriteService(provider).rewrite(revision.source_text, snapshot)
+                finally:
+                    usage = getattr(provider, "last_usage", None)
+                    if isinstance(usage, RewriteUsage):
+                        session.add(
+                            RewriteUsageModel(
+                                rewrite_job_id=job.id,
+                                attempt=job.attempts,
+                                provider="OPENAI",
+                                model=usage.model,
+                                style=usage.style,
+                                input_tokens=usage.input_tokens,
+                                cached_tokens=usage.cached_tokens,
+                                output_tokens=usage.output_tokens,
+                                estimated_cost_usd=usage.estimated_cost_usd,
+                            )
+                        )
+            except (ProviderConfigurationInvalid, ProviderResponseInvalid) as exc:
+                if not self._live_lease(job, claimed, now):
+                    session.commit()  # Preserve known usage, not an expired owner's result.
+                    return "STALE_CLAIM"
+                state = (
+                    "FAILED_CONFIGURATION"
+                    if isinstance(exc, ProviderConfigurationInvalid)
+                    else "FAILED_RESPONSE"
                 )
+                return self._finish(session, job, state, state)
             except FactPreservationBlocked:
                 if not self._live_lease(job, claimed, now):
+                    session.commit()
                     return "STALE_CLAIM"
                 return self._finish(session, job, "FAILED_FACTS", "FACT_PRESERVATION_BLOCKED")
             except ProviderUnavailable:
                 if not self._live_lease(job, claimed, now):
+                    session.commit()
                     return "STALE_CLAIM"
                 state = "FAILED" if job.attempts >= self._max_attempts else "RETRY"
                 job.available_at = now + timedelta(seconds=30 * job.attempts)
                 return self._finish(session, job, state, "PROVIDER_UNAVAILABLE")
             except ValueError:
                 if not self._live_lease(job, claimed, now):
+                    session.commit()
                     return "STALE_CLAIM"
                 return self._finish(
                     session, job, "FAILED_SOURCE", "SOURCE_OR_CONFIGURATION_INVALID"
                 )
             # Recheck after the external boundary, before durable result creation.
             if not self._live_lease(job, claimed, now):
+                session.commit()
                 return "STALE_CLAIM"
             session.refresh(decision)
             if not self._editorial_pass(decision):

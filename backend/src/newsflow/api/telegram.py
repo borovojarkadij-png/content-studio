@@ -56,6 +56,23 @@ def get_configuration_service() -> Iterator[TelegramConfigurationService]:
 Configuration = Annotated[TelegramConfigurationService, Depends(get_configuration_service)]
 
 
+class RewriteStyleRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    style: Literal["NEUTRAL", "TABLOID"]
+
+
+@router.get("/output-channels/{output_channel_id}/rewrite-style")
+def get_rewrite_style(output_channel_id: int, service: Configuration) -> dict[str, object]:
+    return service.rewrite_style(output_channel_id)
+
+
+@router.put("/output-channels/{output_channel_id}/rewrite-style")
+def save_rewrite_style(
+    output_channel_id: int, request: RewriteStyleRequest, service: Configuration
+) -> dict[str, object]:
+    return service.configure_rewrite_style(output_channel_id, request.style)
+
+
 def get_publication_planning_service() -> Iterator[PublicationPlanningService]:
     for session in database_session():
         if session is None:

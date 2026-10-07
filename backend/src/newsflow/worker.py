@@ -1,4 +1,4 @@
-"""Timer-driven durable slot selection. No rewrite or publication transport yet."""
+"""Durable planning and explicitly opt-in OpenAI drafts; never publication."""
 
 import signal
 from collections.abc import Callable
@@ -15,9 +15,36 @@ from sqlalchemy.orm import Session
 
 from newsflow.persistence.database import configured_session_factory
 from newsflow.persistence.models import PublicationPlanModel
+from newsflow.security.master_key import load_runtime_master_key
+from newsflow.security.session_cipher import SessionCipher
+from newsflow.services.durable_rewrite_runner import DurableRewriteRunner
 from newsflow.services.publication_planning import PlanValidationError, PublicationPlanningService
+from newsflow.services.rewrite_provider_factory import ConfiguredRewriteProviderFactory
 
 logger = structlog.get_logger()
+
+
+def rewrite_enabled(value: str) -> bool:
+    if value not in {"0", "1"}:
+        raise ValueError("NEWSFLOW_REWRITE_ENABLED must be exactly 0 or 1")
+    return value == "1"
+
+
+def run_rewrite_tick(
+    session_factory: Callable[[], Session],
+    *,
+    enabled: bool,
+    cipher: SessionCipher | None,
+    now: datetime,
+    opener=None,
+) -> str:
+    if not enabled:
+        return "DISABLED"
+    if cipher is None:
+        raise ValueError("Explicit stable cipher is required for enabled rewriting")
+    provider = ConfiguredRewriteProviderFactory(session_factory, cipher=cipher, opener=opener)
+    runner = DurableRewriteRunner(session_factory, provider_for_channel=provider)
+    return runner.run_next(now=now)
 
 
 @dataclass(frozen=True)
@@ -61,6 +88,8 @@ def main() -> None:
     interval = int(getenv("NEWSFLOW_SCHEDULER_POLL_SECONDS", "30"))
     if not 5 <= interval <= 60:
         raise ValueError("Scheduler polling interval must be between 5 and 60 seconds")
+    network_enabled = rewrite_enabled(getenv("NEWSFLOW_REWRITE_ENABLED", "0"))
+    cipher = SessionCipher(load_runtime_master_key()) if network_enabled else None
     stopped = Event()
     for signum in (signal.SIGTERM, signal.SIGINT):
         signal.signal(signum, lambda *_: stopped.set())
@@ -75,6 +104,15 @@ def main() -> None:
             )
         except SQLAlchemyError:
             logger.warning("scheduler.database_unavailable", retry="next_tick")
+        if network_enabled and not stopped.is_set():
+            try:
+                outcome = run_rewrite_tick(
+                    factory, enabled=True, cipher=cipher, now=datetime.now(UTC)
+                )
+                logger.info("rewrite.tick", outcome=outcome)
+            except Exception:  # noqa: BLE001 - external failures must not leak secrets or lose leases
+                # The committed attempt survives; no secret-bearing error/traceback.
+                logger.warning("rewrite.execution_interrupted", recovery="persisted_lease")
         stopped.wait(interval)
 
 

@@ -4,9 +4,11 @@ import {
   render,
   screen,
   within,
+  waitFor,
 } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { App } from "./App";
+import { StrictMode } from "react";
 
 afterEach(() => {
   cleanup();
@@ -46,6 +48,73 @@ const navigate = () =>
     ).getByRole("button", { name: "Планировщик" }),
   );
 const json = (value: unknown) => ({ ok: true, json: async () => value });
+
+it("persists tabloid style only after successful API response and never generates or publishes", async () => {
+  let style = "NEUTRAL";
+  const fetch = vi.fn(async (path: string, init?: RequestInit) => {
+    if (path.endsWith("output-channels")) return json({ items: [channel] });
+    if (path.endsWith("publication-plans")) return json({ items: [plan] });
+    if (path.endsWith("rewrite-style")) {
+      if (init?.method === "PUT") style = JSON.parse(String(init.body)).style;
+      return json({ output_channel_id: 1, style });
+    }
+    return json({ items: [] });
+  });
+  vi.stubGlobal("fetch", fetch);
+  render(
+    <StrictMode>
+      <App initialDemo={false} />
+    </StrictMode>,
+  );
+  navigate();
+  const button = await screen.findByRole("button", {
+    name: "В стиле жёлтой прессы",
+  });
+  await waitFor(() =>
+    expect((button as HTMLButtonElement).disabled).toBe(false),
+  );
+  fireEvent.click(button);
+  expect(
+    await screen.findByText("Стиль сохранён. Применится к следующим рерайтам."),
+  ).toBeTruthy();
+  expect(button.getAttribute("aria-pressed")).toBe("true");
+  const write = fetch.mock.calls.find(([, init]) => init?.method === "PUT");
+  expect(JSON.parse(String(write?.[1]?.body))).toEqual({ style: "TABLOID" });
+  expect(
+    fetch.mock.calls.some(([path]) => /openai|publish-now/.test(path)),
+  ).toBe(false);
+});
+
+it("does not claim saved style or change selection after a failed write", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (path: string, init?: RequestInit) => {
+      if (path.endsWith("output-channels")) return json({ items: [channel] });
+      if (path.endsWith("publication-plans")) return json({ items: [plan] });
+      if (path.endsWith("rewrite-style"))
+        return init?.method === "PUT"
+          ? { ok: false, status: 503 }
+          : json({ output_channel_id: 1, style: "NEUTRAL" });
+      return json({ items: [] });
+    }),
+  );
+  render(<App initialDemo={false} />);
+  navigate();
+  const button = await screen.findByRole("button", {
+    name: "В стиле жёлтой прессы",
+  });
+  await waitFor(() =>
+    expect((button as HTMLButtonElement).disabled).toBe(false),
+  );
+  fireEvent.click(button);
+  expect(
+    await screen.findByText("Не удалось сохранить стиль. Выбор не изменён."),
+  ).toBeTruthy();
+  expect(button.getAttribute("aria-pressed")).toBe("false");
+  expect(
+    screen.queryByText("Стиль сохранён. Применится к следующим рерайтам."),
+  ).toBeNull();
+});
 
 it("loads persisted planner state, explicitly saves configuration and reserves without publishing", async () => {
   let planned = false;

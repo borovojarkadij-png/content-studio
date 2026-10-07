@@ -119,6 +119,22 @@ def _project(row) -> dict[str, object]:
 
 
 class TelegramConfigurationService:
+    def rewrite_style(self, output_id: int) -> dict[str, object]:
+        output = self._require(OutputChannel, output_id)
+        return {"output_channel_id": output.id, "style": output.rewrite_style}
+
+    def configure_rewrite_style(self, output_id: int, style: str) -> dict[str, object]:
+        if style not in {"NEUTRAL", "TABLOID"}:
+            raise ValueError("Rewrite style must be NEUTRAL or TABLOID")
+        try:
+            output = self._require(OutputChannel, output_id)
+            output.rewrite_style = style
+            self._session.commit()
+            return self.rewrite_style(output_id)
+        except Exception:
+            self._session.rollback()
+            raise
+
     def __init__(self, session: Session) -> None:
         self._session = session
 

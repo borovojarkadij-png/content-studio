@@ -110,6 +110,24 @@ const mutation = (
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify(body),
 });
+export type RewriteStyle = "NEUTRAL" | "TABLOID";
+export async function channelRewriteStyle(
+  channelId: number,
+  signal: AbortSignal,
+  style?: RewriteStyle,
+): Promise<RewriteStyle> {
+  const payload = await request(
+    `output-channels/${channelId}/rewrite-style`,
+    style ? mutation({ style }, signal, "PUT") : { signal },
+  );
+  if (
+    !row(payload) ||
+    payload.output_channel_id !== channelId ||
+    (payload.style !== "NEUTRAL" && payload.style !== "TABLOID")
+  )
+    throw new Error("Ответ API не соответствует контракту стиля рерайта");
+  return payload.style;
+}
 export const loadOutputChannels = (signal: AbortSignal) =>
   list("output-channels", isChannel, signal);
 export const loadPublicationPlans = (signal: AbortSignal) =>

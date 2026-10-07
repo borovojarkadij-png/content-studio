@@ -21,6 +21,75 @@ from newsflow.services.telegram_configuration import TelegramConfigurationServic
 NOW = datetime(2030, 1, 1, tzinfo=UTC)
 
 
+def test_configured_factory_uses_encrypted_saved_model_channel_style_and_persists_usage(
+    rewrite_store,
+):
+    from test_openai_rewrite_provider import HttpFixture
+
+    from newsflow.persistence.models import RewriteUsageModel
+    from newsflow.security.session_cipher import SessionCipher
+    from newsflow.services.durable_rewrite_runner import DurableRewriteRunner
+    from newsflow.services.rewrite_provider_factory import ConfiguredRewriteProviderFactory
+    from newsflow.services.rewrite_provider_settings import RewriteProviderSettingsService
+
+    cipher = SessionCipher("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=")
+    with rewrite_store() as session:
+        settings = RewriteProviderSettingsService(session, cipher=cipher)
+        settings.configure_openai(api_key="synthetic-private-key", model="synthetic-model")
+        TelegramConfigurationService(session).configure_rewrite_style(1, "TABLOID")
+    http = HttpFixture()
+    factory = ConfiguredRewriteProviderFactory(rewrite_store, cipher=cipher, opener=http)
+    runner = DurableRewriteRunner(rewrite_store, provider_for_channel=factory, clock=lambda: NOW)
+    assert runner.run_next(now=NOW) == "SUCCEEDED"
+    with rewrite_store() as session:
+        usage = session.scalar(select(RewriteUsageModel))
+        assert (usage.rewrite_job_id, usage.attempt, usage.input_tokens, usage.output_tokens) == (
+            1,
+            1,
+            100,
+            20,
+        )
+        assert usage.model == "synthetic-model" and usage.style == "TABLOID"
+        assert usage.estimated_cost_usd is None
+        assert session.scalar(select(RewriteOutputModel)).approval_state == "PENDING"
+    import json
+
+    assert "tabloid" in json.loads(http.requests[0].data)["input"][0]["content"].lower()
+
+
+def test_changed_fact_still_records_known_usage_without_creating_draft(rewrite_store):
+    from test_openai_rewrite_provider import HttpFixture, envelope
+
+    from newsflow.persistence.models import RewriteUsageModel
+    from newsflow.providers.openai_rewrite import OpenAIRewriteProvider
+    from newsflow.services.durable_rewrite_runner import DurableRewriteRunner
+
+    client = OpenAIRewriteProvider(
+        api_key="synthetic",
+        model="synthetic-model",
+        opener=HttpFixture(envelope("Открыто 20 объектов")),
+    )
+    runner = DurableRewriteRunner(
+        rewrite_store, provider_for_channel=lambda _: client, clock=lambda: NOW
+    )
+    assert runner.run_next(now=NOW) == "FAILED_FACTS"
+    with rewrite_store() as session:
+        assert session.scalar(select(RewriteUsageModel)).output_tokens == 20
+        assert session.scalar(select(func.count()).select_from(RewriteOutputModel)) == 0
+
+
+def test_missing_credentials_are_terminal_configuration_error_not_retry_or_network(rewrite_store):
+    from newsflow.security.session_cipher import SessionCipher
+    from newsflow.services.durable_rewrite_runner import DurableRewriteRunner
+    from newsflow.services.rewrite_provider_factory import ConfiguredRewriteProviderFactory
+
+    factory = ConfiguredRewriteProviderFactory(
+        rewrite_store, cipher=SessionCipher("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=")
+    )
+    runner = DurableRewriteRunner(rewrite_store, provider_for_channel=factory, clock=lambda: NOW)
+    assert runner.run_next(now=NOW) == "FAILED_CONFIGURATION"
+
+
 @pytest.fixture
 def rewrite_store(tmp_path):
     engine = create_engine(f"sqlite:///{tmp_path / 'rewrite-runner.db'}")

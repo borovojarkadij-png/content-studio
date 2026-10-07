@@ -5,6 +5,7 @@ make an accidental invalid state impossible even when a caller bypasses it.
 """
 
 from datetime import datetime
+from decimal import Decimal
 
 from sqlalchemy import (
     BigInteger,
@@ -14,6 +15,7 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
+    Numeric,
     String,
     UniqueConstraint,
     func,
@@ -70,13 +72,19 @@ class DonorChannel(Base):
 
 class OutputChannel(Base):
     __tablename__ = "output_channels"
-    __table_args__ = (UniqueConstraint("telegram_account_id", "telegram_channel_id"),)
+    __table_args__ = (
+        UniqueConstraint("telegram_account_id", "telegram_channel_id"),
+        CheckConstraint("rewrite_style IN ('NEUTRAL', 'TABLOID')", name="ck_channel_rewrite_style"),
+    )
     id: Mapped[int] = mapped_column(primary_key=True)
     telegram_account_id: Mapped[int] = mapped_column(
         ForeignKey("telegram_accounts.id"), nullable=False
     )
     telegram_channel_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
     title: Mapped[str] = mapped_column(String(255), nullable=False)
+    rewrite_style: Mapped[str] = mapped_column(
+        String(16), nullable=False, default="NEUTRAL", server_default="NEUTRAL"
+    )
 
 
 class ChannelMappingModel(Base):
@@ -359,7 +367,9 @@ class RewriteJobModel(Base):
     attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
     available_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     claim_token: Mapped[str | None] = mapped_column(String(36), nullable=True)
-    lease_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    lease_expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     last_error_code: Mapped[str | None] = mapped_column(String(64), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
@@ -392,3 +402,29 @@ class RewriteOutputModel(Base):
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
     approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class RewriteUsageModel(Base):
+    """Known provider usage per persisted attempt; unknown charges are not zero."""
+
+    __tablename__ = "rewrite_usage"
+    __table_args__ = (
+        UniqueConstraint("rewrite_job_id", "attempt", name="uq_rewrite_usage_attempt"),
+        CheckConstraint("attempt >= 1 AND input_tokens >= 0 AND output_tokens >= 0"),
+        CheckConstraint("cached_tokens >= 0 AND cached_tokens <= input_tokens"),
+        CheckConstraint("estimated_cost_usd IS NULL OR estimated_cost_usd >= 0"),
+        CheckConstraint("style IN ('NEUTRAL', 'TABLOID')"),
+    )
+    id: Mapped[int] = mapped_column(primary_key=True)
+    rewrite_job_id: Mapped[int] = mapped_column(ForeignKey("rewrite_jobs.id"), nullable=False)
+    attempt: Mapped[int] = mapped_column(Integer, nullable=False)
+    provider: Mapped[str] = mapped_column(String(16), nullable=False)
+    model: Mapped[str] = mapped_column(String(255), nullable=False)
+    style: Mapped[str] = mapped_column(String(16), nullable=False)
+    input_tokens: Mapped[int] = mapped_column(Integer, nullable=False)
+    cached_tokens: Mapped[int] = mapped_column(Integer, nullable=False)
+    output_tokens: Mapped[int] = mapped_column(Integer, nullable=False)
+    estimated_cost_usd: Mapped[Decimal | None] = mapped_column(Numeric(20, 10), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
