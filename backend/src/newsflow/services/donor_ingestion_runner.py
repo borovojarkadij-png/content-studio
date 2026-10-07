@@ -5,8 +5,9 @@ after all current mappings commit. Old-message edit catch-up is a separate contr
 """
 
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
+from hashlib import sha256
 from uuid import uuid4
 
 from sqlalchemy import select
@@ -39,6 +40,7 @@ class DonorPollClaim:
     telegram_channel_id: int
     after_id: int
     token: str
+    session_digest: str | None = field(default=None, repr=False)
 
 
 class DonorIngestionRunner:
@@ -111,6 +113,7 @@ class DonorIngestionRunner:
                 donor.telegram_channel_id,
                 cursor.last_message_id,
                 cursor.claim_token,
+                sha256(account.encrypted_session.encode()).hexdigest(),
             )
 
     def run_donor(self, donor_id: int, *, now: datetime) -> str:
@@ -130,6 +133,14 @@ class DonorIngestionRunner:
             or cursor.claim_token != claim.token
             or cursor.lease_expires_at is None
             or _utc(cursor.lease_expires_at) <= now
+        ):
+            return None
+        account = session.get(
+            TelegramAccount, claim.account_id, populate_existing=True, with_for_update=True
+        )
+        if (
+            account is None
+            or sha256(account.encrypted_session.encode()).hexdigest() != claim.session_digest
         ):
             return None
         return cursor
@@ -239,10 +250,17 @@ class DonorIngestionRunner:
             cursor.claim_token = None
             cursor.lease_expires_at = None
             if health is not None:
-                account = session.get(TelegramAccount, claim.account_id)
-                account.health_status = health
-                account.health_checked_at = now
-                account.cooldown_until = (
-                    now + timedelta(seconds=delay) if health == "COOLDOWN" else None
+                account = session.get(
+                    TelegramAccount, claim.account_id, populate_existing=True, with_for_update=True
                 )
+                if health == "SESSION_INVALID" or account.health_status != "SESSION_INVALID":
+                    account.health_status = health
+                    account.health_checked_at = max(
+                        _utc(account.health_checked_at) if account.health_checked_at else now, now
+                    )
+                    if health == "COOLDOWN":
+                        account.cooldown_until = max(
+                            _utc(account.cooldown_until) if account.cooldown_until else now,
+                            now + timedelta(seconds=delay),
+                        )
         return code

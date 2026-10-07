@@ -12,6 +12,45 @@ from newsflow.services.telegram_configuration import TelegramConfigurationServic
 NOW = datetime(2030, 1, 1, tzinfo=UTC)
 
 
+@pytest.mark.parametrize("concurrent_status", ["COOLDOWN", "SESSION_INVALID"])
+def test_late_poll_floodwait_preserves_stronger_concurrent_account_health(
+    donor_store, concurrent_status
+):
+    from newsflow.providers.telegram import FloodWait
+
+    class Provider(FakeTelegramProvider):
+        def history(self, *args, **kwargs):
+            with donor_store.begin() as session:
+                account = session.get(models.TelegramAccount, 1)
+                account.health_status = concurrent_status
+                account.cooldown_until = NOW + timedelta(seconds=600)
+                account.health_checked_at = NOW
+            raise FloodWait(60)
+
+    assert runner(donor_store, Provider()).run_donor(1, now=NOW) == "COOLDOWN"
+    with donor_store() as session:
+        account = session.get(models.TelegramAccount, 1)
+        assert account.health_status == concurrent_status
+        assert account.cooldown_until.replace(tzinfo=UTC) == NOW + timedelta(seconds=600)
+
+
+def test_old_poll_session_error_cannot_invalidate_a_new_manually_replaced_session(donor_store):
+    from newsflow.providers.telegram import SessionUnavailable
+
+    class Provider(FakeTelegramProvider):
+        def history(self, *args, **kwargs):
+            with donor_store.begin() as session:
+                account = session.get(models.TelegramAccount, 1)
+                account.encrypted_session = "new manual encrypted session"
+                account.health_status = "CONNECTED"
+            raise SessionUnavailable("Old session revoked")
+
+    assert runner(donor_store, Provider()).run_donor(1, now=NOW) == "STALE_CLAIM"
+    with donor_store() as session:
+        assert session.get(models.TelegramAccount, 1).health_status == "CONNECTED"
+        assert session.scalar(select(models.IncomingPostModel)) is None
+
+
 @pytest.fixture
 def donor_store(tmp_path):
     engine = create_engine(f"sqlite:///{tmp_path / 'donor.db'}")

@@ -11,6 +11,7 @@ param(
     [switch]$IngestionGuard,
     [switch]$PeerGuard,
     [switch]$MappingGuard,
+    [switch]$ResolutionGuard,
     [ValidateSet('OPENAI', 'OPENROUTER')]
     [string]$RewriteProvider = 'OPENAI'
 )
@@ -38,6 +39,11 @@ function Invoke-MappingProbe([string]$Mode) {
     Get-Content -LiteralPath (Join-Path $PSScriptRoot 'docker_mapping_filter_probe.py') -Raw |
         & docker @composeArgs exec -T worker python - $Mode
     if ($LASTEXITCODE -ne 0) { throw "Synthetic mapping filter probe failed: $Mode" }
+}
+function Invoke-ResolutionProbe([string]$Mode) {
+    Get-Content -LiteralPath (Join-Path $PSScriptRoot 'docker_donor_resolution_probe.py') -Raw |
+        & docker @composeArgs exec -T worker python - $Mode
+    if ($LASTEXITCODE -ne 0) { throw "Synthetic donor resolution probe failed: $Mode" }
 }
 if ($SourceGuard -and -not $RewriteRecovery) {
     throw 'SourceGuard requires a fresh synthetic RewriteRecovery run.'
@@ -207,6 +213,7 @@ if ($SemanticGuard) {
     Invoke-SemanticProbe 'revoke'
     if ($MediaGuard) { Invoke-MediaProbe 'blocked' }
 }
+if ($ResolutionGuard) { Invoke-ResolutionProbe 'seed' }
 if ($IngestionGuard) {
     Get-Content -LiteralPath (Join-Path $PSScriptRoot 'docker_telegram_health_probe.py') -Raw |
         & docker @composeArgs exec -T worker python -
@@ -217,12 +224,22 @@ if ($IngestionGuard) {
     Write-Output 'Waiting for the synthetic donor polling lease to expire.'
     for ($tick = 0; $tick -lt 13; $tick++) { Start-Sleep -Seconds 5 }
     Invoke-IngestionProbe 'recover'
+    if ($ResolutionGuard) { Invoke-ResolutionProbe 'recover' }
     Invoke-VerificationCompose restart worker
     Invoke-IngestionProbe 'verify'
     Invoke-IngestionProbe 'edit'
     Invoke-VerificationCompose down
     Invoke-VerificationCompose up -d --wait --wait-timeout 180
     Invoke-IngestionProbe 'verify-edit'
+    if ($ResolutionGuard) { Invoke-ResolutionProbe 'verify' }
+} elseif ($ResolutionGuard) {
+    Invoke-VerificationCompose down
+    Invoke-VerificationCompose up -d --wait --wait-timeout 180
+    Write-Output 'Waiting for the synthetic import resolution lease to expire.'
+    for ($tick = 0; $tick -lt 13; $tick++) { Start-Sleep -Seconds 5 }
+    Invoke-ResolutionProbe 'recover'
+    Invoke-VerificationCompose restart worker
+    Invoke-ResolutionProbe 'verify'
 }
 if ($MappingGuard) {
     Invoke-MappingProbe 'seed'

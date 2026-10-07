@@ -67,7 +67,7 @@ class ConfiguredTelegramProvider:
         self._api_hash = api_hash
         self._clients = client_factory
 
-    def _adapter(self, account_id, donor_identifier=None):
+    def _adapter(self, account_id, donor_identifier=None, *, resolving=False):
         try:
             numeric = int(account_id)
         except (TypeError, ValueError):
@@ -143,7 +143,7 @@ class ConfiguredTelegramProvider:
                 encrypted = current.encrypted_session
 
         def preserve_peer(peer):
-            if peer.account_id != account_id or peer.channel_id != channel_id:
+            if peer.account_id != account_id or (not resolving and peer.channel_id != channel_id):
                 raise ValueError("Telegram peer account identity mismatch")
             with self._sessions() as session, session.begin():
                 current = session.scalar(
@@ -155,10 +155,12 @@ class ConfiguredTelegramProvider:
                     or current.telegram_user_id != user_id
                 ):
                     raise ConnectionError("Telegram session changed during peer resolution")
-                row = session.get(TelegramPeerModel, (numeric, channel_id), with_for_update=True)
+                row = session.get(
+                    TelegramPeerModel, (numeric, peer.channel_id), with_for_update=True
+                )
                 if row is None:
                     row = TelegramPeerModel(
-                        telegram_account_id=numeric, telegram_channel_id=channel_id
+                        telegram_account_id=numeric, telegram_channel_id=peer.channel_id
                     )
                     session.add(row)
                 row.encrypted_peer = self._cipher.encrypt(
@@ -167,7 +169,7 @@ class ConfiguredTelegramProvider:
                             "version": 1,
                             "account_id": account_id,
                             "user_id": user_id,
-                            "channel_id": channel_id,
+                            "channel_id": peer.channel_id,
                             "access_hash": peer.access_hash,
                         },
                         sort_keys=True,
@@ -188,6 +190,12 @@ class ConfiguredTelegramProvider:
 
     def verify_session(self, account_id):
         return self._adapter(account_id).verify_session(account_id)
+
+    def resolve_channel(self, account_id, identifier):
+        donor = None if isinstance(identifier, str) and identifier.startswith("@") else identifier
+        return self._adapter(account_id, donor, resolving=True).resolve_channel(
+            account_id, identifier
+        )
 
     def history(self, account_id, donor_identifier, *, after_id, limit):
         return self._adapter(account_id, donor_identifier).history(

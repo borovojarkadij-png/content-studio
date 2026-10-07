@@ -6,7 +6,7 @@
 | R-002 | Zero rewrite calls after reject | 1 | PARTIAL | rewrite/pipeline and durable retry tests |
 | R-003 | Safe publication revalidation | 1 | PARTIAL | publication tests |
 | R-004 | Durable PostgreSQL/outbox | 1 | PARTIAL | SQL workflow, migrations, transactional outbox tests |
-| R-005 | Telegram accounts and sessions | 1 | PARTIAL | stable key/cipher, encrypted account-scoped peers, current-user/CAS checks, actual synthetic peer/health PostgreSQL restart acceptance; live auth/import resolution pending |
+| R-005 | Telegram accounts and sessions | 1 | PARTIAL | stable key/cipher, encrypted account-scoped peers, current-user/CAS checks, actual synthetic peer/health/import-resolution PostgreSQL restart acceptance; live authorization pending |
 | R-009 | Mapping deterministic filters | 1 | PARTIAL | persisted GET/PUT policies, Unicode/domain/media/ad ingress, fresh worker/review/calendar guards, stale-task zero-call Docker down/up and real API acceptance; UI/publication-execution wiring pending |
 | R-010 | Exact dedup before editorial | 1 | PARTIAL | mapping-scoped durable fingerprint and retry regression tests |
 | R-011 | Moderation inbox API read model | 1 | PARTIAL | DATABASE_URL session wiring; latest revision/editorial integration tests |

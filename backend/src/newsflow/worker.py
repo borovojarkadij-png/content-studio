@@ -18,12 +18,15 @@ from newsflow.persistence.database import configured_session_factory
 from newsflow.persistence.models import (
     ChannelMappingModel,
     DonorChannel,
+    DonorImportModel,
+    DonorImportResolutionJobModel,
     DonorIngestionCursorModel,
     PublicationPlanModel,
     TelegramAccount,
 )
 from newsflow.security.master_key import load_runtime_master_key
 from newsflow.security.session_cipher import SessionCipher
+from newsflow.services.donor_import_resolution import DonorImportResolutionRunner
 from newsflow.services.donor_ingestion_runner import DonorIngestionRunner
 from newsflow.services.durable_media_runner import DurableMediaRunner
 from newsflow.services.durable_rewrite_runner import DurableRewriteRunner
@@ -97,6 +100,72 @@ def run_media_tick(
     execution = DurableMediaRunner(session_factory, media_root, provider=provider)
     execution.enqueue_pending(now=now)
     return execution.run_next(now=now)
+
+
+def run_donor_resolution_tick(
+    session_factory,
+    *,
+    enabled: bool,
+    cipher: SessionCipher | None,
+    now: datetime,
+    credentials_path: Path | None = None,
+    provider=None,
+):
+    if not enabled:
+        return ()
+    if cipher is None:
+        raise ValueError("Explicit stable cipher is required for Telegram resolution")
+    if now.tzinfo is None or now.utcoffset() is None:
+        raise ValueError("Resolution time must be timezone-aware")
+    if provider is None:
+        if credentials_path is None:
+            raise ValueError("Provision Telegram credentials before enabling resolution")
+        api_id, api_hash = load_telegram_credentials(credentials_path)
+        provider = ConfiguredTelegramProvider(
+            session_factory, cipher=cipher, api_id=api_id, api_hash=api_hash
+        )
+    with session_factory() as session:
+        imports = list(
+            session.scalars(
+                select(DonorImportModel.id)
+                .join(TelegramAccount)
+                .outerjoin(DonorImportResolutionJobModel)
+                .where(
+                    DonorImportModel.status == "PENDING_RESOLUTION",
+                    TelegramAccount.health_status != "SESSION_INVALID",
+                    func.length(TelegramAccount.encrypted_session) > 0,
+                    or_(
+                        TelegramAccount.cooldown_until.is_(None),
+                        TelegramAccount.cooldown_until <= now,
+                    ),
+                    or_(
+                        DonorImportResolutionJobModel.available_at.is_(None),
+                        DonorImportResolutionJobModel.available_at <= now,
+                    ),
+                    or_(
+                        DonorImportResolutionJobModel.lease_expires_at.is_(None),
+                        DonorImportResolutionJobModel.lease_expires_at <= now,
+                    ),
+                )
+                .order_by(
+                    DonorImportResolutionJobModel.available_at.asc().nulls_first(),
+                    DonorImportModel.id,
+                )
+                .limit(4)
+            )
+        )
+    outcomes = []
+    runtime = DonorImportResolutionRunner(session_factory, provider=provider)
+    for import_id in imports:
+        try:
+            outcome = runtime.run_import(import_id, now=now)
+        except (SQLAlchemyError, ValueError, LookupError):
+            outcome = "INTERRUPTED"
+            logger.warning(
+                "ingestion.import_interrupted", import_id=import_id, recovery="persisted_lease"
+            )
+        outcomes.append((import_id, outcome))
+    return tuple(outcomes)
 
 
 def run_ingestion_tick(
@@ -228,6 +297,19 @@ def main() -> None:
             logger.warning("scheduler.database_unavailable", retry="next_tick")
         if ingestion_enabled and not stopped.is_set():
             try:
+                import_outcomes = run_donor_resolution_tick(
+                    factory,
+                    enabled=True,
+                    cipher=cipher,
+                    now=datetime.now(UTC),
+                    credentials_path=Path(
+                        getenv(
+                            "NEWSFLOW_TELEGRAM_CREDENTIALS_FILE",
+                            "/run/secrets/telegram_credentials",
+                        )
+                    ),
+                )
+                logger.info("ingestion.import_tick", outcomes=import_outcomes)
                 outcomes = run_ingestion_tick(
                     factory,
                     enabled=True,

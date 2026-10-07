@@ -1,6 +1,7 @@
 """Telegram provider contract and offline fake implementation."""
 
 import asyncio
+import re
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -39,6 +40,19 @@ class TelegramChannelPeer:
 
 
 @dataclass(frozen=True, slots=True)
+class TelegramChannelResolution:
+    identifier: str
+    peer: TelegramChannelPeer
+    title: str
+
+    def __post_init__(self):
+        if not isinstance(self.peer, TelegramChannelPeer):
+            raise TypeError("Resolution requires a validated immutable Telegram peer")
+        if not isinstance(self.title, str) or not self.title.strip() or len(self.title) > 255:
+            raise ValueError("Invalid Telegram channel title")
+
+
+@dataclass(frozen=True, slots=True)
 class TelegramMessage:
     account_id: str
     donor_identifier: str
@@ -51,6 +65,8 @@ class TelegramMessage:
 
 
 class TelegramProvider(Protocol):
+    def resolve_channel(self, account_id: str, identifier: str) -> TelegramChannelResolution: ...
+
     def verify_session(self, account_id: str) -> None: ...
 
     def fetch_message(
@@ -75,6 +91,16 @@ class FakeTelegramProvider:
         self._floodwaits: dict[str, int] = {}
         self._session_unavailable: set[str] = set()
         self._session_probes: dict[str, int] = {}
+        self._channels: dict[tuple[str, str], TelegramChannelResolution] = {}
+
+    def seed_channel(self, account_id, identifier, channel_id, title):
+        self._channels[(account_id, identifier)] = TelegramChannelResolution(
+            identifier, TelegramChannelPeer(account_id, channel_id, 1), title
+        )
+
+    def resolve_channel(self, account_id, identifier):
+        self.verify_session(account_id)
+        return self._channels[(account_id, identifier)]
 
     def seed_floodwait(self, account_id: str, seconds: int) -> None:
         self._floodwaits[account_id] = seconds
@@ -190,6 +216,51 @@ class TelethonTelegramProvider:
             return None
 
         self._run(account_id, nothing)
+
+    def resolve_channel(self, account_id, identifier):
+        from telethon.tl.types import Channel, InputPeerChannel
+        from telethon.utils import get_input_peer, get_peer_id
+
+        if not isinstance(identifier, str):
+            raise TypeError("Invalid channel identifier")
+        username = re.fullmatch(r"@[a-z][a-z0-9_]{3,31}", identifier)
+        channel_id = None if username else self._channel_id(identifier)
+
+        async def resolve(client):
+            target = (
+                identifier
+                if username
+                else await self._input_channel(client, account_id, channel_id)
+            )
+            entity = await client.get_entity(target)
+            if not isinstance(entity, Channel) or not entity.broadcast or entity.megagroup:
+                raise ValueError("Donor identifier must resolve to a broadcast channel")
+            try:
+                peer = get_input_peer(entity)
+            except TypeError:
+                raise ValueError("Telegram channel has no usable full access hash") from None
+            if not isinstance(peer, InputPeerChannel):
+                raise TypeError("Resolved Telegram channel identity mismatch")
+            marked = get_peer_id(peer)
+            if channel_id is not None and marked != channel_id:
+                raise ValueError("Resolved Telegram channel identity mismatch")
+            if username:
+                names = {getattr(entity, "username", None)} | {
+                    item.username for item in (entity.usernames or []) if item.active
+                }
+                if identifier[1:] not in {
+                    name.casefold() for name in names if isinstance(name, str)
+                }:
+                    raise ValueError("Resolved Telegram username identity mismatch")
+            result = TelegramChannelResolution(
+                identifier, TelegramChannelPeer(account_id, marked, peer.access_hash), entity.title
+            )
+            if self._on_peer_updated is not None:
+                self._on_peer_updated(result.peer)
+            self._peers[(account_id, marked)] = result.peer
+            return result
+
+        return self._run(account_id, resolve)
 
     def build_client(self, account_id: str):
         """Build an account-isolated Telethon client without connecting or logging in."""

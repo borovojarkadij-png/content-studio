@@ -136,7 +136,8 @@ Missing peers resolve only the first 100 accessible dialogs, within the existing
 RPC deadline. Foreign/non-channel peers and malformed cache fail closed; no
 automatic login/join occurs. Hashes are not exposed by public configuration APIs.
 This follows [Telethon's account-specific entity contract](https://docs.telethon.dev/en/stable/concepts/entities.html).
-Bounded dialogs do NOT resolve arbitrary username imports yet.
+Bounded dialogs cover numeric identities; read-only username resolution is now
+implemented separately (checkpoint below), not a fabricated numeric conversion.
 
 Actual Windows project `newsflow-verification-peers20261008` (18013/15186/18093)
 passed CrashRecovery + IngestionGuard + PeerGuard, including encrypted peer reuse
@@ -165,3 +166,36 @@ Frontend 26 units and 19 browser regressions / format / typecheck / build PASS.
 Filter UI and real publication transport remain pending. No paid calls or actual
 sends used here. CI includes both new guards; its deadline is now 20 minutes for
 the additional real restart cycle, with bounded health/RPC deadlines unchanged.
+
+## Durable import checkpoint — 2026-10-08
+
+Username resolution requires an actual full broadcast Channel (not a User,
+megagroup/min entity, missing hash or different username), with active aliases
+accepted. Canonical account/channel binding survives encrypted factory reuse.
+No join/login/send APIs are used. Durable import jobs commit a 60-second lease
+before RPC; old/expired/session-replaced owners cannot mutate donor identities.
+Provider I/O runs outside DB transactions. Aliases reuse one account-scoped
+donor and preserve user-configured titles. Resolved job/import/donor/outbox are
+atomic. Failed transient RPCs persist retry, FloodWait preserves a stronger
+existing cooldown and invalid sources stay explicitly invalid, not fake donors.
+The opt-in ingestion worker visits at most four due imports per tick; disabled
+mode accesses no database/RPC. A legitimate session refresh can fence the current
+claim; the durable lease/retry uses the new session rather than trusting the old
+snapshot. Import API statuses remain truthful pending/resolved/invalid.
+
+Regression tests also reproduced and fixed donor polling's late FloodWait
+shortening another caller's cooldown and overwriting SESSION_INVALID. Poll claims
+now bind the current encrypted-session digest; an old failure cannot invalidate
+a newly provisioned session. No plaintext session/hash enters logs or public API.
+
+Backend 462 tests / lint / compile / isolated migration round-trip PASS.
+Populated import-job downgrade refuses history loss. Actual Windows Docker
+acceptance PASS in `newsflow-verification-donorimports20261008` (18015/15188/18095;
+CrashRecovery + IngestionGuard + PeerGuard + MappingGuard + ResolutionGuard):
+unfinished lease survives down/up, expired owner is fenced before RPC, two aliases
+resolve to one donor, encrypted peer and exactly two resolution outbox records
+survive subsequent down/up/worker restart. Injected get_entity also proves another
+PostgreSQL transaction can lock the account during RPC (2-second lock timeout).
+Packaged PostgreSQL drift and real proxied API (two RESOLVED imports/one donor)
+PASS. Fixture stopped retaining volumes/history; never rerun seed. No Telegram
+network, AI calls or sends. Synthetic/injected tests are NOT live authorization.

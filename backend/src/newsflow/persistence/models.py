@@ -179,6 +179,30 @@ class DonorImportModel(Base):
     status: Mapped[str] = mapped_column(String(32), nullable=False)
 
 
+class DonorImportResolutionJobModel(Base):
+    __tablename__ = "donor_import_resolution_jobs"
+    __table_args__ = (
+        CheckConstraint("state IN ('QUEUED', 'RUNNING', 'RETRY', 'RESOLVED', 'INVALID')"),
+        CheckConstraint(
+            "(claim_token IS NULL AND lease_expires_at IS NULL) OR (claim_token IS NOT NULL AND lease_expires_at IS NOT NULL)"
+        ),
+        CheckConstraint(
+            "(state = 'RESOLVED' AND resolved_donor_id IS NOT NULL) OR (state <> 'RESOLVED' AND resolved_donor_id IS NULL)"
+        ),
+    )
+    donor_import_id: Mapped[int] = mapped_column(ForeignKey("donor_imports.id"), primary_key=True)
+    state: Mapped[str] = mapped_column(String(16), nullable=False)
+    available_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    claim_token: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    lease_expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    last_error_code: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    resolved_donor_id: Mapped[int | None] = mapped_column(
+        ForeignKey("donor_channels.id"), nullable=True
+    )
+
+
 class PublicationPlanModel(Base):
     """Per-output policy for manual or automatic daily planning."""
 

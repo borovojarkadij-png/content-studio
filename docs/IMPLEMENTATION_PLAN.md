@@ -18,7 +18,9 @@
 - [x] Read-only Telethon authorization/history contract, encrypted current-session factory/CAS refresh, opt-in ingestion worker and separate optional credential mount; synthetic contract verification only
 - [x] Source media/album/edit-timestamp revision identity, stale/equal-time conflict fencing and bounded 50-message old-edit replay; local regression/migration gate and actual synthetic Docker metadata down/up acceptance
 - [x] Encrypted account-scoped input-channel cache, bounded accessible-dialog resolution, provisioned user identity validation, corruption/CAS fencing and actual synthetic Windows Docker peer restart/crash recovery
-- [ ] Username donor-import resolution, full Telegram update-difference/deletion recovery, album batching/download and live encrypted authorization restart acceptance
+- [x] Read-only username/broadcast-channel/full-hash resolution, durable import jobs/leases/session fencing, alias idempotency/manual title preservation and atomic resolved outbox; 462-test local gate
+- [x] Actual synthetic donor-import Windows Docker recovery, stale owner/alias/outbox/encrypted peer persistence, packaged PostgreSQL drift and resolved import/donor API
+- [ ] Full Telegram update-difference/deletion recovery, album batching/download and live encrypted authorization restart acceptance
 - [~] Filters, semantic dedup, events, hype, media, routing and scheduler; durable per-channel plan/timer, mapping-aware candidates, immediate/delayed/priority/media snapshots and gated activation complete; semantic dedup/events/hype, media acquisition and publication execution remain pending
 - [~] Mapping-level deterministic filters for media, advertising markers and forbidden links
 - [x] Persisted mapping-filter GET/PUT API and ingress integration, canonical blocked domains, mandatory advertising markers and fresh worker/review/calendar policy guards; 442-test local gate

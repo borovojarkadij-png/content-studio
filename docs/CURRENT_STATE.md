@@ -2,6 +2,18 @@
 
 ## VERIFIED WORKING
 
+- Read-only broadcast-channel username resolution, immutable canonical identity/
+  full-hash validation, encrypted factory peer persistence and durable import
+  jobs/leases/fencing implemented locally. Aliases share one donor without
+  replacing manual titles; resolved identity and outbox commit atomically.
+  Unprovisioned/foreign/min/user peers cannot become operational donors. Opt-in
+  worker processes at most four due imports before donor polling, default still 0.
+  Late poll failures now preserve longer cooldown/invalid-session state and cannot
+  invalidate a concurrently replaced session. Backend 462 tests PASS, lint/compile
+  and isolated migration round-trip PASS. Actual Windows Docker import recovery,
+  PostgreSQL drift and resolved import/donor API PASS in isolated
+  newsflow-verification-donorimports20261008; fixture stopped retaining volumes
+  and history. No live authorization, Telegram network/AI calls or sends.
 - Encrypted account-scoped Telegram input peers and bounded accessible-dialog
   resolution implemented. RPCs verify the provisioned user's identity; corrupt/
   foreign cache and concurrently replaced sessions fail closed. Backend 425-test
@@ -437,10 +449,24 @@ correct origin; CI 37697828168 completed SUCCESS in all four jobs. This predates
 peer/mapping-filter changes; their next CI remains separate.
 Operational peer/filter images rebuilt and migrations applied; actual PostgreSQL
 drift and proxied health/inbox HTTP 200 PASS. All four network flags remain 0.
-Exact NEXT_STEP: commit/push peer + mapping-filter increment and track its CI,
-then implement read-only username donor-import
-resolution into immutable donor identities (Fake/injected RPC first), followed
-by actual frontend configuration/filter wiring. No fixture seed may be rerun.
+Peer/filter checkpoint d1fd02c3b6c0c5a88fba33479be5a1e62881d892 pushed to correct
+origin; CI 37699179678 backend/frontend PASS, Docker jobs still running at last
+inspection. This predates donor-import implementation; check overall CI later.
+Operational backend import rebuild completed; packaged PostgreSQL drift and
+proxied health/inbox HTTP 200 PASS. All four network enablement flags remain 0.
+Exact NEXT_STEP: commit/push ONLY the tested backend/CI/runtime-doc import
+increment and track its CI; frontend configuration work is separate in-progress
+changes, not part of this checkpoint.
+Actual import Docker recovery completed PASS in isolated
+newsflow-verification-donorimports20261008 (18015/15188/18095; CrashRecovery +
+IngestionGuard + PeerGuard + MappingGuard + ResolutionGuard), including resolved
+API state and actual PostgreSQL drift; stopped retaining history/volumes.
+CI 37699179678 for d1fd02c completed SUCCESS in all four jobs.
+Continue frontend real configuration/filter wiring: added test-first API/React
+files, 35 frontend units PASS; finish typecheck and actual migrated API E2E,
+responsive screenshots/visual inspection, then document/commit/push separately.
+Next independent work: album/media batching and guarded publication execution.
+Never rerun existing fixture seeds or enable actual sends as a side effect.
 f19af6d CI 37696430337 completed SUCCESS. Track next commit CI.
 Do not rerun either fixture seed; existing histories are intentionally retained.
 Live authorization is separate; no synthetic account may be promoted as real.
