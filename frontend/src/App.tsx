@@ -191,11 +191,14 @@ export function App({
               {section === "inbox" && (
                 <Inbox {...workspace} demo={demo} globalQuery={globalQuery} />
               )}
-              {section !== "overview" && section !== "inbox" && !demo && (
-                <Unavailable
-                  title={`${navigation.find((item) => item.id === section)!.label}: подключение ожидается`}
-                />
-              )}
+              {section !== "overview" &&
+                section !== "inbox" &&
+                section !== "settings" &&
+                !demo && (
+                  <Unavailable
+                    title={`${navigation.find((item) => item.id === section)!.label}: подключение ожидается`}
+                  />
+                )}
               {demo && section === "donors" && <Donors {...workspace} />}
               {demo && section === "channels" && <Channels {...workspace} />}
               {demo && section === "connections" && (
@@ -203,7 +206,9 @@ export function App({
               )}
               {demo && section === "planner" && <Planner {...workspace} />}
               {demo && section === "accounts" && <Accounts {...workspace} />}
-              {demo && section === "settings" && <Settings {...workspace} />}
+              {section === "settings" && (
+                <Settings {...workspace} demo={demo} />
+              )}
             </div>
           ))}
         </main>

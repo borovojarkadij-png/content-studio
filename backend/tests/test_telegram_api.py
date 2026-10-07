@@ -3,6 +3,7 @@ from cryptography.fernet import Fernet
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 
+from newsflow.api.settings import get_provider_model_catalog
 from newsflow.app import app
 from newsflow.persistence.models import Base
 
@@ -289,6 +290,30 @@ def test_openai_rewrite_settings_store_model_without_returning_key(client):
         "fallback_models": [],
     }
     assert "synthetic-openai-key" not in client.get("/api/settings/rewrite-providers").text
+
+
+def test_rewrite_provider_model_catalog_exposes_only_safe_model_names(client):
+    class Catalog:
+        def list_models(self, *, provider: str, api_key: str) -> tuple[str, ...]:
+            assert api_key == "synthetic-openrouter-key"
+            return ("alpha/rewrite:free", "beta/rewrite:free")
+
+    client.put(
+        "/api/settings/rewrite-providers/openrouter",
+        json={
+            "api_key": "synthetic-openrouter-key",
+            "fallback_models": ["alpha/rewrite:free"],
+        },
+    )
+    app.dependency_overrides[get_provider_model_catalog] = Catalog
+    try:
+        response = client.get("/api/settings/rewrite-providers/openrouter/models")
+    finally:
+        app.dependency_overrides.pop(get_provider_model_catalog, None)
+
+    assert response.status_code == 200
+    assert response.json() == {"items": ["alpha/rewrite:free", "beta/rewrite:free"]}
+    assert "synthetic-openrouter-key" not in response.text
 
 
 @pytest.mark.parametrize(

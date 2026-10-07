@@ -9,7 +9,11 @@ from sqlalchemy.orm import Session
 
 from newsflow.persistence.models import RewriteProviderSettingModel
 from newsflow.providers.model_catalog import ProviderModelCatalog
-from newsflow.providers.openrouter import FreeModelRequired, OpenRouterRewriteProvider
+from newsflow.providers.openrouter import (
+    FreeModelRequired,
+    OpenRouterRewriteProvider,
+    is_free_openrouter_model,
+)
 from newsflow.security.session_cipher import SessionCipher
 
 
@@ -74,9 +78,12 @@ class RewriteProviderSettingsService:
         row = self._session.get(RewriteProviderSettingModel, provider)
         if row is None:
             raise LookupError("Rewrite provider is not configured")
-        return catalog.list_models(
+        models = catalog.list_models(
             provider=provider, api_key=self._cipher.decrypt(row.encrypted_api_key)
         )
+        if provider == "OPENROUTER":
+            return tuple(model for model in models if is_free_openrouter_model(model))
+        return models
 
     def _upsert(
         self,

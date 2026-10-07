@@ -6,6 +6,8 @@ from typing import Protocol
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
+from newsflow.providers.openrouter import is_free_openrouter_model
+
 
 class ModelCatalogUnavailable(RuntimeError):
     """The configured provider could not list models for the saved credential."""
@@ -28,7 +30,11 @@ class HttpProviderModelCatalog:
         if provider == "OPENROUTER":
             records = self._request(self.openrouter_url, api_key)
             return tuple(
-                sorted(model for model in self._model_ids(records) if self._is_free(model))
+                sorted(
+                    model
+                    for model in self._model_ids(records)
+                    if is_free_openrouter_model(model)
+                )
             )
         raise ValueError("Unknown rewrite provider")
 
@@ -51,7 +57,3 @@ class HttpProviderModelCatalog:
             and isinstance(record.get("id"), str)
             and record["id"].strip()
         )
-
-    @staticmethod
-    def _is_free(model: str) -> bool:
-        return model == "openrouter/free" or model.endswith(":free")

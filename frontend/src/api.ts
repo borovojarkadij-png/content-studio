@@ -1,5 +1,14 @@
 import type { Post } from "./studio";
 
+export type RewriteProvider = "OPENAI" | "OPENROUTER";
+
+export type RewriteProviderSetting = {
+  provider: RewriteProvider;
+  configured: boolean;
+  primary_model: string;
+  fallback_models: string[];
+};
+
 type IncomingRecord = {
   source_key: string;
   state: string;
@@ -69,4 +78,96 @@ export async function loadInbox(signal: AbortSignal): Promise<Post[]> {
       item.rewrite_allowed === true && item.editorial_status === "PASS",
     revision: item.revision_number,
   }));
+}
+
+function isRewriteProviderSetting(
+  value: unknown,
+): value is RewriteProviderSetting {
+  if (!value || typeof value !== "object") return false;
+  const setting = value as Partial<RewriteProviderSetting>;
+  return (
+    (setting.provider === "OPENAI" || setting.provider === "OPENROUTER") &&
+    typeof setting.configured === "boolean" &&
+    typeof setting.primary_model === "string" &&
+    Array.isArray(setting.fallback_models) &&
+    setting.fallback_models.every((model) => typeof model === "string")
+  );
+}
+
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "";
+
+async function providerResponse(
+  path: string,
+  init?: RequestInit,
+): Promise<RewriteProviderSetting> {
+  const response = await fetch(`${apiBaseUrl}${path}`, init);
+  if (!response.ok) throw new Error(`API вернул HTTP ${response.status}`);
+  const payload: unknown = await response.json();
+  if (!isRewriteProviderSetting(payload)) {
+    throw new Error("Ответ API не соответствует контракту AI-подключения");
+  }
+  return payload;
+}
+
+export async function loadRewriteProviders(
+  signal: AbortSignal,
+): Promise<RewriteProviderSetting[]> {
+  const response = await fetch(`${apiBaseUrl}/api/settings/rewrite-providers`, {
+    signal,
+  });
+  if (!response.ok) throw new Error(`API вернул HTTP ${response.status}`);
+  const payload: unknown = await response.json();
+  if (
+    !payload ||
+    typeof payload !== "object" ||
+    !("items" in payload) ||
+    !Array.isArray(payload.items) ||
+    !payload.items.every(isRewriteProviderSetting)
+  ) {
+    throw new Error("Ответ API не соответствует контракту AI-подключений");
+  }
+  return payload.items;
+}
+
+export function saveOpenAIRewriteProvider(
+  apiKey: string,
+  model: string,
+): Promise<RewriteProviderSetting> {
+  return providerResponse("/api/settings/rewrite-providers/openai", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ api_key: apiKey, model }),
+  });
+}
+
+export function saveOpenRouterRewriteProvider(
+  apiKey: string,
+  fallbackModels: string[],
+): Promise<RewriteProviderSetting> {
+  return providerResponse("/api/settings/rewrite-providers/openrouter", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ api_key: apiKey, fallback_models: fallbackModels }),
+  });
+}
+
+export async function loadRewriteProviderModels(
+  provider: RewriteProvider,
+): Promise<string[]> {
+  const response = await fetch(
+    `${apiBaseUrl}/api/settings/rewrite-providers/${provider.toLowerCase()}/models`,
+    { method: "GET" },
+  );
+  if (!response.ok) throw new Error(`API вернул HTTP ${response.status}`);
+  const payload: unknown = await response.json();
+  if (
+    !payload ||
+    typeof payload !== "object" ||
+    !("items" in payload) ||
+    !Array.isArray(payload.items) ||
+    !payload.items.every((model) => typeof model === "string")
+  ) {
+    throw new Error("Ответ API не соответствует каталогу моделей");
+  }
+  return payload.items;
 }

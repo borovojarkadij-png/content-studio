@@ -82,6 +82,11 @@
 - Rewrite-provider request validation is credential-safe too: malformed OpenAI
   and OpenRouter settings payloads return structured `422` details without
   echoing any submitted API-key value.
+- Working-mode Settings now reads and replaces encrypted OpenAI/OpenRouter
+  rewrite-provider configuration through real API endpoints. It never fetches
+  or displays a stored key. A server-side, read-only model-catalog endpoint
+  lists OpenAI models or free-only OpenRouter models after a provider has been
+  configured; it does not invoke rewriting.
 - Dark-navy frontend: all eight section compositions, shared linear icons,
   selected rows/cards, responsive panels and honest unavailable actions.
 - In-memory DEMO workflows: donor import preview/partial success, independent
@@ -137,14 +142,15 @@
 
 ## NEXT STEP
 
-The durable configuration, mapping-aware candidate source and
-publication-planning contracts are complete locally. Next PHASE 1 task: store
-mapping publication policies (immediate versus delayed eligibility, priority
-and permitted media), persist per-output rewrite output/approval state and
-wire Settings/Planner UI to durable read/mutation APIs. Add the two safe media
-policies (reuse source media and licensed local-library lookup) before any real
-download or Telegram publication. Keep the current editorial recheck and never
-perform real Telegram publication as a side effect of UI work.
+The durable configuration, mapping-aware candidate source, publication-planning
+contracts and secure live AI-provider settings are complete locally. Next PHASE
+1 task: store mapping publication policies (immediate versus delayed
+eligibility, priority and permitted media), persist per-output rewrite
+output/approval state and wire Planner UI to durable read/mutation APIs. Add
+the two safe media policies (reuse source media and licensed local-library
+lookup) before any real download or Telegram publication. Keep the current
+editorial recheck and never perform real Telegram publication as a side effect
+of UI work.
 
 PHASE 1 IS NOT COMPLETE. Docker Compose/persistence/restart E2E remains
 NOT VERIFIED / BLOCKED BY ENVIRONMENT until Docker Desktop is available.

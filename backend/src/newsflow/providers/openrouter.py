@@ -65,7 +65,7 @@ class HttpOpenRouterTransport:
         return content
 
 
-def _is_free_model(model: str) -> bool:
+def is_free_openrouter_model(model: str) -> bool:
     return model == "openrouter/free" or model.endswith(":free")
 
 
@@ -85,7 +85,7 @@ class OpenRouterRewriteProvider:
         if (
             not models
             or len(models) != len(set(models))
-            or any(not _is_free_model(model) for model in models)
+            or any(not is_free_openrouter_model(model) for model in models)
         ):
             raise FreeModelRequired("Only explicit OpenRouter free models are allowed")
         self._api_key = api_key

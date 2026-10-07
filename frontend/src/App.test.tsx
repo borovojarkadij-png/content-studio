@@ -3,6 +3,7 @@ import {
   fireEvent,
   render,
   screen,
+  waitFor,
   within,
 } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -152,6 +153,65 @@ describe("Content Studio UI contracts", () => {
     expect(
       await screen.findByText("Ответ API не соответствует контракту входящих"),
     ).toBeTruthy();
+  });
+  it("saves a replacement OpenAI key only through the live settings API", async () => {
+    const fetch = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ items: [] }) })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          provider: "OPENAI",
+          configured: true,
+          primary_model: "gpt-test-rewrite",
+          fallback_models: [],
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ items: ["gpt-test-rewrite", "gpt-another"] }),
+      });
+    vi.stubGlobal("fetch", fetch);
+    render(<App />);
+    navigate("Настройки");
+    fireEvent.click(
+      await screen.findByRole("button", { name: "AI и перефразирование" }),
+    );
+    fireEvent.change(screen.getByLabelText("API-ключ для замены"), {
+      target: { value: "synthetic-openai-key" },
+    });
+    fireEvent.change(screen.getByLabelText("Модель OpenAI"), {
+      target: { value: "gpt-test-rewrite" },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Сохранить AI-подключение" }),
+    );
+
+    await waitFor(() =>
+      expect(fetch).toHaveBeenLastCalledWith(
+        "/api/settings/rewrite-providers/openai",
+        expect.objectContaining({
+          method: "PUT",
+          body: JSON.stringify({
+            api_key: "synthetic-openai-key",
+            model: "gpt-test-rewrite",
+          }),
+        }),
+      ),
+    );
+    expect(
+      (screen.getByLabelText("API-ключ для замены") as HTMLInputElement).value,
+    ).toBe("");
+    fireEvent.click(
+      screen.getByRole("button", { name: "Обновить список моделей" }),
+    );
+    expect(
+      await screen.findByRole("option", { name: "gpt-another" }),
+    ).toBeTruthy();
+    expect(fetch).toHaveBeenLastCalledWith(
+      "/api/settings/rewrite-providers/openai/models",
+      expect.objectContaining({ method: "GET" }),
+    );
   });
   it("saves route percentages independently for each route and cancels to saved values", () => {
     render(<App initialDemo />);

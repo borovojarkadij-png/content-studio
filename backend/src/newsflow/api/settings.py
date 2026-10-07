@@ -8,6 +8,11 @@ from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.exc import SQLAlchemyError
 
 from newsflow.persistence.database import database_session
+from newsflow.providers.model_catalog import (
+    HttpProviderModelCatalog,
+    ModelCatalogUnavailable,
+    ProviderModelCatalog,
+)
 from newsflow.security.master_key import MasterKeyUnavailable, load_runtime_master_key
 from newsflow.security.session_cipher import MasterKeyFormatInvalid, SessionCipher
 from newsflow.services.rewrite_provider_settings import RewriteProviderSettingsService
@@ -34,6 +39,13 @@ def get_rewrite_provider_settings_service() -> Iterator[RewriteProviderSettingsS
 
 
 Settings = Annotated[RewriteProviderSettingsService, Depends(get_rewrite_provider_settings_service)]
+
+
+def get_provider_model_catalog() -> ProviderModelCatalog:
+    return HttpProviderModelCatalog()
+
+
+ModelCatalog = Annotated[ProviderModelCatalog, Depends(get_provider_model_catalog)]
 
 
 class StrictRequest(BaseModel):
@@ -69,6 +81,20 @@ def configure_openai_rewrite_provider(
     request: OpenAIRewriteSettingsRequest, service: Settings
 ) -> dict[str, object]:
     return service.configure_openai(api_key=request.api_key, model=request.model)
+
+
+@router.get("/rewrite-providers/{provider}/models")
+def list_rewrite_provider_models(
+    provider: Literal["openai", "openrouter"],
+    service: Settings,
+    catalog: ModelCatalog,
+) -> dict[str, tuple[str, ...]]:
+    try:
+        return {"items": service.available_models(provider.upper(), catalog=catalog)}
+    except LookupError as exc:
+        raise HTTPException(409, "Rewrite provider is not configured") from exc
+    except ModelCatalogUnavailable as exc:
+        raise HTTPException(503, "Provider model catalog is unavailable") from exc
 
 
 @router.delete("/rewrite-providers/{provider}")

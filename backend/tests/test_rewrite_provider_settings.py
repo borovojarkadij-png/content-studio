@@ -124,3 +124,27 @@ def test_model_catalog_uses_decrypted_key_only_server_side() -> None:
 
         assert models == ("gpt-test-a", "gpt-test-b")
         assert catalog.calls == [("OPENAI", "synthetic-openai-key")]
+
+
+def test_openrouter_catalog_never_exposes_a_paid_model() -> None:
+    class MixedCatalog:
+        def list_models(self, *, provider: str, api_key: str) -> tuple[str, ...]:
+            assert provider == "OPENROUTER"
+            assert api_key == "synthetic-openrouter-key"
+            return ("vendor/free:free", "openai/gpt-paid", "openrouter/free")
+
+    engine = create_engine("sqlite://")
+    Base.metadata.create_all(engine)
+    with Session(engine) as session:
+        service = RewriteProviderSettingsService(
+            session, cipher=SessionCipher(Fernet.generate_key().decode("ascii"))
+        )
+        service.configure_openrouter(
+            api_key="synthetic-openrouter-key",
+            fallback_models=("vendor/free:free",),
+        )
+
+        assert service.available_models("OPENROUTER", catalog=MixedCatalog()) == (
+            "vendor/free:free",
+            "openrouter/free",
+        )

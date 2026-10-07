@@ -1,6 +1,14 @@
 import { useEffect, useState } from "react";
 import { DraftActions, ScheduleDialog, type WorkspaceProps } from "./App";
 import {
+  loadRewriteProviderModels,
+  loadRewriteProviders,
+  saveOpenAIRewriteProvider,
+  saveOpenRouterRewriteProvider,
+  type RewriteProvider,
+  type RewriteProviderSetting,
+} from "./api";
+import {
   calendarSlots,
   canProcess,
   datePlus,
@@ -883,19 +891,112 @@ const settingSections = [
   },
   { label: "Безопасность", icon: "shield", detail: "Лимиты и ограничения" },
 ];
-export function Settings({ markDirty }: WorkspaceProps) {
+export function Settings({
+  markDirty,
+  demo,
+}: WorkspaceProps & { demo: boolean }) {
   const [section, setSection] = useState("Общие");
   const [draft, setDraft] = useState(initialSettings);
   const [saved, setSaved] = useState(initialSettings);
   const [notice, setNotice] = useState("");
-  const dirty = JSON.stringify(draft) !== JSON.stringify(saved);
+  const [provider, setProvider] = useState<RewriteProvider>("OPENAI");
+  const [providerSettings, setProviderSettings] = useState<
+    RewriteProviderSetting[]
+  >([]);
+  const [apiKey, setApiKey] = useState("");
+  const [openAIModel, setOpenAIModel] = useState("");
+  const [openRouterModels, setOpenRouterModels] = useState("");
+  const [availableModels, setAvailableModels] = useState<string[]>([]);
+  const [loadingModels, setLoadingModels] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const dirty =
+    JSON.stringify(draft) !== JSON.stringify(saved) || (!demo && apiKey !== "");
   useEffect(() => markDirty("settings", dirty), [dirty, markDirty]);
+  useEffect(() => {
+    if (demo) return;
+    const controller = new AbortController();
+    void loadRewriteProviders(controller.signal)
+      .then((items) => {
+        setProviderSettings(items);
+        const openAI = items.find((item) => item.provider === "OPENAI");
+        const openRouter = items.find((item) => item.provider === "OPENROUTER");
+        setOpenAIModel(openAI?.primary_model ?? "");
+        setOpenRouterModels(openRouter?.fallback_models.join("\n") ?? "");
+      })
+      .catch((error: unknown) => {
+        if (error instanceof Error && error.name === "AbortError") return;
+        setNotice(
+          error instanceof Error
+            ? error.message
+            : "Не удалось загрузить AI-подключения.",
+        );
+      });
+    return () => controller.abort();
+  }, [demo]);
   const change = <K extends keyof SettingsValues>(
     key: K,
     value: SettingsValues[K],
   ) => {
     setDraft((prior) => ({ ...prior, [key]: value }));
     setNotice("");
+  };
+  const saveProvider = async () => {
+    const key = apiKey.trim();
+    if (!key) {
+      setNotice("Введите API-ключ для сохранения или замены подключения.");
+      return;
+    }
+    setSubmitting(true);
+    setNotice("");
+    try {
+      const savedProvider =
+        provider === "OPENAI"
+          ? await saveOpenAIRewriteProvider(key, openAIModel.trim())
+          : await saveOpenRouterRewriteProvider(
+              key,
+              openRouterModels
+                .split(/[,\n]/)
+                .map((model) => model.trim())
+                .filter(Boolean),
+            );
+      setProviderSettings((prior) => [
+        ...prior.filter((item) => item.provider !== savedProvider.provider),
+        savedProvider,
+      ]);
+      setApiKey("");
+      setNotice(
+        "AI-подключение сохранено. Ключ не отображается после сохранения.",
+      );
+    } catch (error) {
+      setNotice(
+        error instanceof Error
+          ? error.message
+          : "Не удалось сохранить AI-подключение.",
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
+  const loadModels = async () => {
+    if (!providerSettings.some((item) => item.provider === provider)) {
+      setNotice(
+        "Сначала сохраните подключение, чтобы получить каталог моделей.",
+      );
+      return;
+    }
+    setLoadingModels(true);
+    setNotice("");
+    try {
+      setAvailableModels(await loadRewriteProviderModels(provider));
+    } catch (error) {
+      setNotice(
+        error instanceof Error
+          ? error.message
+          : "Не удалось загрузить каталог моделей.",
+      );
+    } finally {
+      setLoadingModels(false);
+    }
   };
   return (
     <div className="settings-layout">
@@ -925,7 +1026,7 @@ export function Settings({ markDirty }: WorkspaceProps) {
             {settingSections.find((item) => item.label === section)!.detail}.
             Изменения применяются после явного сохранения.
           </p>
-          {section === "Общие" && (
+          {demo && section === "Общие" && (
             <>
               <div className="settings-subsection">
                 <h3>Интерфейс</h3>
@@ -984,7 +1085,7 @@ export function Settings({ markDirty }: WorkspaceProps) {
               </div>
             </>
           )}
-          {section === "Модерация" && (
+          {demo && section === "Модерация" && (
             <>
               <div className="settings-subsection">
                 <label className="setting-field">
@@ -1027,7 +1128,7 @@ export function Settings({ markDirty }: WorkspaceProps) {
               </div>
             </>
           )}
-          {section === "Публикация" && (
+          {demo && section === "Публикация" && (
             <>
               <label className="setting-field">
                 <span>
@@ -1052,7 +1153,7 @@ export function Settings({ markDirty }: WorkspaceProps) {
               </div>
             </>
           )}
-          {section === "Уведомления" && (
+          {demo && section === "Уведомления" && (
             <>
               <Toggle
                 label="Новые материалы во входящих"
@@ -1069,7 +1170,7 @@ export function Settings({ markDirty }: WorkspaceProps) {
               </p>
             </>
           )}
-          {section === "AI и перефразирование" && (
+          {demo && section === "AI и перефразирование" && (
             <>
               <label className="setting-field">
                 <span>
@@ -1108,7 +1209,137 @@ export function Settings({ markDirty }: WorkspaceProps) {
               </div>
             </>
           )}
-          {section === "Безопасность" && (
+          {!demo && section === "AI и перефразирование" && (
+            <div className="settings-subsection">
+              <h3>Подключение для рерайта</h3>
+              <p className="help-copy">
+                Ключ вводится только для сохранения или замены. После отправки
+                он шифруется на сервере и больше не показывается в интерфейсе.
+              </p>
+              <label className="setting-field">
+                <span>
+                  <b>Поставщик AI</b>
+                  <small>OpenAI или бесплатные модели OpenRouter</small>
+                </span>
+                <select
+                  aria-label="Поставщик AI"
+                  value={provider}
+                  onChange={(event) => {
+                    setProvider(event.target.value as RewriteProvider);
+                    setApiKey("");
+                    setAvailableModels([]);
+                    setNotice("");
+                  }}
+                >
+                  <option value="OPENAI">OpenAI</option>
+                  <option value="OPENROUTER">OpenRouter · только free</option>
+                </select>
+              </label>
+              <label className="field">
+                API-ключ для замены
+                <input
+                  aria-label="API-ключ для замены"
+                  autoComplete="new-password"
+                  onChange={(event) => setApiKey(event.target.value)}
+                  placeholder="Введите ключ только для замены"
+                  type="password"
+                  value={apiKey}
+                />
+              </label>
+              {provider === "OPENAI" ? (
+                <label className="field">
+                  Модель OpenAI
+                  <input
+                    aria-label="Модель OpenAI"
+                    onChange={(event) => setOpenAIModel(event.target.value)}
+                    placeholder="Например, gpt-4.1-mini"
+                    value={openAIModel}
+                  />
+                </label>
+              ) : (
+                <label className="field">
+                  Бесплатные модели OpenRouter
+                  <textarea
+                    aria-label="Бесплатные модели OpenRouter"
+                    onChange={(event) =>
+                      setOpenRouterModels(event.target.value)
+                    }
+                    placeholder={"vendor/model:free\nopenrouter/free"}
+                    value={openRouterModels}
+                  />
+                </label>
+              )}
+              <button
+                disabled={
+                  loadingModels ||
+                  !providerSettings.some((item) => item.provider === provider)
+                }
+                onClick={() => void loadModels()}
+              >
+                {loadingModels
+                  ? "Обновляем список…"
+                  : "Обновить список моделей"}
+              </button>
+              {availableModels.length > 0 && (
+                <label className="field">
+                  Доступные модели{" "}
+                  {provider === "OPENROUTER" ? "OpenRouter Free" : "OpenAI"}
+                  <select
+                    aria-label="Доступные модели"
+                    defaultValue=""
+                    onChange={(event) => {
+                      const model = event.target.value;
+                      if (!model) return;
+                      if (provider === "OPENAI") {
+                        setOpenAIModel(model);
+                      } else {
+                        setOpenRouterModels((prior) =>
+                          [
+                            model,
+                            ...prior
+                              .split(/[,\n]/)
+                              .map((item) => item.trim())
+                              .filter((item) => item && item !== model),
+                          ].join("\n"),
+                        );
+                      }
+                    }}
+                  >
+                    <option value="">Выберите модель</option>
+                    {availableModels.map((model) => (
+                      <option key={model} value={model}>
+                        {model}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
+              <div className="policy-note">
+                <Icon name="shield" />
+                <span>
+                  {provider === "OPENROUTER"
+                    ? "Разрешены только модели с :free или openrouter/free. При недоступности следующая модель берётся из списка по порядку."
+                    : "Выберите модель OpenAI для рерайта. EditorialGate остаётся обязательным до любого вызова модели."}
+                </span>
+              </div>
+              <button
+                className="primary-button"
+                disabled={submitting || !apiKey.trim()}
+                onClick={() => void saveProvider()}
+              >
+                {submitting
+                  ? "Сохраняем подключение…"
+                  : "Сохранить AI-подключение"}
+              </button>
+              {providerSettings.some((item) => item.provider === provider) && (
+                <p className="help-copy">
+                  Подключение {provider === "OPENAI" ? "OpenAI" : "OpenRouter"}{" "}
+                  настроено; ключ скрыт.
+                </p>
+              )}
+            </div>
+          )}
+          {demo && section === "Безопасность" && (
             <>
               <label className="setting-field">
                 <span>
@@ -1137,21 +1368,32 @@ export function Settings({ markDirty }: WorkspaceProps) {
               </p>
             </>
           )}
-          <DraftActions
-            dirty={dirty}
-            onCancel={() => {
-              setDraft(saved);
-              setNotice("");
-            }}
-            onSave={() => {
-              if (draft.daily < 1 || draft.daily > 100) {
-                setNotice("Дневной лимит должен быть от 1 до 100.");
-                return;
-              }
-              setSaved(draft);
-              setNotice("Изменения сохранены только в DEMO.");
-            }}
-          />
+          {!demo && section !== "AI и перефразирование" && (
+            <div className="policy-note">
+              <Icon name="shield" />
+              <span>
+                Для этого раздела ещё нет рабочего API. Изменения не имитируются
+                в рабочем режиме.
+              </span>
+            </div>
+          )}
+          {demo && (
+            <DraftActions
+              dirty={dirty}
+              onCancel={() => {
+                setDraft(saved);
+                setNotice("");
+              }}
+              onSave={() => {
+                if (draft.daily < 1 || draft.daily > 100) {
+                  setNotice("Дневной лимит должен быть от 1 до 100.");
+                  return;
+                }
+                setSaved(draft);
+                setNotice("Изменения сохранены только в DEMO.");
+              }}
+            />
+          )}
           {notice && <Notice>{notice}</Notice>}
         </Panel>
         <Panel className="settings-help">
