@@ -26,6 +26,9 @@ from newsflow.services.rewrite_provider_settings import RewriteProviderSettingsS
 from newsflow.services.telegram_configuration import TelegramConfigurationService
 
 CONTENT_KEY = "synthetic-persistence:@synthetic_donor:1:revision:1"
+PROVIDER = os.getenv("NEWSFLOW_VERIFICATION_REWRITE_PROVIDER", "OPENAI")
+if PROVIDER not in {"OPENAI", "OPENROUTER"}:
+    raise ValueError("Expected an explicit synthetic rewrite provider")
 
 
 class SyntheticHttp:
@@ -35,6 +38,37 @@ class SyntheticHttp:
     def __call__(self, request, *, timeout):
         self.calls += 1
         payload = json.loads(request.data)
+        if PROVIDER == "OPENROUTER":
+            assert request.full_url == "https://openrouter.ai/api/v1/chat/completions"
+            assert payload["model"] == "synthetic/model:free"
+            assert payload["provider"]["max_price"] == {"prompt": 0, "completion": 0, "request": 0}
+            assert payload["response_format"]["json_schema"]["strict"] is True
+            assert payload["messages"][1]["content"] == "Permitted synthetic news"
+            assert "tabloid" in payload["messages"][0]["content"].lower()
+            return io.BytesIO(
+                json.dumps(
+                    {
+                        "choices": [
+                            {
+                                "finish_reason": "stop",
+                                "message": {
+                                    "role": "assistant",
+                                    "content": json.dumps(
+                                        {
+                                            "rewritten_text": "Synthetic rewrite: Permitted synthetic news"
+                                        }
+                                    ),
+                                },
+                            }
+                        ],
+                        "usage": {
+                            "prompt_tokens": 100,
+                            "completion_tokens": 20,
+                            "total_tokens": 120,
+                        },
+                    }
+                ).encode()
+            )
         assert request.full_url == "https://api.openai.com/v1/responses"
         assert payload["model"] == "synthetic-model"
         assert payload["input"][1]["content"] == "Permitted synthetic news"
@@ -97,12 +131,21 @@ def main() -> None:
         previous_token = job.claim_token
         if sys.argv[1] == "claim":
             channel_id = job.output_channel_id
-            RewriteProviderSettingsService(session, cipher=cipher).configure_openai(
-                api_key="synthetic-not-a-real-credential", model="synthetic-model"
-            )
+            settings = RewriteProviderSettingsService(session, cipher=cipher)
+            if PROVIDER == "OPENROUTER":
+                settings.configure_openrouter(
+                    api_key="synthetic-not-a-real-credential",
+                    fallback_models=("synthetic/model:free",),
+                )
+            else:
+                settings.configure_openai(
+                    api_key="synthetic-not-a-real-credential", model="synthetic-model"
+                )
             TelegramConfigurationService(session).configure_rewrite_style(channel_id, "TABLOID")
     provider = SyntheticHttp()
-    configured = ConfiguredRewriteProviderFactory(factory, cipher=cipher, opener=provider)
+    configured = ConfiguredRewriteProviderFactory(
+        factory, cipher=cipher, opener=provider, provider=PROVIDER
+    )
     runner = DurableRewriteRunner(factory, provider_for_channel=configured)
     now = datetime.now(UTC)
     if sys.argv[1] == "claim":
@@ -182,6 +225,7 @@ def verify(factory, job_id: int) -> None:
         ).one()
         assert (usage.attempt, usage.input_tokens, usage.output_tokens) == (2, 100, 20)
         assert usage.style == "TABLOID" and usage.estimated_cost_usd is None
+        assert usage.provider == PROVIDER
         assert (
             session.scalar(
                 select(func.count())

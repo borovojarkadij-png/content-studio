@@ -4,7 +4,9 @@ param(
     [int]$WebPort = 15173,
     [int]$ProductionPort = 18080,
     [switch]$CrashRecovery,
-    [switch]$RewriteRecovery
+    [switch]$RewriteRecovery,
+    [ValidateSet('OPENAI', 'OPENROUTER')]
+    [string]$RewriteProvider = 'OPENAI'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -43,6 +45,7 @@ NEWSFLOW_API_PORT=$ApiPort
 NEWSFLOW_WEB_PORT=$WebPort
 NEWSFLOW_PROD_WEB_PORT=$ProductionPort
 NEWSFLOW_VERIFICATION_PROBE=1
+NEWSFLOW_VERIFICATION_REWRITE_PROVIDER=$RewriteProvider
 "@
 [IO.File]::WriteAllText($envPath, $envText, [Text.UTF8Encoding]::new($false))
 $networkPath = Join-Path $fixtureDirectory 'network.yaml'

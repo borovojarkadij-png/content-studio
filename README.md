@@ -19,7 +19,8 @@ PHASE 1 строит Telegram News Hub как modular monolith. Основной
 6. With Docker Desktop installed, run `scripts/start-dev.ps1`.
 
 Pushes to main and `codex/**`, and pull requests, run the backend and frontend
-quality gates in GitHub Actions, including a synthetic Docker persistence job.
+quality gates in GitHub Actions, including synthetic Docker persistence jobs for
+OpenAI and OpenRouter adapters (no external AI requests).
 Windows Docker Desktop build/startup/storage restart checks now pass in an
 isolated fixture stack; live Telegram authorization and job execution recovery
 are not yet verified. See [Docker verification](docs/DOCKER_VERIFICATION.md).
@@ -34,7 +35,14 @@ backend reload). For production configuration, run `docker compose --profile
 production up --build -d --wait`; nginx serves the built UI on loopback port 8080
 and proxies the API. Configure TLS/authentication before exposing it on a VPS.
 Migrations run before API and worker startup. The worker automatically plans
-eligible approved candidates, but does not yet execute rewrites or publish.
+eligible approved candidates. Network rewriting is disabled by default; explicitly
+set `NEWSFLOW_REWRITE_ENABLED=1` and `NEWSFLOW_REWRITE_PROVIDER=OPENAI` or
+`OPENROUTER` in the local environment only after configuring encrypted provider
+Settings and a stable master key. OpenRouter only tries the saved free model list,
+never paid OpenAI fallback. Recreate the worker to apply environment changes.
+Successful rewrites are PENDING review, not automatically approved or published.
+See [rewrite verification](docs/OPENROUTER_REWRITE_VERIFICATION.md) for boundaries.
+The operational stack currently keeps network rewriting disabled.
 
 Repeat safe synthetic acceptance: `./scripts/verify-persistence.ps1 -CrashRecovery`.
 This uses a separate database/project/key, not real Telegram sessions or AI.
@@ -62,5 +70,7 @@ real Telegram sessions, touch the local newsflow.db or call paid providers.
 Screenshots and the browser report are written to `.artifacts/ui-dark-navy/`
 and uploaded as a GitHub Actions artifact. See
 [UI verification](docs/UI_DARK_NAVY_VERIFICATION.md) for coverage and limitations.
-PHASE 1 is not yet complete; synthetic Docker storage acceptance does not prove
-live authorization, rewrite execution recovery or automatic publication.
+PHASE 1 is not yet complete; synthetic Docker storage and injected structured
+rewrite recovery do not prove live authorization/provider execution or automatic
+publication. Planner's «В стиле жёлтой прессы» button saves a channel's future
+rewrite style; it does not change existing drafts or itself spend API credits.

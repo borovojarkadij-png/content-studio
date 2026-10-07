@@ -11,9 +11,9 @@ from newsflow.persistence.models import RewriteProviderSettingModel
 from newsflow.providers.model_catalog import ProviderModelCatalog
 from newsflow.providers.openrouter import (
     FreeModelRequired,
-    OpenRouterRewriteProvider,
     is_free_openrouter_model,
 )
+from newsflow.providers.openrouter_structured import StructuredFreeOpenRouterProvider
 from newsflow.security.session_cipher import SessionCipher
 
 
@@ -36,7 +36,7 @@ class RewriteProviderSettingsService:
         if not isinstance(api_key, str) or not api_key.strip():
             raise ValueError("OpenRouter API key is required")
         try:
-            OpenRouterRewriteProvider(api_key="validation", fallback_models=fallback_models)
+            StructuredFreeOpenRouterProvider(api_key=api_key, models=fallback_models)
         except FreeModelRequired as exc:
             raise ValueError("OpenRouter rewrite models must be explicitly free") from exc
         return self._upsert(

@@ -169,7 +169,7 @@ class DurableRewriteRunner:
                             RewriteUsageModel(
                                 rewrite_job_id=job.id,
                                 attempt=job.attempts,
-                                provider="OPENAI",
+                                provider=usage.provider,
                                 model=usage.model,
                                 style=usage.style,
                                 input_tokens=usage.input_tokens,

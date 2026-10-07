@@ -21,6 +21,68 @@ from newsflow.services.telegram_configuration import TelegramConfigurationServic
 NOW = datetime(2030, 1, 1, tzinfo=UTC)
 
 
+def test_configured_free_failover_persists_provider_model_and_independent_pending_drafts(
+    rewrite_store,
+):
+    from urllib.error import HTTPError
+
+    from test_openrouter_structured import FreeHttp, reply
+
+    from newsflow.persistence.models import RewriteUsageModel
+    from newsflow.security.session_cipher import SessionCipher
+    from newsflow.services.durable_rewrite_runner import DurableRewriteRunner
+    from newsflow.services.rewrite_provider_factory import ConfiguredRewriteProviderFactory
+    from newsflow.services.rewrite_provider_settings import RewriteProviderSettingsService
+
+    cipher = SessionCipher("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=")
+    with rewrite_store() as session:
+        RewriteProviderSettingsService(session, cipher=cipher).configure_openrouter(
+            api_key="synthetic", fallback_models=("a/model:free", "b/model:free")
+        )
+        TelegramConfigurationService(session).configure_rewrite_style(1, "TABLOID")
+    http = FreeHttp([HTTPError("https://synthetic", 429, "private", {}, None), reply(), reply()])
+    factory = ConfiguredRewriteProviderFactory(
+        rewrite_store, cipher=cipher, opener=http, provider="OPENROUTER"
+    )
+    runner = DurableRewriteRunner(rewrite_store, provider_for_channel=factory, clock=lambda: NOW)
+    assert runner.run_next(now=NOW) == "SUCCEEDED"
+    assert runner.run_next(now=NOW) == "SUCCEEDED"
+    with rewrite_store() as session:
+        rows = session.scalars(select(RewriteUsageModel).order_by(RewriteUsageModel.id)).all()
+        assert [(row.provider, row.model, row.style, row.attempt) for row in rows] == [
+            ("OPENROUTER", "b/model:free", "TABLOID", 1),
+            ("OPENROUTER", "a/model:free", "NEUTRAL", 1),
+        ]
+        assert session.scalar(select(func.count()).select_from(RewriteOutputModel)) == 2
+        assert set(session.scalars(select(RewriteOutputModel.approval_state))) == {"PENDING"}
+    assert len(http.requests) == 3
+
+
+def test_free_factory_never_calls_network_for_stale_reject(rewrite_store):
+    from test_openrouter_structured import FreeHttp
+
+    from newsflow.security.session_cipher import SessionCipher
+    from newsflow.services.durable_rewrite_runner import DurableRewriteRunner
+    from newsflow.services.rewrite_provider_factory import ConfiguredRewriteProviderFactory
+
+    http = FreeHttp([])
+    factory = ConfiguredRewriteProviderFactory(
+        rewrite_store,
+        cipher=SessionCipher("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="),
+        opener=http,
+        provider="OPENROUTER",
+    )
+    runner = DurableRewriteRunner(rewrite_store, provider_for_channel=factory, clock=lambda: NOW)
+    with rewrite_store() as session:
+        decision = session.scalar(select(EditorialDecisionModel))
+        decision.status, decision.rewrite_allowed = "REJECT", False
+        session.commit()
+    assert runner.run_next(now=NOW) == "BLOCKED_EDITORIAL"
+    assert http.requests == []
+    with rewrite_store() as session:
+        assert session.scalar(select(func.count()).select_from(RewriteOutputModel)) == 0
+
+
 def test_configured_factory_uses_encrypted_saved_model_channel_style_and_persists_usage(
     rewrite_store,
 ):

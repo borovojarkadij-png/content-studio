@@ -75,11 +75,15 @@ jobs:
           retention-days: 14
 
   docker-persistence:
-    name: Synthetic Docker persistence
+    name: Synthetic Docker persistence (${{ matrix.provider }})
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        provider: [OPENAI, OPENROUTER]
     steps:
       - uses: actions/checkout@v4
       - name: Build, migrate and verify isolated restart/crash recovery
         shell: pwsh
-        run: ./scripts/verify-persistence.ps1 -Project newsflow-verification-ci -CrashRecovery -RewriteRecovery
+        run: ./scripts/verify-persistence.ps1 -Project newsflow-verification-ci -CrashRecovery -RewriteRecovery -RewriteProvider ${{ matrix.provider }}

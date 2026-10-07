@@ -63,8 +63,9 @@ configured output channel, not an invented operational channel.
 
 ## Remaining
 
-Bounded free-only OpenRouter execution is not yet connected to the daemon;
-existing settings/catalog/fallback component remain separate. Provider-compatible
+Bounded free-only OpenRouter execution was subsequently connected to the opt-in
+daemon; see OPENROUTER_REWRITE_VERIFICATION.md for its independent evidence.
+Provider-compatible
 model discovery does not guarantee that every returned model supports rewriting
 and strict Responses schema. Unsupported selection fails visibly, not via a paid
 fallback. Usage dashboard/rate configuration/cache, semantic fact verification,

@@ -1,3 +1,4 @@
+import pytest
 from cryptography.fernet import Fernet
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
@@ -18,6 +19,28 @@ class RecordingModelCatalog:
             if provider == "OPENAI"
             else ("alpha/rewrite:free", "openrouter/free")
         )
+
+
+@pytest.mark.parametrize(
+    "models",
+    [
+        ("alpha/rewrite:free",) * 2,
+        tuple(f"alpha/{n}:free" for n in range(9)),
+        ("alpha/rewrite:free,paid/model",),
+        ("alpha/rewrite:free\n",),
+    ],
+)
+def test_free_settings_reject_unsafe_or_unbounded_model_lists_before_persisting(models):
+    engine = create_engine("sqlite://")
+    Base.metadata.create_all(engine)
+    with Session(engine) as session:
+        service = RewriteProviderSettingsService(
+            session, cipher=SessionCipher("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=")
+        )
+        with pytest.raises(ValueError):
+            service.configure_openrouter(api_key="synthetic", fallback_models=models)
+        assert session.scalars(select(RewriteProviderSettingModel)).all() == []
+    engine.dispose()
 
 
 def test_openrouter_settings_encrypt_key_and_expose_only_free_model_configuration() -> None:

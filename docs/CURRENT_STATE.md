@@ -2,6 +2,20 @@
 
 ## VERIFIED WORKING
 
+- Bounded strict free-only OpenRouter adapter is now connected to the encrypted
+  factory and explicitly selected opt-in worker. One overall fallback deadline,
+  zero price caps, no paid/cross-provider fallback, terminal invalid/fact-changed
+  responses and persisted actual provider/model/style usage are tested offline.
+  Backend 227 / frontend 26 / browser 19 checks passed; production audit zero.
+  See OPENROUTER_REWRITE_VERIFICATION.md. Operational networking remains disabled.
+- Windows Docker free OpenRouter structured recovery passed in isolated project
+  newsflow-verification-openrouter20261008: down/up, PostgreSQL crash, Redis loss,
+  encrypted settings/session/media persistence, expired claim fencing and exactly
+  one synthetic structured completion with durable usage/PENDING draft. No external
+  provider calls or Telegram sends. Latest code packaged/deployed on operational
+  stack, all services healthy and actual PostgreSQL drift check passed.
+- GitHub Actions 37685672269 passed all three jobs for OpenAI/style commit 187d51e,
+  including Linux synthetic restart/crash/leased structured recovery.
 - OpenAI strict structured rewrite adapter, encrypted-settings factory and explicitly
   opt-in worker are implemented and tested offline. Default worker still plans only;
   network rewriting remains disabled in the operational stack. Known tokens persist
@@ -220,8 +234,8 @@
 
 ## NOT IMPLEMENTED
 
-- Operational Telethon ingestion/publication transport, bounded free OpenRouter
-  execution worker, semantic fact verification/guarded auto-approval and media
+- Operational Telethon ingestion/publication transport, semantic fact
+  verification/guarded auto-approval and media
   execution remain pending (provider contracts/plan selection already exist).
   PostgreSQL-backed inbox read is now verified on Docker Desktop; live ingestion
   and transport execution remain pending.
@@ -269,11 +283,11 @@ Fact-anchor guard and leased durable runner component are now implemented;
 see REWRITE_RECOVERY_VERIFICATION.md. Do not repeat the Docker repair/setup.
 OpenAI structured adapter/factory, known usage and explicitly opt-in worker are
 implemented; channel-specific natural tabloid style is wired to actual Planner API.
-Exact NEXT_STEP: extend the server-side factory/worker with bounded free-only
-OpenRouter structured rewrite/failover under one overall lease budget, preserving
-current editorial checks, known-usage records and no paid fallback. Test injected
-HTTP refusals/rate limits/invalid content and re-run Docker recovery. Then implement
-semantic fact verification and configurable guarded automatic approval; anchor
+Bounded free-only OpenRouter structured execution is implemented and passes the
+offline provider/factory/worker gate, including refusals/rate limits/fact changes
+and no paid fallback (OPENROUTER_REWRITE_VERIFICATION.md).
+Exact NEXT_STEP: implement semantic fact verification and configurable guarded
+automatic approval, with versioned synthetic evals and fail-closed evidence; anchor
 equality alone must never authorize it. Live OpenAI smoke verification remains
 blocked by the current file's missing usable key; never expose/store keys in Git.
 User donor inputs are recorded in USER_CHANNELS.md, not fake runtime accounts.

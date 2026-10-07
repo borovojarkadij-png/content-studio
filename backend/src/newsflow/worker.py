@@ -1,4 +1,4 @@
-"""Durable planning and explicitly opt-in OpenAI drafts; never publication."""
+"""Durable planning and explicitly opt-in provider drafts; never publication."""
 
 import signal
 from collections.abc import Callable
@@ -37,13 +37,16 @@ def run_rewrite_tick(
     cipher: SessionCipher | None,
     now: datetime,
     opener=None,
+    provider: str = "OPENAI",
 ) -> str:
     if not enabled:
         return "DISABLED"
     if cipher is None:
         raise ValueError("Explicit stable cipher is required for enabled rewriting")
-    provider = ConfiguredRewriteProviderFactory(session_factory, cipher=cipher, opener=opener)
-    runner = DurableRewriteRunner(session_factory, provider_for_channel=provider)
+    configured = ConfiguredRewriteProviderFactory(
+        session_factory, cipher=cipher, opener=opener, provider=provider
+    )
+    runner = DurableRewriteRunner(session_factory, provider_for_channel=configured)
     return runner.run_next(now=now)
 
 
@@ -89,6 +92,9 @@ def main() -> None:
     if not 5 <= interval <= 60:
         raise ValueError("Scheduler polling interval must be between 5 and 60 seconds")
     network_enabled = rewrite_enabled(getenv("NEWSFLOW_REWRITE_ENABLED", "0"))
+    provider = getenv("NEWSFLOW_REWRITE_PROVIDER", "OPENAI")
+    if provider not in {"OPENAI", "OPENROUTER"}:
+        raise ValueError("NEWSFLOW_REWRITE_PROVIDER must be OPENAI or OPENROUTER")
     cipher = SessionCipher(load_runtime_master_key()) if network_enabled else None
     stopped = Event()
     for signum in (signal.SIGTERM, signal.SIGINT):
@@ -107,7 +113,7 @@ def main() -> None:
         if network_enabled and not stopped.is_set():
             try:
                 outcome = run_rewrite_tick(
-                    factory, enabled=True, cipher=cipher, now=datetime.now(UTC)
+                    factory, enabled=True, cipher=cipher, now=datetime.now(UTC), provider=provider
                 )
                 logger.info("rewrite.tick", outcome=outcome)
             except Exception:  # noqa: BLE001 - external failures must not leak secrets or lose leases

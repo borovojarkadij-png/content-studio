@@ -117,6 +117,20 @@ using structured synthetic HTTP responses and encrypted synthetic credentials.
 Real provider requests remain unverified; the operational worker is disabled
 for network rewriting and still has no Telegram publication transport.
 
+The free-only OpenRouter follow-up also passed on Windows Docker Desktop:
+`./scripts/verify-persistence.ps1 -Project newsflow-verification-openrouter20261008
+-ApiPort 18007 -WebPort 15180 -ProductionPort 18087 -CrashRecovery
+-RewriteRecovery -RewriteProvider OPENROUTER`.
+It used encrypted synthetic OpenRouter settings, a free model with strict schema
+and zero price caps, actual persisted lease expiry/fencing and one injected HTTP
+reply. Provider/model/style/tokens and PENDING draft survived worker restart;
+configuration/session/media/job/outbox survived down/up, PostgreSQL SIGKILL and
+Redis loss. Network provider calls and Telegram sends were zero. Test stack was
+stopped after acceptance; persistent volumes were retained. Operational stack
+rebuild/startup/health and PostgreSQL drift check passed, with rewriting disabled.
+CI now exercises both provider adapters in separate synthetic Docker matrix jobs;
+this configuration is not a claim that the new CI run has passed.
+
 ## Local operational instance
 
 After verifying there were no existing `newsflow` volumes/containers or local
