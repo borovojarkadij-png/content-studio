@@ -272,7 +272,9 @@ def test_media_http_registry_and_selection_use_persistent_root_without_remote_do
     client, engine, _, _, draft_id = review_store
     root = tmp_path / "persistent-media"
     root.mkdir()
-    (root / "source.png").write_bytes(b"\x89PNG\r\n\x1a\nsynthetic-api-photo")
+    from PIL import Image
+
+    Image.new("RGB", (4, 4), "navy").save(root / "source.png", format="PNG")
     monkeypatch.setenv("NEWSFLOW_MEDIA_ROOT", str(root))
     payload = {
         "storage_key": "source.png",

@@ -37,6 +37,7 @@
 - [x] Durable per-channel rewrite review read/approve/reject APIs; atomic approved-candidate activation, stale-job/editorial regression checks
 - [x] Live Planner API wiring: daily limits, slots/timezones, approval and explicit automatic selection; reload/channel-switch/error handling, isolated real API browser E2E and desktop/mobile screenshots
 - [x] Safe source-media reuse and licensed local-library selection: immutable durable registry, rights/attribution, file containment/integrity, read-only API, guarded migration and offline regression tests
+- [x] Actual bounded single-frame PNG/JPEG decoding and fresh pre/post-selection editorial/source/review/technical bindings; 472-test regression gate and synthetic Windows Docker media/API/revocation restart recovery
 - [ ] Fully unattended channel automation: user-defined limits/delays/priorities/filters, timer-driven planning, configurable guarded automatic approval and durable publication worker; a manual click is not the final automatic-mode behavior
 - [x] Timer-driven durable automatic plan selection: per-channel local day/future slots, serialized quota, restart idempotency, stale editorial rejection and per-channel failure isolation; no transport side effects
 - [x] Packaged runtime Alembic upgrades before API/worker startup, Windows dev reload override, production static frontend/nginx API proxy and repeatable isolated PowerShell persistence procedure

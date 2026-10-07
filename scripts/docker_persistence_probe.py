@@ -9,8 +9,10 @@ import os
 import sys
 from datetime import UTC, datetime
 from hashlib import sha256
+from io import BytesIO
 from pathlib import Path
 
+from PIL import Image
 from sqlalchemy import create_engine, func, select
 from sqlalchemy.engine import make_url
 from sqlalchemy.orm import Session
@@ -43,7 +45,9 @@ def main() -> None:
     cipher = SessionCipher(load_runtime_master_key())
     root = Path(os.environ["NEWSFLOW_MEDIA_ROOT"])
     file = root / "synthetic-persistence-fixture.png"
-    content = b"\x89PNG\r\n\x1a\nsynthetic-persistence-only-photo"
+    buffer = BytesIO()
+    Image.new("RGB", (4, 4), "navy").save(buffer, format="PNG")
+    content = buffer.getvalue()
     engine = create_engine(url)
     with Session(engine) as session:
         if sys.argv[1] == "seed":

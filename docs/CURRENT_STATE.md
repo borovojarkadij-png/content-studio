@@ -2,6 +2,17 @@
 
 ## VERIFIED WORKING
 
+- Bounded actual single-frame photo decoding and fresh pre/post-selection
+  editorial/source/review/technical bindings verified. Backend 472 tests,
+  lint/compile/isolated migration gate PASS; actual Windows Docker media guard
+  down/up/crash/lease recovery and real media/status API PASS in isolated
+  newsflow-verification-mediaguards20261008. Packaged PostgreSQL drift PASS;
+  stopped retaining all volumes/history. Zero AI/Telegram network calls/sends.
+  See MEDIA_SELECTION.md. Operational deployment pending next provider gate.
+- Corrective checkpoint d03719f pushed; CI 37701614150 backend/frontend PASS,
+  Docker jobs still running. Earlier 37701042107 completed FAILURE due to the
+  reproduced fixture import-order issue; do not call it an overall PASS.
+
 - UI checkpoint 96fece5e888a02ac056dc3a634622e5b8af808e2 pushed to correct origin.
   CI 37701042107 frontend PASS; backend Lint failed because checking the fixture
   from repository root classified Alembic imports differently from CI's backend
@@ -479,17 +490,14 @@ newsflow-verification-donorimports20261008 (18015/15188/18095; CrashRecovery +
 IngestionGuard + PeerGuard + MappingGuard + ResolutionGuard), including resolved
 API state and actual PostgreSQL drift; stopped retaining history/volumes.
 CI 37699179678 for d1fd02c completed SUCCESS in all four jobs.
-Exact NEXT_STEP: commit/push fixture-only CI lint correction, then complete actual
-media guard Docker verification (shell session 72200; isolated
-newsflow-verification-mediaguards20261008, 18016/15189/18096; CrashRecovery +
-SemanticGuard + MediaGuard). New media changes remain separate in progress:
-bounded real single-frame decoding, fresh source/current-approval/technical/
-editorial reads and post-decode revalidation, real PNG test fixtures. Local
-backend 472 tests/lint/compile and isolated migration gate PASS; actual Docker
-media verification is not yet complete. Then check PG drift/API, stop fixture
-retaining history/volumes, deploy operational flags 0 and document/commit/push.
-Afterwards bounded album batching/source acquisition remains next independent
-task. Track corrective UI CI and media CI separately. Frontend 40 units / 21
+Exact NEXT_STEP: commit/push media checkpoint (actual Docker acceptance and PG
+drift now PASS; fixture stopped retaining volumes/history), then implement bounded
+album observation/provider integration and prevent incomplete groups from becoming
+individual rewriteable posts. Album normalization tests/source are separate
+uncommitted work: 12 test-first regressions now PASS; not yet a persisted complete
+album workflow. Finish adapter/factory/ingress regression gate, then deploy backend
+with operational flags 0, document/commit/push and continue album persistence/source
+acquisition. Track corrective UI CI and media CI separately. Frontend 40 units / 21
 browser/format/typecheck/build/audit PASS. Do not reseed existing fixtures.
 Never rerun existing fixture seeds or enable actual sends as a side effect.
 f19af6d CI 37696430337 completed SUCCESS. Track next commit CI.

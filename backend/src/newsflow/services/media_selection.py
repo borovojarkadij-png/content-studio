@@ -2,9 +2,12 @@
 
 import json
 import re
+import warnings
 from hashlib import sha256
+from io import BytesIO
 from pathlib import Path, PurePosixPath
 
+from PIL import Image, UnidentifiedImageError
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -14,7 +17,10 @@ from newsflow.persistence.models import (
     EditorialDecisionModel,
     MediaAssetModel,
     PublicationCandidateModel,
+    RewriteOutputModel,
 )
+from newsflow.services.automatic_approval import approval_is_current
+from newsflow.services.source_revisions import source_is_current
 
 
 class MediaUnavailable(ValueError):
@@ -80,6 +86,28 @@ class LocalMediaSelectionService:
             mime = "image/jpeg"
         else:
             raise MediaUnavailable("Media signature does not match a supported photo")
+        try:
+            with warnings.catch_warnings():
+                warnings.simplefilter("error", Image.DecompressionBombWarning)
+                with Image.open(BytesIO(content)) as image:
+                    if (
+                        image.format not in {"PNG", "JPEG"}
+                        or image.get_format_mimetype() != mime
+                        or image.width * image.height > 25_000_000
+                        or getattr(image, "n_frames", 1) != 1
+                    ):
+                        raise MediaUnavailable("Local photo decode constraints failed")
+                    image.verify()
+                with Image.open(BytesIO(content)) as image:
+                    image.load()
+        except (
+            UnidentifiedImageError,
+            OSError,
+            ValueError,
+            Image.DecompressionBombWarning,
+            Image.DecompressionBombError,
+        ):
+            raise MediaUnavailable("Local photo decode constraints failed") from None
         return sha256(content).hexdigest(), mime
 
     def register_asset(
@@ -152,18 +180,8 @@ class LocalMediaSelectionService:
     ) -> dict[str, object]:
         if type(limit) is not int or not 1 <= limit <= 10 or len(query) > 10000:
             raise ValueError("Invalid media selection limit/query")
-        candidate = self._session.get(PublicationCandidateModel, candidate_id)
-        if candidate is None:
-            raise LookupError("Publication candidate was not found")
-        decision = self._session.scalar(
-            select(EditorialDecisionModel).where(
-                EditorialDecisionModel.content_key == candidate.content_key
-            )
-        )
-        if not editorial_allows_rewrite(decision):
-            raise MediaSelectionBlocked("EDITORIAL_HARD_CONSTRAINT_BLOCKED")
-        if candidate.state not in {"READY", "SCHEDULED"}:
-            raise MediaSelectionBlocked("Candidate is not approved for media preparation")
+        candidate = self._require_current_candidate(candidate_id)
+        binding = (candidate.content_key, candidate.output_channel_id, candidate.media_policy)
         if candidate.media_policy == "REUSE_SOURCE":
             assets = self._session.scalars(
                 select(MediaAssetModel)
@@ -172,12 +190,15 @@ class LocalMediaSelectionService:
                     MediaAssetModel.source_content_key == candidate.content_key,
                 )
                 .order_by(MediaAssetModel.id)
+                .execution_options(populate_existing=True)
             ).all()
         elif candidate.media_policy == "LICENSED_LIBRARY":
             matches = _tokens(query)
             ranked = []
             for asset in self._session.scalars(
-                select(MediaAssetModel).where(MediaAssetModel.origin == "LICENSED_LIBRARY")
+                select(MediaAssetModel)
+                .where(MediaAssetModel.origin == "LICENSED_LIBRARY")
+                .execution_options(populate_existing=True)
             ):
                 score = len(matches & _tokens(" ".join(json.loads(asset.tags))))
                 if score:
@@ -193,8 +214,40 @@ class LocalMediaSelectionService:
             if digest != asset.sha256 or mime != asset.mime_type:
                 raise MediaUnavailable("Persisted media integrity check failed")
             selected.append(_project(asset))
+        current = self._require_current_candidate(candidate_id)
+        if (current.content_key, current.output_channel_id, current.media_policy) != binding:
+            raise MediaSelectionBlocked("MEDIA_BINDING_CHANGED")
         return {
             "status": "SELECTED" if selected else "NO_MATCH",
-            "policy": candidate.media_policy,
+            "policy": current.media_policy,
             "items": selected,
         }
+
+    def _require_current_candidate(self, candidate_id):
+        candidate = self._session.get(
+            PublicationCandidateModel, candidate_id, populate_existing=True
+        )
+        if candidate is None:
+            raise LookupError("Publication candidate was not found")
+        decision = self._session.scalar(
+            select(EditorialDecisionModel)
+            .where(EditorialDecisionModel.content_key == candidate.content_key)
+            .execution_options(populate_existing=True)
+        )
+        if not editorial_allows_rewrite(decision):
+            raise MediaSelectionBlocked("EDITORIAL_HARD_CONSTRAINT_BLOCKED")
+        if candidate.state not in {"READY", "SCHEDULED"}:
+            raise MediaSelectionBlocked("Candidate is not approved for media preparation")
+        if not source_is_current(self._session, candidate.content_key):
+            raise MediaSelectionBlocked("SOURCE_REVISION_NOT_CURRENT_OR_MISSING")
+        output = self._session.scalar(
+            select(RewriteOutputModel)
+            .where(
+                RewriteOutputModel.content_key == candidate.content_key,
+                RewriteOutputModel.output_channel_id == candidate.output_channel_id,
+            )
+            .execution_options(populate_existing=True)
+        )
+        if output is None or not approval_is_current(self._session, output):
+            raise MediaSelectionBlocked("CURRENT_APPROVAL_REQUIRED")
+        return candidate

@@ -7,6 +7,7 @@ import sys
 from datetime import UTC, datetime
 from hashlib import sha256
 from pathlib import Path
+from urllib.error import HTTPError
 from urllib.request import urlopen
 
 from PIL import Image
@@ -21,7 +22,11 @@ from newsflow.persistence.models import (
 )
 from newsflow.providers.commons_images import ImageSearchResult
 from newsflow.services.durable_media_runner import DurableMediaRunner, MediaClaim
-from newsflow.services.media_selection import MediaSelectionBlocked
+from newsflow.services.media_selection import (
+    LocalMediaSelectionService,
+    MediaSelectionBlocked,
+    MediaUnavailable,
+)
 
 KEY = "synthetic-semantic:@synthetic_semantic:910:revision:1"
 
@@ -68,6 +73,7 @@ def main(mode):
     engine = create_engine(url)
     factory = sessionmaker(engine)
     root = Path(os.environ["NEWSFLOW_MEDIA_ROOT"])
+    invalid = root / "invalid-decode-fixture.png"
     images = SyntheticImages()
     runner = DurableMediaRunner(factory, root, provider=images)
     with factory() as session:
@@ -80,6 +86,9 @@ def main(mode):
             candidate.media_policy = "LICENSED_LIBRARY"
             session.commit()
     if mode == "seed":
+        # Test-owned create-only corruption fixture. No original is overwritten.
+        with invalid.open("xb") as file:
+            file.write(b"\x89PNG\r\n\x1a\nnot-an-image")
         assert runner.enqueue_pending(now=datetime.now(UTC)) == 1
         assert runner.claim_next(now=datetime.now(UTC)).attempt == 1
         assert images.calls == 0
@@ -100,6 +109,11 @@ def main(mode):
             assert asset.license_code == "CC0" and asset.origin == "LICENSED_LIBRARY"
             assert (root / asset.storage_key).read_bytes() == photo()
             assert sha256(photo()).hexdigest() == asset.sha256
+            selection = LocalMediaSelectionService(session, root).select_for_candidate(
+                candidate_id, query="factory"
+            )
+            assert selection["status"] == "SELECTED"
+            assert selection["items"][0]["id"] == asset.id
         assert runner.enqueue_pending(now=datetime.now(UTC)) == 0
         with urlopen(
             f"http://api:8000/api/telegram/publication-candidates/{candidate_id}/media-acquisition",
@@ -107,6 +121,31 @@ def main(mode):
         ) as response:
             status = json.load(response)
         assert status["state"] == "SUCCEEDED" and status["selected_allowed"] is True
+        with urlopen(
+            f"http://api:8000/api/telegram/publication-candidates/{candidate_id}/media-selection?query=factory",
+            timeout=5,
+        ) as response:
+            assert json.load(response)["status"] == "SELECTED"
+        assert invalid.read_bytes() == b"\x89PNG\r\n\x1a\nnot-an-image"
+        with factory() as session:
+            try:
+                LocalMediaSelectionService(session, root).register_asset(
+                    invalid.name,
+                    origin="LICENSED_LIBRARY",
+                    license_code="CC0",
+                    attribution="",
+                    tags=(),
+                )
+            except MediaUnavailable:
+                pass
+            else:
+                raise AssertionError("Signature-only fake photo was registered")
+            assert (
+                session.scalar(
+                    select(MediaAssetModel.id).where(MediaAssetModel.storage_key == invalid.name)
+                )
+                is None
+            )
     elif mode == "blocked":
         try:
             runner._acquisition.acquire(candidate_id)
@@ -121,6 +160,15 @@ def main(mode):
         ) as response:
             status = json.load(response)
         assert status["state"] == "SUCCEEDED" and status["selected_allowed"] is False
+        try:
+            urlopen(
+                f"http://api:8000/api/telegram/publication-candidates/{candidate_id}/media-selection?query=factory",
+                timeout=5,
+            )
+        except HTTPError as error:
+            assert error.code == 409
+        else:
+            raise AssertionError("Revoked review did not block local media API")
     else:
         raise ValueError("Unknown media mode")
     engine.dispose()
