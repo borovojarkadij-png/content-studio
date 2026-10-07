@@ -289,3 +289,23 @@ def test_openai_rewrite_settings_store_model_without_returning_key(client):
         "fallback_models": [],
     }
     assert "synthetic-openai-key" not in client.get("/api/settings/rewrite-providers").text
+
+
+@pytest.mark.parametrize(
+    ("endpoint", "payload"),
+    [
+        ("/api/settings/rewrite-providers/openai", {"api_key": "synthetic-secret-key"}),
+        (
+            "/api/settings/rewrite-providers/openrouter",
+            {"api_key": "synthetic-secret-key"},
+        ),
+    ],
+)
+def test_rewrite_provider_validation_never_echoes_api_key(client, endpoint, payload):
+    response = client.put(
+        endpoint,
+        json=payload,
+    )
+
+    assert response.status_code == 422
+    assert "synthetic-secret-key" not in response.text

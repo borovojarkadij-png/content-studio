@@ -79,6 +79,9 @@
   OpenRouter accepts only explicit free models (`:free` or `openrouter/free`)
   and retries the configured fallbacks in order when a model is unavailable.
   Catalog lookup is a read-only provider request; it is separate from rewrite.
+- Rewrite-provider request validation is credential-safe too: malformed OpenAI
+  and OpenRouter settings payloads return structured `422` details without
+  echoing any submitted API-key value.
 - Dark-navy frontend: all eight section compositions, shared linear icons,
   selected rows/cards, responsive panels and honest unavailable actions.
 - In-memory DEMO workflows: donor import preview/partial success, independent
