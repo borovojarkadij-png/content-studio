@@ -50,8 +50,11 @@ checks. Backend lint passed; two actual-API browser regressions passed with the
 new migration. No production files, secrets, remote downloads, paid AI calls or
 Telegram publications were used.
 
-Compose config passed for dev and production using `.env.example`, `--quiet`
+Initial Compose config passed for dev and production using `.env.example`, `--quiet`
 and `--no-env-resolution`. This validates topology only: Docker Desktop CLI is
 now installed, but its Linux engine pipe is unavailable even after starting
 Desktop. `.env`/master-key provisioning, build/startup and volume/restart recovery
-remain **NOT VERIFIED / BLOCKED BY ENVIRONMENT**.
+were then **NOT VERIFIED / BLOCKED BY ENVIRONMENT**. This historical blocker
+was subsequently resolved: actual synthetic media/config/session/job storage
+passed Docker rebuild/down-up/crash tests. See DOCKER_VERIFICATION.md; live media
+acquisition and transport remain pending.

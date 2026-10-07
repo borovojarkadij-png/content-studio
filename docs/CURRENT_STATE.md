@@ -2,6 +2,27 @@
 
 ## VERIFIED WORKING
 
+- Windows Docker Desktop now runs: actual dev/production builds, packaged
+  migrations on PostgreSQL, health/proxy/inbox reads, rebuild/recreate, down/up,
+  Redis/worker restart and PostgreSQL SIGKILL recovery passed in an isolated
+  synthetic stack. Encrypted synthetic session, configuration, media bytes/hash,
+  pending rewrite job and outbox survived; Redis loss did not lose durable state.
+  This is storage recovery, not real Telegram login or unfinished-job execution.
+  See DOCKER_VERIFICATION.md for commands, safety scope and remaining limitations.
+- Timer-driven automatic planning now runs without UI clicks, using per-channel
+  timezone, future slots, durable quota serialization and current EditorialGate.
+  Restart/idempotency, stale reject, invalid timezone isolation and naive timestamp
+  regressions pass. The worker has no rewrite/publication transport yet.
+- Latest local quality gate: 139 backend tests, 24 frontend tests and 19 Chromium
+  E2E passed; backend lint/compile, frontend format/typecheck/build and npm audit
+  (zero vulnerabilities) passed. Production nginx and Windows reload configuration
+  are implemented; stable externally mounted keys are not generated at startup.
+- Operational local stack `newsflow` was explicitly initialized without replacing
+  any existing state and started in production profile. UI: http://127.0.0.1:8080;
+  actual PostgreSQL inbox is empty (no DEMO seed), health is ok. Repeated secret
+  initialization preserves bytes; key/environment are ignored by Git. Isolated
+  test stacks are stopped with their volumes retained.
+
 - Pure-Python EditorialGate rejects hostile/negative protected-entity content.
 - RewriteService blocks rejected content before calling its provider.
 - IngestionPipeline applies video rejection and exact dedup before EditorialGate.
@@ -154,7 +175,8 @@
 
 ## PARTIALLY IMPLEMENTED
 
-- Compose topology and persistent-volume declarations.
+- Compose runtime/persistence acceptance: synthetic storage checks now verified;
+  real Telegram authorization and job execution recovery remain pending.
 - Live dashboard workflows remain partial: Inbox reads, AI-provider Settings
   and review/plan configuration in Planner use actual API state. Donors, Channels,
   Connections and Accounts still need live frontend wiring; their operational
@@ -163,23 +185,25 @@
 ## NOT IMPLEMENTED
 
 - Operational Telethon ingestion/publication transport, rewrite execution worker,
-  fact guard, durable job runner/recovery, timer-driven scheduler and media
+  fact guard, durable job runner/recovery and media
   execution remain pending (provider contracts/plan selection already exist).
-  PostgreSQL-backed inbox execution remains pending
-  Docker Desktop availability, although the API contract is integration-tested
-  against SQLite.
+  PostgreSQL-backed inbox read is now verified on Docker Desktop; live ingestion
+  and transport execution remain pending.
 
 ## KNOWN ISSUES
 
-- Docker Desktop CLI/Compose are now installed, but `docker version` cannot
-  connect to `dockerDesktopLinuxEngine` (missing named pipe), including after
-  starting Docker Desktop on 2026-10-07. No local `.env`/master-key file exists.
-  Compose build/startup/persistence/restart E2E remain environment-blocked.
+- Docker Desktop stale runtime socket failure was recovered using stopped-service
+  directory quarantine; see DOCKER_VERIFICATION.md. Synthetic Compose acceptance
+  now passes. Fresh operational `.env`/stable master key were explicitly provisioned
+  once, separately from synthetic fixtures; a second initialization retained them.
+  Telegram authorization/provider credentials are not provisioned. Synthetic
+  fixture credentials must not be reused for operational data.
 - Port 8010 was occupied by an external local process during startup validation;
   the application started successfully on port 8123.
 - Obsidian vault location is unavailable; `/docs` is the source of truth.
 - DEMO changes exist only in window memory; reload restores fixtures. No
-  real account connection, publication, scheduler execution or AI generation.
+  real account connection, publication or AI generation. The separate Docker worker
+  executes actual durable plan selection, not the DEMO calendar.
 - Reference photos are not available as separate assets. DEMO uses labelled
   SVG illustrations; no reference PNG is used as an interface background.
 - On 2026-10-03 an Alembic validation command was accidentally run against the
@@ -198,14 +222,15 @@ contracts, mapping delivery-policy configuration and secure live AI-provider
 settings and durable per-output rewrite approval state are complete locally.
 Review/approval APIs and live Planner wiring are now verified locally.
 Safe media selection/registry is implemented and verified offline.
-Next PHASE 1 task: replace placeholder worker with timer-driven durable automatic
-plan selection, retaining current gate/approval rules and no transport side effect.
-Then implement guarded rewrite/fact verification plus configurable automatic
+Timer-driven durable automatic plan selection and synthetic Docker storage
+acceptance are now implemented and verified (DOCKER_VERIFICATION.md).
+Next PHASE 1 task: implement guarded rewrite/fact verification plus configurable automatic
 approval so unattended delivery does not require every post to be clicked manually.
 Add a free licensed internet-image search/acquisition provider, not just local
 library lookup, while retaining source-photo reuse as the other mode.
 Keep current editorial rechecks; never publish as a side effect of UI work.
 
-PHASE 1 IS NOT COMPLETE. Docker Compose/persistence/restart E2E remains
-NOT VERIFIED / BLOCKED BY ENVIRONMENT until Docker Desktop is available.
-Live Telegram verification, secrets and Obsidian sync remain pending.
+PHASE 1 IS NOT COMPLETE. Docker foundation/storage checks are VERIFIED only for
+isolated synthetic fixtures. Live Telegram encrypted authorization restart and
+unfinished durable-job execution recovery remain NOT VERIFIED / PENDING IMPLEMENTATION
+OR EXTERNAL AUTHORIZATION. Live secrets and Obsidian sync remain pending.

@@ -1,0 +1,11 @@
+services:
+  api:
+    command: python -m uvicorn newsflow.app:app --host 0.0.0.0 --port 8000 --reload
+    environment:
+      PYTHONPATH: /app/src
+      WATCHFILES_FORCE_POLLING: "true"
+    volumes:
+      - ./backend/src:/app/src:ro
+  web:
+    environment:
+      NEWSFLOW_WATCH_POLLING: "true"

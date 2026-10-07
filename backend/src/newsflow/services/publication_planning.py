@@ -203,9 +203,18 @@ class PublicationPlanningService:
             self._session.rollback()
             raise
 
-    def plan_day(self, plan_id: int, day: date) -> list[dict[str, object]]:
+    def plan_day(
+        self, plan_id: int, day: date, *, not_before: datetime | None = None
+    ) -> list[dict[str, object]]:
+        if not_before is not None and not_before.tzinfo is None:
+            raise PlanValidationError("Planning cutoff must be timezone-aware")
         try:
-            plan = self._session.get(PublicationPlanModel, plan_id)
+            # Serialize planners for this policy so concurrent ticks share the daily quota.
+            plan = self._session.scalar(
+                select(PublicationPlanModel)
+                .where(PublicationPlanModel.id == plan_id)
+                .with_for_update()
+            )
             if plan is None:
                 raise LookupError("Publication plan was not found")
             zone = _zone(plan.timezone)
@@ -224,6 +233,11 @@ class PublicationPlanningService:
                 for minute in slots
                 if datetime.combine(day, time(minute // 60, minute % 60), zone).astimezone(UTC)
                 not in occupied_slots
+                and (
+                    not_before is None
+                    or datetime.combine(day, time(minute // 60, minute % 60), zone).astimezone(UTC)
+                    >= not_before
+                )
             ]
             candidates = self._session.scalars(
                 select(PublicationCandidateModel)

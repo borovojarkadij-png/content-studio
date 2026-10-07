@@ -47,6 +47,8 @@ Branch: `codex/dark-navy-ui`. Repository: `borovojarkadij-png/content-studio`.
 
 No real Telegram login, live API credentials, paid rewrite, real media download
 or publication was used. Tests use temporary SQLite, not PostgreSQL/Docker.
-Docker Compose/persistence/restart is **NOT VERIFIED / BLOCKED BY ENVIRONMENT**.
-Operational workers, media execution and live configuration forms remain pending.
+At this checkpoint Docker checks were environment-blocked. Subsequently actual
+synthetic Docker persistence and a timer-driven planning worker were verified;
+see DOCKER_VERIFICATION.md. Rewrite/publication execution, media acquisition and
+remaining live configuration forms are still pending.
 PHASE 1 is not complete.

@@ -26,9 +26,17 @@ services:
       timeout: 3s
       retries: 20
 
+  migrations:
+    build: ./backend
+    command: python -m newsflow.migrate
+    env_file: ${NEWSFLOW_ENV_FILE:-.env}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   api:
     build: ./backend
-    env_file: .env
+    env_file: ${NEWSFLOW_ENV_FILE:-.env}
     environment:
       NEWSFLOW_MASTER_KEY_FILE: /run/secrets/newsflow_master_key
       NEWSFLOW_MEDIA_ROOT: /var/lib/newsflow/media
@@ -41,7 +49,9 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    ports: ["8000:8000"]
+      migrations:
+        condition: service_completed_successfully
+    ports: ["127.0.0.1:${NEWSFLOW_API_PORT:-8000}:8000"]
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')"]
       interval: 10s
@@ -57,17 +67,30 @@ services:
     volumes:
       - ./frontend:/app
       - frontend_node_modules:/app/node_modules
-    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
-    ports: ["5173:5173"]
+    command: sh -c "npm ci && npm run dev -- --host 0.0.0.0"
+    ports: ["127.0.0.1:${NEWSFLOW_WEB_PORT:-5173}:5173"]
     depends_on:
       api:
         condition: service_healthy
+
+  web-production:
+    profiles: ["production"]
+    build: ./frontend
+    ports: ["${NEWSFLOW_BIND_HOST:-127.0.0.1}:${NEWSFLOW_PROD_WEB_PORT:-8080}:80"]
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
 
   worker:
     profiles: ["dev", "production"]
     build: ./backend
     command: python -m newsflow.worker
-    env_file: .env
+    env_file: ${NEWSFLOW_ENV_FILE:-.env}
     environment:
       NEWSFLOW_MASTER_KEY_FILE: /run/secrets/newsflow_master_key
       NEWSFLOW_MEDIA_ROOT: /var/lib/newsflow/media
@@ -78,6 +101,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
 
 volumes:
   postgres_data:
@@ -87,4 +112,4 @@ volumes:
 
 secrets:
   newsflow_master_key:
-    file: ./secrets/newsflow_master_key
+    file: ${NEWSFLOW_MASTER_KEY_SOURCE:-./secrets/newsflow_master_key}
