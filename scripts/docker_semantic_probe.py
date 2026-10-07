@@ -17,13 +17,15 @@ from newsflow.persistence.models import (
     RewriteJobModel,
     RewriteOutputModel,
     SemanticEvidenceModel,
+    SemanticVerificationJobModel,
+    SemanticVerificationUsageModel,
     SemanticVerifierReleaseModel,
     TelegramAccount,
 )
+from newsflow.providers.openai_rewrite import RewriteUsage
 from newsflow.services.automatic_approval import AutomaticApprovalPolicyService, approval_is_current
+from newsflow.services.durable_semantic_runner import DurableSemanticRunner, SemanticClaim
 from newsflow.services.publication_planning import PublicationPlanningService
-from newsflow.services.rewrite_outputs import RewriteOutputService
-from newsflow.services.semantic_verification import SemanticVerificationService
 
 KEY = "synthetic-semantic:@synthetic_semantic:910:revision:1"
 SOURCE = "Synthetic factory opened 3 lines."
@@ -35,6 +37,7 @@ class SyntheticVerifier:
     model = "synthetic-semantic-model"
     prompt_version = "semantic-facts-v1"
     calls = 0
+    last_usage = RewriteUsage(model, 100, 40, 20, None)
 
     def verify(self, source, draft):
         assert (source, draft) == (SOURCE, DRAFT)
@@ -138,17 +141,31 @@ def main(mode):
                 ]
             )
             session.commit()
-            draft_id, channel_id, release_id = draft.id, channel.id, release.id
+            channel_id, release_id = channel.id, release.id
             AutomaticApprovalPolicyService(session).configure(channel_id, "VERIFIED", release_id)
         verifier = SyntheticVerifier()
-        service = SemanticVerificationService(factory, verifier_for_release=lambda _: verifier)
-        assert service.verify(draft_id)["verdict"] == "PRESERVED"
-        assert service.verify(draft_id)["verdict"] == "PRESERVED"
+        execution = DurableSemanticRunner(factory, verifier_for_release=lambda _: verifier)
+        assert execution.enqueue_pending(now=datetime.now(UTC)) == 1
+        claim = execution.claim_next(now=datetime.now(UTC))
+        assert claim is not None and claim.attempt == 1
+        assert verifier.calls == 0
+    elif mode == "recover":
+        verifier = SyntheticVerifier()
+        execution = DurableSemanticRunner(factory, verifier_for_release=lambda _: verifier)
+        with factory() as session:
+            job = session.scalars(select(SemanticVerificationJobModel)).one()
+            old = SemanticClaim(job.id, job.claim_token, job.attempts)
+        recovered = execution.claim_next(now=datetime.now(UTC))
+        assert recovered is not None and recovered.job_id == old.job_id and recovered.attempt == 2
+        assert execution.execute(old) == "LOST_LEASE"
+        assert execution.execute(recovered) == "SUCCEEDED"
         assert verifier.calls == 1
         with factory() as session:
-            RewriteOutputService(session).auto_approve(draft_id, activate_candidate=True)
+            draft = session.scalars(
+                select(RewriteOutputModel).where(RewriteOutputModel.content_key == KEY)
+            ).one()
             planner = PublicationPlanningService(session)
-            plan = planner.configure_plan(channel_id, "AUTOMATIC", 1, (720,), "UTC")
+            plan = planner.configure_plan(draft.output_channel_id, "AUTOMATIC", 1, (720,), "UTC")
             assert len(planner.plan_day(plan["id"], day)) == 1
     elif mode in {"verify", "revoke"}:
         with factory() as session:
@@ -163,6 +180,11 @@ def main(mode):
             assert evidence.verdict == "PRESERVED"
             assert draft.approval_method == "AUTOMATIC"
             assert approval_is_current(session, draft) is True
+            job = session.scalars(select(SemanticVerificationJobModel)).one()
+            usage = session.scalars(select(SemanticVerificationUsageModel)).one()
+            assert job.state == "SUCCEEDED" and job.attempts == 2
+            assert job.claim_token is None and job.evidence_id == evidence.id
+            assert usage.attempt == 2 and usage.input_tokens == 100
             if mode == "revoke":
                 session.get(SemanticVerifierReleaseModel, evidence.release_id).active = False
                 session.commit()

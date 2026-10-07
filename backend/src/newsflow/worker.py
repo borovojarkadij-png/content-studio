@@ -18,8 +18,10 @@ from newsflow.persistence.models import PublicationPlanModel
 from newsflow.security.master_key import load_runtime_master_key
 from newsflow.security.session_cipher import SessionCipher
 from newsflow.services.durable_rewrite_runner import DurableRewriteRunner
+from newsflow.services.durable_semantic_runner import DurableSemanticRunner
 from newsflow.services.publication_planning import PlanValidationError, PublicationPlanningService
 from newsflow.services.rewrite_provider_factory import ConfiguredRewriteProviderFactory
+from newsflow.services.semantic_verifier_factory import ConfiguredSemanticVerifierFactory
 
 logger = structlog.get_logger()
 
@@ -57,6 +59,23 @@ class SchedulerTickResult:
     failed_plan_ids: tuple[int, ...]
 
 
+def run_semantic_tick(
+    session_factory, *, enabled: bool, cipher: SessionCipher | None, now: datetime, opener=None
+) -> str:
+    if not enabled:
+        return "DISABLED"
+    if cipher is None:
+        raise ValueError("Explicit stable cipher is required for semantic verification")
+    execution = DurableSemanticRunner(
+        session_factory,
+        verifier_for_release=ConfiguredSemanticVerifierFactory(
+            session_factory, cipher=cipher, opener=opener
+        ),
+    )
+    execution.enqueue_pending(now=now)
+    return execution.run_next(now=now)
+
+
 def run_scheduler_tick(
     session_factory: Callable[[], Session], *, now: datetime
 ) -> SchedulerTickResult:
@@ -92,10 +111,13 @@ def main() -> None:
     if not 5 <= interval <= 60:
         raise ValueError("Scheduler polling interval must be between 5 and 60 seconds")
     network_enabled = rewrite_enabled(getenv("NEWSFLOW_REWRITE_ENABLED", "0"))
+    semantic_enabled = rewrite_enabled(getenv("NEWSFLOW_SEMANTIC_VERIFICATION_ENABLED", "0"))
     provider = getenv("NEWSFLOW_REWRITE_PROVIDER", "OPENAI")
     if provider not in {"OPENAI", "OPENROUTER"}:
         raise ValueError("NEWSFLOW_REWRITE_PROVIDER must be OPENAI or OPENROUTER")
-    cipher = SessionCipher(load_runtime_master_key()) if network_enabled else None
+    cipher = (
+        SessionCipher(load_runtime_master_key()) if network_enabled or semantic_enabled else None
+    )
     stopped = Event()
     for signum in (signal.SIGTERM, signal.SIGINT):
         signal.signal(signum, lambda *_: stopped.set())
@@ -119,6 +141,14 @@ def main() -> None:
             except Exception:  # noqa: BLE001 - external failures must not leak secrets or lose leases
                 # The committed attempt survives; no secret-bearing error/traceback.
                 logger.warning("rewrite.execution_interrupted", recovery="persisted_lease")
+        if semantic_enabled and not stopped.is_set():
+            try:
+                outcome = run_semantic_tick(
+                    factory, enabled=True, cipher=cipher, now=datetime.now(UTC)
+                )
+                logger.info("semantic.tick", outcome=outcome)
+            except Exception:  # noqa: BLE001 - preserve committed lease, never log secrets
+                logger.warning("semantic.execution_interrupted", recovery="persisted_lease")
         stopped.wait(interval)
 
 

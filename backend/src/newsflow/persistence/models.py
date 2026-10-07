@@ -485,6 +485,75 @@ class SemanticEvidenceModel(Base):
     )
 
 
+class SemanticVerificationJobModel(Base):
+    __tablename__ = "semantic_verification_jobs"
+    __table_args__ = (
+        UniqueConstraint(
+            "rewrite_output_id",
+            "release_id",
+            "source_sha256",
+            "draft_sha256",
+            "release_sha256",
+            name="uq_semantic_job_binding",
+        ),
+        CheckConstraint(
+            "state IN ('QUEUED', 'RUNNING', 'SUCCEEDED', 'REVIEW', 'BLOCKED', 'FAILED')"
+        ),
+        CheckConstraint("attempts BETWEEN 0 AND 2"),
+        CheckConstraint(
+            "state <> 'RUNNING' OR (claim_token IS NOT NULL AND lease_expires_at IS NOT NULL)"
+        ),
+    )
+    id: Mapped[int] = mapped_column(primary_key=True)
+    rewrite_output_id: Mapped[int] = mapped_column(
+        ForeignKey("rewrite_outputs.id"), nullable=False, index=True
+    )
+    source_revision_id: Mapped[int] = mapped_column(
+        ForeignKey("incoming_post_revisions.id"), nullable=False
+    )
+    release_id: Mapped[int] = mapped_column(
+        ForeignKey("semantic_verifier_releases.id"), nullable=False
+    )
+    source_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    draft_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    release_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    state: Mapped[str] = mapped_column(String(16), nullable=False)
+    attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
+    available_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    claim_token: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    lease_expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    evidence_id: Mapped[int | None] = mapped_column(
+        ForeignKey("semantic_evidence.id"), nullable=True
+    )
+    last_error_code: Mapped[str | None] = mapped_column(String(64), nullable=True)
+
+
+class SemanticVerificationUsageModel(Base):
+    __tablename__ = "semantic_verification_usage"
+    __table_args__ = (
+        UniqueConstraint("verification_job_id", "attempt", name="uq_semantic_usage_attempt"),
+        CheckConstraint("attempt BETWEEN 1 AND 2 AND input_tokens >= 0 AND output_tokens >= 0"),
+        CheckConstraint("cached_tokens >= 0 AND cached_tokens <= input_tokens"),
+        CheckConstraint("estimated_cost_usd IS NULL OR estimated_cost_usd >= 0"),
+    )
+    id: Mapped[int] = mapped_column(primary_key=True)
+    verification_job_id: Mapped[int] = mapped_column(
+        ForeignKey("semantic_verification_jobs.id"), nullable=False
+    )
+    attempt: Mapped[int] = mapped_column(Integer, nullable=False)
+    provider: Mapped[str] = mapped_column(String(16), nullable=False)
+    model: Mapped[str] = mapped_column(String(255), nullable=False)
+    input_tokens: Mapped[int] = mapped_column(Integer, nullable=False)
+    cached_tokens: Mapped[int] = mapped_column(Integer, nullable=False)
+    output_tokens: Mapped[int] = mapped_column(Integer, nullable=False)
+    estimated_cost_usd: Mapped[Decimal | None] = mapped_column(Numeric(20, 10), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+
 class RewriteUsageModel(Base):
     """Known provider usage per persisted attempt; unknown charges are not zero."""
 

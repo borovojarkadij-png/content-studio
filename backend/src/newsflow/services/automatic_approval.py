@@ -112,7 +112,14 @@ def automatic_evidence_is_current(session: Session, output: RewriteOutputModel) 
 
 
 def approval_is_current(session: Session, output: RewriteOutputModel) -> bool:
-    if output.approval_state != "APPROVED":
+    # A fresh SQL query alone does not replace SQLAlchemy identity-map values.
+    # Re-read the actual persisted draft before trusting its approval or digest.
+    output = session.scalar(
+        select(RewriteOutputModel)
+        .where(RewriteOutputModel.id == output.id)
+        .execution_options(populate_existing=True)
+    )
+    if output is None or output.approval_state != "APPROVED":
         return False
     job = session.scalar(
         select(RewriteJobModel)

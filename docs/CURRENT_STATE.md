@@ -2,13 +2,31 @@
 
 ## VERIFIED WORKING
 
+- Durable semantic verification runtime now implemented: PostgreSQL jobs, committed
+  two-attempt budget, 60-second leases/fencing, exact binding rechecks, per-attempt
+  known usage, encrypted pinned-model factory and opt-in worker (default disabled).
+  Approval/candidate activation and successful job completion are atomic. Errors
+  and uncertain verdicts remain manual; no operational model has been qualified.
+- Latest checkpoint: 314 backend tests, lint/compile and isolated migration
+  upgrade/check/downgrade/base/re-upgrade/check PASS; frontend 26 units and
+  19 Chromium E2E plus format/typecheck/build PASS. Test-first regressions fixed
+  cached ORM draft/editorial/source values hiding external edits or revocations.
+- Actual Windows Docker leased-semantic acceptance PASS in
+  newsflow-verification-semantic-lease20261008: real down/up/expired claim recovery,
+  old-owner fencing, atomic automatic approval, persisted usage and release
+  revocation blocking a reservation. Synthetic only; no AI/Telegram network calls.
+  Fixture stopped with history/volumes retained. Latest cache fixes packaged on
+  operational stack; startup/health and actual PostgreSQL drift check PASS.
+- GitHub Actions 37690647842 for 0196f238 completed SUCCESS in all four jobs
+  (backend, frontend and both Docker provider variants). This predates the new
+  leased-semantic increment; track its next CI run separately.
 - Semantic evidence/guarded automatic approval contract implemented: default
   MANUAL per-channel policy, trusted exact-model release registry (no public
   qualification/verdict endpoint), immutable source/draft/release digest binding,
   explicit approval method and current-review scheduling reconciliation. Synthetic
   evidence survives actual PostgreSQL down/up; revocation blocks its old slot.
   See SEMANTIC_APPROVAL_VERIFICATION.md. No operational model is qualified;
-  runtime verification leases/factory/worker wiring and live eval are next.
+  runtime wiring is now complete above; live accuracy/release qualification pending.
 - Fresh local semantic checkpoint: 298 backend tests passed after the separate
   verification-adapter increment; that adapter's targeted 60-test gate passed too.
   Frontend 26 units / 19 Chromium E2E, format/typecheck/build passed with migrated
@@ -268,9 +286,10 @@
 
 ## NOT IMPLEMENTED
 
-- Operational Telethon ingestion/publication transport, semantic fact
-  verification/guarded auto-approval and media
-  execution remain pending (provider contracts/plan selection already exist).
+- Operational Telethon ingestion/publication transport, live-model semantic
+  qualification and internet-media acquisition/execution remain pending.
+  Semantic verification runtime and guarded auto-approval are implemented but
+  disabled/unqualified operationally (provider contracts/plan selection exist).
   PostgreSQL-backed inbox read is now verified on Docker Desktop; live ingestion
   and transport execution remain pending.
 
@@ -320,11 +339,12 @@ implemented; channel-specific natural tabloid style is wired to actual Planner A
 Bounded free-only OpenRouter structured execution is implemented and passes the
 offline provider/factory/worker gate, including refusals/rate limits/fact changes
 and no paid fallback (OPENROUTER_REWRITE_VERIFICATION.md).
-Exact NEXT_STEP: add durable leased semantic verification jobs, committed attempt
-budgets/fencing/recovery and per-attempt usage; then connect the encrypted verifier
-factory and explicit opt-in worker. The semantic contract/policy/evidence/approval
-boundary and pinned structured adapters are implemented; no qualified operational
-release exists and runtime verification must not run before recovery is guarded.
+Exact NEXT_STEP: implement the free licensed internet-image search/acquisition
+provider into the existing persistent media library, with no paid AI/search,
+bounded allowlisted downloads, rights/attribution provenance and current editorial/
+source/review checks. Add adversarial offline tests before connecting execution.
+Durable semantic jobs/factory/opt-in worker are implemented and tested; no qualified
+operational release exists. Track CI for this increment after committing/pushing.
 Anchor equality alone never authorizes automatic approval. Live OpenAI smoke remains
 blocked by the current file's missing usable key; never expose/store keys in Git.
 User donor inputs are recorded in USER_CHANNELS.md, not fake runtime accounts.

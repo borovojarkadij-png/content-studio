@@ -3,21 +3,16 @@
 from datetime import date
 
 import pytest
-from sqlalchemy import create_engine, func, select
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import func, select
 
 from newsflow.persistence.models import (
-    Base,
     ContentRevisionModel,
     EditorialDecisionModel,
-    IncomingPostModel,
-    OutputChannel,
     PublicationCandidateModel,
     RewriteJobModel,
     RewriteOutputModel,
     SemanticEvidenceModel,
     SemanticVerifierReleaseModel,
-    TelegramAccount,
 )
 from newsflow.services.automatic_approval import AutomaticApprovalPolicyService
 from newsflow.services.rewrite_outputs import RewriteOutputService
@@ -49,88 +44,6 @@ class SyntheticVerifier:
             "draft_complete": True,
             "claims": [{"source_quote": source, "draft_quote": draft, "relation": self.relation}],
         }
-
-
-@pytest.fixture
-def semantic_store(tmp_path):
-    engine = create_engine(f"sqlite:///{tmp_path / 'semantic.db'}")
-    Base.metadata.create_all(engine)
-    factory = sessionmaker(engine)
-    with factory() as session:
-        account = TelegramAccount(name="synthetic", telegram_user_id=1001, encrypted_session="")
-        session.add(account)
-        session.flush()
-        channels = [
-            OutputChannel(
-                telegram_account_id=account.id,
-                telegram_channel_id=-1000000000000 - n,
-                title=f"synthetic-{n}",
-            )
-            for n in (1, 2)
-        ]
-        post = IncomingPostModel(
-            telegram_account_id="synthetic",
-            donor_channel_id="@semantic",
-            telegram_message_id=1,
-            state="RECEIVED",
-        )
-        release = SemanticVerifierReleaseModel(
-            provider="OPENAI",
-            model="synthetic-model",
-            prompt_version="semantic-facts-v1",
-            benchmark_version="semantic-facts-v1",
-            report_sha256="f" * 64,
-            active=True,
-        )
-        session.add_all(
-            [
-                *channels,
-                post,
-                release,
-                EditorialDecisionModel(
-                    content_key=KEY,
-                    status="PASS",
-                    rewrite_allowed=True,
-                    sentiment="neutral",
-                    framing="neutral",
-                ),
-            ]
-        )
-        session.flush()
-        session.add(
-            ContentRevisionModel(incoming_post_id=post.id, revision_number=1, source_text=SOURCE)
-        )
-        for channel in channels:
-            job = RewriteJobModel(
-                content_key=KEY,
-                output_channel_id=channel.id,
-                idempotency_key=f"synthetic-{channel.id}",
-                state="SUCCEEDED",
-            )
-            session.add(job)
-            session.flush()
-            session.add_all(
-                [
-                    RewriteOutputModel(
-                        rewrite_job_id=job.id,
-                        output_channel_id=channel.id,
-                        content_key=KEY,
-                        rewritten_text=DRAFT,
-                        approval_state="PENDING",
-                    ),
-                    PublicationCandidateModel(
-                        output_channel_id=channel.id,
-                        content_key=KEY,
-                        priority=10,
-                        state="AWAITING_REWRITE",
-                    ),
-                ]
-            )
-        session.commit()
-        for channel in channels:
-            AutomaticApprovalPolicyService(session).configure(channel.id, "VERIFIED", release.id)
-    yield factory
-    engine.dispose()
 
 
 def verify(factory, verifier, output_id=1):
@@ -314,6 +227,24 @@ def test_cached_orm_release_does_not_hide_external_revocation(semantic_store):
             RewriteOutputService(session).auto_approve(1, activate_candidate=True)
 
 
+@pytest.mark.parametrize("change", ["draft", "editorial"])
+def test_cached_draft_or_editorial_cannot_hide_external_change(semantic_store, change):
+    verify(semantic_store, SyntheticVerifier())
+    with semantic_store() as session:
+        cached_draft = session.get(RewriteOutputModel, 1)
+        cached_decision = session.scalar(select(EditorialDecisionModel))
+        assert cached_draft.approval_state == "PENDING" and cached_decision.status == "PASS"
+        with semantic_store() as external:
+            if change == "draft":
+                external.get(RewriteOutputModel, 1).rewritten_text += " Invented claim."
+            else:
+                decision = external.scalar(select(EditorialDecisionModel))
+                decision.status, decision.rewrite_allowed = "REJECT", False
+            external.commit()
+        with pytest.raises(PermissionError):
+            RewriteOutputService(session).auto_approve(1, activate_candidate=True)
+
+
 def test_duplicate_json_keys_cannot_revive_corrupted_evidence(semantic_store):
     verify(semantic_store, SyntheticVerifier())
     with semantic_store() as session:
@@ -324,6 +255,26 @@ def test_duplicate_json_keys_cannot_revive_corrupted_evidence(semantic_store):
         session.commit()
         with pytest.raises(PermissionError, match="SEMANTIC"):
             RewriteOutputService(session).auto_approve(1, activate_candidate=True)
+
+
+@pytest.mark.parametrize("change", ["draft", "source"])
+def test_current_approval_reloads_cached_content_at_point_of_use(semantic_store, change):
+    from newsflow.services.automatic_approval import approval_is_current
+
+    verify(semantic_store, SyntheticVerifier())
+    with semantic_store() as session:
+        RewriteOutputService(session).auto_approve(1)
+        cached = session.get(RewriteOutputModel, 1)
+        cached_source = session.get(ContentRevisionModel, 1)
+        assert approval_is_current(session, cached) is True
+        assert cached_source.source_text == SOURCE
+        with semantic_store() as external:
+            if change == "draft":
+                external.get(RewriteOutputModel, 1).rewritten_text += " Invented claim."
+            else:
+                external.get(ContentRevisionModel, 1).source_text += " Another fact."
+            external.commit()
+        assert approval_is_current(session, cached) is False
 
 
 def test_approved_automatic_output_does_not_hide_a_stale_failed_rewrite_job(semantic_store):

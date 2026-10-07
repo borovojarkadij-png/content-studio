@@ -1,5 +1,6 @@
 """Durable, per-output rewrite drafts with explicit approval."""
 
+from collections.abc import Callable
 from datetime import UTC, datetime
 
 from sqlalchemy import select
@@ -81,6 +82,7 @@ class RewriteOutputService:
             job = self._session.scalar(
                 select(RewriteJobModel)
                 .where(RewriteJobModel.id == rewrite_job_id)
+                .execution_options(populate_existing=True)
                 .with_for_update()
             )
             if job is None or job.state != "SUCCEEDED" or job.output_channel_id is None:
@@ -90,6 +92,7 @@ class RewriteOutputService:
             existing = self._session.scalar(
                 select(RewriteOutputModel)
                 .where(RewriteOutputModel.rewrite_job_id == rewrite_job_id)
+                .execution_options(populate_existing=True)
                 .with_for_update()
             )
             if existing is not None:
@@ -120,20 +123,36 @@ class RewriteOutputService:
         return self._review(output_id, approve=True, activate_candidate=activate_candidate)
 
     def auto_approve(
-        self, output_id: int, *, activate_candidate: bool = False
+        self,
+        output_id: int,
+        *,
+        activate_candidate: bool = False,
+        execution_guard: Callable[[Session], None] | None = None,
     ) -> dict[str, object]:
         """Internal guarded transition, never an HTTP client-supplied verdict."""
         return self._review(
-            output_id, approve=True, activate_candidate=activate_candidate, automatic=True
+            output_id,
+            approve=True,
+            activate_candidate=activate_candidate,
+            automatic=True,
+            execution_guard=execution_guard,
         )
 
     def reject(self, output_id: int) -> dict[str, object]:
         return self._review(output_id, approve=False, activate_candidate=False)
 
     def _review(
-        self, output_id: int, *, approve: bool, activate_candidate: bool, automatic: bool = False
+        self,
+        output_id: int,
+        *,
+        approve: bool,
+        activate_candidate: bool,
+        automatic: bool = False,
+        execution_guard: Callable[[Session], None] | None = None,
     ) -> dict[str, object]:
         try:
+            if execution_guard:
+                execution_guard(self._session)
             # All rewrite paths lock job -> editorial -> draft -> candidate.
             job_id = self._session.scalar(
                 select(RewriteOutputModel.rewrite_job_id).where(RewriteOutputModel.id == output_id)
@@ -141,7 +160,10 @@ class RewriteOutputService:
             if job_id is None:
                 raise LookupError("Rewrite output was not found")
             job = self._session.scalar(
-                select(RewriteJobModel).where(RewriteJobModel.id == job_id).with_for_update()
+                select(RewriteJobModel)
+                .where(RewriteJobModel.id == job_id)
+                .execution_options(populate_existing=True)
+                .with_for_update()
             )
             if approve:
                 if job is None or job.state != "SUCCEEDED":
@@ -151,6 +173,7 @@ class RewriteOutputService:
             output = self._session.scalar(
                 select(RewriteOutputModel)
                 .where(RewriteOutputModel.id == output_id)
+                .execution_options(populate_existing=True)
                 .with_for_update()
             )
             if output is None:
@@ -199,6 +222,7 @@ class RewriteOutputService:
         decision = self._session.scalar(
             select(EditorialDecisionModel)
             .where(EditorialDecisionModel.content_key == content_key)
+            .execution_options(populate_existing=True)
             .with_for_update()
         )
         if not editorial_allows_rewrite(decision):

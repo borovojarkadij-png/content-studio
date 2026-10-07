@@ -365,6 +365,7 @@ class PublicationPlanningService:
         decision = self._session.scalar(
             select(EditorialDecisionModel)
             .where(EditorialDecisionModel.content_key == content_key)
+            .execution_options(populate_existing=True)
             .with_for_update()
         )
         return editorial_allows_rewrite(decision)

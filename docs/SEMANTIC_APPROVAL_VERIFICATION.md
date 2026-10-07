@@ -22,6 +22,14 @@
   Returned model identity must match. Dynamic `openrouter/free` cannot qualify.
 - Additive migration `b7d2e904a613`; downgrade refuses evidence/release/automatic
   state loss. Existing drafts and explicit manual review are preserved.
+- Additive migration `d82f6a190bc4` persists verification jobs and known usage.
+  Two attempts maximum, committed before provider calls; 60-second recoverable
+  leases fence stale owners at evidence write and approval. Successful completion
+  and automatic approval/candidate activation commit in one transaction.
+- Encrypted verifier factory reuses the selected provider credential, not its
+  rewrite model selection: it pins the qualified release model. Worker opt-in
+  `NEWSFLOW_SEMANTIC_VERIFICATION_ENABLED=1` defaults to 0 and never enables send.
+  REVIEW/BLOCKED/FAILED are terminal manual outcomes, not infinite paid retries.
 
 ## Regression evidence
 
@@ -38,10 +46,14 @@ Additional failing adversarial regressions exposed and fixed:
 3. Duplicate JSON keys could conceal negative values: strict duplicate rejection.
 4. An approved draft could conceal a now-failed rewrite job: current approval
    checks job scope/state, editorial constraints and latest source too.
+5. Cached draft/editorial/source values could hide external changes: critical
+   ORM queries now explicitly refresh identity-map values at their point of use.
+6. Old manual drafts could starve qualified channels: enqueue selects only current
+   VERIFIED policies and excludes already-created jobs before applying its limit.
 
 Local contract/provider/database tests are synthetic and make no live AI calls.
 They establish guard behavior, NOT the classification accuracy of any live model.
-Latest full local gate: 298 backend tests, lint and compile PASS; frontend 26 units,
+Latest full local gate: 314 backend tests, lint and compile PASS; frontend 26 units,
 19 Chromium E2E, format, TypeScript/Vite build PASS. Isolated migration
 upgrade/check/downgrade-to-base/re-upgrade/check PASS; downgrade refuses data loss.
 
@@ -65,6 +77,17 @@ reservation became BLOCKED_REVIEW. No external provider requests or Telegram sen
 Probe requires both the explicit verification flag and `newsflow_verification` DB.
 The terminal fixture retains revoked-release history; use a fresh project to rerun.
 
+The later leased-runtime probe passed on Windows Docker Desktop in isolated
+`newsflow-verification-semantic-lease20261008` (18009 / 15182 / 18089), with
+the same switches and `-RewriteProvider OPENAI`. It seeds an unfinished verification
+claim, actually downs/ups the stack, waits for the persisted 60-second lease,
+recovers attempt 2 and fences attempt 1 before any synthetic provider call.
+Exactly one injected verification completes; approved draft/job/evidence/known
+token usage survive worker restart. Revocation then blocks its scheduled slot.
+No external AI or Telegram calls occurred; volumes/history retained, stack stopped.
+Post-probe cached-ORM fixes passed targeted/full local tests and were packaged on
+the healthy operational stack; actual PostgreSQL schema drift check passed there.
+
 CI now runs the semantic probe after both synthetic provider recovery variants.
 Actual PostgreSQL drift check also passed using
 `command.check(runtime_migration_config())`. A plain `alembic check` invocation
@@ -72,12 +95,13 @@ initially inspected the container's default local SQLite URL and reported
 not-up-to-date; that read-only diagnostic was not a PostgreSQL migration failure.
 The corrected command explicitly uses DATABASE_URL. No database reset occurred.
 
-## Not yet complete / next increment
+## Remaining operational qualification
 
-The evidence service is a guarded transaction seam, not a durable verification
-daemon. Add leased verification jobs, bounded committed attempts, fencing,
-per-attempt usage and restart recovery before enabling runtime model calls.
-Connect an encrypted verifier factory and explicit opt-in worker flag afterwards.
+Runtime jobs/factory/worker are implemented and verified with synthetic providers.
+This does not establish a live model's semantic accuracy. Known provider usage is
+persisted per attempt; unavailable tariff is NULL. A crash between a provider
+response and usage persistence can leave unknown usage, never a claimed zero cost
+or exactly-once external charge. Attempt limits bound repeat calls after crashes.
 
 No operational model is qualified. A real, fixed-model adversarial benchmark and
 reviewed evaluation report are required before activating a real release. Current

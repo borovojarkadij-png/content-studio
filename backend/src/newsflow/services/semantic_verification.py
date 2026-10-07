@@ -90,8 +90,12 @@ class SemanticVerificationService:
     ):
         self._factory, self._verifier = session_factory, verifier_for_release
 
-    def verify(self, output_id: int) -> dict[str, object]:
+    def verify(
+        self, output_id: int, *, execution_guard: Callable[[Session], None] | None = None
+    ) -> dict[str, object]:
         with self._factory() as session:
+            if execution_guard:
+                execution_guard(session)
             binding = self._binding(session, output_id)
             existing = _evidence(session, binding)
             if existing is not None:
@@ -112,6 +116,8 @@ class SemanticVerificationService:
             report = SemanticReport("ERROR", ("SEMANTIC_PROVIDER_FAILED",))
         try:
             with self._factory() as session:
+                if execution_guard:
+                    execution_guard(session)
                 if self._binding(session, output_id) != binding:
                     raise AutomaticApprovalBlocked("SEMANTIC_BINDING_CHANGED")
                 existing = _evidence(session, binding)
@@ -137,6 +143,8 @@ class SemanticVerificationService:
             # An injected concurrent executor completed the exact binding first.
             # Runtime must wrap this seam in durable leases before enabling calls.
             with self._factory() as session:
+                if execution_guard:
+                    execution_guard(session)
                 if self._binding(session, output_id) != binding:
                     raise AutomaticApprovalBlocked("SEMANTIC_BINDING_CHANGED") from None
                 existing = _evidence(session, binding)
@@ -150,19 +158,26 @@ class SemanticVerificationService:
             select(RewriteOutputModel.rewrite_job_id).where(RewriteOutputModel.id == output_id)
         )
         job = session.scalar(
-            select(RewriteJobModel).where(RewriteJobModel.id == job_id).with_for_update()
+            select(RewriteJobModel)
+            .where(RewriteJobModel.id == job_id)
+            .execution_options(populate_existing=True)
+            .with_for_update()
         )
         if job is None or job.state != "SUCCEEDED":
             raise AutomaticApprovalBlocked("SEMANTIC_REWRITE_JOB_INVALID")
         editorial = session.scalar(
             select(EditorialDecisionModel)
             .where(EditorialDecisionModel.content_key == job.content_key)
+            .execution_options(populate_existing=True)
             .with_for_update()
         )
         if not editorial_allows_rewrite(editorial):
             raise AutomaticApprovalBlocked("EDITORIAL_HARD_CONSTRAINT_BLOCKED")
         output = session.scalar(
-            select(RewriteOutputModel).where(RewriteOutputModel.id == output_id).with_for_update()
+            select(RewriteOutputModel)
+            .where(RewriteOutputModel.id == output_id)
+            .execution_options(populate_existing=True)
+            .with_for_update()
         )
         if (
             output is None
@@ -178,6 +193,7 @@ class SemanticVerificationService:
         policy = session.scalar(
             select(AutomaticApprovalPolicyModel)
             .where(AutomaticApprovalPolicyModel.output_channel_id == output.output_channel_id)
+            .execution_options(populate_existing=True)
             .with_for_update()
         )
         if policy is None or policy.mode != "VERIFIED" or policy.release_id is None:
@@ -185,6 +201,7 @@ class SemanticVerificationService:
         release = session.scalar(
             select(SemanticVerifierReleaseModel)
             .where(SemanticVerifierReleaseModel.id == policy.release_id)
+            .execution_options(populate_existing=True)
             .with_for_update()
         )
         if not release_is_qualified(release):

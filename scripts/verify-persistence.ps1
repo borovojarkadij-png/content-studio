@@ -159,6 +159,10 @@ if ($SemanticGuard) {
     Invoke-SemanticProbe 'seed'
     Invoke-VerificationCompose down
     Invoke-VerificationCompose up -d --wait --wait-timeout 180
+    Write-Output 'Waiting for the synthetic semantic verification lease to expire.'
+    for ($tick = 0; $tick -lt 13; $tick++) { Start-Sleep -Seconds 5 }
+    Invoke-SemanticProbe 'recover'
+    Invoke-VerificationCompose restart worker
     Invoke-SemanticProbe 'verify'
     Invoke-SemanticProbe 'revoke'
 }

@@ -17,7 +17,11 @@ def source_revision(session: Session, content_key: str) -> ContentRevisionModel 
         + cast(ContentRevisionModel.revision_number, String)
     )
     rows = session.scalars(
-        select(ContentRevisionModel).join(IncomingPostModel).where(key == content_key).limit(2)
+        select(ContentRevisionModel)
+        .join(IncomingPostModel)
+        .where(key == content_key)
+        .execution_options(populate_existing=True)
+        .limit(2)
     ).all()
     return rows[0] if len(rows) == 1 else None
 
