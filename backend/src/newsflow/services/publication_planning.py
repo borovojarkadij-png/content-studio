@@ -39,6 +39,10 @@ def _zone(timezone: str) -> ZoneInfo:
         raise PlanValidationError("Publication plan timezone is unknown") from exc
 
 
+def _utc(value: datetime) -> datetime:
+    return value.replace(tzinfo=UTC) if value.tzinfo is None else value.astimezone(UTC)
+
+
 def _plan_projection(plan: PublicationPlanModel) -> dict[str, object]:
     return {
         "id": plan.id,
@@ -138,6 +142,7 @@ class PublicationPlanningService:
                     output_channel_id=output_channel_id,
                     content_key=content_key,
                     priority=priority,
+                    eligible_at=datetime(1970, 1, 1, tzinfo=UTC),
                     state="READY",
                 )
                 self._session.add(candidate)
@@ -192,7 +197,17 @@ class PublicationPlanningService:
                     break
                 if not self._is_currently_editorial_pass(candidate.content_key):
                     continue
-                scheduled_for = available_slots[len(scheduled)]
+                slot_index = next(
+                    (
+                        index
+                        for index, slot in enumerate(available_slots)
+                        if slot >= _utc(candidate.eligible_at)
+                    ),
+                    None,
+                )
+                if slot_index is None:
+                    continue
+                scheduled_for = available_slots.pop(slot_index)
                 try:
                     with self._session.begin_nested():
                         item = PlannedPublicationModel(

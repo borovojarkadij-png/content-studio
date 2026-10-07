@@ -92,6 +92,11 @@
   days), priority and a safe media-policy intent (`REUSE_SOURCE` or
   `LICENSED_LIBRARY`). The API validates these policies and preserves an
   existing delayed policy when a caller only changes traffic percentages.
+- Durable ingestion snapshots the configured mapping policy onto every
+  per-output candidate: mapping identity, priority, media intent and the exact
+  UTC eligibility time. The automatic planner never reserves a slot before
+  that snapshot's delay expires, selects another eligible candidate instead,
+  and does not retroactively alter queued candidates when the mapping changes.
 - Dark-navy frontend: all eight section compositions, shared linear icons,
   selected rows/cards, responsive panels and honest unavailable actions.
 - In-memory DEMO workflows: donor import preview/partial success, independent
@@ -149,13 +154,12 @@
 
 The durable configuration, mapping-aware candidate source, publication-planning
 contracts, mapping delivery-policy configuration and secure live AI-provider
-settings are complete locally. Next PHASE 1 task: snapshot each mapping policy
-onto its per-output candidate, honour delayed eligibility in the planner, then
-persist per-output rewrite output/approval state and wire Planner UI to durable
-read/mutation APIs. Add the two safe media policies (reuse source media and
-licensed local-library lookup) before any real download or Telegram
-publication. Keep the current editorial recheck and never perform real Telegram
-publication as a side effect of UI work.
+settings are complete locally. Next PHASE 1 task: persist per-output rewrite
+output/approval state and wire Planner UI to durable read/mutation APIs. Add
+the two safe media policies (reuse source media and licensed local-library
+lookup) before any real download or Telegram publication. Keep the current
+editorial recheck and never perform real Telegram publication as a side effect
+of UI work.
 
 PHASE 1 IS NOT COMPLETE. Docker Compose/persistence/restart E2E remains
 NOT VERIFIED / BLOCKED BY ENVIRONMENT until Docker Desktop is available.

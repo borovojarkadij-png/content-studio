@@ -6,7 +6,7 @@ and rewrite-request outbox event exist only for a passing decision.
 """
 
 from collections.abc import Sequence
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
 from hashlib import sha256
 
 from sqlalchemy import select
@@ -19,6 +19,7 @@ from newsflow.domain.sql_editorial import DurableEditorialService
 from newsflow.domain.sql_ingestion import SqlAlchemyIngestionRepository
 from newsflow.domain.technical_filters import MappingTechnicalFilter
 from newsflow.persistence.models import (
+    ChannelMappingModel,
     EditorialDecisionModel,
     MappingContentFingerprintModel,
     OutboxEventModel,
@@ -119,7 +120,7 @@ class DurableIngestionWorkflow:
             )
             if job is None:
                 raise RuntimeError("Passing editorial decision did not create a rewrite job")
-            self._ensure_publication_candidate(content_key)
+            self._ensure_publication_candidate(content_key, observed_at)
             self._ensure_rewrite_outbox(job)
             return IngestionResult(persisted.created, source_key, "REWRITE_QUEUED")
 
@@ -152,7 +153,7 @@ class DurableIngestionWorkflow:
         )
         if job is None:
             raise RuntimeError("Passing editorial decision did not create a rewrite job")
-        candidate_created = self._ensure_publication_candidate(content_key)
+        candidate_created = self._ensure_publication_candidate(content_key, observed_at)
         self._ensure_rewrite_outbox(job)
         status = "REWRITE_QUEUED" if candidate_created else "REJECTED_DUPLICATE"
         return IngestionResult(candidate_created, source_key, status)
@@ -174,7 +175,7 @@ class DurableIngestionWorkflow:
                 )
             )
 
-    def _ensure_publication_candidate(self, content_key: str) -> bool:
+    def _ensure_publication_candidate(self, content_key: str, observed_at: datetime) -> bool:
         output_channel_id = self._technical_filter.output_channel_id
         if output_channel_id is None:
             return False
@@ -188,6 +189,8 @@ class DurableIngestionWorkflow:
         )
         if existing is not None:
             return False
+        mapping = self._mapping_policy(output_channel_id)
+        eligible_at = observed_at.astimezone(UTC) + timedelta(minutes=mapping.delay_minutes)
         try:
             # A concurrent mapping retry can pass the read above; the durable
             # unique constraint is the final idempotency arbiter.
@@ -195,8 +198,11 @@ class DurableIngestionWorkflow:
                 self._session.add(
                     PublicationCandidateModel(
                         output_channel_id=output_channel_id,
+                        mapping_id=mapping.id,
                         content_key=content_key,
-                        priority=0,
+                        priority=mapping.priority,
+                        eligible_at=eligible_at,
+                        media_policy=mapping.media_policy,
                         state="AWAITING_REWRITE",
                     )
                 )
@@ -204,3 +210,23 @@ class DurableIngestionWorkflow:
             return True
         except IntegrityError:
             return False
+
+    def _mapping_policy(self, output_channel_id: int):
+        """Snapshot configured mapping policy; legacy/test filters remain safe defaults."""
+        try:
+            mapping_id = int(self._technical_filter.mapping_id)
+        except ValueError:
+            mapping_id = 0
+        mapping = self._session.get(ChannelMappingModel, mapping_id) if mapping_id else None
+        if mapping is not None:
+            if mapping.output_channel_id != output_channel_id:
+                raise ValueError("Mapping output channel does not match technical filter")
+            return mapping
+        return _DefaultMappingPolicy()
+
+
+class _DefaultMappingPolicy:
+    id = None
+    delay_minutes = 0
+    priority = 0
+    media_policy = "REUSE_SOURCE"

@@ -58,6 +58,10 @@ def test_configuration_schema_upgrade_creates_pending_import_storage(tmp_path) -
             "priority",
             "media_policy",
         } <= mapping_columns
+        candidate_columns = {
+            column["name"] for column in inspector.get_columns("publication_candidates")
+        }
+        assert {"mapping_id", "eligible_at", "media_policy"} <= candidate_columns
     finally:
         engine.dispose()
 

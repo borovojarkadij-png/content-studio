@@ -7,6 +7,8 @@ from newsflow.domain.durable_ingestion import DurableIngestionWorkflow
 from newsflow.domain.technical_filters import MappingTechnicalFilter
 from newsflow.persistence.models import (
     Base,
+    ChannelMappingModel,
+    DonorChannel,
     EditorialDecisionModel,
     OutputChannel,
     PublicationCandidateModel,
@@ -59,6 +61,76 @@ def test_passing_mapped_ingestion_creates_awaiting_rewrite_candidate_then_activa
         session.commit()
         assert RewriteCandidateActivationService(session).activate(job_id) == 1
         assert session.scalar(select(PublicationCandidateModel)).state == "READY"
+
+
+def test_ingestion_snapshots_delayed_mapping_delivery_policy_onto_candidate() -> None:
+    engine = create_engine("sqlite://")
+    Base.metadata.create_all(engine)
+    observed_at = datetime(2026, 10, 7, 9, tzinfo=UTC)
+    with Session(engine) as session:
+        account = TelegramAccount(
+            name="Primary",
+            telegram_user_id=1001,
+            encrypted_session="",
+            health_status="DISCONNECTED",
+        )
+        session.add(account)
+        session.flush()
+        donor = DonorChannel(
+            telegram_account_id=account.id,
+            telegram_channel_id=-1001234567890,
+            title="Source",
+        )
+        output = OutputChannel(
+            telegram_account_id=account.id,
+            telegram_channel_id=-1009876543210,
+            title="Destination",
+        )
+        session.add_all((donor, output))
+        session.flush()
+        mapping = ChannelMappingModel(
+            donor_channel_id=donor.id,
+            output_channel_id=output.id,
+            intake_percent=100,
+            target_mix_percent=100,
+            eligibility_mode="DELAYED",
+            delay_minutes=45,
+            priority=80,
+            media_policy="LICENSED_LIBRARY",
+        )
+        session.add(mapping)
+        session.flush()
+        mapping_id = mapping.id
+        output_id = output.id
+        session.commit()
+
+        result = DurableIngestionWorkflow(
+            session,
+            technical_filter=MappingTechnicalFilter(
+                mapping_id=str(mapping_id), output_channel_id=output_id
+            ),
+        ).ingest(
+            TelegramMessage("account-a", "@donor", 70, "permitted news"),
+            observed_at=observed_at,
+        )
+
+        candidate = session.scalar(select(PublicationCandidateModel))
+        assert result.status == "REWRITE_QUEUED"
+        assert candidate is not None
+        assert candidate.mapping_id == mapping_id
+        assert candidate.priority == 80
+        assert candidate.eligible_at.replace(tzinfo=UTC) == datetime(
+            2026, 10, 7, 9, 45, tzinfo=UTC
+        )
+        assert candidate.media_policy == "LICENSED_LIBRARY"
+        configured_mapping = session.get(ChannelMappingModel, mapping_id)
+        assert configured_mapping is not None
+        configured_mapping.priority = -10
+        configured_mapping.media_policy = "REUSE_SOURCE"
+        session.commit()
+        session.refresh(candidate)
+        assert candidate.priority == 80
+        assert candidate.media_policy == "LICENSED_LIBRARY"
 
 
 def test_editorial_reject_never_creates_or_activates_a_candidate() -> None:

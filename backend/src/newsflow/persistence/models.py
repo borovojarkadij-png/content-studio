@@ -179,8 +179,17 @@ class PublicationCandidateModel(Base):
     output_channel_id: Mapped[int] = mapped_column(
         ForeignKey("output_channels.id"), nullable=False, index=True
     )
+    mapping_id: Mapped[int | None] = mapped_column(
+        ForeignKey("channel_mappings.id"), nullable=True, index=True
+    )
     content_key: Mapped[str] = mapped_column(String(255), nullable=False)
     priority: Mapped[int] = mapped_column(Integer, nullable=False)
+    eligible_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    media_policy: Mapped[str] = mapped_column(
+        String(32), nullable=False, default="REUSE_SOURCE"
+    )
     state: Mapped[str] = mapped_column(String(32), nullable=False, default="READY")
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False

@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import UTC, date, datetime
 
 import pytest
 from sqlalchemy import create_engine, func, select
@@ -68,6 +68,37 @@ def test_automatic_plan_selects_highest_priority_candidates_into_daily_slots(ses
     assert all(item["state"] == "PLANNED" for item in scheduled)
     assert service.plan_day(plan["id"], date(2026, 10, 5)) == scheduled
     assert database.scalar(select(func.count()).select_from(PlannedPublicationModel)) == 2
+
+
+def test_automatic_plan_respects_candidate_delayed_eligibility_without_wasting_slots(session) -> None:
+    database, output_id = session
+    approve(database, "content:delayed")
+    approve(database, "content:immediate")
+    service = PublicationPlanningService(database)
+    plan = service.configure_plan(output_id, "AUTOMATIC", 2, (540, 600))
+    service.register_candidate(output_id, "content:delayed", priority=90)
+    service.register_candidate(output_id, "content:immediate", priority=10)
+    delayed = database.scalar(
+        select(PublicationCandidateModel).where(
+            PublicationCandidateModel.content_key == "content:delayed"
+        )
+    )
+    immediate = database.scalar(
+        select(PublicationCandidateModel).where(
+            PublicationCandidateModel.content_key == "content:immediate"
+        )
+    )
+    assert delayed is not None and immediate is not None
+    delayed.eligible_at = datetime(2026, 10, 5, 9, 45, tzinfo=UTC)
+    immediate.eligible_at = datetime(2026, 10, 5, 8, tzinfo=UTC)
+    database.commit()
+
+    scheduled = service.plan_day(plan["id"], date(2026, 10, 5))
+
+    assert [(item["content_key"], item["scheduled_for"]) for item in scheduled] == [
+        ("content:immediate", "2026-10-05T09:00:00+00:00"),
+        ("content:delayed", "2026-10-05T10:00:00+00:00"),
+    ]
 
 
 def test_automatic_plan_does_not_schedule_editorial_reject_or_create_rewrite_work(session) -> None:
