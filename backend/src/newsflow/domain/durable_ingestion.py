@@ -13,7 +13,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from newsflow.domain.editorial import EditorialGate, EditorialStatus
+from newsflow.domain.editorial import EditorialGate, editorial_allows_rewrite
 from newsflow.domain.ingestion import IngestionResult
 from newsflow.domain.sql_editorial import DurableEditorialService
 from newsflow.domain.sql_ingestion import SqlAlchemyIngestionRepository
@@ -76,8 +76,7 @@ class DurableIngestionWorkflow:
             if existing_decision is not None:
                 status = (
                     "REJECTED_EDITORIAL"
-                    if existing_decision.status != EditorialStatus.PASS.value
-                    or not existing_decision.rewrite_allowed
+                    if not editorial_allows_rewrite(existing_decision)
                     else "REJECTED_DUPLICATE"
                 )
                 return IngestionResult(False, source_key, status)
@@ -111,7 +110,7 @@ class DurableIngestionWorkflow:
                 framing,
                 source_text=event.text,
             )
-            if decision.status != EditorialStatus.PASS.value or not decision.rewrite_allowed:
+            if not editorial_allows_rewrite(decision):
                 return IngestionResult(False, source_key, "REJECTED_EDITORIAL")
 
             persisted = repository.ingest(event, observed_at)
@@ -143,7 +142,7 @@ class DurableIngestionWorkflow:
         )
         if decision is None:
             return IngestionResult(False, source_key, "REJECTED_DUPLICATE")
-        if decision.status != EditorialStatus.PASS.value or not decision.rewrite_allowed:
+        if not editorial_allows_rewrite(decision):
             return IngestionResult(False, source_key, "REJECTED_EDITORIAL")
         if self._technical_filter.output_channel_id is None:
             return IngestionResult(False, source_key, "REJECTED_DUPLICATE")

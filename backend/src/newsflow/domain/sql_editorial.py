@@ -5,7 +5,7 @@ from collections.abc import Sequence
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from newsflow.domain.editorial import EditorialGate
+from newsflow.domain.editorial import EditorialGate, editorial_allows_rewrite
 from newsflow.persistence.models import EditorialDecisionModel, RewriteJobModel
 
 
@@ -67,7 +67,7 @@ class DurableEditorialService:
     def create_rewrite_job(
         self, decision: EditorialDecisionModel, *, output_channel_id: int | None = None
     ) -> RewriteJobModel | None:
-        if decision.status != "PASS" or not decision.rewrite_allowed:
+        if not editorial_allows_rewrite(decision):
             return None
         suffix = str(output_channel_id) if output_channel_id is not None else "default"
         idempotency_key = f"rewrite.requested:{decision.content_key}:{suffix}"

@@ -3,6 +3,7 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from newsflow.domain.editorial import editorial_allows_rewrite
 from newsflow.persistence.models import (
     EditorialDecisionModel,
     PublicationCandidateModel,
@@ -42,7 +43,7 @@ class RewriteCandidateActivationService:
                 )
                 .with_for_update()
             ).all()
-            if decision is None or decision.status != "PASS" or not decision.rewrite_allowed:
+            if not editorial_allows_rewrite(decision):
                 for candidate in candidates:
                     candidate.state = "BLOCKED_EDITORIAL"
                 return 0

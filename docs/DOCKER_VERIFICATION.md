@@ -61,6 +61,8 @@ Shutdown used the [documented Desktop stop command](https://docs.docker.com/refe
 | Synthetic encrypted session decryptable with the same separately mounted key | PASS |
 | Config, media file + SHA-256 registry, DISPATCHED job and outbox retained | PASS |
 | Worker container produces timer ticks against persisted automatic plan | PASS |
+| Changed API IP without proxy recreation, health and actual inbox through nginx | PASS |
+| Injected synthetic rewrite runner: persisted claim, restart, lease recovery and fenced completion | PASS |
 
 The probe checks exactly one unfinished job, its AWAITING_REWRITE candidate,
 two outbox events including exactly one `rewrite.requested`, saved delay/priority,
@@ -83,10 +85,22 @@ checks restart, down/up, optional isolated PostgreSQL crash and Redis loss, and
 checks the nginx API proxy. The isolated stack and named volumes remain available
 for inspection afterwards. It never uses `down -v` or prunes Docker resources.
 The same synthetic procedure is configured as a separate GitHub Actions job.
+`-RewriteRecovery` additionally consumes the fixture's pending job using a local
+synthetic provider after an actual 60-second lease expiry and worker restart.
+Use a fresh project for that terminal procedure; it creates only a PENDING draft.
+See REWRITE_RECOVERY_VERIFICATION.md. This is not automatic live-provider execution.
 
 The PowerShell procedure was also run end-to-end on Windows as project
 `newsflow-verification-script20261007`, ports 18001 / 15174 / 18081,
 including `-CrashRecovery`: PASS. Public fixture secrets are not operational keys.
+
+Final combined acceptance for the fact-guard/runner increment passed on Windows
+as `newsflow-verification-final20261007`, ports 18004 / 15177 / 18084, with both
+`-CrashRecovery -RewriteRecovery`. It forced an API IP change without replacing
+nginx, preserved storage through down/up, PostgreSQL SIGKILL and Redis loss,
+then recovered an expired persisted claim after worker restart. The old owner
+was fenced; exactly one synthetic provider call produced a persistent PENDING
+draft. Network AI calls and Telegram publications were zero.
 
 ## Local operational instance
 
@@ -105,16 +119,24 @@ Both verification stacks were stopped afterwards; their volumes/fixtures remain.
 ## Local quality gate
 
 - Backend: 139 tests passed; lint including migrations/probe, compile passed.
+- Subsequent fact-guard/runner increment: 179 backend tests, lint and compile passed.
+- Isolated migration upgrade/drift-check/downgrade/re-upgrade/drift-check and actual
+  PostgreSQL drift check passed after ORM index declarations were aligned.
 - Frontend: 24 tests, format/typecheck/build and 19 Chromium E2E tests passed.
 - Existing rejection/duplicate/stale-job adversarial regressions remain passing.
 
 ## Not yet verified / not implemented
 
 Synthetic session persistence is not real Telegram authorization persistence.
-Persisting an unfinished job is not proof that a runner completes it after a crash:
-the rewrite/publication runner and crash-recovery leases are not implemented yet.
+Storage persistence alone was initially verified; subsequent injected synthetic
+runner acceptance now demonstrates leased execution recovery. The default daemon
+still does not invoke network rewrite providers; live job execution is pending.
 Automatic planning is not automatic publication or automatic editorial approval.
 The fixture's AWAITING_REWRITE candidate remains unscheduled. Live Telegram login,
 provider secrets, actual media acquisition and transport verification remain pending.
+nginx initially cached a recreated API's old address and returned 502. Dynamic
+Docker DNS resolution fixes it; acceptance reserves the old IP with an exact
+disposable holder and checks a new API IP while keeping the same proxy container.
+Configuration follows the [nginx proxy/resolver contract](https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_pass).
 Production TLS, authentication, backup/restore acceptance and hardened deployment
 remain pending. **PHASE 1 is not complete.**

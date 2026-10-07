@@ -28,3 +28,15 @@ def test_migration_config_accepts_percent_encoded_password_without_interpolation
     url = "postgresql+psycopg://test:synthetic%25password@postgres/test"
     monkeypatch.setenv("DATABASE_URL", url)
     assert runtime_migration_config().get_main_option("sqlalchemy.url") == url
+
+
+def test_runtime_migrated_schema_matches_orm_metadata_without_autogenerate_drift(
+    tmp_path, monkeypatch
+):
+    from alembic import command
+    from newsflow.migrate import runtime_migration_config
+
+    monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path / 'isolated-drift.db'}")
+    configuration = runtime_migration_config()
+    command.upgrade(configuration, "head")
+    command.check(configuration)

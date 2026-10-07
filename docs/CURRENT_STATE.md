@@ -2,6 +2,28 @@
 
 ## VERIFIED WORKING
 
+- Fact-anchor guard blocks changed numeric/date/link/mention/quote facts after
+  rewrite and retains zero provider calls for rejected/disabled editorial decisions.
+  It explicitly does NOT prove full semantics or authorize automatic approval.
+- Durable rewrite runner component persists bounded attempt budgets before calls,
+  uses PostgreSQL leases/fencing, handles retries/source edits/stale rejects,
+  and atomically creates only per-output PENDING drafts/completion outbox events.
+  Recovery through injected synthetic providers was exercised after a real Docker
+  worker restart and lease expiry. Default daemon still runs planning only.
+- Latest local backend gate: 179 tests, lint and compile passed; 24 frontend units
+  and 19 browser E2E passed. See REWRITE_RECOVERY_VERIFICATION.md for boundaries.
+- nginx now follows changed API addresses without proxy restart. Actual 502 on API
+  recreate was diagnosed and fixed; isolated regression forces an IP change.
+- Explicit isolated migration upgrade/drift-check/downgrade/re-upgrade/drift-check
+  passes. ORM donor-import/publication-plan indexes now match existing migrations;
+  a drift regression and CI check were added without resetting database state.
+- Current protected-entity policy is rechecked as well as stored PASS/allow flags
+  across rewrite, dispatch, planning, draft approval, activation, media selection
+  and publication. Forged/inconsistent PASS cannot bypass hostile-entity blocking.
+- PostgreSQL migration drift check in the operational container passed too.
+- GitHub Actions 37680562785 passed all three jobs for Docker/planner foundation
+  commit 4b093c5 (backend, frontend and synthetic Docker persistence).
+
 - Windows Docker Desktop now runs: actual dev/production builds, packaged
   migrations on PostgreSQL, health/proxy/inbox reads, rebuild/recreate, down/up,
   Redis/worker restart and PostgreSQL SIGKILL recovery passed in an isolated
@@ -175,8 +197,8 @@
 
 ## PARTIALLY IMPLEMENTED
 
-- Compose runtime/persistence acceptance: synthetic storage checks now verified;
-  real Telegram authorization and job execution recovery remain pending.
+- Compose runtime/persistence acceptance: synthetic storage and injected runner
+  recovery verified; real Telegram authorization/live provider execution pending.
 - Live dashboard workflows remain partial: Inbox reads, AI-provider Settings
   and review/plan configuration in Planner use actual API state. Donors, Channels,
   Connections and Accounts still need live frontend wiring; their operational
@@ -184,8 +206,8 @@
 
 ## NOT IMPLEMENTED
 
-- Operational Telethon ingestion/publication transport, rewrite execution worker,
-  fact guard, durable job runner/recovery and media
+- Operational Telethon ingestion/publication transport, network-provider execution
+  worker, semantic fact verification/guarded auto-approval and media
   execution remain pending (provider contracts/plan selection already exist).
   PostgreSQL-backed inbox read is now verified on Docker Desktop; live ingestion
   and transport execution remain pending.
@@ -224,13 +246,21 @@ Review/approval APIs and live Planner wiring are now verified locally.
 Safe media selection/registry is implemented and verified offline.
 Timer-driven durable automatic plan selection and synthetic Docker storage
 acceptance are now implemented and verified (DOCKER_VERIFICATION.md).
-Next PHASE 1 task: implement guarded rewrite/fact verification plus configurable automatic
-approval so unattended delivery does not require every post to be clicked manually.
+Fact-anchor guard and leased durable runner component are now implemented;
+see REWRITE_RECOVERY_VERIFICATION.md. Do not repeat the Docker repair/setup.
+Exact NEXT_STEP: implement the server-side OpenAI structured rewrite adapter and
+provider factory for DurableRewriteRunner, including bounded responses, usage/cost
+tracking and credential-safe unavailable/configuration handling; test with injected
+HTTP responses, no paid calls. Then wire an explicit network-worker enable policy,
+semantic fact verification and configurable guarded automatic approval so unattended
+delivery does not require every post to be clicked manually. Anchor equality alone
+must never trigger automatic approval.
 Add a free licensed internet-image search/acquisition provider, not just local
 library lookup, while retaining source-photo reuse as the other mode.
 Keep current editorial rechecks; never publish as a side effect of UI work.
 
 PHASE 1 IS NOT COMPLETE. Docker foundation/storage checks are VERIFIED only for
 isolated synthetic fixtures. Live Telegram encrypted authorization restart and
-unfinished durable-job execution recovery remain NOT VERIFIED / PENDING IMPLEMENTATION
-OR EXTERNAL AUTHORIZATION. Live secrets and Obsidian sync remain pending.
+live-provider durable-job execution remain NOT VERIFIED / PENDING IMPLEMENTATION
+OR EXTERNAL AUTHORIZATION. Injected synthetic leased recovery is verified separately.
+Live provider secrets, Telegram authorization and Obsidian sync remain pending.

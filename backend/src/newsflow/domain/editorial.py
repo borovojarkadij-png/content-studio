@@ -8,6 +8,7 @@ decision remains deterministic and is enforced again by downstream services.
 from collections.abc import Sequence
 from dataclasses import dataclass
 from enum import StrEnum
+from typing import Protocol
 
 
 class EditorialStatus(StrEnum):
@@ -57,3 +58,31 @@ class EditorialGate:
             sentiment=sentiment,
             framing=framing,
         )
+
+
+class EditorialRecord(Protocol):
+    status: str
+    rewrite_allowed: bool
+    protected_entities: Sequence[str] | str
+    sentiment: str
+    framing: str
+
+
+def editorial_allows_rewrite(decision: EditorialDecision | EditorialRecord | None) -> bool:
+    """Recheck flags AND protected-entity constraints for domain/durable records."""
+    if (
+        decision is None
+        or decision.status != EditorialStatus.PASS
+        or decision.rewrite_allowed is not True
+    ):
+        return False
+    entities = decision.protected_entities
+    if isinstance(entities, str):
+        entities = entities.split(",")
+    current = EditorialGate().evaluate(
+        text="",
+        protected_entities=tuple(entity.strip() for entity in entities if entity.strip()),
+        sentiment=decision.sentiment,
+        framing=decision.framing,
+    )
+    return current.status is EditorialStatus.PASS and current.rewrite_allowed

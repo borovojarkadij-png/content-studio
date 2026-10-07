@@ -3,7 +3,7 @@
 from datetime import UTC, datetime
 from typing import Protocol
 
-from newsflow.domain.editorial import EditorialDecision, EditorialStatus
+from newsflow.domain.editorial import EditorialDecision, editorial_allows_rewrite
 
 
 class TelegramPublisher(Protocol):
@@ -33,8 +33,7 @@ class PublicationService:
     ) -> str | None:
         now = datetime.now(UTC)
         if (
-            decision.status is not EditorialStatus.PASS
-            or not decision.rewrite_allowed
+            not editorial_allows_rewrite(decision)
             or is_cancelled
             or expires_at <= now
             or scheduled_for > now

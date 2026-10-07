@@ -120,7 +120,7 @@ class DonorImportModel(Base):
     __table_args__ = (UniqueConstraint("telegram_account_id", "identifier"),)
     id: Mapped[int] = mapped_column(primary_key=True)
     telegram_account_id: Mapped[int] = mapped_column(
-        ForeignKey("telegram_accounts.id"), nullable=False
+        ForeignKey("telegram_accounts.id"), nullable=False, index=True
     )
     identifier: Mapped[str] = mapped_column(String(100), nullable=False)
     status: Mapped[str] = mapped_column(String(32), nullable=False)
@@ -131,12 +131,13 @@ class PublicationPlanModel(Base):
 
     __tablename__ = "publication_plans"
     __table_args__ = (
+        UniqueConstraint("output_channel_id"),
         CheckConstraint("mode IN ('MANUAL', 'AUTOMATIC')", name="ck_publication_plan_mode"),
         CheckConstraint("daily_limit BETWEEN 1 AND 24", name="ck_publication_plan_daily_limit"),
     )
     id: Mapped[int] = mapped_column(primary_key=True)
     output_channel_id: Mapped[int] = mapped_column(
-        ForeignKey("output_channels.id"), unique=True, nullable=False, index=True
+        ForeignKey("output_channels.id"), nullable=False, index=True
     )
     mode: Mapped[str] = mapped_column(String(16), nullable=False)
     daily_limit: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -345,6 +346,7 @@ class RewriteJobModel(Base):
     __tablename__ = "rewrite_jobs"
     __table_args__ = (
         UniqueConstraint("content_key", "output_channel_id", name="uq_rewrite_job_content_output"),
+        CheckConstraint("attempts >= 0", name="ck_rewrite_attempts_nonnegative"),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -354,6 +356,11 @@ class RewriteJobModel(Base):
     )
     idempotency_key: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     state: Mapped[str] = mapped_column(String(32), nullable=False)
+    attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
+    available_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    claim_token: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    lease_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_error_code: Mapped[str | None] = mapped_column(String(64), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

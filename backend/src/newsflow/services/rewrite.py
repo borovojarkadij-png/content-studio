@@ -2,7 +2,8 @@
 
 from typing import Protocol
 
-from newsflow.domain.editorial import EditorialDecision, EditorialStatus
+from newsflow.domain.editorial import EditorialDecision, editorial_allows_rewrite
+from newsflow.services.fact_guard import FactGuard
 
 
 class TextRewriteProvider(Protocol):
@@ -20,6 +21,10 @@ class RewriteService:
         self._provider = provider
 
     def rewrite(self, source_text: str, decision: EditorialDecision) -> str:
-        if decision.status is not EditorialStatus.PASS or not decision.rewrite_allowed:
+        if not editorial_allows_rewrite(decision):
             raise EditorialRewriteBlocked("EDITORIAL_REWRITE_BLOCKED")
-        return self._provider.rewrite(source_text)
+        guard = FactGuard()
+        guard.validate_source(source_text)
+        rewritten = self._provider.rewrite(source_text)
+        guard.require_preserved(source_text, rewritten)
+        return rewritten

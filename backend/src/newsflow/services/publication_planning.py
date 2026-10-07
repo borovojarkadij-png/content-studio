@@ -7,6 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from newsflow.domain.editorial import editorial_allows_rewrite
 from newsflow.persistence.models import (
     EditorialDecisionModel,
     OutputChannel,
@@ -112,7 +113,7 @@ class PublicationPlanningService:
             {
                 **_item_projection(item, candidate),
                 "editorial_allowed": (
-                    decision is not None and decision.status == "PASS" and decision.rewrite_allowed
+                    editorial_allows_rewrite(decision)
                 ),
             }
             for item, candidate, decision in rows
@@ -341,4 +342,4 @@ class PublicationPlanningService:
             .where(EditorialDecisionModel.content_key == content_key)
             .with_for_update()
         )
-        return decision is not None and decision.status == "PASS" and decision.rewrite_allowed
+        return editorial_allows_rewrite(decision)

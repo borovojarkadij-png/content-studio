@@ -9,6 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from newsflow.domain.editorial import editorial_allows_rewrite
 from newsflow.persistence.models import (
     EditorialDecisionModel,
     MediaAssetModel,
@@ -157,7 +158,7 @@ class LocalMediaSelectionService:
                 EditorialDecisionModel.content_key == candidate.content_key
             )
         )
-        if decision is None or decision.status != "PASS" or not decision.rewrite_allowed:
+        if not editorial_allows_rewrite(decision):
             raise MediaSelectionBlocked("EDITORIAL_HARD_CONSTRAINT_BLOCKED")
         if candidate.state not in {"READY", "SCHEDULED"}:
             raise MediaSelectionBlocked("Candidate is not approved for media preparation")

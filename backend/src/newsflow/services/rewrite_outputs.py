@@ -6,6 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from newsflow.domain.editorial import editorial_allows_rewrite
 from newsflow.persistence.models import (
     EditorialDecisionModel,
     PublicationCandidateModel,
@@ -57,9 +58,7 @@ class RewriteOutputService:
                     "editorial_status": decision.status if decision else None,
                     "approve_allowed": (
                         output.approval_state != "REJECTED"
-                        and decision is not None
-                        and decision.status == "PASS"
-                        and decision.rewrite_allowed
+                        and editorial_allows_rewrite(decision)
                         and job is not None
                         and job.state == "SUCCEEDED"
                         and job.output_channel_id == output.output_channel_id
@@ -186,5 +185,5 @@ class RewriteOutputService:
             .where(EditorialDecisionModel.content_key == content_key)
             .with_for_update()
         )
-        if decision is None or decision.status != "PASS" or not decision.rewrite_allowed:
+        if not editorial_allows_rewrite(decision):
             raise RewriteOutputBlocked("EDITORIAL_HARD_CONSTRAINT_BLOCKED")
