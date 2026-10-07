@@ -25,7 +25,8 @@
 - [~] Mapping-level deterministic filters for media, advertising markers and forbidden links
 - [x] Persisted mapping-filter GET/PUT API and ingress integration, canonical blocked domains, mandatory advertising markers and fresh worker/review/calendar policy guards; 442-test local gate
 - [x] Mapping-filter Windows Docker down/up acceptance, persisted policy/stale-task zero-call guard, actual PostgreSQL drift and real filter API
-- [ ] Configuration/filter UI wiring and publication-execution guard
+- [x] Real configuration/filter UI: account/output metadata create/rename, donor import/status, route delivery/media settings, effective technical filters, manual draft/partial success/stale response guards; 40 unit/21 browser gate and actual read-only operational Docker UI
+- [ ] Publication-execution technical-filter guard
 - [~] Durable mapping-scoped exact content fingerprint deduplication before EditorialGate
 - [~] OpenAI/OpenRouter: encrypted settings/models, drafts/review, catalog and fact anchors complete; strict adapters/encrypted factory, explicitly opt-in provider-selected worker, bounded free-only OpenRouter failover, known token usage and per-channel natural tabloid style complete offline; live provider verification, semantic guard, rate configuration/cache/dashboard pending
 - [~] Durable moderation-inbox API read model (state, latest revision and editorial decision); dark-navy Inbox consumes its supported read endpoint, while mutation APIs remain pending

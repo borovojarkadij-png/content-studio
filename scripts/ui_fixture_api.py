@@ -6,11 +6,10 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 import uvicorn
+from alembic import command
 from alembic.config import Config
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
-
-from alembic import command
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "backend" / "src"))
@@ -30,6 +29,7 @@ def main() -> None:
     )
     from newsflow.services.publication_planning import PublicationPlanningService
     from newsflow.services.rewrite_outputs import RewriteOutputService
+    from newsflow.services.telegram_configuration import TelegramConfigurationService
 
     with TemporaryDirectory(prefix="content-studio-ui-test-") as directory:
         database_url = f"sqlite:///{Path(directory, 'fixture.db').as_posix()}"
@@ -80,6 +80,15 @@ def main() -> None:
             session.add(output)
             session.flush()
             output_id = output.id
+            session.commit()
+            configuration = TelegramConfigurationService(session)
+            donor = configuration.create_donor(
+                account.id, -1002222222222, "Изолированный донор API"
+            )
+            configuration.create_donor(
+                account.id, -1003333333333, "Другой изолированный донор API"
+            )
+            configuration.create_mapping(donor["id"], output_id, 100, 50)
             for number in (1, 2):
                 key = f"ui-planner:@planner_donor:{number}:revision:1"
                 source = IncomingPostModel(

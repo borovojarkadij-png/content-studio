@@ -52,6 +52,159 @@ const navigate = async (page: Page, name: string) => {
     .click();
 };
 
+test("real configuration persists filters, delay, imports and names through reload without auth or publication", async ({
+  page,
+}) => {
+  const unsafeCalls: string[] = [];
+  page.on("request", (request) => {
+    if (/publish-now|login|openai|openrouter/.test(request.url()))
+      unsafeCalls.push(request.url());
+  });
+  await page.goto("/");
+  await navigate(page, "Аккаунты");
+  await expect(
+    page.getByText("Сессия не подключена", { exact: true }),
+  ).toBeVisible();
+  await page
+    .getByLabel("Название", { exact: true })
+    .fill("Ручное название API");
+  await page
+    .getByRole("button", { name: "Сохранить название", exact: true })
+    .click();
+  await expect(
+    page.getByText("Название сохранено в базе данных."),
+  ).toBeVisible();
+  await page.reload();
+  await navigate(page, "Аккаунты");
+  await expect(page.getByLabel("Название", { exact: true })).toHaveValue(
+    "Ручное название API",
+  );
+  await page.getByLabel("Название новой записи").fill("Новая конфигурация API");
+  await page.getByLabel("Telegram User ID").fill("9009");
+  await page.getByRole("button", { name: "Создать запись аккаунта" }).click();
+  await expect(
+    page.getByText(
+      "Запись сохранена. Telegram-подключение и права не проверены.",
+    ),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Подключить Telegram" }),
+  ).toBeDisabled();
+  await navigate(page, "Доноры");
+  await page
+    .getByLabel("Список доноров")
+    .fill(
+      "https://t.me/synthetic_new_donor\n@synthetic_new_donor\nnot a channel",
+    );
+  await page.getByRole("button", { name: "Импортировать доноров" }).click();
+  await expect(
+    page.getByText(/В очередь разрешения: 1; дубли: 1;/),
+  ).toBeVisible();
+  await expect(
+    page.getByText(/@synthetic_new_donor · PENDING_RESOLUTION/),
+  ).toBeVisible();
+  await page.reload();
+  await navigate(page, "Доноры");
+  await expect(
+    page.getByText(/@synthetic_new_donor · PENDING_RESOLUTION/),
+  ).toBeVisible();
+  await navigate(page, "Мои каналы");
+  await page.getByLabel("Название новой записи").fill("Новый выходной API");
+  await page.getByLabel("Telegram Channel ID").fill("-1004444444444");
+  await page.getByRole("button", { name: "Создать запись канала" }).click();
+  await expect(
+    page.getByText(
+      "Запись сохранена. Telegram-подключение и права не проверены.",
+    ),
+  ).toBeVisible();
+  await navigate(page, "Связи");
+  await page.getByLabel("Допуск к планированию").selectOption("DELAYED");
+  await page.getByLabel("Задержка, минут").fill("45");
+  await page.getByLabel("Приоритет", { exact: true }).fill("10");
+  await page
+    .getByRole("button", { name: "Сохранить маршрут", exact: true })
+    .click();
+  await expect(page.getByText("Маршрут сохранён в базе данных.")).toBeVisible();
+  await page.getByLabel("Запрещённые домены").fill("EXAMPLE.org\nрф.рф");
+  await page.getByLabel("Дополнительные рекламные маркеры").fill("buy now");
+  await page
+    .getByRole("button", { name: "Сохранить фильтры", exact: true })
+    .click();
+  await expect(
+    page.getByText("Фильтры сохранены в базе данных."),
+  ).toBeVisible();
+  await expect(page.getByLabel("Запрещённые домены")).toHaveValue(
+    "example.org\nxn--p1ai.xn--p1ai",
+  );
+  await page.reload();
+  await navigate(page, "Связи");
+  await expect(page.getByLabel("Задержка, минут")).toHaveValue("45");
+  await expect(page.getByLabel("Запрещённые домены")).toHaveValue(
+    "example.org\nxn--p1ai.xn--p1ai",
+  );
+  await expect(page.getByLabel("Дополнительные рекламные маркеры")).toHaveValue(
+    "buy now",
+  );
+  await page
+    .getByLabel("Донор нового маршрута")
+    .selectOption({ label: "Другой изолированный донор API" });
+  await page
+    .getByRole("button", { name: "Создать маршрут", exact: true })
+    .click();
+  await expect(page.getByLabel("Доля входящих материалов, %")).toHaveValue(
+    "100",
+  );
+  await expect(page.getByLabel("Задержка, минут")).toHaveValue("0");
+  await expect(
+    page.getByRole("combobox", { name: "Маршрут", exact: true }),
+  ).toHaveValue("2");
+  await page
+    .getByRole("combobox", { name: "Маршрут", exact: true })
+    .selectOption("1");
+  await expect(page.getByLabel("Задержка, минут")).toHaveValue("45");
+  expect(unsafeCalls).toEqual([]);
+});
+
+test("working configuration sections are accessible and fit desktop/mobile with honest pending states", async ({
+  page,
+}) => {
+  await page.goto("/");
+  for (const viewport of [
+    { width: 1440, height: 900 },
+    { width: 390, height: 844 },
+  ]) {
+    await page.setViewportSize(viewport);
+    for (const [name, slug] of [
+      ["Доноры", "donors"],
+      ["Мои каналы", "channels"],
+      ["Связи", "connections"],
+      ["Аккаунты", "accounts"],
+    ]) {
+      await navigate(page, name);
+      await expect(
+        page.getByRole("button", {
+          name: name === "Связи" ? "Обновить связи" : "Обновить список",
+        }),
+      ).toBeEnabled();
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= window.innerWidth,
+        ),
+      ).toBe(true);
+      const audit = await new AxeBuilder({ page })
+        .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
+        .analyze();
+      expect(audit.violations).toEqual([]);
+      await page.screenshot({
+        path: path.resolve(
+          `../.artifacts/ui-dark-navy/live-config-${slug}-${viewport.width}.png`,
+        ),
+        fullPage: true,
+      });
+    }
+  }
+});
+
 test("live planner persists approval and per-channel daily plan through the migrated isolated API", async ({
   page,
 }) => {

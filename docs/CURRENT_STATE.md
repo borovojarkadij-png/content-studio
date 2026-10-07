@@ -2,6 +2,15 @@
 
 ## VERIFIED WORKING
 
+- Real configuration UI wired for Accounts/Donors/My Channels/Connections:
+  public health, metadata create/rename, pending donor import, route create and
+  delivery/media/technical-filter editing. Manual drafts/partial failures/late
+  responses remain protected; no fake authorization/AI/send or DEMO fallback.
+  Frontend 40 units / 21 actual browser regressions PASS, format/typecheck/build
+  PASS, production audit zero. Eight desktop/mobile working screenshots inspected.
+  Operational production UI rebuilt and four sections opened read-only with zero
+  writes; actual configuration APIs HTTP 200. See CONFIGURATION_UI_VERIFICATION.md.
+
 - Read-only broadcast-channel username resolution, immutable canonical identity/
   full-hash validation, encrypted factory peer persistence and durable import
   jobs/leases/fencing implemented locally. Aliases share one donor without
@@ -454,18 +463,20 @@ origin; CI 37699179678 backend/frontend PASS, Docker jobs still running at last
 inspection. This predates donor-import implementation; check overall CI later.
 Operational backend import rebuild completed; packaged PostgreSQL drift and
 proxied health/inbox HTTP 200 PASS. All four network enablement flags remain 0.
-Exact NEXT_STEP: commit/push ONLY the tested backend/CI/runtime-doc import
-increment and track its CI; frontend configuration work is separate in-progress
-changes, not part of this checkpoint.
+Import checkpoint b20885e1acffa5bad6369b0f968ee31cf945639a committed/pushed to the
+correct origin. CI 37700522102 backend/frontend PASS; both Docker jobs still
+running at last inspection. Do not claim overall CI success until completed.
 Actual import Docker recovery completed PASS in isolated
 newsflow-verification-donorimports20261008 (18015/15188/18095; CrashRecovery +
 IngestionGuard + PeerGuard + MappingGuard + ResolutionGuard), including resolved
 API state and actual PostgreSQL drift; stopped retaining history/volumes.
 CI 37699179678 for d1fd02c completed SUCCESS in all four jobs.
-Continue frontend real configuration/filter wiring: added test-first API/React
-files, 35 frontend units PASS; finish typecheck and actual migrated API E2E,
-responsive screenshots/visual inspection, then document/commit/push separately.
-Next independent work: album/media batching and guarded publication execution.
+Exact NEXT_STEP: commit/push the separately verified configuration UI increment,
+track both CI checkpoints, then implement test-first bounded album/media batching
+and source acquisition before guarded publication execution. Frontend 40 units,
+21 browser regressions, format/typecheck/build/audit PASS, new screenshots visually
+inspected; operational UI rebuilt/read-only verified with zero writes. Do not
+repeat already completed configuration UI or isolated fixture seeding.
 Never rerun existing fixture seeds or enable actual sends as a side effect.
 f19af6d CI 37696430337 completed SUCCESS. Track next commit CI.
 Do not rerun either fixture seed; existing histories are intentionally retained.

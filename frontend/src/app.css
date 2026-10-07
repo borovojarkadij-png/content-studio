@@ -1253,6 +1253,23 @@ svg {
   display: grid;
   gap: 20px;
 }
+.live-configuration .panel {
+  min-width: 0;
+}
+.live-configuration .field input,
+.live-configuration .field textarea,
+.live-configuration .field select {
+  min-width: 0;
+  width: 100%;
+}
+.live-configuration p,
+.live-configuration .source-row {
+  overflow-wrap: anywhere;
+}
+.live-config-list {
+  display: grid;
+  gap: 4px;
+}
 .live-planner-fields {
   padding: 0;
   margin: 0;

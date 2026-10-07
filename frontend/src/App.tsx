@@ -7,6 +7,7 @@ import {
 } from "react";
 import { loadInbox } from "./api";
 import { LivePlanner } from "./LivePlanner";
+import { LiveConnections, LiveDirectory } from "./LiveConfiguration";
 import { Accounts, Connections, Planner, Settings } from "./workspaces";
 import {
   Artwork,
@@ -192,15 +193,15 @@ export function App({
               {section === "inbox" && (
                 <Inbox {...workspace} demo={demo} globalQuery={globalQuery} />
               )}
-              {section !== "overview" &&
-                section !== "inbox" &&
-                section !== "settings" &&
-                section !== "planner" &&
-                !demo && (
-                  <Unavailable
-                    title={`${navigation.find((item) => item.id === section)!.label}: подключение ожидается`}
-                  />
+              {!demo &&
+                (section === "donors" ||
+                  section === "channels" ||
+                  section === "accounts") && (
+                  <LiveDirectory section={section} markDirty={markDirty} />
                 )}
+              {!demo && section === "connections" && (
+                <LiveConnections markDirty={markDirty} />
+              )}
               {demo && section === "donors" && <Donors {...workspace} />}
               {demo && section === "channels" && <Channels {...workspace} />}
               {demo && section === "connections" && (
@@ -222,7 +223,9 @@ export function App({
         <Modal title="Переключить режим?" onClose={() => setPendingMode(null)}>
           <p>
             Несохранённые правки будут потеряны. DEMO хранит изменения только в
-            памяти этого окна.
+            памяти этого окна. Уже отправленный запрос к API может сохраниться
+            на сервере; переключение режима не откатывает изменения в базе
+            данных.
           </p>
           <div className="action-row">
             <button onClick={() => setPendingMode(null)}>Остаться</button>
