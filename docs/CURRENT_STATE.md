@@ -154,6 +154,11 @@
   ignored local `backend/newsflow.db` rather than an isolated test database,
   executing downgrade/re-upgrade. It was not tracked by Git and no backup was
   present in the workspace. Future migration checks use isolated temporary DBs.
+- GitHub push is currently blocked by external authentication: the configured
+  `borovojarkadij-png/content-studio` remote returned `403` for the active
+  `thrixicpa-del` credential on 2026-10-07. Local verified commits `492eb0b`
+  and `e011ddb` are intentionally preserved and must be pushed after access is
+  restored; do not redirect them to a different repository.
 
 ## NEXT STEP
 
