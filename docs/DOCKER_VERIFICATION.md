@@ -102,6 +102,15 @@ then recovered an expired persisted claim after worker restart. The old owner
 was fenced; exactly one synthetic provider call produced a persistent PENDING
 draft. Network AI calls and Telegram publications were zero.
 
+GitHub run 37683423581 then exposed a Linux-only fixture failure: an exact-IP
+holder is refused on a network without user-configured IPAM. This was not data
+loss. The verifier now supplies a persisted fixture-only network override with
+an explicit random private subnet; operational Compose networking is unchanged.
+The corrected full procedure passed on Windows as
+`newsflow-verification-ipam20261007` (18005 / 15178 / 18085), including actual
+address change, crash recovery, lease expiry and fenced PENDING completion.
+Linux CI re-verification is required before claiming that job fixed there.
+
 ## Local operational instance
 
 After verifying there were no existing `newsflow` volumes/containers or local

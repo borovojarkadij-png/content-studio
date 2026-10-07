@@ -45,8 +45,17 @@ NEWSFLOW_PROD_WEB_PORT=$ProductionPort
 NEWSFLOW_VERIFICATION_PROBE=1
 "@
 [IO.File]::WriteAllText($envPath, $envText, [Text.UTF8Encoding]::new($false))
+$networkPath = Join-Path $fixtureDirectory 'network.yaml'
+if (-not (Test-Path -LiteralPath $networkPath)) {
+    # Linux Engine permits the exact-IP holder only on explicitly configured IPAM.
+    # This override belongs to the isolated fixture, never the operational stack.
+    $subnet = "10.$(Get-Random -Minimum 16 -Maximum 240).$(Get-Random -Minimum 0 -Maximum 256).0/24"
+    $networkText = "networks:`n  default:`n    ipam:`n      config:`n        - subnet: $subnet`n"
+    [IO.File]::WriteAllText($networkPath, $networkText, [Text.UTF8Encoding]::new($false))
+}
 $composeArgs = @('compose', '-p', $Project, '--env-file', $envPath,
     '-f', (Join-Path $root 'compose.yaml'), '-f', (Join-Path $root 'compose.dev.yaml'),
+    '-f', $networkPath,
     '--profile', 'dev', '--profile', 'production')
 function Invoke-VerificationCompose {
     & docker @composeArgs @args
