@@ -42,6 +42,99 @@ def test_media_only_edit_invalidates_old_source_even_with_identical_text():
         assert len(session.scalars(select(RewriteJobModel)).all()) == 0
 
 
+def test_photo_identity_only_edit_creates_a_new_immutable_revision_and_invalidates_old_jobs():
+    engine = create_engine("sqlite://")
+    Base.metadata.create_all(engine)
+    with Session(engine) as session:
+        workflow = DurableIngestionWorkflow(session)
+        ingest(
+            workflow,
+            TelegramMessage(
+                "a",
+                "@donor",
+                1,
+                "Caption",
+                media_type="photo",
+                media_id="123",
+                source_updated_at=NOW,
+            ),
+        )
+        ingest(
+            workflow,
+            TelegramMessage(
+                "a",
+                "@donor",
+                1,
+                "Caption",
+                media_type="photo",
+                media_id="124",
+                source_updated_at=NOW,
+            ),
+        )
+        assert not source_is_current(session, "a:@donor:1:revision:1")
+        revisions = session.scalars(
+            select(ContentRevisionModel).order_by(ContentRevisionModel.revision_number)
+        ).all()
+        assert [revision.media_id for revision in revisions] == ["123", "124"]
+        assert len(session.scalars(select(RewriteJobModel)).all()) == 1
+
+
+def test_protected_photo_edit_invalidates_old_source_and_rejects_before_editorial():
+    engine = create_engine("sqlite://")
+    Base.metadata.create_all(engine)
+    with Session(engine) as session:
+        workflow = DurableIngestionWorkflow(session)
+        ingest(
+            workflow,
+            TelegramMessage(
+                "a",
+                "@donor",
+                1,
+                "Caption",
+                media_type="photo",
+                media_id="123",
+                media_protected=False,
+                source_updated_at=NOW,
+            ),
+        )
+        result = ingest(
+            workflow,
+            TelegramMessage(
+                "a",
+                "@donor",
+                1,
+                "Caption",
+                media_type="photo",
+                media_id="123",
+                media_protected=True,
+                source_updated_at=NOW + timedelta(seconds=1),
+            ),
+        )
+        assert (result.status, result.reason_code) == ("REJECTED_TECHNICAL", "PROTECTED_CONTENT")
+        assert not source_is_current(session, "a:@donor:1:revision:1")
+        latest = session.scalars(
+            select(ContentRevisionModel).order_by(ContentRevisionModel.revision_number.desc())
+        ).first()
+        assert latest.media_protected is True
+        assert len(session.scalars(select(RewriteJobModel)).all()) == 1
+
+
+@pytest.mark.parametrize(
+    "identity", [True, "01", "-0", "9223372036854775808", "../photo", "", "123.0"]
+)
+def test_malformed_media_identity_is_not_persisted_or_sent_to_editorial(identity):
+    engine = create_engine("sqlite://")
+    Base.metadata.create_all(engine)
+    with Session(engine) as session:
+        with pytest.raises(ValueError):
+            ingest(
+                DurableIngestionWorkflow(session),
+                TelegramMessage("a", "@donor", 1, "Caption", media_type="photo", media_id=identity),
+            )
+        assert session.scalar(select(ContentRevisionModel)) is None
+        assert session.scalar(select(RewriteJobModel)) is None
+
+
 def test_stale_edit_timestamp_cannot_roll_back_latest_revision():
     engine = create_engine("sqlite://")
     Base.metadata.create_all(engine)

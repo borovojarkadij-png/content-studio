@@ -2,6 +2,20 @@
 
 ## VERIFIED WORKING
 
+- Exact source-photo acquisition seam, immutable signed media identity/protection
+  and history-preserving migration verified: 548 backend tests/lint/compile PASS,
+  40 frontend unit/21 browser/format/typecheck/build/audit PASS. Actual Windows
+  Docker CrashRecovery + SourcePhotoGuard PASS in isolated
+  newsflow-verification-sourcephoto20261008; original bytes/rights/identity survive
+  down/up/restart, no DB locks across injected RPC, revoked editorial zero-provider
+  and real selection API 409. Fixture stopped preserving all history/volumes.
+  Packaged fixture/operational PostgreSQL drift PASS; operational backend rebuilt
+  and migrated, proxied health/inbox HTTP 200, all four network flags still 0.
+  See SOURCE_PHOTO_VERIFICATION.md. Source worker/API/UI not yet implemented.
+- Album follow-up 80a4a5b CI 37703200551 completed SUCCESS in all four jobs.
+  Original c2bd2da CI 37702733554 completed FAILURE in both Docker jobs due to
+  the reproduced probe ordering bug, corrected without weakening assertions.
+
 - Actual album Windows Docker acceptance resumed after a probe-order correction:
   recover/worker-restart/verify/edit/down-up/verify-edit PASS, packaged PostgreSQL
   drift PASS, real inbox retained both grouped photo/video members without
@@ -508,18 +522,13 @@ newsflow-verification-donorimports20261008 (18015/15188/18095; CrashRecovery +
 IngestionGuard + PeerGuard + MappingGuard + ResolutionGuard), including resolved
 API state and actual PostgreSQL drift; stopped retaining history/volumes.
 CI 37699179678 for d1fd02c completed SUCCESS in all four jobs.
-Exact NEXT_STEP: commit/push corrected album probe/docs (actual recovery resumed
-and verified in session 76697, fixture stopped retaining history). Track original
-album c2bd2da CI 37702733554 and its corrected follow-up separately: original
-contains the reproduced probe-counter bug, backend/frontend PASS, Docker pending.
-New source-photo provider work is separate uncommitted: 13 test-first adapter/fake
-tests PASS, bounded chunks/16 MiB, protected/grouped content blocked, stream closed,
-original bytes plus source/photo identity re-fetched before return. Media identity
-is currently provider-only, NOT durable yet; no source-acquisition service/API.
-Continue signed media identity/protection in immutable revisions with guarded
-migration/regressions, then source-photo acquisition with explicit rights,
-fresh pre/post-provider bindings and create-only persistent storage; no protected
-content download, overwrite or sends. Full album manifests/deletion/batching
+Exact NEXT_STEP: commit/push verified source-photo checkpoint and track its own CI.
+Continue fenced durable source-photo jobs with explicit persisted rights (no
+inferred permission from REUSE_SOURCE), committed attempt budget, restart recovery,
+fresh pre/post-RPC lease/source/editorial checks and atomic registry completion.
+Then implement honest API/UI controls and opt-in worker configuration. The current
+source acquisition seam and immutable identity/protection are verified; its durable
+worker/API/UI are not. Full album manifests/deletion/batching
 remain pending and must not be inferred from the observation seam. Track media
 and subsequent album CI separately. Frontend 40 units / 21
 browser/format/typecheck/build/audit PASS. Do not reseed existing fixtures.

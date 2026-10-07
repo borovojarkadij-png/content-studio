@@ -62,6 +62,42 @@ class TelegramMessage:
     media_type: str = "text"
     album_id: str | None = None
     source_updated_at: datetime | None = None
+    media_id: str | None = None
+    media_protected: bool | None = None
+
+
+def validate_media_observation(message: TelegramMessage) -> None:
+    identity = message.media_id
+    if (message.media_protected is not None and type(message.media_protected) is not bool) or (
+        identity is not None
+        and (
+            not isinstance(identity, str)
+            or re.fullmatch(r"-?(?:0|[1-9][0-9]{0,18})", identity) is None
+            or str(int(identity)) != identity
+            or not -(2**63) <= int(identity) < 2**63
+            or message.media_type == "text"
+        )
+    ):
+        raise ValueError("Invalid Telegram media observation identity")
+
+
+@dataclass(frozen=True, slots=True)
+class TelegramPhotoDownload:
+    message: TelegramMessage = field(repr=False)
+    content: bytes = field(repr=False)
+
+    def __post_init__(self):
+        if (
+            not isinstance(self.message, TelegramMessage)
+            or self.message.media_type != "photo"
+            or self.message.album_id is not None
+            or self.message.media_id is None
+            or self.message.media_protected is not False
+            or not isinstance(self.content, bytes)
+            or not 0 < len(self.content) <= 16 * 1024 * 1024
+        ):
+            raise ValueError("Invalid bounded single-source Telegram photo")
+        validate_media_observation(self.message)
 
 
 @dataclass(frozen=True, slots=True)
@@ -152,6 +188,7 @@ def observe_album_window(
         ):
             raise ValueError("Malformed or foreign Telegram album observation")
         previous = by_id.get(message.message_id)
+        validate_media_observation(message)
         if previous is not None and previous != message:
             raise ValueError("Conflicting Telegram album member observations")
         by_id[message.message_id] = message
@@ -177,6 +214,10 @@ def _album_bounds(anchor_id: int) -> tuple[int, int]:
 
 
 class TelegramProvider(Protocol):
+    def download_photo(
+        self, account_id: str, donor_identifier: str, message_id: int
+    ) -> TelegramPhotoDownload: ...
+
     def album_window(
         self, account_id: str, donor_identifier: str, *, anchor_id: int
     ) -> TelegramAlbumObservation: ...
@@ -208,6 +249,7 @@ class FakeTelegramProvider:
         self._session_unavailable: set[str] = set()
         self._session_probes: dict[str, int] = {}
         self._channels: dict[tuple[str, str], TelegramChannelResolution] = {}
+        self._photos: dict[tuple[str, str, int], bytes] = {}
 
     def seed_channel(self, account_id, identifier, channel_id, title):
         self._channels[(account_id, identifier)] = TelegramChannelResolution(
@@ -267,6 +309,12 @@ class FakeTelegramProvider:
             anchor_id=anchor_id,
             lower_id=lower,
             upper_id=upper,
+        )
+
+    def download_photo(self, account_id, donor_identifier, message_id):
+        message = self.fetch_message(account_id, donor_identifier, message_id)
+        return TelegramPhotoDownload(
+            message, self._photos[(account_id, donor_identifier, message_id)]
         )
 
     def iter_events(self, account_id: str) -> Iterator[TelegramMessage]:
@@ -549,6 +597,59 @@ class TelethonTelegramProvider:
 
         return self._run(account_id, read)
 
+    def download_photo(self, account_id, donor_identifier, message_id):
+        channel = self._channel_id(donor_identifier)
+        if type(message_id) is not int or not 1 <= message_id <= 2**31 - 1:
+            raise ValueError("Invalid Telegram photo identity")
+
+        async def download(client):
+            peer = await self._input_channel(client, account_id, channel)
+            raw = await client.get_messages(peer, ids=message_id)
+            if raw is None:
+                raise LookupError("Telegram photo source no longer exists")
+            if getattr(raw, "chat_id", None) != channel or getattr(raw, "id", None) != message_id:
+                raise ValueError("Telegram photo source identity mismatch")
+            if getattr(raw, "noforwards", False):
+                raise PermissionError("Protected Telegram media must not be downloaded")
+            message = self.normalize_message(account_id, donor_identifier, raw)
+            if (
+                message.media_type != "photo"
+                or message.album_id is not None
+                or message.media_id is None
+            ):
+                raise ValueError("Download requires a single non-album photo")
+            stream = client.iter_download(raw.media, request_size=64 * 1024, limit=257)
+            data = bytearray()
+            chunks = 0
+            try:
+                async for chunk in stream:
+                    chunks += 1
+                    if not isinstance(chunk, (bytes, memoryview)):
+                        raise TypeError("Invalid Telegram photo chunk")
+                    if isinstance(chunk, memoryview) and (chunk.ndim != 1 or chunk.itemsize != 1):
+                        raise TypeError("Invalid Telegram photo chunk")
+                    if (
+                        chunks > 257
+                        or not 0 < len(chunk) <= 64 * 1024
+                        or len(data) + len(chunk) > 16 * 1024 * 1024
+                    ):
+                        raise ValueError("Telegram photo exceeded its download bounds")
+                    data.extend(chunk)
+            finally:
+                await asyncio.wait_for(stream.close(), timeout=2)
+            current = await client.get_messages(peer, ids=message_id)
+            if current is None:
+                raise LookupError("Telegram photo source no longer exists")
+            if getattr(current, "chat_id", None) != channel:
+                raise ValueError("Telegram photo source identity mismatch")
+            if getattr(current, "noforwards", False):
+                raise PermissionError("Protected Telegram media must not be downloaded")
+            if self.normalize_message(account_id, donor_identifier, current) != message:
+                raise ValueError("Telegram photo source changed during download")
+            return TelegramPhotoDownload(message, bytes(data))
+
+        return self._run(account_id, download)
+
     def recent(self, account_id, donor_identifier, *, limit):
         if isinstance(limit, bool) or not isinstance(limit, int) or not 1 <= limit <= 100:
             raise ValueError("Invalid recent history bound")
@@ -616,6 +717,10 @@ class TelethonTelegramProvider:
             type(grouped_id) is not int or not -(2**63) <= grouped_id < 2**63
         ):
             raise ValueError("Telethon album identity is malformed")
+        media = getattr(raw_message, "photo", None) or getattr(raw_message, "document", None)
+        media_id = getattr(media, "id", None)
+        if media_id is not None and (type(media_id) is not int or not -(2**63) <= media_id < 2**63):
+            raise ValueError("Telethon media identity is malformed")
         return TelegramMessage(
             account_id=account_id,
             donor_identifier=donor_identifier,
@@ -626,4 +731,6 @@ class TelethonTelegramProvider:
             album_id=str(grouped_id) if grouped_id is not None else None,
             source_updated_at=getattr(raw_message, "edit_date", None)
             or getattr(raw_message, "date", None),
+            media_id=str(media_id) if media_id is not None else None,
+            media_protected=bool(getattr(raw_message, "noforwards", False)),
         )

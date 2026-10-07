@@ -416,6 +416,8 @@ class ContentRevisionModel(Base):
         String(32), nullable=False, default="text", server_default="unknown"
     )
     album_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    media_id: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    media_protected: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
     source_updated_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )

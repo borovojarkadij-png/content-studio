@@ -73,6 +73,30 @@ def runner(factory, provider):
     return DonorIngestionRunner(factory, provider=provider, clock=lambda: NOW)
 
 
+def test_own_unchanged_telethon_session_save_does_not_invalidate_a_durable_poll_claim(donor_store):
+    from test_telegram_peers import PeerClient
+
+    from newsflow.security.session_cipher import SessionCipher
+    from newsflow.services.telegram_provider_factory import ConfiguredTelegramProvider
+
+    cipher = SessionCipher("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=")
+    encrypted = cipher.encrypt("synthetic session")
+    with donor_store.begin() as session:
+        session.get(models.TelegramAccount, 1).encrypted_session = encrypted
+    provider = ConfiguredTelegramProvider(
+        donor_store,
+        cipher=cipher,
+        api_id=123,
+        api_hash="a" * 32,
+        client_factory=lambda _: PeerClient(),
+    )
+    assert runner(donor_store, provider).run_donor(1, now=NOW) == "POLL_COMPLETE"
+    with donor_store() as session:
+        assert session.get(models.DonorIngestionCursorModel, 1).last_message_id == 1
+        assert session.get(models.TelegramAccount, 1).encrypted_session == encrypted
+        assert session.scalar(select(models.IncomingPostModel)) is not None
+
+
 def test_poll_persists_inbox_and_cursor_across_sessions_without_inventing_classification(
     donor_store,
 ):

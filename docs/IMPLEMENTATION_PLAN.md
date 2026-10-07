@@ -39,6 +39,8 @@
 - [x] Live Planner API wiring: daily limits, slots/timezones, approval and explicit automatic selection; reload/channel-switch/error handling, isolated real API browser E2E and desktop/mobile screenshots
 - [x] Safe source-media reuse and licensed local-library selection: immutable durable registry, rights/attribution, file containment/integrity, read-only API, guarded migration and offline regression tests
 - [x] Actual bounded single-frame PNG/JPEG decoding and fresh pre/post-selection editorial/source/review/technical bindings; 472-test regression gate and synthetic Windows Docker media/API/revocation restart recovery
+- [x] Immutable signed source-media identity/protection, guarded history-preserving migration, bounded read-only exact-photo download and explicit-rights acquisition seam; 548 backend tests and actual synthetic Windows Docker source-photo/rights/down-up/zero-provider-reject acceptance
+- [ ] Durable source-photo jobs/rights configuration, opt-in worker and real API/UI controls; live authorized download verification remains external
 - [ ] Fully unattended channel automation: user-defined limits/delays/priorities/filters, timer-driven planning, configurable guarded automatic approval and durable publication worker; a manual click is not the final automatic-mode behavior
 - [x] Timer-driven durable automatic plan selection: per-channel local day/future slots, serialized quota, restart idempotency, stale editorial rejection and per-channel failure isolation; no transport side effects
 - [x] Packaged runtime Alembic upgrades before API/worker startup, Windows dev reload override, production static frontend/nginx API proxy and repeatable isolated PowerShell persistence procedure

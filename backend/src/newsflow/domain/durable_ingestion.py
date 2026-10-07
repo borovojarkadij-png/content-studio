@@ -27,7 +27,7 @@ from newsflow.persistence.models import (
     PublicationCandidateModel,
     RewriteJobModel,
 )
-from newsflow.providers.telegram import TelegramMessage
+from newsflow.providers.telegram import TelegramMessage, validate_media_observation
 from newsflow.services.mapping_filters import mapping_filter
 
 
@@ -60,6 +60,7 @@ class DurableIngestionWorkflow:
         sentiment: str = "unknown",
         framing: str = "unknown",
     ) -> IngestionResult:
+        validate_media_observation(event)
         if observed_at.tzinfo is None or observed_at.utcoffset() is None:
             raise ValueError("Ingestion observation time must be timezone-aware")
         if event.source_updated_at is not None and (

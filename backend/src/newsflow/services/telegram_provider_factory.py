@@ -216,3 +216,8 @@ class ConfiguredTelegramProvider:
         return self._adapter(account_id, donor_identifier).album_window(
             account_id, donor_identifier, anchor_id=anchor_id
         )
+
+    def download_photo(self, account_id, donor_identifier, message_id):
+        return self._adapter(account_id, donor_identifier).download_photo(
+            account_id, donor_identifier, message_id
+        )

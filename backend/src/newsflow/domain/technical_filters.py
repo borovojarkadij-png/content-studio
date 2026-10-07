@@ -37,6 +37,8 @@ class MappingTechnicalFilter:
             return TechnicalFilterDecision(False, "INTAKE_SAMPLE")
         if message.media_type not in self.allowed_media_types:
             return TechnicalFilterDecision(False, "UNSUPPORTED_MEDIA")
+        if message.media_protected is True:
+            return TechnicalFilterDecision(False, "PROTECTED_CONTENT")
         text = message.text.strip()
         if not text:
             return TechnicalFilterDecision(False, "EMPTY_CONTENT")

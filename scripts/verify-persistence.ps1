@@ -12,6 +12,7 @@ param(
     [switch]$PeerGuard,
     [switch]$MappingGuard,
     [switch]$ResolutionGuard,
+    [switch]$SourcePhotoGuard,
     [ValidateSet('OPENAI', 'OPENROUTER')]
     [string]$RewriteProvider = 'OPENAI'
 )
@@ -24,6 +25,11 @@ function Invoke-MediaProbe([string]$Mode) {
     Get-Content -LiteralPath (Join-Path $PSScriptRoot 'docker_media_probe.py') -Raw |
         & docker @composeArgs exec -T worker python - $Mode
     if ($LASTEXITCODE -ne 0) { throw "Synthetic media probe failed: $Mode" }
+}
+function Invoke-SourcePhotoProbe([string]$Mode) {
+    Get-Content -LiteralPath (Join-Path $PSScriptRoot 'docker_source_photo_probe.py') -Raw |
+        & docker @composeArgs exec -T worker python - $Mode
+    if ($LASTEXITCODE -ne 0) { throw "Synthetic source photo probe failed: $Mode" }
 }
 function Invoke-IngestionProbe([string]$Mode) {
     Get-Content -LiteralPath (Join-Path $PSScriptRoot 'docker_ingestion_probe.py') -Raw |
@@ -246,6 +252,14 @@ if ($MappingGuard) {
     Invoke-VerificationCompose down
     Invoke-VerificationCompose up -d --wait --wait-timeout 180
     Invoke-MappingProbe 'verify'
+}
+if ($SourcePhotoGuard) {
+    Invoke-SourcePhotoProbe 'seed'
+    Invoke-VerificationCompose down
+    Invoke-VerificationCompose up -d --wait --wait-timeout 180
+    Invoke-VerificationCompose restart worker
+    Invoke-SourcePhotoProbe 'verify'
+    Invoke-SourcePhotoProbe 'blocked'
 }
 Write-Output "Synthetic persistence checks passed. Stack retained: $Project"
 Write-Output 'No real Telegram authorization, network AI calls or publications.'

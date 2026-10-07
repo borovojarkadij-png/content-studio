@@ -155,6 +155,8 @@ class SqlAlchemyIngestionRepository:
             revision.source_text == event.text
             and revision.media_type == event.media_type
             and revision.album_id == event.album_id
+            and revision.media_id == event.media_id
+            and revision.media_protected == event.media_protected
             and cls._utc(revision.source_updated_at) == cls._utc(event.source_updated_at)
         )
 
@@ -164,6 +166,8 @@ class SqlAlchemyIngestionRepository:
             "source_text": event.text,
             "media_type": event.media_type,
             "album_id": event.album_id,
+            "media_id": event.media_id,
+            "media_protected": event.media_protected,
             "source_updated_at": cls._utc(event.source_updated_at),
         }
 
