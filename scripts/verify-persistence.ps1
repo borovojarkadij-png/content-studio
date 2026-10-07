@@ -193,6 +193,9 @@ if ($SemanticGuard) {
     if ($MediaGuard) { Invoke-MediaProbe 'blocked' }
 }
 if ($IngestionGuard) {
+    Get-Content -LiteralPath (Join-Path $PSScriptRoot 'docker_telegram_health_probe.py') -Raw |
+        & docker @composeArgs exec -T worker python -
+    if ($LASTEXITCODE -ne 0) { throw 'Synthetic PostgreSQL Telegram health lock probe failed.' }
     Invoke-IngestionProbe 'seed'
     Invoke-VerificationCompose down
     Invoke-VerificationCompose up -d --wait --wait-timeout 180
@@ -201,6 +204,10 @@ if ($IngestionGuard) {
     Invoke-IngestionProbe 'recover'
     Invoke-VerificationCompose restart worker
     Invoke-IngestionProbe 'verify'
+    Invoke-IngestionProbe 'edit'
+    Invoke-VerificationCompose down
+    Invoke-VerificationCompose up -d --wait --wait-timeout 180
+    Invoke-IngestionProbe 'verify-edit'
 }
 Write-Output "Synthetic persistence checks passed. Stack retained: $Project"
 Write-Output 'No real Telegram authorization, network AI calls or publications.'

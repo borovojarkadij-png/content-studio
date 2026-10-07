@@ -84,9 +84,10 @@ Primary adapter documentation: [Telethon client methods and bounded history](htt
 
 ## Remaining limitations / external prerequisites
 
-- New-message cursor polling does **not** recover edits of messages already below
-  the high-water mark. Source edit timestamps/media metadata and bounded edit
-  replay must be implemented before claiming complete ingestion recovery.
+- Recent polling now rereads the latest 50 donor messages on subsequent polls.
+  It detects edits inside this bounded window without resetting the new-message
+  cursor. Older edits and deletions outside/inside the window are NOT fully
+  recovered; complete Telegram update-difference recovery remains pending.
 - StringSession stores authorization, not the entity/access-hash cache. A numeric
   donor absent from the client's resolvable entity cache can fail; persistent
   donor resolution/access-hash wiring is still required. Never label that success.
@@ -96,3 +97,31 @@ Primary adapter documentation: [Telethon client methods and bounded history](htt
   and live restart verification are missing. No user action is requested one-by-one.
 - Live AI qualification remains blocked by usable credentials; synthetic fixtures
   do not qualify operational models. Real publication remains disabled.
+
+## Source observation checkpoint — 2026-10-08
+
+Revisions retain source media type, album ID and UTC update timestamp. Existing
+migrated rows receive `unknown` media and NULL time, not invented metadata.
+Media-only edits create new revisions. Older or missing timestamps cannot replace
+a known timestamped source. Conflicting payloads at an equal timestamp invalidate
+the old revision and require manual review, including a packet without an edit
+flag. Rejected edits create no rewrite for their new revision. Album identifiers
+are preserved; this is not yet full album batching/download/publication.
+
+Backend 414 tests, lint/compile/format and isolated migration upgrade/check/
+downgrade/base/re-upgrade/check PASS. Populated metadata downgrade refuses loss.
+Windows Docker acceptance PASS in `newsflow-verification-source-observation20261008`
+(ports 18012/15185/18092; CrashRecovery + IngestionGuard): baseline persistence,
+partial fan-out recovery, then same-caption video/album/timestamp edit persisted
+through another real down/up. Old revision stayed stale, no editorial/rewrite was
+created for the technical rejection. PostgreSQL drift passed; fixture stopped
+with volumes/history retained. The missing-edit-flag regression was added/fixed
+after the fixture image build and passed locally; latest operational rebuild and
+next CI package it separately. No live providers or publication were exercised.
+
+A separate guarded script `docker_telegram_health_probe.py` also passed on actual
+fixture PostgreSQL: health released its row before an injected authorization RPC,
+encrypted session refresh committed through a separate transaction, concurrent
+120-second FloodWait survived the returned success, disconnect completed. A
+2-second lock timeout makes a reintroduced deadlock fail promptly. This is actual
+DB concurrency plus injected RPC, **not** actual Telegram login.

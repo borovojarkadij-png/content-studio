@@ -145,6 +145,13 @@ class DonorIngestionRunner:
                 after_id=claim.after_id,
                 limit=self._page_size,
             )
+            recent = (
+                self._provider.recent(
+                    str(claim.account_id), str(claim.telegram_channel_id), limit=50
+                )
+                if claim.after_id > 0
+                else ()
+            )
         except FloodWait as exc:
             return self._failure(claim, "COOLDOWN", delay=max(1, exc.seconds), health="COOLDOWN")
         except SessionUnavailable:
@@ -153,10 +160,17 @@ class DonorIngestionRunner:
             return self._failure(claim, "RETRY_PROVIDER", delay=30)
         except (ValueError, TypeError, LookupError):
             return self._failure(claim, "FAILED_PROVIDER_CONTRACT", delay=30)
-        if not self._valid_history(messages, claim):
+        recent_claim = DonorPollClaim(
+            claim.donor_id, claim.account_id, claim.telegram_channel_id, 0, claim.token
+        )
+        if not self._valid_history(messages, claim) or not self._valid_history(
+            recent, recent_claim, limit=50
+        ):
             return self._failure(claim, "FAILED_PROVIDER_CONTRACT", delay=30)
         try:
-            for event in messages:
+            for event in (
+                tuple(event for event in recent if event.message_id <= claim.after_id) + messages
+            ):
                 with self._sessions() as session:
                     mappings = list(
                         session.scalars(
@@ -197,8 +211,8 @@ class DonorIngestionRunner:
         except (SQLAlchemyError, ValueError, LookupError):
             return self._failure(claim, "RETRY_PIPELINE", delay=30)
 
-    def _valid_history(self, messages, claim) -> bool:
-        if not isinstance(messages, tuple) or len(messages) > self._page_size:
+    def _valid_history(self, messages, claim, *, limit=None) -> bool:
+        if not isinstance(messages, tuple) or len(messages) > (limit or self._page_size):
             return False
         previous = claim.after_id
         for event in messages:

@@ -3,6 +3,7 @@
 import asyncio
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Protocol
 
 
@@ -25,6 +26,7 @@ class TelegramMessage:
     is_edit: bool = False
     media_type: str = "text"
     album_id: str | None = None
+    source_updated_at: datetime | None = None
 
 
 class TelegramProvider(Protocol):
@@ -36,6 +38,10 @@ class TelegramProvider(Protocol):
 
     def history(
         self, account_id: str, donor_identifier: str, *, after_id: int, limit: int
+    ) -> tuple[TelegramMessage, ...]: ...
+
+    def recent(
+        self, account_id: str, donor_identifier: str, *, limit: int
     ) -> tuple[TelegramMessage, ...]: ...
 
 
@@ -101,6 +107,21 @@ class FakeTelegramProvider:
             key=lambda m: m.message_id,
         )
         return tuple(messages[:limit])
+
+    def recent(self, account_id, donor_identifier, *, limit):
+        if not 1 <= limit <= 100:
+            raise ValueError("Invalid recent history bound")
+        self.verify_session(account_id)
+        messages = sorted(
+            (
+                m
+                for (account, donor, _), m in self._messages.items()
+                if account == account_id and donor == donor_identifier
+            ),
+            key=lambda m: m.message_id,
+            reverse=True,
+        )[:limit]
+        return tuple(reversed(messages))
 
 
 class TelethonTelegramProvider:
@@ -264,6 +285,23 @@ class TelethonTelegramProvider:
 
         return self._run(account_id, read)
 
+    def recent(self, account_id, donor_identifier, *, limit):
+        if isinstance(limit, bool) or not isinstance(limit, int) or not 1 <= limit <= 100:
+            raise ValueError("Invalid recent history bound")
+        channel = self._channel_id(donor_identifier)
+
+        async def read(client):
+            result = []
+            async for raw in client.iter_messages(channel, limit=limit, reverse=False, wait_time=0):
+                if getattr(raw, "chat_id", None) != channel:
+                    raise ValueError("Telegram source identity mismatch")
+                result.append(self.normalize_message(account_id, donor_identifier, raw))
+                if len(result) > limit:
+                    raise ValueError("Telegram recent history exceeded its bound")
+            return tuple(reversed(result))
+
+        return self._run(account_id, read)
+
     @staticmethod
     def normalize_message(
         account_id: str, donor_identifier: str, raw_message: object
@@ -290,4 +328,6 @@ class TelethonTelegramProvider:
             is_edit=getattr(raw_message, "edit_date", None) is not None,
             media_type=media_type,
             album_id=str(grouped_id) if grouped_id is not None else None,
+            source_updated_at=getattr(raw_message, "edit_date", None)
+            or getattr(raw_message, "date", None),
         )

@@ -16,7 +16,8 @@
 - [x] Unclassified durable ingress defaults to MANUAL_REVIEW; unknown editorial annotations fail closed; rejected/technical/duplicate source edits persist and invalidate prior eligible revisions; inbox retention and zero-rewrite regressions
 - [x] Durable bounded new-message donor poll: PostgreSQL cursor/lease/fencing, current mapping intake, partial fan-out replay and persisted cooldown/retry; actual synthetic Windows Docker down/up acceptance
 - [x] Read-only Telethon authorization/history contract, encrypted current-session factory/CAS refresh, opt-in ingestion worker and separate optional credential mount; synthetic contract verification only
-- [ ] Source media/album/edit-timestamp revision identity, stale-edit fencing and bounded old-message edit replay; persistent donor access-hash resolution; live encrypted authorization restart acceptance
+- [x] Source media/album/edit-timestamp revision identity, stale/equal-time conflict fencing and bounded 50-message old-edit replay; local regression/migration gate and actual synthetic Docker metadata down/up acceptance
+- [ ] Full Telegram update-difference/deletion recovery, album batching/download, persistent donor access-hash resolution and live encrypted authorization restart acceptance
 - [~] Filters, semantic dedup, events, hype, media, routing and scheduler; durable per-channel plan/timer, mapping-aware candidates, immediate/delayed/priority/media snapshots and gated activation complete; semantic dedup/events/hype, media acquisition and publication execution remain pending
 - [~] Mapping-level deterministic filters for media, advertising markers and forbidden links
 - [~] Durable mapping-scoped exact content fingerprint deduplication before EditorialGate

@@ -1,6 +1,6 @@
 """Durable SQLAlchemy ingestion repository."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -18,6 +18,8 @@ class SqlAlchemyIngestionRepository:
         del observed_at
         post = self._find_post(event)
         source_key = f"{event.account_id}:{event.donor_identifier}:{event.message_id}"
+        if self.is_stale(event):
+            return IngestionResult(False, source_key, "REJECTED_STALE_SOURCE")
         if post is None:
             post = IncomingPostModel(
                 telegram_account_id=event.account_id,
@@ -29,7 +31,7 @@ class SqlAlchemyIngestionRepository:
             self._session.flush()
             self._session.add(
                 ContentRevisionModel(
-                    incoming_post_id=post.id, revision_number=1, source_text=event.text
+                    incoming_post_id=post.id, revision_number=1, **self._observation(event)
                 )
             )
             self._session.add(
@@ -47,16 +49,16 @@ class SqlAlchemyIngestionRepository:
             .order_by(ContentRevisionModel.revision_number.desc())
         )
         if (
-            event.is_edit
+            (event.is_edit or event.source_updated_at is not None)
             and latest_revision is not None
-            and latest_revision.source_text != event.text
+            and not self._same_observation(latest_revision, event)
         ):
             next_number = latest_revision.revision_number + 1
             self._session.add(
                 ContentRevisionModel(
                     incoming_post_id=post.id,
                     revision_number=next_number,
-                    source_text=event.text,
+                    **self._observation(event),
                 )
             )
             self._session.add(
@@ -76,8 +78,8 @@ class SqlAlchemyIngestionRepository:
         latest_revision = self._latest_revision(post.id)
         if (
             latest_revision is None
-            or not event.is_edit
-            or latest_revision.source_text == event.text
+            or not (event.is_edit or event.source_updated_at is not None)
+            or self._same_observation(latest_revision, event)
         ):
             return None
         return latest_revision.revision_number + 1
@@ -93,7 +95,7 @@ class SqlAlchemyIngestionRepository:
         if post is None:
             return None
         latest_revision = self._latest_revision(post.id)
-        if latest_revision is None or latest_revision.source_text != event.text:
+        if latest_revision is None or not self._same_observation(latest_revision, event):
             return None
         return latest_revision.revision_number
 
@@ -138,4 +140,48 @@ class SqlAlchemyIngestionRepository:
             select(ContentRevisionModel)
             .where(ContentRevisionModel.incoming_post_id == incoming_post_id)
             .order_by(ContentRevisionModel.revision_number.desc())
+            .execution_options(populate_existing=True)
+        )
+
+    @staticmethod
+    def _utc(value):
+        if value is None:
+            return None
+        return value.replace(tzinfo=UTC) if value.tzinfo is None else value.astimezone(UTC)
+
+    @classmethod
+    def _same_observation(cls, revision, event):
+        return (
+            revision.source_text == event.text
+            and revision.media_type == event.media_type
+            and revision.album_id == event.album_id
+            and cls._utc(revision.source_updated_at) == cls._utc(event.source_updated_at)
+        )
+
+    @classmethod
+    def _observation(cls, event):
+        return {
+            "source_text": event.text,
+            "media_type": event.media_type,
+            "album_id": event.album_id,
+            "source_updated_at": cls._utc(event.source_updated_at),
+        }
+
+    def is_stale(self, event):
+        post = self._find_post(event)
+        latest = self._latest_revision(post.id) if post is not None else None
+        if latest is None or latest.source_updated_at is None:
+            return False
+        return event.source_updated_at is None or self._utc(event.source_updated_at) < self._utc(
+            latest.source_updated_at
+        )
+
+    def timestamp_conflicts(self, event):
+        post = self._find_post(event)
+        latest = self._latest_revision(post.id) if post is not None else None
+        return (
+            latest is not None
+            and latest.source_updated_at is not None
+            and self._utc(latest.source_updated_at) == self._utc(event.source_updated_at)
+            and not self._same_observation(latest, event)
         )

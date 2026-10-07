@@ -234,3 +234,23 @@ def test_enabled_worker_polls_real_configured_donor_and_keeps_unknown_source_in_
         assert session.get(models.DonorIngestionCursorModel, 1).last_message_id == 1
         assert session.scalar(select(models.EditorialDecisionModel)).status == "MANUAL_REVIEW"
         assert session.scalars(select(models.RewriteJobModel)).all() == []
+
+
+def test_recent_old_message_edit_is_observed_without_resetting_new_message_cursor(donor_store):
+    provider = FakeTelegramProvider()
+    provider.seed_message("1", "-1001234567890", 1, "Original")
+    assert runner(donor_store, provider).run_donor(1, now=NOW) == "POLL_COMPLETE"
+    provider.seed_edit("1", "-1001234567890", 1, "Changed old message")
+    assert runner(donor_store, provider).run_donor(1, now=NOW) == "POLL_COMPLETE"
+    with donor_store() as session:
+        assert session.get(models.DonorIngestionCursorModel, 1).last_message_id == 1
+        revisions = session.scalars(
+            select(models.ContentRevisionModel).order_by(
+                models.ContentRevisionModel.revision_number
+            )
+        ).all()
+        assert [revision.source_text for revision in revisions] == [
+            "Original",
+            "Changed old message",
+        ]
+        assert session.scalars(select(models.RewriteJobModel)).all() == []

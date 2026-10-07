@@ -2,6 +2,20 @@
 
 ## VERIFIED WORKING
 
+- Source-observation metadata now preserves media type, album ID and source
+  update time on immutable revisions (legacy migrated media is UNKNOWN, not
+  fabricated text). Media-only edits invalidate old revisions. Older/missing
+  timestamps cannot roll back known source; equal-time conflicting payloads
+  require manual review even without an edit flag. Recent 50-message replay
+  observes old-message edits without resetting the new-message cursor.
+  Backend 414 tests / lint / compile and isolated migration round-trip PASS.
+  Actual Windows Docker source-observation acceptance PASS: media-only video/
+  album/timestamp edit survived down/up, old source remained stale with no new
+  editorial/rewrite. Actual PostgreSQL drift and injected health/session-refresh
+  concurrency probe PASS. Fixture stopped with history/volumes retained.
+- GitHub Actions 37696430337 for f19af6d completed SUCCESS in all four jobs,
+  including durable ingestion recovery. It predates source-observation changes.
+
 - Durable donor new-message polling/cursors, bounded history, current mapping
   intake, partial fan-out replay, leases/fencing and persisted FloodWait/retry
   are implemented. Windows Docker ingestion acceptance PASS in isolated
@@ -345,8 +359,10 @@
 
 ## NOT IMPLEMENTED
 
-- Operational Telethon ingestion/publication transport, live-model semantic
-  qualification and internet-media acquisition/execution remain pending.
+- Live authorized Telethon ingestion/publication acceptance, publication transport,
+  live-model semantic qualification and visual-semantic image relevance remain
+  pending. Read-only ingestion and guarded media acquisition runtimes exist but
+  are disabled operationally; they are not live acceptance evidence.
   Semantic verification runtime and guarded auto-approval are implemented but
   disabled/unqualified operationally (provider contracts/plan selection exist).
   PostgreSQL-backed inbox read is now verified on Docker Desktop; live ingestion
@@ -398,13 +414,15 @@ implemented; channel-specific natural tabloid style is wired to actual Planner A
 Bounded free-only OpenRouter structured execution is implemented and passes the
 offline provider/factory/worker gate, including refusals/rate limits/fact changes
 and no paid fallback (OPENROUTER_REWRITE_VERIFICATION.md).
-Exact NEXT_STEP: commit/push tested donor-cursor/Telethon/factory/worker increment
-and track its CI. Operational rebuilt health/PostgreSQL drift checks passed.
-Then add source media/album/edit-timestamp revision identity plus stale-edit and
-bounded edit-replay regressions; follow with persistent donor entity resolution
-and configurable mapping filters. New-message polling alone is NOT full edit
-recovery. Do not redo passing fixture newsflow-verification-ingestion20261008.
-3606cee ingestion-safety CI 37695104475 completed SUCCESS; newer CI is separate.
+Operational source-observation images rebuilt successfully; migrations/actual
+PostgreSQL drift, /healthz and /api/telegram/incoming-posts HTTP 200 PASS.
+All four network flags remain 0. Fresh backend gate: 414 tests and lint PASS.
+Exact NEXT_STEP: commit/push tested source-observation/recent-replay increment
+and track next CI, then implement persistent account-scoped donor entity/access-
+hash resolution and configurable mapping filters. Actual isolated metadata Docker
+acceptance passed; no source metadata redo is needed.
+f19af6d CI 37696430337 completed SUCCESS. Track next commit CI.
+Do not rerun either fixture seed; existing histories are intentionally retained.
 Live authorization is separate; no synthetic account may be promoted as real.
 Windows project newsflow-verification-media20261008 completed acceptance; it
 retains terminal revoked-release history, so never rerun its seed.

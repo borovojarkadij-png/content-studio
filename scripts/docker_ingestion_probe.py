@@ -12,6 +12,7 @@ from newsflow.domain.durable_ingestion import DurableIngestionWorkflow
 from newsflow.domain.technical_filters import MappingTechnicalFilter
 from newsflow.persistence.models import (
     ChannelMappingModel,
+    ContentRevisionModel,
     DonorChannel,
     DonorIngestionCursorModel,
     EditorialDecisionModel,
@@ -26,6 +27,7 @@ from newsflow.services.donor_ingestion_runner import (
     DonorPollClaim,
 )
 from newsflow.services.moderation_inbox import ModerationInboxReader
+from newsflow.services.source_revisions import source_is_current, source_revision
 from newsflow.services.telegram_configuration import TelegramConfigurationService
 
 NAME = "synthetic-durable-ingestion"
@@ -113,7 +115,25 @@ def main(mode):
         assert poller.execute(old) == "STALE_CLAIM"
         assert provider.session_probe_count(str(account_id)) == 0
         assert poller.execute(claim) == "POLL_COMPLETE"
-    elif mode != "verify":
+    elif mode == "edit":
+        with factory() as session:
+            changed = TelegramMessage(
+                str(account_id),
+                str(CHANNEL),
+                1,
+                "Synthetic permitted source",
+                is_edit=True,
+                media_type="video",
+                album_id="synthetic-album-55",
+                source_updated_at=now,
+            )
+            assert (
+                DurableIngestionWorkflow(session, configured_mapping_id=mapping_id)
+                .ingest(changed, observed_at=now)
+                .status
+                == "REJECTED_TECHNICAL"
+            )
+    elif mode not in {"verify", "verify-edit"}:
         raise ValueError("Unsupported probe mode")
     with factory() as session:
         cursor = session.get(DonorIngestionCursorModel, donor_id)
@@ -155,6 +175,29 @@ def main(mode):
                     ).all()
                 )
                 == 3
+            )
+        if mode in {"edit", "verify-edit"}:
+            assert not source_is_current(session, f"{prefix}1:revision:1")
+            revision = source_revision(session, f"{prefix}1:revision:2")
+            assert revision.media_type == "video" and revision.album_id == "synthetic-album-55"
+            assert revision.source_updated_at is not None
+            assert (
+                session.scalar(
+                    select(EditorialDecisionModel.id).where(
+                        EditorialDecisionModel.content_key == f"{prefix}1:revision:2"
+                    )
+                )
+                is None
+            )
+            assert (
+                len(
+                    session.scalars(
+                        select(ContentRevisionModel).where(
+                            ContentRevisionModel.incoming_post_id == revision.incoming_post_id
+                        )
+                    ).all()
+                )
+                == 2
             )
     engine.dispose()
     print(

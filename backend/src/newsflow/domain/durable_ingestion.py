@@ -61,6 +61,10 @@ class DurableIngestionWorkflow:
     ) -> IngestionResult:
         if observed_at.tzinfo is None or observed_at.utcoffset() is None:
             raise ValueError("Ingestion observation time must be timezone-aware")
+        if event.source_updated_at is not None and (
+            event.source_updated_at.tzinfo is None or event.source_updated_at.utcoffset() is None
+        ):
+            raise ValueError("Source update time must be timezone-aware")
         source_key = f"{event.account_id}:{event.donor_identifier}:{event.message_id}"
         with self._session.begin():
             if self._transaction_guard is not None and not self._transaction_guard(self._session):
@@ -80,6 +84,12 @@ class DurableIngestionWorkflow:
                     intake_percent=mapping.intake_percent,
                 )
             repository = SqlAlchemyIngestionRepository(self._session)
+            if repository.is_stale(event):
+                return IngestionResult(False, source_key, "REJECTED_STALE_SOURCE")
+            if repository.timestamp_conflicts(event):
+                # Telegram timestamps have finite precision. Conflicting payloads
+                # at the same time are not an ordering proof or an editorial PASS.
+                sentiment = framing = "unknown"
             revision_number = repository.candidate_revision_number(event)
             observed_edit = revision_number is not None and revision_number > 1
             if observed_edit:

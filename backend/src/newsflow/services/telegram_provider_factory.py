@@ -115,3 +115,6 @@ class ConfiguredTelegramProvider:
 
     def fetch_message(self, account_id, donor_identifier, message_id):
         return self._adapter(account_id).fetch_message(account_id, donor_identifier, message_id)
+
+    def recent(self, account_id, donor_identifier, *, limit):
+        return self._adapter(account_id).recent(account_id, donor_identifier, limit=limit)
