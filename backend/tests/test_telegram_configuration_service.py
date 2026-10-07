@@ -64,6 +64,48 @@ def test_mutations_validate_references_and_percentages_before_writes(engine):
         assert (changed["intake_percent"], changed["target_mix_percent"]) == (30, 70)
 
 
+def test_mapping_persists_delivery_priority_and_media_policy(engine):
+    with Session(engine) as session:
+        service = TelegramConfigurationService(session)
+        account = service.create_account("Primary", 1001)
+        donor = service.create_donor(account["id"], -1001234567890, "Source")
+        output = service.create_output(account["id"], -1009876543210, "Destination")
+        mapping = service.create_mapping(donor["id"], output["id"], 100, 100)
+
+        assert {
+            "eligibility_mode": "IMMEDIATE",
+            "delay_minutes": 0,
+            "priority": 0,
+            "media_policy": "REUSE_SOURCE",
+        }.items() <= mapping.items()
+        changed = service.update_mapping(
+            mapping["id"],
+            100,
+            100,
+            eligibility_mode="DELAYED",
+            delay_minutes=45,
+            priority=50,
+            media_policy="LICENSED_LIBRARY",
+        )
+
+        assert {
+            "eligibility_mode": "DELAYED",
+            "delay_minutes": 45,
+            "priority": 50,
+            "media_policy": "LICENSED_LIBRARY",
+        }.items() <= changed.items()
+        with pytest.raises(ValueError, match="Immediate"):
+            service.update_mapping(
+                mapping["id"],
+                100,
+                100,
+                eligibility_mode="IMMEDIATE",
+                delay_minutes=1,
+                priority=0,
+                media_policy="REUSE_SOURCE",
+            )
+
+
 def test_bulk_import_is_durable_case_insensitive_and_does_not_fake_resolution(engine):
     with Session(engine) as session:
         service = TelegramConfigurationService(session)

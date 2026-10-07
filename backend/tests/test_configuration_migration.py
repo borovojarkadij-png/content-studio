@@ -1,6 +1,7 @@
 import pytest
 from alembic.config import Config
 from sqlalchemy import create_engine, inspect, text
+from sqlalchemy.exc import IntegrityError
 
 from alembic import command
 
@@ -48,6 +49,15 @@ def test_configuration_schema_upgrade_creates_pending_import_storage(tmp_path) -
             "fallback_models",
             "updated_at",
         }
+        mapping_columns = {
+            column["name"] for column in inspector.get_columns("channel_mappings")
+        }
+        assert {
+            "eligibility_mode",
+            "delay_minutes",
+            "priority",
+            "media_policy",
+        } <= mapping_columns
     finally:
         engine.dispose()
 
@@ -161,3 +171,53 @@ def test_rewrite_job_scope_migration_requeues_each_legacy_fanout_output(tmp_path
 
     with pytest.raises(RuntimeError, match="Unsafe downgrade"):
         command.downgrade(config, "f51c8a04b2de")
+
+
+def test_mapping_policy_migration_keeps_existing_percentage_constraints(tmp_path) -> None:
+    database_url = f"sqlite:///{tmp_path / 'mapping-policy-migration.db'}"
+    config = Config("alembic.ini")
+    config.set_main_option("sqlalchemy.url", database_url)
+    command.upgrade(config, "f3a9c2e84d71")
+    engine = create_engine(database_url)
+    try:
+        with engine.begin() as connection:
+            connection.execute(
+                text(
+                    "INSERT INTO telegram_accounts "
+                    "(id, name, telegram_user_id, encrypted_session, health_status) "
+                    "VALUES (1, 'Primary', 1001, '', 'DISCONNECTED')"
+                )
+            )
+            connection.execute(
+                text(
+                    "INSERT INTO donor_channels "
+                    "(id, telegram_account_id, telegram_channel_id, title) "
+                    "VALUES (1, 1, -1001234567890, 'Source')"
+                )
+            )
+            connection.execute(
+                text(
+                    "INSERT INTO output_channels "
+                    "(id, telegram_account_id, telegram_channel_id, title) "
+                    "VALUES (1, 1, -1009876543210, 'Destination')"
+                )
+            )
+            connection.execute(
+                text(
+                    "INSERT INTO channel_mappings "
+                    "(id, donor_channel_id, output_channel_id, intake_percent, target_mix_percent) "
+                    "VALUES (1, 1, 1, 50, 50)"
+                )
+            )
+    finally:
+        engine.dispose()
+
+    command.upgrade(config, "head")
+    engine = create_engine(database_url)
+    try:
+        with engine.begin() as connection, pytest.raises(IntegrityError):
+            connection.execute(
+                text("UPDATE channel_mappings SET intake_percent = 101 WHERE id = 1")
+            )
+    finally:
+        engine.dispose()

@@ -102,11 +102,19 @@ class ChannelCreateRequest(ChannelUpdateRequest):
 class MappingUpdateRequest(StrictRequest):
     intake_percent: int = Field(ge=0, le=100, strict=True)
     target_mix_percent: int = Field(ge=0, le=100, strict=True)
+    eligibility_mode: Literal["IMMEDIATE", "DELAYED"] | None = None
+    delay_minutes: int | None = Field(default=None, ge=0, le=10080, strict=True)
+    priority: int | None = Field(default=None, ge=-1000, le=1000, strict=True)
+    media_policy: Literal["REUSE_SOURCE", "LICENSED_LIBRARY"] | None = None
 
 
 class MappingCreateRequest(MappingUpdateRequest):
     donor_channel_id: int = Field(gt=0, strict=True)
     output_channel_id: int = Field(gt=0, strict=True)
+    eligibility_mode: Literal["IMMEDIATE", "DELAYED"] = "IMMEDIATE"
+    delay_minutes: int = Field(default=0, ge=0, le=10080, strict=True)
+    priority: int = Field(default=0, ge=-1000, le=1000, strict=True)
+    media_policy: Literal["REUSE_SOURCE", "LICENSED_LIBRARY"] = "REUSE_SOURCE"
 
 
 class PublicationPlanRequest(StrictRequest):
@@ -196,6 +204,10 @@ def create_mapping(request: MappingCreateRequest, service: Configuration) -> dic
         request.output_channel_id,
         request.intake_percent,
         request.target_mix_percent,
+        eligibility_mode=request.eligibility_mode,
+        delay_minutes=request.delay_minutes,
+        priority=request.priority,
+        media_policy=request.media_policy,
     )
 
 
@@ -203,7 +215,15 @@ def create_mapping(request: MappingCreateRequest, service: Configuration) -> dic
 def update_mapping(
     mapping_id: int, request: MappingUpdateRequest, service: Configuration
 ) -> dict[str, object]:
-    return service.update_mapping(mapping_id, request.intake_percent, request.target_mix_percent)
+    return service.update_mapping(
+        mapping_id,
+        request.intake_percent,
+        request.target_mix_percent,
+        eligibility_mode=request.eligibility_mode,
+        delay_minutes=request.delay_minutes,
+        priority=request.priority,
+        media_policy=request.media_policy,
+    )
 
 
 @router.get("/donor-imports")

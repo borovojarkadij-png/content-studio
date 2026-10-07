@@ -77,9 +77,15 @@ def test_configured_channels_and_mapping_survive_an_independent_client(client):
         "output_channel_id": output["id"],
         "intake_percent": 20,
         "target_mix_percent": 80,
+        "eligibility_mode": "DELAYED",
+        "delay_minutes": 30,
+        "priority": 50,
+        "media_policy": "LICENSED_LIBRARY",
     }
     mapping = client.post("/api/telegram/mappings", json=payload)
     assert mapping.status_code == 201
+    assert mapping.json()["delay_minutes"] == 30
+    assert mapping.json()["media_policy"] == "LICENSED_LIBRARY"
     assert client.post("/api/telegram/mappings", json=payload).json() == mapping.json()
     with TestClient(app) as new_client:
         assert new_client.get("/api/telegram/donors").json()["items"] == [donor]
@@ -93,6 +99,8 @@ def test_configured_channels_and_mapping_survive_an_independent_client(client):
         )
         assert updated.status_code == 200
         assert updated.json()["intake_percent"] == 35
+        assert updated.json()["eligibility_mode"] == "DELAYED"
+        assert updated.json()["delay_minutes"] == 30
 
 
 def test_bulk_donor_import_persists_pending_identifiers_without_fake_channels(client):

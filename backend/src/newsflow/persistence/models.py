@@ -83,14 +83,38 @@ class ChannelMappingModel(Base):
     __tablename__ = "channel_mappings"
     __table_args__ = (
         UniqueConstraint("donor_channel_id", "output_channel_id"),
-        CheckConstraint("intake_percent BETWEEN 0 AND 100"),
-        CheckConstraint("target_mix_percent BETWEEN 0 AND 100"),
+        CheckConstraint(
+            "intake_percent BETWEEN 0 AND 100", name="ck_mapping_intake_percent"
+        ),
+        CheckConstraint(
+            "target_mix_percent BETWEEN 0 AND 100", name="ck_mapping_target_mix_percent"
+        ),
+        CheckConstraint(
+            "eligibility_mode IN ('IMMEDIATE', 'DELAYED')",
+            name="ck_mapping_eligibility_mode",
+        ),
+        CheckConstraint("delay_minutes BETWEEN 0 AND 10080"),
+        CheckConstraint(
+            "eligibility_mode <> 'IMMEDIATE' OR delay_minutes = 0",
+            name="ck_immediate_mapping_has_no_delay",
+        ),
+        CheckConstraint("priority BETWEEN -1000 AND 1000"),
+        CheckConstraint(
+            "media_policy IN ('REUSE_SOURCE', 'LICENSED_LIBRARY')",
+            name="ck_mapping_media_policy",
+        ),
     )
     id: Mapped[int] = mapped_column(primary_key=True)
     donor_channel_id: Mapped[int] = mapped_column(ForeignKey("donor_channels.id"), nullable=False)
     output_channel_id: Mapped[int] = mapped_column(ForeignKey("output_channels.id"), nullable=False)
     intake_percent: Mapped[int] = mapped_column(Integer, nullable=False)
     target_mix_percent: Mapped[int] = mapped_column(Integer, nullable=False)
+    eligibility_mode: Mapped[str] = mapped_column(String(16), nullable=False, default="IMMEDIATE")
+    delay_minutes: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    priority: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    media_policy: Mapped[str] = mapped_column(
+        String(32), nullable=False, default="REUSE_SOURCE"
+    )
 
 
 class DonorImportModel(Base):

@@ -45,6 +45,30 @@ def _percent(value: int) -> int:
     return value
 
 
+def _mapping_policy(
+    eligibility_mode: str,
+    delay_minutes: int,
+    priority: int,
+    media_policy: str,
+) -> dict[str, object]:
+    if eligibility_mode not in {"IMMEDIATE", "DELAYED"}:
+        raise ValueError("Mapping eligibility mode is invalid")
+    if type(delay_minutes) is not int or not 0 <= delay_minutes <= 10080:
+        raise ValueError("Mapping delay must be between 0 and 10080 minutes")
+    if eligibility_mode == "IMMEDIATE" and delay_minutes != 0:
+        raise ValueError("Immediate mapping must not have a delay")
+    if type(priority) is not int or not -1000 <= priority <= 1000:
+        raise ValueError("Mapping priority must be between -1000 and 1000")
+    if media_policy not in {"REUSE_SOURCE", "LICENSED_LIBRARY"}:
+        raise ValueError("Mapping media policy is invalid")
+    return {
+        "eligibility_mode": eligibility_mode,
+        "delay_minutes": delay_minutes,
+        "priority": priority,
+        "media_policy": media_policy,
+    }
+
+
 def _persistable_import_identifier(identifier: str) -> str | None:
     """Reject parser candidates that cannot be represented by durable storage."""
     identifier = identifier.lower()
@@ -81,6 +105,10 @@ def _project(row) -> dict[str, object]:
             "output_channel_id": row.output_channel_id,
             "intake_percent": row.intake_percent,
             "target_mix_percent": row.target_mix_percent,
+            "eligibility_mode": row.eligibility_mode,
+            "delay_minutes": row.delay_minutes,
+            "priority": row.priority,
+            "media_policy": row.media_policy,
         }
     return {
         "id": row.id,
@@ -196,11 +224,21 @@ class TelegramConfigurationService:
         return self._update(OutputChannel, output_id, {"title": _text(title, 255)})
 
     def create_mapping(
-        self, donor_id: int, output_id: int, intake_percent: int, target_mix_percent: int
+        self,
+        donor_id: int,
+        output_id: int,
+        intake_percent: int,
+        target_mix_percent: int,
+        *,
+        eligibility_mode: str = "IMMEDIATE",
+        delay_minutes: int = 0,
+        priority: int = 0,
+        media_policy: str = "REUSE_SOURCE",
     ) -> dict[str, object]:
         metadata = {
             "intake_percent": _percent(intake_percent),
             "target_mix_percent": _percent(target_mix_percent),
+            **_mapping_policy(eligibility_mode, delay_minutes, priority, media_policy),
         }
         self._require(DonorChannel, donor_id)
         self._require(OutputChannel, output_id)
@@ -211,14 +249,29 @@ class TelegramConfigurationService:
         )
 
     def update_mapping(
-        self, mapping_id: int, intake_percent: int, target_mix_percent: int
+        self,
+        mapping_id: int,
+        intake_percent: int,
+        target_mix_percent: int,
+        *,
+        eligibility_mode: str | None = None,
+        delay_minutes: int | None = None,
+        priority: int | None = None,
+        media_policy: str | None = None,
     ) -> dict[str, object]:
+        row = self._require(ChannelMappingModel, mapping_id)
         return self._update(
             ChannelMappingModel,
             mapping_id,
             {
                 "intake_percent": _percent(intake_percent),
                 "target_mix_percent": _percent(target_mix_percent),
+                **_mapping_policy(
+                    row.eligibility_mode if eligibility_mode is None else eligibility_mode,
+                    row.delay_minutes if delay_minutes is None else delay_minutes,
+                    row.priority if priority is None else priority,
+                    row.media_policy if media_policy is None else media_policy,
+                ),
             },
         )
 

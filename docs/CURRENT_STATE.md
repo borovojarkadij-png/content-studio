@@ -87,6 +87,11 @@
   or displays a stored key. A server-side, read-only model-catalog endpoint
   lists OpenAI models or free-only OpenRouter models after a provider has been
   configured; it does not invoke rewriting.
+- Channel mappings now persist auditable delivery policy independently from the
+  output channel's daily plan: `IMMEDIATE` or `DELAYED` eligibility (up to seven
+  days), priority and a safe media-policy intent (`REUSE_SOURCE` or
+  `LICENSED_LIBRARY`). The API validates these policies and preserves an
+  existing delayed policy when a caller only changes traffic percentages.
 - Dark-navy frontend: all eight section compositions, shared linear icons,
   selected rows/cards, responsive panels and honest unavailable actions.
 - In-memory DEMO workflows: donor import preview/partial success, independent
@@ -143,14 +148,14 @@
 ## NEXT STEP
 
 The durable configuration, mapping-aware candidate source, publication-planning
-contracts and secure live AI-provider settings are complete locally. Next PHASE
-1 task: store mapping publication policies (immediate versus delayed
-eligibility, priority and permitted media), persist per-output rewrite
-output/approval state and wire Planner UI to durable read/mutation APIs. Add
-the two safe media policies (reuse source media and licensed local-library
-lookup) before any real download or Telegram publication. Keep the current
-editorial recheck and never perform real Telegram publication as a side effect
-of UI work.
+contracts, mapping delivery-policy configuration and secure live AI-provider
+settings are complete locally. Next PHASE 1 task: snapshot each mapping policy
+onto its per-output candidate, honour delayed eligibility in the planner, then
+persist per-output rewrite output/approval state and wire Planner UI to durable
+read/mutation APIs. Add the two safe media policies (reuse source media and
+licensed local-library lookup) before any real download or Telegram
+publication. Keep the current editorial recheck and never perform real Telegram
+publication as a side effect of UI work.
 
 PHASE 1 IS NOT COMPLETE. Docker Compose/persistence/restart E2E remains
 NOT VERIFIED / BLOCKED BY ENVIRONMENT until Docker Desktop is available.
