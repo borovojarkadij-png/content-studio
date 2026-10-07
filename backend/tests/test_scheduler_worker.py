@@ -6,7 +6,9 @@ from sqlalchemy.orm import sessionmaker
 
 from newsflow.persistence.models import (
     Base,
+    ContentRevisionModel,
     EditorialDecisionModel,
+    IncomingPostModel,
     OutputChannel,
     PlannedPublicationModel,
     PublicationCandidateModel,
@@ -45,7 +47,20 @@ def scheduler_store(tmp_path):
                     slot_minutes=slots,
                 )
             )
-            key = f"synthetic:{number}"
+            key = f"synthetic:@scheduler:{number}:revision:1"
+            source = IncomingPostModel(
+                telegram_account_id="synthetic",
+                donor_channel_id="@scheduler",
+                telegram_message_id=number,
+                state="RECEIVED",
+            )
+            session.add(source)
+            session.flush()
+            session.add(
+                ContentRevisionModel(
+                    incoming_post_id=source.id, revision_number=1, source_text="Synthetic source"
+                )
+            )
             session.add(
                 EditorialDecisionModel(
                     content_key=key,
@@ -102,7 +117,7 @@ def test_scheduler_restart_is_idempotent_and_stale_reject_releases_reservation(s
         assert session.scalar(select(func.count()).select_from(PlannedPublicationModel)) == 2
         decision = session.scalar(
             select(EditorialDecisionModel).where(
-                EditorialDecisionModel.content_key == "synthetic:1"
+                EditorialDecisionModel.content_key == "synthetic:@scheduler:1:revision:1"
             )
         )
         decision.status, decision.rewrite_allowed = "REJECT", False

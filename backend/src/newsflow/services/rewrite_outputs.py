@@ -13,6 +13,7 @@ from newsflow.persistence.models import (
     RewriteJobModel,
     RewriteOutputModel,
 )
+from newsflow.services.source_revisions import source_is_current
 
 
 class RewriteOutputBlocked(PermissionError):
@@ -63,6 +64,7 @@ class RewriteOutputService:
                         and job.state == "SUCCEEDED"
                         and job.output_channel_id == output.output_channel_id
                         and job.content_key == output.content_key
+                        and source_is_current(self._session, output.content_key)
                     ),
                 }
             )
@@ -83,6 +85,7 @@ class RewriteOutputService:
             if job is None or job.state != "SUCCEEDED" or job.output_channel_id is None:
                 raise RewriteOutputBlocked("Rewrite job is not a succeeded mapped job")
             self._require_editorial_pass(job.content_key)
+            self._require_current_source(job.content_key)
             existing = self._session.scalar(
                 select(RewriteOutputModel)
                 .where(RewriteOutputModel.rewrite_job_id == rewrite_job_id)
@@ -135,6 +138,7 @@ class RewriteOutputService:
                 if job is None or job.state != "SUCCEEDED":
                     raise RewriteOutputBlocked("Rewrite job is no longer succeeded")
                 self._require_editorial_pass(job.content_key)
+                self._require_current_source(job.content_key)
             output = self._session.scalar(
                 select(RewriteOutputModel)
                 .where(RewriteOutputModel.id == output_id)
@@ -187,3 +191,7 @@ class RewriteOutputService:
         )
         if not editorial_allows_rewrite(decision):
             raise RewriteOutputBlocked("EDITORIAL_HARD_CONSTRAINT_BLOCKED")
+
+    def _require_current_source(self, content_key: str) -> None:
+        if not source_is_current(self._session, content_key):
+            raise RewriteOutputBlocked("SOURCE_REVISION_NOT_CURRENT_OR_MISSING")

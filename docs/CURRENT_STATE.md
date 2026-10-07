@@ -2,6 +2,20 @@
 
 ## VERIFIED WORKING
 
+- Source-edit adversarial bypass was reproduced and fixed before automatic
+  approval work: old/missing source revisions cannot record/approve drafts,
+  activate candidates or obtain/retain active publication slots. Shared immutable
+  source lookup rejects missing/ambiguous identities, stale reservations become
+  BLOCKED_SOURCE without deleting history. Backend 233 / browser 19 passed.
+  See SOURCE_GUARD_VERIFICATION.md; no automatic approval or send is enabled.
+- Source-edit guard also passed on actual PostgreSQL in the rebuilt isolated
+  OpenRouter verification stack. API projected approve_allowed=false and returned
+  HTTP 409 for the old draft; the old PLANNED reservation became BLOCKED_SOURCE.
+  Fixture history/volumes retained and stack stopped; no network AI/Telegram send.
+  Updated operational images are healthy; PostgreSQL drift check still passes.
+- OpenRouter commit a9c6e72 GitHub run 37686789050: backend and both synthetic Docker
+  provider jobs passed; frontend browser installation is still in progress.
+  Do not claim an overall CI PASS until the run actually completes.
 - Bounded strict free-only OpenRouter adapter is now connected to the encrypted
   factory and explicitly selected opt-in worker. One overall fallback deadline,
   zero price caps, no paid/cross-provider fallback, terminal invalid/fact-changed

@@ -81,7 +81,22 @@ def main() -> None:
             session.flush()
             output_id = output.id
             for number in (1, 2):
-                key = f"ui-planner:revision:{number}"
+                key = f"ui-planner:@planner_donor:{number}:revision:1"
+                source = IncomingPostModel(
+                    telegram_account_id="ui-planner",
+                    donor_channel_id="@planner_donor",
+                    telegram_message_id=number,
+                    state="RECEIVED",
+                )
+                session.add(source)
+                session.flush()
+                session.add(
+                    ContentRevisionModel(
+                        incoming_post_id=source.id,
+                        revision_number=1,
+                        source_text=f"Isolated planner source {number}",
+                    )
+                )
                 decision = EditorialDecisionModel(
                     content_key=key,
                     status="PASS",

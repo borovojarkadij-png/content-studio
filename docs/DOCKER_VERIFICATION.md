@@ -131,6 +131,16 @@ rebuild/startup/health and PostgreSQL drift check passed, with rewriting disable
 CI now exercises both provider adapters in separate synthetic Docker matrix jobs;
 this configuration is not a claim that the new CI run has passed.
 
+The same isolated OpenRouter project was rebuilt with source-freshness hardening.
+After its completed PENDING draft, `docker_source_guard_probe.py` explicitly
+approved that synthetic draft, reserved a slot, appended an immutable donor edit
+and verified that the old draft could not be approved again and its slot became
+BLOCKED_SOURCE. Actual PostgreSQL API projected approve_allowed=false and returned
+HTTP 409. This final adversarial step intentionally changes the fixture's review
+state to historical APPROVED, not the operational application. The stack was
+stopped with volumes retained. Future full CI acceptance opts into `-SourceGuard`
+after `-RewriteRecovery`; earlier PENDING recovery evidence remains unchanged.
+
 ## Local operational instance
 
 After verifying there were no existing `newsflow` volumes/containers or local

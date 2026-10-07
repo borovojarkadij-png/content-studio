@@ -9,14 +9,13 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
-from sqlalchemy import String, and_, cast, func, or_, select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session
 
 from newsflow.domain.editorial import EditorialDecision, EditorialStatus, editorial_allows_rewrite
 from newsflow.persistence.models import (
     ContentRevisionModel,
     EditorialDecisionModel,
-    IncomingPostModel,
     OutboxEventModel,
     PublicationCandidateModel,
     RewriteJobModel,
@@ -31,6 +30,7 @@ from newsflow.providers.openrouter import ProviderUnavailable
 from newsflow.services.fact_guard import FactGuard, FactPreservationBlocked
 from newsflow.services.rewrite import RewriteService, TextRewriteProvider
 from newsflow.services.rewrite_outputs import RewriteOutputService
+from newsflow.services.source_revisions import revision_is_latest, source_revision
 
 
 def _utc(value: datetime) -> datetime:
@@ -252,28 +252,8 @@ class DurableRewriteRunner:
 
     @staticmethod
     def _source_revision(session: Session, content_key: str) -> ContentRevisionModel | None:
-        # Join immutable identities instead of ambiguously splitting delimiter strings.
-        key = (
-            IncomingPostModel.telegram_account_id
-            + ":"
-            + IncomingPostModel.donor_channel_id
-            + ":"
-            + cast(IncomingPostModel.telegram_message_id, String)
-            + ":revision:"
-            + cast(ContentRevisionModel.revision_number, String)
-        )
-        rows = session.scalars(
-            select(ContentRevisionModel).join(IncomingPostModel).where(key == content_key).limit(2)
-        ).all()
-        return rows[0] if len(rows) == 1 else None
+        return source_revision(session, content_key)
 
     @staticmethod
     def _latest(session: Session, revision: ContentRevisionModel) -> bool:
-        return (
-            session.scalar(
-                select(func.max(ContentRevisionModel.revision_number)).where(
-                    ContentRevisionModel.incoming_post_id == revision.incoming_post_id
-                )
-            )
-            == revision.revision_number
-        )
+        return revision_is_latest(session, revision)

@@ -295,6 +295,85 @@ def test_superseded_source_revision_is_not_rewritten(rewrite_store):
     assert provider.calls == 0
 
 
+def test_completed_draft_from_old_source_revision_cannot_be_approved_after_edit(rewrite_store):
+    from newsflow.services.durable_rewrite_runner import DurableRewriteRunner
+    from newsflow.services.rewrite_outputs import RewriteOutputService
+
+    runner = DurableRewriteRunner(
+        rewrite_store, provider_for_channel=lambda _: SafeSyntheticProvider(), clock=lambda: NOW
+    )
+    assert runner.run_next(now=NOW) == "SUCCEEDED"
+    with rewrite_store() as session:
+        DurableIngestionWorkflow(
+            session, technical_filter=MappingTechnicalFilter(mapping_id="1", output_channel_id=1)
+        ).ingest(
+            TelegramMessage("synthetic", "@donor", 1, "Открыто 11 объектов", is_edit=True),
+            observed_at=NOW,
+        )
+        draft = session.scalar(select(RewriteOutputModel))
+        assert RewriteOutputService(session).list_outputs(1)[0]["approve_allowed"] is False
+        with pytest.raises(PermissionError, match="SOURCE"):
+            RewriteOutputService(session).approve(draft.id, activate_candidate=True)
+        assert session.get(RewriteOutputModel, draft.id).approval_state == "PENDING"
+
+
+def test_previously_approved_old_draft_cannot_be_activated_after_source_edit(rewrite_store):
+    from newsflow.services.durable_rewrite_runner import DurableRewriteRunner
+    from newsflow.services.publication_candidate_activation import RewriteCandidateActivationService
+    from newsflow.services.rewrite_outputs import RewriteOutputService
+
+    runner = DurableRewriteRunner(
+        rewrite_store, provider_for_channel=lambda _: SafeSyntheticProvider(), clock=lambda: NOW
+    )
+    assert runner.run_next(now=NOW) == "SUCCEEDED"
+    with rewrite_store() as session:
+        draft = session.scalar(select(RewriteOutputModel))
+        job_id = draft.rewrite_job_id
+        RewriteOutputService(session).approve(draft.id)
+        DurableIngestionWorkflow(
+            session, technical_filter=MappingTechnicalFilter(mapping_id="1", output_channel_id=1)
+        ).ingest(
+            TelegramMessage("synthetic", "@donor", 1, "Открыто 11 объектов", is_edit=True),
+            observed_at=NOW,
+        )
+        assert RewriteCandidateActivationService(session).activate(job_id) == 0
+        assert session.get(PublicationCandidateModel, 1).state != "READY"
+
+
+@pytest.mark.parametrize("planned_before_edit", [False, True])
+def test_edited_source_cannot_keep_or_gain_a_publication_reservation(
+    rewrite_store, planned_before_edit
+):
+    from datetime import date
+
+    from newsflow.persistence.models import PlannedPublicationModel
+    from newsflow.services.durable_rewrite_runner import DurableRewriteRunner
+    from newsflow.services.publication_planning import PublicationPlanningService
+    from newsflow.services.rewrite_outputs import RewriteOutputService
+
+    runner = DurableRewriteRunner(
+        rewrite_store, provider_for_channel=lambda _: SafeSyntheticProvider(), clock=lambda: NOW
+    )
+    assert runner.run_next(now=NOW) == "SUCCEEDED"
+    with rewrite_store() as session:
+        draft = session.scalar(select(RewriteOutputModel))
+        RewriteOutputService(session).approve(draft.id, activate_candidate=True)
+        planner = PublicationPlanningService(session)
+        plan = planner.configure_plan(1, "AUTOMATIC", 1, (540,), "UTC")
+        day = date(2030, 1, 2)
+        if planned_before_edit:
+            assert len(planner.plan_day(plan["id"], day)) == 1
+        DurableIngestionWorkflow(
+            session, technical_filter=MappingTechnicalFilter(mapping_id="1", output_channel_id=1)
+        ).ingest(
+            TelegramMessage("synthetic", "@donor", 1, "Открыто 11 объектов", is_edit=True),
+            observed_at=NOW,
+        )
+        assert planner.plan_day(plan["id"], day) == []
+        if planned_before_edit:
+            assert session.scalar(select(PlannedPublicationModel.state)) == "BLOCKED_SOURCE"
+
+
 def test_naive_clock_is_rejected_before_claiming(rewrite_store):
     from newsflow.services.durable_rewrite_runner import DurableRewriteRunner
 

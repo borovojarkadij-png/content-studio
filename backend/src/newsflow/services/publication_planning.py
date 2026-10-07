@@ -15,6 +15,7 @@ from newsflow.persistence.models import (
     PublicationCandidateModel,
     PublicationPlanModel,
 )
+from newsflow.services.source_revisions import source_is_current
 
 
 class CandidateBlocked(PermissionError):
@@ -112,9 +113,8 @@ class PublicationPlanningService:
         return [
             {
                 **_item_projection(item, candidate),
-                "editorial_allowed": (
-                    editorial_allows_rewrite(decision)
-                ),
+                "editorial_allowed": (editorial_allows_rewrite(decision)),
+                "source_current": source_is_current(self._session, candidate.content_key),
             }
             for item, candidate, decision in rows
         ]
@@ -174,6 +174,8 @@ class PublicationPlanningService:
             if self._session.get(OutputChannel, output_channel_id) is None:
                 raise LookupError("Output channel was not found")
             self._require_editorial_pass(content_key)
+            if not source_is_current(self._session, content_key):
+                raise CandidateBlocked("SOURCE_REVISION_NOT_CURRENT_OR_MISSING")
             candidate = self._session.scalar(
                 select(PublicationCandidateModel).where(
                     PublicationCandidateModel.output_channel_id == output_channel_id,
@@ -254,6 +256,8 @@ class PublicationPlanningService:
                     break
                 if not self._is_currently_editorial_pass(candidate.content_key):
                     continue
+                if not source_is_current(self._session, candidate.content_key):
+                    continue
                 slot_index = next(
                     (
                         index
@@ -330,6 +334,9 @@ class PublicationPlanningService:
             if not self._is_currently_editorial_pass(candidate.content_key):
                 item.state = "BLOCKED_EDITORIAL"
                 candidate.state = "BLOCKED_EDITORIAL"
+            elif not source_is_current(self._session, candidate.content_key):
+                item.state = "BLOCKED_SOURCE"
+                candidate.state = "BLOCKED_SOURCE"
         self._session.flush()
 
     def _require_editorial_pass(self, content_key: str) -> None:

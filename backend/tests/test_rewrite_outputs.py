@@ -3,12 +3,30 @@ from sqlalchemy.orm import Session
 
 from newsflow.persistence.models import (
     Base,
+    ContentRevisionModel,
     EditorialDecisionModel,
+    IncomingPostModel,
     OutputChannel,
     RewriteJobModel,
     TelegramAccount,
 )
 from newsflow.services.rewrite_outputs import RewriteOutputService
+
+
+def add_source(session, number):
+    post = IncomingPostModel(
+        telegram_account_id="source",
+        donor_channel_id="@donor",
+        telegram_message_id=1,
+        state="RECEIVED",
+    )
+    session.add(post)
+    session.flush()
+    session.add(
+        ContentRevisionModel(
+            incoming_post_id=post.id, revision_number=number, source_text="Synthetic source"
+        )
+    )
 
 
 def test_rewrite_output_is_scoped_to_one_output_and_requires_explicit_approval() -> None:
@@ -30,9 +48,10 @@ def test_rewrite_output_is_scoped_to_one_output_and_requires_explicit_approval()
         )
         session.add(output)
         session.flush()
+        add_source(session, 1)
         session.add(
             EditorialDecisionModel(
-                content_key="source:revision:1",
+                content_key="source:@donor:1:revision:1",
                 status="PASS",
                 rewrite_allowed=True,
                 sentiment="neutral",
@@ -41,7 +60,7 @@ def test_rewrite_output_is_scoped_to_one_output_and_requires_explicit_approval()
         )
         session.add(
             RewriteJobModel(
-                content_key="source:revision:1",
+                content_key="source:@donor:1:revision:1",
                 output_channel_id=output.id,
                 idempotency_key="rewrite.requested:source:revision:1:1",
                 state="SUCCEEDED",
@@ -79,8 +98,9 @@ def test_stale_editorial_reject_blocks_rewrite_output_approval() -> None:
         )
         session.add(output)
         session.flush()
+        add_source(session, 2)
         decision = EditorialDecisionModel(
-            content_key="source:revision:2",
+            content_key="source:@donor:1:revision:2",
             status="PASS",
             rewrite_allowed=True,
             sentiment="neutral",

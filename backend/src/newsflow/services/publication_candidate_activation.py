@@ -10,6 +10,7 @@ from newsflow.persistence.models import (
     RewriteJobModel,
     RewriteOutputModel,
 )
+from newsflow.services.source_revisions import source_is_current
 
 
 class RewriteCandidateActivationService:
@@ -47,6 +48,8 @@ class RewriteCandidateActivationService:
                 for candidate in candidates:
                     candidate.state = "BLOCKED_EDITORIAL"
                 return 0
+            if not source_is_current(self._session, job.content_key):
+                return 0  # Retain history; never activate an old or missing source revision.
             approved_output = self._session.scalar(
                 select(RewriteOutputModel.id).where(
                     RewriteOutputModel.rewrite_job_id == job.id,

@@ -5,11 +5,15 @@ param(
     [int]$ProductionPort = 18080,
     [switch]$CrashRecovery,
     [switch]$RewriteRecovery,
+    [switch]$SourceGuard,
     [ValidateSet('OPENAI', 'OPENROUTER')]
     [string]$RewriteProvider = 'OPENAI'
 )
 
 $ErrorActionPreference = 'Stop'
+if ($SourceGuard -and -not $RewriteRecovery) {
+    throw 'SourceGuard requires a fresh synthetic RewriteRecovery run.'
+}
 if ($Project -notmatch '^newsflow-verification-[a-z0-9-]+$') {
     throw 'Only an isolated newsflow-verification-* project is permitted.'
 }
@@ -139,6 +143,11 @@ if ($RewriteRecovery) {
     Invoke-RewriteRecoveryProbe 'recover'
     Invoke-VerificationCompose restart worker
     Invoke-RewriteRecoveryProbe 'verify'
+    if ($SourceGuard) {
+        Get-Content -LiteralPath (Join-Path $PSScriptRoot 'docker_source_guard_probe.py') -Raw |
+            & docker @composeArgs exec -T worker python -
+        if ($LASTEXITCODE -ne 0) { throw 'Synthetic source-edit guard failed.' }
+    }
 }
 Write-Output "Synthetic persistence checks passed. Stack retained: $Project"
 Write-Output 'No real Telegram authorization, network AI calls or publications.'

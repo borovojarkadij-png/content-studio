@@ -8,7 +8,9 @@ from sqlalchemy.orm import Session
 from newsflow.app import app
 from newsflow.persistence.models import (
     Base,
+    ContentRevisionModel,
     EditorialDecisionModel,
+    IncomingPostModel,
     OutboxEventModel,
     OutputChannel,
     PublicationCandidateModel,
@@ -35,8 +37,21 @@ def review_store(tmp_path, monkeypatch):
         )
         session.add(channel)
         session.flush()
+        source = IncomingPostModel(
+            telegram_account_id="synthetic",
+            donor_channel_id="@donor",
+            telegram_message_id=1,
+            state="RECEIVED",
+        )
+        session.add(source)
+        session.flush()
+        session.add(
+            ContentRevisionModel(
+                incoming_post_id=source.id, revision_number=1, source_text="Synthetic source"
+            )
+        )
         decision = EditorialDecisionModel(
-            content_key="synthetic:revision:1",
+            content_key="synthetic:@donor:1:revision:1",
             status="PASS",
             rewrite_allowed=True,
             sentiment="neutral",
@@ -81,6 +96,43 @@ def test_review_approval_atomically_activates_only_its_candidate_and_is_idempote
         assert session.scalar(select(PublicationCandidateModel.state)) == "READY"
         assert session.scalar(select(func.count()).select_from(RewriteJobModel)) == 1
         assert session.scalar(select(func.count()).select_from(OutboxEventModel)) == 0
+
+
+def test_review_api_rechecks_latest_immutable_source_revision(review_store):
+    client, engine, _, _, draft_id = review_store
+    with Session(engine) as session:
+        source = session.scalar(select(IncomingPostModel))
+        session.add(
+            ContentRevisionModel(
+                incoming_post_id=source.id, revision_number=2, source_text="Edited synthetic source"
+            )
+        )
+        session.commit()
+    assert (
+        client.get("/api/telegram/rewrite-outputs").json()["items"][0]["approve_allowed"] is False
+    )
+    assert (
+        client.post(f"/api/telegram/rewrite-outputs/{draft_id}:approve", json={}).status_code == 409
+    )
+    with Session(engine) as session:
+        assert session.scalar(select(PublicationCandidateModel.state)) == "AWAITING_REWRITE"
+
+
+def test_missing_source_cannot_be_approved_or_recreated_through_succeeded_job(review_store):
+    from sqlalchemy import delete
+
+    client, engine, _, job_id, draft_id = review_store
+    with Session(engine) as session:
+        session.execute(delete(ContentRevisionModel))
+        session.commit()
+        with pytest.raises(PermissionError, match="SOURCE"):
+            RewriteOutputService(session).record_succeeded_output(job_id, "Синтетический рерайт")
+    assert (
+        client.get("/api/telegram/rewrite-outputs").json()["items"][0]["approve_allowed"] is False
+    )
+    assert (
+        client.post(f"/api/telegram/rewrite-outputs/{draft_id}:approve", json={}).status_code == 409
+    )
 
 
 def test_channel_style_is_durable_validated_and_has_no_job_or_approval_side_effect(review_store):
@@ -174,7 +226,7 @@ def test_plan_reads_survive_new_client_and_do_not_plan_on_get(review_store):
     assert planned.json()["items"][0]["scheduled_for"] == "2030-01-02T06:00:00+00:00"
     with TestClient(app) as restarted:
         rows = restarted.get(path).json()["items"]
-        assert rows[0]["content_key"] == "synthetic:revision:1"
+        assert rows[0]["content_key"] == "synthetic:@donor:1:revision:1"
         assert rows[0]["state"] == "PLANNED"
         assert rows[0]["editorial_allowed"] is True
     with Session(engine) as session:
@@ -212,7 +264,7 @@ def test_media_http_registry_and_selection_use_persistent_root_without_remote_do
         "origin": "SOURCE",
         "license_code": "PERMISSION",
         "attribution": "@authorized_synthetic",
-        "source_content_key": "synthetic:revision:1",
+        "source_content_key": "synthetic:@donor:1:revision:1",
         "tags": ["science"],
     }
     registered = client.post("/api/telegram/media-assets", json=payload)
