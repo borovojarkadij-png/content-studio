@@ -29,6 +29,53 @@ def test_incoming_posts_endpoint_exposes_an_empty_moderation_inbox() -> None:
     assert response.json() == {"items": []}
 
 
+def test_mapping_filter_api_persists_explicit_policy_and_rejects_bypass_fields(client):
+    account = client.post(
+        "/api/telegram/accounts", json={"name": "Synthetic filters", "telegram_user_id": 1001}
+    ).json()
+    donor = client.post(
+        "/api/telegram/donors",
+        json={
+            "telegram_account_id": account["id"],
+            "telegram_channel_id": -1001234567890,
+            "title": "Donor",
+        },
+    ).json()
+    output = client.post(
+        "/api/telegram/output-channels",
+        json={
+            "telegram_account_id": account["id"],
+            "telegram_channel_id": -1009876543210,
+            "title": "Output",
+        },
+    ).json()
+    mapping = client.post(
+        "/api/telegram/mappings",
+        json={
+            "donor_channel_id": donor["id"],
+            "output_channel_id": output["id"],
+            "intake_percent": 100,
+            "target_mix_percent": 100,
+        },
+    ).json()
+    url = f"/api/telegram/mappings/{mapping['id']}/technical-filters"
+    payload = {
+        "allowed_media_types": ["text"],
+        "blocked_domains": ["Example.ORG"],
+        "ad_markers": ["Спонсорский пост"],
+    }
+    response = client.put(url, json=payload)
+    assert response.status_code == 200
+    assert response.json()["blocked_domains"] == ["example.org"]
+    assert client.get(url).json() == response.json()
+    assert client.put(url, json={**payload, "rewrite_allowed": True}).status_code == 422
+    assert (
+        client.put(url, json={**payload, "allowed_media_types": ["unsupported"]}).status_code == 422
+    )
+    assert client.get(url).json() == response.json()
+    assert client.get("/api/telegram/mappings/999/technical-filters").status_code == 404
+
+
 def test_telegram_accounts_endpoint_exposes_empty_configuration_list(client) -> None:
     response = client.get("/api/telegram/accounts")
 

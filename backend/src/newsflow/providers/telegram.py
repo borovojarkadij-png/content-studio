@@ -2,7 +2,7 @@
 
 import asyncio
 from collections.abc import Callable, Iterator
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Protocol
 
@@ -15,6 +15,27 @@ class FloodWait(RuntimeError):
 
 class SessionUnavailable(RuntimeError):
     """Raised before a live connection when no decrypted session was supplied."""
+
+
+@dataclass(frozen=True, slots=True)
+class TelegramChannelPeer:
+    account_id: str
+    channel_id: int
+    access_hash: int = field(repr=False)
+
+    def __post_init__(self):
+        if (
+            not isinstance(self.account_id, str)
+            or not self.account_id
+            or isinstance(self.channel_id, bool)
+            or not isinstance(self.channel_id, int)
+            or not -(2**63) <= self.channel_id < -1000000000000
+            or isinstance(self.access_hash, bool)
+            or not isinstance(self.access_hash, int)
+            or not -(2**63) <= self.access_hash < 2**63
+            or self.access_hash == 0
+        ):
+            raise ValueError("Invalid Telegram channel peer identity")
 
 
 @dataclass(frozen=True, slots=True)
@@ -139,6 +160,9 @@ class TelethonTelegramProvider:
         sessions: dict[str, str] | None = None,
         client_factory: Callable[[str], object] | None = None,
         on_session_updated: Callable[[str, str], None] | None = None,
+        peers: tuple[TelegramChannelPeer, ...] = (),
+        on_peer_updated: Callable[[TelegramChannelPeer], None] | None = None,
+        expected_user_id: int | None = None,
         request_timeout: float = 15,
     ) -> None:
         if not 0 < request_timeout <= 30:
@@ -149,6 +173,9 @@ class TelethonTelegramProvider:
         self._client_factory = client_factory
         self._on_session_updated = on_session_updated
         self._request_timeout = request_timeout
+        self._peers = {(peer.account_id, peer.channel_id): peer for peer in peers}
+        self._on_peer_updated = on_peer_updated
+        self._expected_user_id = expected_user_id
 
     def require_session(self, account_id: str) -> str:
         try:
@@ -208,6 +235,10 @@ class TelethonTelegramProvider:
                 await client.connect()
                 if not await client.is_user_authorized():
                     raise SessionUnavailable("Telegram session requires manual authorization")
+                if self._expected_user_id is not None:
+                    me = await client.get_me()
+                    if getattr(me, "id", None) != self._expected_user_id:
+                        raise SessionUnavailable("Telegram session account identity mismatch")
                 self._save_session(account_id, client)
                 result = await operation(client)
                 self._save_session(account_id, client)
@@ -257,9 +288,10 @@ class TelethonTelegramProvider:
         channel = self._channel_id(donor_identifier)
 
         async def read(client):
+            peer = await self._input_channel(client, account_id, channel)
             result = []
             async for raw in client.iter_messages(
-                channel, min_id=after_id, limit=limit, reverse=True, wait_time=0
+                peer, min_id=after_id, limit=limit, reverse=True, wait_time=0
             ):
                 if getattr(raw, "chat_id", None) != channel:
                     raise ValueError("Telegram source identity mismatch")
@@ -276,7 +308,8 @@ class TelethonTelegramProvider:
             raise ValueError("Invalid message identity")
 
         async def read(client):
-            raw = await client.get_messages(channel, ids=message_id)
+            peer = await self._input_channel(client, account_id, channel)
+            raw = await client.get_messages(peer, ids=message_id)
             if raw is None:
                 raise LookupError("Telegram message no longer exists")
             if getattr(raw, "chat_id", None) != channel or getattr(raw, "id", None) != message_id:
@@ -291,8 +324,9 @@ class TelethonTelegramProvider:
         channel = self._channel_id(donor_identifier)
 
         async def read(client):
+            peer = await self._input_channel(client, account_id, channel)
             result = []
-            async for raw in client.iter_messages(channel, limit=limit, reverse=False, wait_time=0):
+            async for raw in client.iter_messages(peer, limit=limit, reverse=False, wait_time=0):
                 if getattr(raw, "chat_id", None) != channel:
                     raise ValueError("Telegram source identity mismatch")
                 result.append(self.normalize_message(account_id, donor_identifier, raw))
@@ -301,6 +335,33 @@ class TelethonTelegramProvider:
             return tuple(reversed(result))
 
         return self._run(account_id, read)
+
+    async def _input_channel(self, client, account_id, channel):
+        from telethon.tl.types import InputPeerChannel
+        from telethon.utils import get_peer_id
+
+        known = self._peers.get((account_id, channel))
+        if known is None:
+            # StringSession does not preserve entities. Bounded read-only dialogs
+            # can recover already-accessible channels; never join or auto-login.
+            count = 0
+            async for dialog in client.iter_dialogs(limit=100):
+                count += 1
+                if count > 100:
+                    raise ValueError("Telegram dialog resolution exceeded its bound")
+                if getattr(dialog, "id", None) != channel:
+                    continue
+                peer = getattr(dialog, "input_entity", None)
+                if not isinstance(peer, InputPeerChannel) or get_peer_id(peer) != channel:
+                    raise ValueError("Telegram resolved peer identity mismatch")
+                known = TelegramChannelPeer(account_id, channel, peer.access_hash)
+                if self._on_peer_updated is not None:
+                    self._on_peer_updated(known)
+                self._peers[(account_id, channel)] = known
+                break
+            if known is None:
+                raise LookupError("Donor channel is outside the bounded accessible-dialog window")
+        return InputPeerChannel(-channel - 1000000000000, known.access_hash)
 
     @staticmethod
     def normalize_message(

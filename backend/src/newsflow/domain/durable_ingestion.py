@@ -28,6 +28,7 @@ from newsflow.persistence.models import (
     RewriteJobModel,
 )
 from newsflow.providers.telegram import TelegramMessage
+from newsflow.services.mapping_filters import mapping_filter
 
 
 class DurableIngestionWorkflow:
@@ -78,11 +79,7 @@ class DurableIngestionWorkflow:
                 )
                 if mapping is None:
                     return IngestionResult(False, source_key, "MAPPING_REMOVED")
-                self._technical_filter = MappingTechnicalFilter(
-                    mapping_id=str(mapping.id),
-                    output_channel_id=mapping.output_channel_id,
-                    intake_percent=mapping.intake_percent,
-                )
+                self._technical_filter = mapping_filter(self._session, mapping)
             repository = SqlAlchemyIngestionRepository(self._session)
             if repository.is_stale(event):
                 return IngestionResult(False, source_key, "REJECTED_STALE_SOURCE")

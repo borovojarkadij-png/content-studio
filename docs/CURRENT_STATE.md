@@ -2,6 +2,21 @@
 
 ## VERIFIED WORKING
 
+- Encrypted account-scoped Telegram input peers and bounded accessible-dialog
+  resolution implemented. RPCs verify the provisioned user's identity; corrupt/
+  foreign cache and concurrently replaced sessions fail closed. Backend 425-test
+  peer checkpoint PASS. Actual Windows Docker peer restart/crash recovery PASS in
+  newsflow-verification-peers20261008, including injected PostgreSQL lock probe
+  and donor ingestion guard; packaged PostgreSQL drift PASS, fixture stopped with
+  volumes/history retained. This is NOT live Telegram authorization.
+- Persisted mapping technical-filter API/ingestion and fresh pre/post-rewrite,
+  draft-review and calendar guards implemented. Unicode/trailing-dot blocked-host
+  bypasses and concurrent-policy/manual-review bypasses reproduced and fixed.
+  Backend 442 tests / lint / compile / isolated migration round-trip PASS. Actual
+  Windows mapping-filter down/up acceptance, peer crash recovery, packaged
+  PostgreSQL drift and real filter API PASS in isolated
+  newsflow-verification-mappingfilters20261008; stopped retaining history/volumes.
+  Frontend 26 units / 19 browser regressions / format / typecheck / build PASS.
 - Source-observation metadata now preserves media type, album ID and source
   update time on immutable revisions (legacy migrated media is UNKNOWN, not
   fabricated text). Media-only edits invalidate old revisions. Older/missing
@@ -417,10 +432,15 @@ and no paid fallback (OPENROUTER_REWRITE_VERIFICATION.md).
 Operational source-observation images rebuilt successfully; migrations/actual
 PostgreSQL drift, /healthz and /api/telegram/incoming-posts HTTP 200 PASS.
 All four network flags remain 0. Fresh backend gate: 414 tests and lint PASS.
-Exact NEXT_STEP: commit/push tested source-observation/recent-replay increment
-and track next CI, then implement persistent account-scoped donor entity/access-
-hash resolution and configurable mapping filters. Actual isolated metadata Docker
-acceptance passed; no source metadata redo is needed.
+Source-observation checkpoint cd3eb558d0e17a18311f6c43375eec55233f2ada pushed to
+correct origin; CI 37697828168 completed SUCCESS in all four jobs. This predates
+peer/mapping-filter changes; their next CI remains separate.
+Operational peer/filter images rebuilt and migrations applied; actual PostgreSQL
+drift and proxied health/inbox HTTP 200 PASS. All four network flags remain 0.
+Exact NEXT_STEP: commit/push peer + mapping-filter increment and track its CI,
+then implement read-only username donor-import
+resolution into immutable donor identities (Fake/injected RPC first), followed
+by actual frontend configuration/filter wiring. No fixture seed may be rerun.
 f19af6d CI 37696430337 completed SUCCESS. Track next commit CI.
 Do not rerun either fixture seed; existing histories are intentionally retained.
 Live authorization is separate; no synthetic account may be promoted as real.

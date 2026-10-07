@@ -50,9 +50,14 @@ class MappingTechnicalFilter:
     def _is_blocked_host(self, host: str | None) -> bool:
         if host is None:
             return False
-        normalized_host = host.casefold().removeprefix("www.")
+        normalized_host = (
+            host.rstrip(".").encode("idna").decode("ascii").casefold().removeprefix("www.")
+        )
         return any(
-            normalized_host == domain.casefold().removeprefix("www.")
-            or normalized_host.endswith(f".{domain.casefold().removeprefix('www.')}")
+            normalized_host
+            == domain.rstrip(".").encode("idna").decode("ascii").casefold().removeprefix("www.")
+            or normalized_host.endswith(
+                f".{domain.rstrip('.').encode('idna').decode('ascii').casefold().removeprefix('www.')}"
+            )
             for domain in self.blocked_domains
         )

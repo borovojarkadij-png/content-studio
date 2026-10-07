@@ -16,6 +16,7 @@ from newsflow.persistence.models import (
     SemanticEvidenceModel,
     SemanticVerifierReleaseModel,
 )
+from newsflow.services.mapping_filters import output_technical_allowed
 from newsflow.services.semantic_facts import (
     BENCHMARK_VERSION,
     PROMPT_VERSION,
@@ -138,6 +139,7 @@ def approval_is_current(session: Session, output: RewriteOutputModel) -> bool:
         or job.output_channel_id != output.output_channel_id
         or not editorial_allows_rewrite(decision)
         or not source_is_current(session, output.content_key)
+        or not output_technical_allowed(session, output.content_key, output.output_channel_id)
     ):
         return False
     return (

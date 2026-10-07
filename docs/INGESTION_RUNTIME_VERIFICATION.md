@@ -88,11 +88,12 @@ Primary adapter documentation: [Telethon client methods and bounded history](htt
   It detects edits inside this bounded window without resetting the new-message
   cursor. Older edits and deletions outside/inside the window are NOT fully
   recovered; complete Telegram update-difference recovery remains pending.
-- StringSession stores authorization, not the entity/access-hash cache. A numeric
-  donor absent from the client's resolvable entity cache can fail; persistent
-  donor resolution/access-hash wiring is still required. Never label that success.
-- Configurable mapping-specific domain/media/ad policy persistence, real text
-  classification/manual review mutation and full album/media ingestion are pending.
+- StringSession peer recovery now uses separately encrypted account-scoped input
+  channels and bounded accessible dialogs. Username imports, channels outside
+  that window and live authorization remain separate pending work.
+- Mapping domain/media/ad policies are now persisted through API and reread at
+  ingress/rewrite/review/planning. UI wiring, real text classification/manual
+  source review mutation and full album/media ingestion remain pending.
 - External Telegram api_id/api_hash, explicit authorization/session provisioning
   and live restart verification are missing. No user action is requested one-by-one.
 - Live AI qualification remains blocked by usable credentials; synthetic fixtures
@@ -125,3 +126,42 @@ encrypted session refresh committed through a separate transaction, concurrent
 120-second FloodWait survived the returned success, disconnect completed. A
 2-second lock timeout makes a reintroduced deadlock fail promptly. This is actual
 DB concurrency plus injected RPC, **not** actual Telegram login.
+
+## Peer and filter checkpoint — 2026-10-08
+
+`telegram_peers` stores account/channel-keyed encrypted hash payloads, bound to
+the configured Telegram user. They use the existing master key, never generate
+a replacement. Factory verifies get_me identity before reads or session refresh.
+Missing peers resolve only the first 100 accessible dialogs, within the existing
+RPC deadline. Foreign/non-channel peers and malformed cache fail closed; no
+automatic login/join occurs. Hashes are not exposed by public configuration APIs.
+This follows [Telethon's account-specific entity contract](https://docs.telethon.dev/en/stable/concepts/entities.html).
+Bounded dialogs do NOT resolve arbitrary username imports yet.
+
+Actual Windows project `newsflow-verification-peers20261008` (18013/15186/18093)
+passed CrashRecovery + IngestionGuard + PeerGuard, including encrypted peer reuse
+after down/up and PostgreSQL SIGKILL/Redis loss, with dialog lookup prohibited on
+reuse. PostgreSQL packaged drift passed; stopped retaining history/volumes. The
+image predates mapping filters below; these are separate acceptance evidence.
+
+Mapping filter GET/PUT API stores permitted text/photo/video types, canonical
+bare blocked hosts and additional ad markers; builtin ad markers cannot be
+disabled. Defaults remain text/photo and no custom domain blocks. Unsupported
+media is never allowed. Empty media selection rejects all. Technical policy is
+reread at ingress, before/after rewrite, draft recording/review, approval-current
+checks and calendar reconciliation. Intake sampling remains an ingress policy,
+not retroactive sampling of already accepted jobs. Current filters are checked
+even for manual approval, without weakening EditorialGate. Legacy no-mapping
+domain prototypes remain explicitly distinct from mapped runtime candidates.
+
+442 backend tests, lint/compile and isolated migration round-trip PASS. Populated
+peer/filter downgrades refuse recovery/configuration data loss. Actual Windows
+Docker acceptance PASS in `newsflow-verification-mappingfilters20261008`
+(18014/15187/18094; CrashRecovery + PeerGuard + MappingGuard): policy and pending
+job survived down/up; controlled synthetic claim was blocked before provider
+construction, without a draft. Actual PostgreSQL drift and real proxied filter
+GET passed. Fixture stopped retaining history/volumes; never rerun seed.
+Frontend 26 units and 19 browser regressions / format / typecheck / build PASS.
+Filter UI and real publication transport remain pending. No paid calls or actual
+sends used here. CI includes both new guards; its deadline is now 20 minutes for
+the additional real restart cycle, with bounded health/RPC deadlines unchanged.

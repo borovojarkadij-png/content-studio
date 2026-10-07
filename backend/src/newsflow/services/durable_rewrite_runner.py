@@ -28,6 +28,7 @@ from newsflow.providers.openai_rewrite import (
 )
 from newsflow.providers.openrouter import ProviderUnavailable
 from newsflow.services.fact_guard import FactGuard, FactPreservationBlocked
+from newsflow.services.mapping_filters import candidate_technical_allowed
 from newsflow.services.rewrite import RewriteService, TextRewriteProvider
 from newsflow.services.rewrite_outputs import RewriteOutputService
 from newsflow.services.source_revisions import revision_is_latest, source_revision
@@ -147,6 +148,8 @@ class DurableRewriteRunner:
                 return self._finish(session, job, "FAILED_SOURCE", "SOURCE_REVISION_MISSING")
             if not self._latest(session, revision):
                 return self._finish(session, job, "SUPERSEDED", "SOURCE_REVISION_SUPERSEDED")
+            if not candidate_technical_allowed(session, candidate):
+                return self._finish(session, job, "BLOCKED_TECHNICAL", "MAPPING_TECHNICAL_BLOCKED")
             if job.last_error_code == "ATTEMPT_LIMIT":
                 return self._finish(session, job, "FAILED", "ATTEMPT_LIMIT")
             snapshot = EditorialDecision(
@@ -216,6 +219,8 @@ class DurableRewriteRunner:
                 return self._finish(session, job, "BLOCKED_EDITORIAL", "EDITORIAL_REWRITE_BLOCKED")
             if not self._latest(session, revision):
                 return self._finish(session, job, "SUPERSEDED", "SOURCE_REVISION_SUPERSEDED")
+            if not candidate_technical_allowed(session, candidate):
+                return self._finish(session, job, "BLOCKED_TECHNICAL", "MAPPING_TECHNICAL_BLOCKED")
             job.state, job.claim_token, job.lease_expires_at = "SUCCEEDED", None, None
             job.last_error_code, job.available_at = None, None
             session.add(

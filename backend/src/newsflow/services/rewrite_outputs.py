@@ -15,6 +15,7 @@ from newsflow.persistence.models import (
     RewriteOutputModel,
 )
 from newsflow.services.automatic_approval import automatic_evidence_is_current
+from newsflow.services.mapping_filters import output_technical_allowed
 from newsflow.services.source_revisions import source_is_current
 
 
@@ -89,6 +90,8 @@ class RewriteOutputService:
                 raise RewriteOutputBlocked("Rewrite job is not a succeeded mapped job")
             self._require_editorial_pass(job.content_key)
             self._require_current_source(job.content_key)
+            if not output_technical_allowed(self._session, job.content_key, job.output_channel_id):
+                raise RewriteOutputBlocked("MAPPING_TECHNICAL_BLOCKED")
             existing = self._session.scalar(
                 select(RewriteOutputModel)
                 .where(RewriteOutputModel.rewrite_job_id == rewrite_job_id)
@@ -170,6 +173,10 @@ class RewriteOutputService:
                     raise RewriteOutputBlocked("Rewrite job is no longer succeeded")
                 self._require_editorial_pass(job.content_key)
                 self._require_current_source(job.content_key)
+                if not output_technical_allowed(
+                    self._session, job.content_key, job.output_channel_id
+                ):
+                    raise RewriteOutputBlocked("MAPPING_TECHNICAL_BLOCKED")
             output = self._session.scalar(
                 select(RewriteOutputModel)
                 .where(RewriteOutputModel.id == output_id)

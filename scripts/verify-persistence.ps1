@@ -9,6 +9,8 @@ param(
     [switch]$SemanticGuard,
     [switch]$MediaGuard,
     [switch]$IngestionGuard,
+    [switch]$PeerGuard,
+    [switch]$MappingGuard,
     [ValidateSet('OPENAI', 'OPENROUTER')]
     [string]$RewriteProvider = 'OPENAI'
 )
@@ -26,6 +28,16 @@ function Invoke-IngestionProbe([string]$Mode) {
     Get-Content -LiteralPath (Join-Path $PSScriptRoot 'docker_ingestion_probe.py') -Raw |
         & docker @composeArgs exec -T worker python - $Mode
     if ($LASTEXITCODE -ne 0) { throw "Synthetic ingestion probe failed: $Mode" }
+}
+function Invoke-PeerProbe([string]$Mode) {
+    Get-Content -LiteralPath (Join-Path $PSScriptRoot 'docker_telegram_peer_probe.py') -Raw |
+        & docker @composeArgs exec -T worker python - $Mode
+    if ($LASTEXITCODE -ne 0) { throw "Synthetic encrypted peer probe failed: $Mode" }
+}
+function Invoke-MappingProbe([string]$Mode) {
+    Get-Content -LiteralPath (Join-Path $PSScriptRoot 'docker_mapping_filter_probe.py') -Raw |
+        & docker @composeArgs exec -T worker python - $Mode
+    if ($LASTEXITCODE -ne 0) { throw "Synthetic mapping filter probe failed: $Mode" }
 }
 if ($SourceGuard -and -not $RewriteRecovery) {
     throw 'SourceGuard requires a fresh synthetic RewriteRecovery run.'
@@ -103,6 +115,7 @@ function Invoke-RewriteRecoveryProbe([string]$Mode) {
 Invoke-VerificationCompose config --quiet
 Invoke-VerificationCompose up -d --build --wait --wait-timeout 180
 Invoke-Probe 'seed'
+if ($PeerGuard) { Invoke-PeerProbe 'seed' }
 $priorApi = & docker @composeArgs ps -q api
 $priorProxy = & docker @composeArgs ps -q web-production
 $priorIp = & docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $priorApi
@@ -140,6 +153,7 @@ Invoke-VerificationCompose down
 # Deliberately no --volumes: named persistent storage must survive container removal.
 Invoke-VerificationCompose up -d --wait --wait-timeout 180
 Invoke-Probe 'verify'
+if ($PeerGuard) { Invoke-PeerProbe 'verify' }
 $marker = & docker @composeArgs exec -T redis redis-cli get synthetic-persistence-marker
 if ($LASTEXITCODE -ne 0 -or $marker.Trim() -ne 'retained') {
     throw 'Redis AOF marker did not survive restart/down-up.'
@@ -151,6 +165,7 @@ if ($CrashRecovery) {
     Invoke-Probe 'verify'
     Invoke-VerificationCompose exec -T redis redis-cli FLUSHDB
     Invoke-Probe 'verify'
+    if ($PeerGuard) { Invoke-PeerProbe 'verify' }
 }
 $health = Invoke-RestMethod "http://127.0.0.1:$ProductionPort/healthz"
 if ($health.status -ne 'ok') { throw 'Production proxy health check failed.' }
@@ -208,6 +223,12 @@ if ($IngestionGuard) {
     Invoke-VerificationCompose down
     Invoke-VerificationCompose up -d --wait --wait-timeout 180
     Invoke-IngestionProbe 'verify-edit'
+}
+if ($MappingGuard) {
+    Invoke-MappingProbe 'seed'
+    Invoke-VerificationCompose down
+    Invoke-VerificationCompose up -d --wait --wait-timeout 180
+    Invoke-MappingProbe 'verify'
 }
 Write-Output "Synthetic persistence checks passed. Stack retained: $Project"
 Write-Output 'No real Telegram authorization, network AI calls or publications.'

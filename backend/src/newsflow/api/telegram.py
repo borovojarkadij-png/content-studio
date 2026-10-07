@@ -265,6 +265,12 @@ class MappingCreateRequest(MappingUpdateRequest):
     media_policy: Literal["REUSE_SOURCE", "LICENSED_LIBRARY"] = "REUSE_SOURCE"
 
 
+class MappingFilterRequest(StrictRequest):
+    allowed_media_types: tuple[Literal["text", "photo", "video"], ...] = Field(max_length=3)
+    blocked_domains: tuple[str, ...] = Field(max_length=100)
+    ad_markers: tuple[str, ...] = Field(max_length=20)
+
+
 class PublicationPlanRequest(StrictRequest):
     mode: Literal["MANUAL", "AUTOMATIC"]
     daily_limit: int = Field(ge=1, le=24, strict=True)
@@ -343,6 +349,18 @@ def update_output(
 @router.get("/mappings")
 def list_mappings(service: Configuration) -> dict[str, list]:
     return {"items": service.list_mappings()}
+
+
+@router.get("/mappings/{mapping_id}/technical-filters")
+def get_mapping_filters(mapping_id: int, service: Configuration) -> dict[str, object]:
+    return service.mapping_filters(mapping_id)
+
+
+@router.put("/mappings/{mapping_id}/technical-filters")
+def put_mapping_filters(
+    mapping_id: int, request: MappingFilterRequest, service: Configuration
+) -> dict[str, object]:
+    return service.configure_mapping_filters(mapping_id, **request.model_dump())
 
 
 @router.post("/mappings", status_code=201)

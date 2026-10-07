@@ -64,6 +64,9 @@ def main():
         async def disconnect(self):
             self.disconnected = True
 
+        async def get_me(self):
+            return SimpleNamespace(id=400400)
+
     client = SyntheticClient()
     provider = ConfiguredTelegramProvider(
         factory, cipher=cipher, api_id=123, api_hash="a" * 32, client_factory=lambda _: client

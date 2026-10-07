@@ -8,6 +8,7 @@ from datetime import datetime
 from decimal import Decimal
 
 from sqlalchemy import (
+    JSON,
     BigInteger,
     Boolean,
     CheckConstraint,
@@ -59,6 +60,21 @@ class TelegramAccount(Base):
     cooldown_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
+class TelegramPeerModel(Base):
+    """Account-scoped encrypted input channel; never projected by public APIs."""
+
+    __tablename__ = "telegram_peers"
+    __table_args__ = (CheckConstraint("telegram_channel_id < -1000000000000"),)
+    telegram_account_id: Mapped[int] = mapped_column(
+        ForeignKey("telegram_accounts.id"), primary_key=True
+    )
+    telegram_channel_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    encrypted_peer: Mapped[str] = mapped_column(String, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+
 class DonorChannel(Base):
     __tablename__ = "donor_channels"
     __table_args__ = (UniqueConstraint("telegram_account_id", "telegram_channel_id"),)
@@ -85,6 +101,14 @@ class OutputChannel(Base):
     rewrite_style: Mapped[str] = mapped_column(
         String(16), nullable=False, default="NEUTRAL", server_default="NEUTRAL"
     )
+
+
+class MappingFilterPolicyModel(Base):
+    __tablename__ = "mapping_filter_policies"
+    mapping_id: Mapped[int] = mapped_column(ForeignKey("channel_mappings.id"), primary_key=True)
+    allowed_media_types: Mapped[list[str]] = mapped_column(JSON, nullable=False)
+    blocked_domains: Mapped[list[str]] = mapped_column(JSON, nullable=False)
+    ad_markers: Mapped[list[str]] = mapped_column(JSON, nullable=False)
 
 
 class DonorIngestionCursorModel(Base):

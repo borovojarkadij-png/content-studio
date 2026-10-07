@@ -17,9 +17,13 @@
 - [x] Durable bounded new-message donor poll: PostgreSQL cursor/lease/fencing, current mapping intake, partial fan-out replay and persisted cooldown/retry; actual synthetic Windows Docker down/up acceptance
 - [x] Read-only Telethon authorization/history contract, encrypted current-session factory/CAS refresh, opt-in ingestion worker and separate optional credential mount; synthetic contract verification only
 - [x] Source media/album/edit-timestamp revision identity, stale/equal-time conflict fencing and bounded 50-message old-edit replay; local regression/migration gate and actual synthetic Docker metadata down/up acceptance
-- [ ] Full Telegram update-difference/deletion recovery, album batching/download, persistent donor access-hash resolution and live encrypted authorization restart acceptance
+- [x] Encrypted account-scoped input-channel cache, bounded accessible-dialog resolution, provisioned user identity validation, corruption/CAS fencing and actual synthetic Windows Docker peer restart/crash recovery
+- [ ] Username donor-import resolution, full Telegram update-difference/deletion recovery, album batching/download and live encrypted authorization restart acceptance
 - [~] Filters, semantic dedup, events, hype, media, routing and scheduler; durable per-channel plan/timer, mapping-aware candidates, immediate/delayed/priority/media snapshots and gated activation complete; semantic dedup/events/hype, media acquisition and publication execution remain pending
 - [~] Mapping-level deterministic filters for media, advertising markers and forbidden links
+- [x] Persisted mapping-filter GET/PUT API and ingress integration, canonical blocked domains, mandatory advertising markers and fresh worker/review/calendar policy guards; 442-test local gate
+- [x] Mapping-filter Windows Docker down/up acceptance, persisted policy/stale-task zero-call guard, actual PostgreSQL drift and real filter API
+- [ ] Configuration/filter UI wiring and publication-execution guard
 - [~] Durable mapping-scoped exact content fingerprint deduplication before EditorialGate
 - [~] OpenAI/OpenRouter: encrypted settings/models, drafts/review, catalog and fact anchors complete; strict adapters/encrypted factory, explicitly opt-in provider-selected worker, bounded free-only OpenRouter failover, known token usage and per-channel natural tabloid style complete offline; live provider verification, semantic guard, rate configuration/cache/dashboard pending
 - [~] Durable moderation-inbox API read model (state, latest revision and editorial decision); dark-navy Inbox consumes its supported read endpoint, while mutation APIs remain pending

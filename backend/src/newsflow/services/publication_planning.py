@@ -17,6 +17,7 @@ from newsflow.persistence.models import (
     RewriteOutputModel,
 )
 from newsflow.services.automatic_approval import approval_is_current
+from newsflow.services.mapping_filters import candidate_technical_allowed
 from newsflow.services.source_revisions import source_is_current
 
 
@@ -260,6 +261,8 @@ class PublicationPlanningService:
                     continue
                 if not source_is_current(self._session, candidate.content_key):
                     continue
+                if not candidate_technical_allowed(self._session, candidate):
+                    continue
                 if not self._review_is_current(candidate):
                     continue
                 slot_index = next(
@@ -341,6 +344,9 @@ class PublicationPlanningService:
             elif not source_is_current(self._session, candidate.content_key):
                 item.state = "BLOCKED_SOURCE"
                 candidate.state = "BLOCKED_SOURCE"
+            elif not candidate_technical_allowed(self._session, candidate):
+                item.state = "BLOCKED_TECHNICAL"
+                candidate.state = "BLOCKED_TECHNICAL"
             elif not self._review_is_current(candidate):
                 item.state = "BLOCKED_REVIEW"
                 candidate.state = "BLOCKED_REVIEW"

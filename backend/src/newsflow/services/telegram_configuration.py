@@ -15,9 +15,11 @@ from newsflow.persistence.models import (
     ChannelMappingModel,
     DonorChannel,
     DonorImportModel,
+    MappingFilterPolicyModel,
     OutputChannel,
     TelegramAccount,
 )
+from newsflow.services.mapping_filters import mapping_filter, normalize_filter_policy
 
 
 class ConfigurationConflict(ValueError):
@@ -119,6 +121,43 @@ def _project(row) -> dict[str, object]:
 
 
 class TelegramConfigurationService:
+    def mapping_filters(self, mapping_id):
+        mapping = self._require(ChannelMappingModel, mapping_id)
+        effective = mapping_filter(self._session, mapping)
+        row = self._session.get(MappingFilterPolicyModel, mapping_id, populate_existing=True)
+        return {
+            "mapping_id": mapping_id,
+            "allowed_media_types": sorted(effective.allowed_media_types),
+            "blocked_domains": sorted(effective.blocked_domains),
+            "ad_markers": [] if row is None else list(row.ad_markers),
+            "effective_ad_markers": list(effective.ad_markers),
+        }
+
+    def configure_mapping_filters(
+        self, mapping_id, *, allowed_media_types, blocked_domains, ad_markers
+    ):
+        policy = normalize_filter_policy(allowed_media_types, blocked_domains, ad_markers)
+        try:
+            mapping = self._session.scalar(
+                select(ChannelMappingModel)
+                .where(ChannelMappingModel.id == mapping_id)
+                .with_for_update()
+                .execution_options(populate_existing=True)
+            )
+            if mapping is None:
+                raise LookupError("Referenced mapping was not found")
+            row = self._session.get(MappingFilterPolicyModel, mapping_id)
+            if row is None:
+                row = MappingFilterPolicyModel(mapping_id=mapping_id)
+                self._session.add(row)
+            for key, value in policy.items():
+                setattr(row, key, value)
+            self._session.commit()
+            return self.mapping_filters(mapping_id)
+        except Exception:
+            self._session.rollback()
+            raise
+
     def rewrite_style(self, output_id: int) -> dict[str, object]:
         output = self._require(OutputChannel, output_id)
         return {"output_channel_id": output.id, "style": output.rewrite_style}

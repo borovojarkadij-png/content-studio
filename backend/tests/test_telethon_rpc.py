@@ -25,6 +25,17 @@ class Client:
             raise self.failure
         return self.authorized
 
+    async def get_me(self):
+        return SimpleNamespace(id=1001)
+
+    def iter_dialogs(self, *, limit):
+        from telethon.tl.types import InputPeerChannel
+
+        async def items():
+            yield SimpleNamespace(id=-1001234567890, input_entity=InputPeerChannel(1234567890, 999))
+
+        return items()
+
     def iter_messages(self, entity, **kwargs):
         self.history_args = (entity, kwargs)
 
@@ -56,10 +67,12 @@ def test_history_is_bounded_ascending_and_preserves_numeric_source_identity():
     assert [(m.account_id, m.donor_identifier, m.text) for m in result] == [
         ("1", "-1001234567890", "News")
     ]
-    assert client.history_args == (
-        -1001234567890,
-        {"min_id": 0, "limit": 5, "reverse": True, "wait_time": 0},
-    )
+    from telethon.tl.types import InputPeerChannel
+
+    peer, args = client.history_args
+    assert isinstance(peer, InputPeerChannel)
+    assert (peer.channel_id, peer.access_hash) == (1234567890, 999)
+    assert args == {"min_id": 0, "limit": 5, "reverse": True, "wait_time": 0}
     assert client.connected == client.disconnected == 1
 
 

@@ -4,10 +4,14 @@ import json
 import re
 from pathlib import Path
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 
-from newsflow.persistence.models import TelegramAccount
-from newsflow.providers.telegram import SessionUnavailable, TelethonTelegramProvider
+from newsflow.persistence.models import TelegramAccount, TelegramPeerModel
+from newsflow.providers.telegram import (
+    SessionUnavailable,
+    TelegramChannelPeer,
+    TelethonTelegramProvider,
+)
 from newsflow.security.session_cipher import SessionDecryptionUnavailable
 
 
@@ -63,7 +67,7 @@ class ConfiguredTelegramProvider:
         self._api_hash = api_hash
         self._clients = client_factory
 
-    def _adapter(self, account_id):
+    def _adapter(self, account_id, donor_identifier=None):
         try:
             numeric = int(account_id)
         except (TypeError, ValueError):
@@ -75,6 +79,18 @@ class ConfiguredTelegramProvider:
             if account is None or not account.encrypted_session:
                 raise SessionUnavailable("Telegram session is not provisioned")
             encrypted = account.encrypted_session
+            user_id = account.telegram_user_id
+            channel_id = (
+                None
+                if donor_identifier is None
+                else TelethonTelegramProvider._channel_id(donor_identifier)
+            )
+            stored_peer = (
+                None
+                if channel_id is None
+                else session.get(TelegramPeerModel, (numeric, channel_id))
+            )
+            encrypted_peer = None if stored_peer is None else stored_peer.encrypted_peer
         try:
             plaintext = self._cipher.decrypt(encrypted)
         except SessionDecryptionUnavailable:
@@ -83,6 +99,35 @@ class ConfiguredTelegramProvider:
             ) from None
         if not plaintext:
             raise SessionUnavailable("Telegram session is not provisioned")
+        peers = ()
+        if encrypted_peer is not None:
+            try:
+                value = json.loads(
+                    self._cipher.decrypt(encrypted_peer), object_pairs_hook=_unique_fields
+                )
+                if not isinstance(value, dict) or set(value) != {
+                    "version",
+                    "account_id",
+                    "user_id",
+                    "channel_id",
+                    "access_hash",
+                }:
+                    raise ValueError("Invalid peer")
+                if (
+                    type(value["version"]) is not int
+                    or value["version"] != 1
+                    or value["account_id"] != account_id
+                    or type(value["user_id"]) is not int
+                    or value["user_id"] != user_id
+                    or type(value["channel_id"]) is not int
+                    or value["channel_id"] != channel_id
+                ):
+                    raise ValueError("Invalid peer binding")
+                peers = (TelegramChannelPeer(account_id, channel_id, value["access_hash"]),)
+            except (SessionDecryptionUnavailable, ValueError, TypeError):
+                raise SessionUnavailable(
+                    "Persisted Telegram peer identity cannot be verified"
+                ) from None
 
         def preserve(account_id, updated):
             nonlocal encrypted
@@ -97,24 +142,64 @@ class ConfiguredTelegramProvider:
                 current.encrypted_session = self._cipher.encrypt(updated)
                 encrypted = current.encrypted_session
 
+        def preserve_peer(peer):
+            if peer.account_id != account_id or peer.channel_id != channel_id:
+                raise ValueError("Telegram peer account identity mismatch")
+            with self._sessions() as session, session.begin():
+                current = session.scalar(
+                    select(TelegramAccount).where(TelegramAccount.id == numeric).with_for_update()
+                )
+                if (
+                    current is None
+                    or current.encrypted_session != encrypted
+                    or current.telegram_user_id != user_id
+                ):
+                    raise ConnectionError("Telegram session changed during peer resolution")
+                row = session.get(TelegramPeerModel, (numeric, channel_id), with_for_update=True)
+                if row is None:
+                    row = TelegramPeerModel(
+                        telegram_account_id=numeric, telegram_channel_id=channel_id
+                    )
+                    session.add(row)
+                row.encrypted_peer = self._cipher.encrypt(
+                    json.dumps(
+                        {
+                            "version": 1,
+                            "account_id": account_id,
+                            "user_id": user_id,
+                            "channel_id": channel_id,
+                            "access_hash": peer.access_hash,
+                        },
+                        sort_keys=True,
+                    )
+                )
+                row.updated_at = func.now()
+
         return TelethonTelegramProvider(
             api_id=self._api_id,
             api_hash=self._api_hash,
             sessions={account_id: plaintext},
             client_factory=self._clients,
             on_session_updated=preserve,
+            peers=peers,
+            on_peer_updated=preserve_peer,
+            expected_user_id=user_id,
         )
 
     def verify_session(self, account_id):
         return self._adapter(account_id).verify_session(account_id)
 
     def history(self, account_id, donor_identifier, *, after_id, limit):
-        return self._adapter(account_id).history(
+        return self._adapter(account_id, donor_identifier).history(
             account_id, donor_identifier, after_id=after_id, limit=limit
         )
 
     def fetch_message(self, account_id, donor_identifier, message_id):
-        return self._adapter(account_id).fetch_message(account_id, donor_identifier, message_id)
+        return self._adapter(account_id, donor_identifier).fetch_message(
+            account_id, donor_identifier, message_id
+        )
 
     def recent(self, account_id, donor_identifier, *, limit):
-        return self._adapter(account_id).recent(account_id, donor_identifier, limit=limit)
+        return self._adapter(account_id, donor_identifier).recent(
+            account_id, donor_identifier, limit=limit
+        )
