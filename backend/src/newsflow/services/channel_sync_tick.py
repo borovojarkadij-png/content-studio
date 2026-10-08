@@ -12,6 +12,7 @@ from newsflow.persistence.models import (
     DonorChannel,
     TelegramAccount,
 )
+from newsflow.services.account_health import AccountHealthService
 from newsflow.services.channel_baseline import ChannelBaselineService
 from newsflow.services.channel_difference_runner import ChannelDifferenceRunner, _clock
 from newsflow.services.channel_sync_enforcement import ChannelSyncEnforcement
@@ -30,6 +31,45 @@ class ChannelSyncTickResult:
     outcomes: tuple[tuple[int, str], ...]
     replay_cursor: int = 0
     replay_outcomes: tuple[tuple[int, str], ...] = ()
+    health_cursor: int = 0
+    health_outcomes: tuple[tuple[int, str], ...] = ()
+
+
+def _reconnect_cooled_accounts(session_factory, provider, *, now, after_id, limit):
+    """Bounded fair read-only session probes, not login or time-based authorization."""
+    with session_factory() as session:
+
+        def scan(after):
+            return tuple(
+                session.scalars(
+                    select(TelegramAccount.id)
+                    .where(
+                        TelegramAccount.id > after,
+                        TelegramAccount.health_status == "COOLDOWN",
+                        func.length(TelegramAccount.encrypted_session) > 0,
+                        TelegramAccount.cooldown_until.is_not(None),
+                        TelegramAccount.cooldown_until <= now,
+                    )
+                    .order_by(TelegramAccount.id)
+                    .limit(limit)
+                )
+            )
+
+        ids = scan(after_id)
+        if not ids and after_id:
+            ids = scan(0)
+    outcomes = []
+    for account_id in ids:
+        try:
+            with session_factory() as session:
+                result = AccountHealthService(session, provider).reconnect(account_id, now=now)
+                outcome = result.status.value
+        except (TimeoutError, ConnectionError):
+            outcome = "RETRY_PROVIDER"
+        except (SQLAlchemyError, ValueError, TypeError, LookupError):
+            outcome = "INTERRUPTED"
+        outcomes.append((account_id, outcome))
+    return ids[-1] if ids else 0, tuple(outcomes)
 
 
 def run_channel_sync_tick(
@@ -42,13 +82,14 @@ def run_channel_sync_tick(
     credentials_path=None,
     cursor=0,
     replay_cursor=0,
+    health_cursor=0,
     limit=4,
     clock=lambda: datetime.now(UTC),
 ):
     if type(enabled) is not bool:
         raise ValueError("Channel synchronization requires an explicit boolean opt-in")
     if not enabled:
-        return ChannelSyncTickResult("DISABLED", cursor, (), replay_cursor)
+        return ChannelSyncTickResult("DISABLED", cursor, (), replay_cursor, (), health_cursor)
     if cipher is None:
         raise ValueError("Explicit stable cipher is required for channel synchronization")
     now = _clock(now)
@@ -57,6 +98,8 @@ def run_channel_sync_tick(
         or cursor < 0
         or type(replay_cursor) is not int
         or replay_cursor < 0
+        or type(health_cursor) is not int
+        or health_cursor < 0
         or type(limit) is not int
         or not 1 <= limit <= 4
     ):
@@ -69,6 +112,9 @@ def run_channel_sync_tick(
             session_factory, cipher=cipher, api_id=api_id, api_hash=api_hash
         )
     ChannelSyncEnforcement(session_factory).enable(now=now)
+    health_cursor, health_outcomes = _reconnect_cooled_accounts(
+        session_factory, provider, now=now, after_id=health_cursor, limit=limit
+    )
     with session_factory() as session:
 
         def scan(after):
@@ -129,4 +175,6 @@ def run_channel_sync_tick(
         tuple(outcomes),
         replay.cursor,
         replay.outcomes,
+        health_cursor,
+        health_outcomes,
     )

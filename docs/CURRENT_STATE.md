@@ -2,6 +2,22 @@
 
 ## VERIFIED WORKING
 
+- Synthetic original-photo unattended vertical slice OFFLINE: migrated SQL reopen
+  between ingestion/per-output rewrite/pinned verification/media/automatic plan/
+  publication, two independent drafts and idempotent acknowledged intents, daily
+  limit/delay/rights and protected reject zero-job/zero-call guards. FloodWait
+  sibling terminal-block and missing sync reconnect regressions RED -> GREEN;
+  source-owner pre-claim pause preserves attempt budgets, bounded fair opt-in
+  health probes resume actual worker path. 94 combined / full 1108 backend PASS
+  (62523), unchanged frontend 139 units / 30 browser PASS (57315), exact lint/
+  format/D: compile/explicit D: migration round-trip/drift/build/audit PASS.
+  See UNATTENDED_VERTICAL_SLICE_VERIFICATION.md. Synthetic providers only;
+  library illustration publication and operational acceptance remain pending.
+- Approval policy 06813663a799d2811affdd0bd7e5e91023c969d1 CI 37763228825 and
+  semantic status 157ed68e07cac857eab37159accdf785fca3342f CI 37761899546 completed
+  SUCCESS in all six jobs (actual gh inspection). Current Windows Docker remains
+  independently NOT VERIFIED / BLOCKED BY ENVIRONMENT.
+
 - Real per-channel approval-policy Planner form OFFLINE: manual default, only
   registry-qualified fixed release selection, honest revoked recovery and no
   qualification/AI/send/worker flag side effects. Cached policy/release read
@@ -839,14 +855,15 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: checkpoint/push verified per-channel approval-policy UI and inspect its
-exact six-job CI plus 157ed68 CI 37761899546 overall completion. Correct ordinary
-failures without weakening tests. Next, isolated synthetic unattended vertical-slice
-integration: current ingestion -> per-output durable rewrite -> pinned verification
--> original/library media -> timer-driven plan -> durable publication; restart SQL
-between steps, protected reject zero provider/new RewriteJob, stale/retry/double
-tick zero duplicates. Reuse existing services and trusted synthetic test-only releases;
-never qualify operational models, enable operational worker flags or send real posts.
+NEXT_STEP: checkpoint/push verified synthetic original-photo vertical integration
+and FloodWait/source-claim/sync-reconnect fixes, inspect exact six-job CI. Continue
+adversarial automatic health interleavings: invalidation/session replacement during
+RPC, eligibility change after bounded scan and real main-loop health cursor recovery.
+Then separate create-only PostgreSQL combined vertical restart acceptance; no existing
+fixture reseed. Library illustration publication is deliberately still blocked pending
+visual-semantic relevance approval, not a successful unattended mode. Preserve original
+job/history/attempt budgets, protected reject zero new RewriteJob/zero rewrite calls,
+all current guards, test-only qualification and default-disabled operational flags.
 No live provider call, operational approval or download/send test side effects;
 preserve pinned qualification and all operational flags 0.
 Never expose tokens/session/key or call live providers for a dashboard. Never reseed old

@@ -59,6 +59,10 @@ semantic CI 37758555880 completed SUCCESS overall (actual gh inspection).
 
 ## Remaining limits
 
+Subsequent actual gh inspection: exact 157ed68e07cac857eab37159accdf785fca3342f
+CI 37761899546 completed SUCCESS in all six jobs, including actual admission
+HTTP/PostgreSQL restart acceptance. This is Linux evidence, not current Windows.
+
 No operational flags or model qualifications changed. No live provider calls,
 Telegram login/download/upload/send or paid tests. Current Windows Docker remains
 **NOT VERIFIED / BLOCKED BY ENVIRONMENT** (disk/storage recovery), independently

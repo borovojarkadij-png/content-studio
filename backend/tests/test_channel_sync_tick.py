@@ -72,6 +72,91 @@ def test_sync_tick_orders_new_bootstrap_deletion_first_difference_then_history(d
         assert session.scalar(select(models.RewriteJobModel)) is None
 
 
+def test_sync_tick_verifies_expired_cooldown_before_resuming_read_pipeline(donor_store):
+    healthy(donor_store)
+    with donor_store.begin() as session:
+        account = session.get(models.TelegramAccount, 1)
+        account.health_status = "COOLDOWN"
+        account.cooldown_until = NOW - timedelta(seconds=1)
+
+    class Reconnecting(Provider):
+        def verify_session(self, account_id):
+            self.calls.append("health")
+            return super().verify_session(account_id)
+
+    provider = Reconnecting()
+    result = tick(donor_store, enabled=True, cipher=CIPHER, provider=provider)
+    assert result.outcomes == ((1, "POLL_COMPLETE"),)
+    assert provider.calls[0] == "health"
+    assert result.health_outcomes == ((1, "CONNECTED"),)
+    with donor_store() as session:
+        assert session.get(models.TelegramAccount, 1).health_status == "CONNECTED"
+        assert session.get(models.TelegramAccount, 1).cooldown_until is None
+        assert session.get(models.DonorIngestionCursorModel, 1).last_message_id == 20
+
+
+@pytest.mark.parametrize("state", ["future", "invalid", "empty", "missing_cooldown"])
+def test_sync_tick_never_reconnects_unexpired_invalid_or_unprovisioned_accounts(donor_store, state):
+    healthy(donor_store)
+    with donor_store.begin() as session:
+        account = session.get(models.TelegramAccount, 1)
+        account.health_status = "COOLDOWN"
+        account.cooldown_until = NOW + timedelta(seconds=60)
+        if state == "invalid":
+            account.health_status = "SESSION_INVALID"
+            account.cooldown_until = NOW - timedelta(seconds=1)
+        elif state == "empty":
+            account.encrypted_session = ""
+            account.cooldown_until = NOW - timedelta(seconds=1)
+        elif state == "missing_cooldown":
+            account.cooldown_until = None
+    provider = Provider()
+    assert tick(donor_store, enabled=True, cipher=CIPHER, provider=provider).outcomes == ()
+    assert provider.calls == []
+    assert provider.session_probe_count("1") == 0
+
+
+def test_sync_health_retry_is_fair_bounded_and_never_authorizes_failed_probe(donor_store):
+    healthy(donor_store)
+    with donor_store.begin() as session:
+        account = session.get(models.TelegramAccount, 1)
+        account.health_status, account.cooldown_until = "COOLDOWN", NOW
+        for number in range(2, 7):
+            session.add(
+                models.TelegramAccount(
+                    id=number,
+                    name=f"Synthetic cooldown {number}",
+                    telegram_user_id=1000 + number,
+                    encrypted_session="synthetic-only",
+                    health_status="COOLDOWN",
+                    cooldown_until=NOW,
+                )
+            )
+
+    class Unavailable(Provider):
+        def verify_session(self, account_id):
+            self.calls.append(account_id)
+            raise TimeoutError("Private synthetic provider details")
+
+    provider = Unavailable()
+    cursor = 0
+    for expected in ((1, 2), (3, 4), (5, 6), (1, 2)):
+        result = tick(
+            donor_store,
+            enabled=True,
+            cipher=CIPHER,
+            provider=provider,
+            health_cursor=cursor,
+            limit=2,
+        )
+        assert result.outcomes == ()
+        assert result.health_outcomes == tuple((item, "RETRY_PROVIDER") for item in expected)
+        cursor = result.health_cursor
+    assert provider.calls == ["1", "2", "3", "4", "5", "6", "1", "2"]
+    with donor_store() as session:
+        assert set(session.scalars(select(models.TelegramAccount.health_status))) == {"COOLDOWN"}
+
+
 def test_legacy_history_never_falls_back_to_poll_without_trusted_sync(donor_store):
     healthy(donor_store)
     with donor_store.begin() as session:

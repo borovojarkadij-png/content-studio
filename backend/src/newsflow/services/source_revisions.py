@@ -14,8 +14,9 @@ from newsflow.persistence.models import (
 from newsflow.services.channel_sync_enforcement import sync_enforced
 
 
-def source_revision(session: Session, content_key: str) -> ContentRevisionModel | None:
-    key = (
+def revision_content_key():
+    """SQL identity expression; never infer account ownership by splitting keys."""
+    return (
         IncomingPostModel.telegram_account_id
         + ":"
         + IncomingPostModel.donor_channel_id
@@ -24,10 +25,13 @@ def source_revision(session: Session, content_key: str) -> ContentRevisionModel 
         + ":revision:"
         + cast(ContentRevisionModel.revision_number, String)
     )
+
+
+def source_revision(session: Session, content_key: str) -> ContentRevisionModel | None:
     rows = session.scalars(
         select(ContentRevisionModel)
         .join(IncomingPostModel)
-        .where(key == content_key)
+        .where(revision_content_key() == content_key)
         .execution_options(populate_existing=True)
         .limit(2)
     ).all()

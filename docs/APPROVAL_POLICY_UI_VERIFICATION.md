@@ -69,3 +69,7 @@ channel-sync SUCCESS; two legacy Docker jobs still running at inspection. New
 exact policy checkpoint CI pending. Current Windows Docker is independently
 **NOT VERIFIED / BLOCKED BY ENVIRONMENT** (C: ~0.48 GiB free, storage not repaired).
 PHASE 1 and live unattended acceptance are not complete.
+
+Subsequent actual gh inspection: policy checkpoint 06813663a799d2811affdd0bd7e5e91023c969d1
+CI 37763228825 and semantic status 157ed68 CI 37761899546 completed SUCCESS overall
+in all six jobs. Linux acceptance does not remove the current Windows blocker.

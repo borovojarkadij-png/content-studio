@@ -3,16 +3,20 @@
 from datetime import UTC, datetime, timedelta
 from hashlib import sha256
 
-from sqlalchemy import select
+from sqlalchemy import String, and_, cast, func, or_, select
 from sqlalchemy.exc import IntegrityError
 
 from newsflow.persistence.models import (
+    ContentRevisionModel,
+    IncomingPostModel,
     MappingSourceRightsModel,
     MediaAcquisitionJobModel,
+    OutboxEventModel,
     PublicationCandidateModel,
     TelegramAccount,
 )
 from newsflow.providers.telegram import FloodWait, SessionUnavailable
+from newsflow.services.channel_sync_enforcement import KEY as SYNC_ENFORCEMENT_KEY
 from newsflow.services.durable_media_runner import DurableMediaRunner, MediaLeaseLost
 from newsflow.services.durable_semantic_runner import _aware, _utc
 from newsflow.services.media_selection import MediaSelectionBlocked, MediaUnavailable
@@ -21,6 +25,7 @@ from newsflow.services.source_photo import (
     source_job_binding_digest,
     validate_source_rights,
 )
+from newsflow.services.source_revisions import revision_content_key
 
 
 class DurableSourcePhotoRunner(DurableMediaRunner):
@@ -103,6 +108,43 @@ class DurableSourcePhotoRunner(DurableMediaRunner):
 
     def _enqueue_automatic(self, candidate_id, *, now):
         return self.enqueue_configured(candidate_id, now=now)
+
+    def _claim_query(self, *, now):
+        # Account-wide FloodWait is a temporary pause, not a per-candidate
+        # rejection. Resolve the immutable SOURCE owner (not output owner).
+        # With durable sync enforcement, expiry alone grants nothing: a verified
+        # reconnect must clear COOLDOWN. Legacy final guards remain unchanged.
+        cooling = (
+            select(IncomingPostModel.id)
+            .join(ContentRevisionModel)
+            .join(
+                TelegramAccount,
+                cast(TelegramAccount.id, String) == IncomingPostModel.telegram_account_id,
+            )
+            .join(
+                PublicationCandidateModel,
+                PublicationCandidateModel.content_key == revision_content_key(),
+            )
+            .where(
+                PublicationCandidateModel.id == MediaAcquisitionJobModel.candidate_id,
+                TelegramAccount.health_status.in_(("CONNECTED", "COOLDOWN")),
+                TelegramAccount.cooldown_until.is_not(None),
+                func.length(TelegramAccount.encrypted_session) > 0,
+                or_(
+                    TelegramAccount.cooldown_until > now,
+                    and_(
+                        TelegramAccount.health_status == "COOLDOWN",
+                        select(OutboxEventModel.id)
+                        .where(OutboxEventModel.idempotency_key == SYNC_ENFORCEMENT_KEY)
+                        .exists(),
+                    ),
+                ),
+            )
+            .exists()
+        )
+        # No state/token/budget/history mutation or provider call while waiting.
+        # Malformed/missing identities still reach the unchanged fail-closed guard.
+        return super()._claim_query(now=now).where(~cooling)
 
     def _guard(self, session, claim):
         job = self._owned(session, claim)

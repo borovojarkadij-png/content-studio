@@ -129,27 +129,30 @@ class DurableMediaRunner:
             ids[-1] if ids else 0, tuple(ids), tuple(queued), tuple(blocked)
         )
 
+    def _claim_query(self, *, now):
+        return (
+            select(MediaAcquisitionJobModel)
+            .where(
+                MediaAcquisitionJobModel.acquisition_mode == self.acquisition_mode,
+                or_(
+                    and_(
+                        MediaAcquisitionJobModel.state == "QUEUED",
+                        MediaAcquisitionJobModel.available_at <= now,
+                    ),
+                    and_(
+                        MediaAcquisitionJobModel.state == "RUNNING",
+                        MediaAcquisitionJobModel.lease_expires_at <= now,
+                    ),
+                ),
+            )
+            .order_by(MediaAcquisitionJobModel.id)
+            .with_for_update(skip_locked=True)
+        )
+
     def claim_next(self, *, now):
         _aware(now)
         with self._factory() as session:
-            job = session.scalar(
-                select(MediaAcquisitionJobModel)
-                .where(
-                    MediaAcquisitionJobModel.acquisition_mode == self.acquisition_mode,
-                    or_(
-                        and_(
-                            MediaAcquisitionJobModel.state == "QUEUED",
-                            MediaAcquisitionJobModel.available_at <= now,
-                        ),
-                        and_(
-                            MediaAcquisitionJobModel.state == "RUNNING",
-                            MediaAcquisitionJobModel.lease_expires_at <= now,
-                        ),
-                    ),
-                )
-                .order_by(MediaAcquisitionJobModel.id)
-                .with_for_update(skip_locked=True)
-            )
+            job = session.scalar(self._claim_query(now=now))
             if job is None:
                 return None
             if job.attempts >= 2:

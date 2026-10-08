@@ -14,6 +14,8 @@ from newsflow.persistence.models import (
     EditorialDecisionModel,
     MediaAcquisitionJobModel,
     MediaAssetModel,
+    OutputChannel,
+    TelegramAccount,
 )
 from newsflow.services.media_selection import MediaSelectionBlocked
 
@@ -102,6 +104,62 @@ def test_source_editorial_reject_blocks_existing_job_without_rpc(source_store):
     assert photos.calls == []
     with pytest.raises(MediaSelectionBlocked):
         enqueue(execution)
+
+
+@pytest.mark.parametrize("health", ["CONNECTED", "COOLDOWN"])
+def test_future_source_cooldown_preserves_budget_and_uses_source_not_output_owner(
+    source_store, health
+):
+    factory, root = source_store
+    photos = Photos()
+    execution = runner(factory, root, photos)
+    job_id = enqueue(execution)
+    with factory.begin() as session:
+        source = session.get(TelegramAccount, 1)
+        source.health_status, source.cooldown_until = health, NOW + timedelta(seconds=90)
+        session.add(
+            TelegramAccount(
+                id=2,
+                name="Synthetic output owner",
+                telegram_user_id=1002,
+                encrypted_session="synthetic",
+                health_status="CONNECTED",
+            )
+        )
+        session.flush()
+        session.get(OutputChannel, 1).telegram_account_id = 2
+    assert execution.run_next(now=NOW) == "IDLE"
+    assert photos.calls == []
+    with factory() as session:
+        job = session.get(MediaAcquisitionJobModel, job_id)
+        assert (job.state, job.attempts, job.claim_token, job.lease_expires_at) == (
+            "QUEUED",
+            0,
+            None,
+            None,
+        )
+
+
+def test_expired_source_lease_waits_without_refunding_committed_attempt(source_store):
+    from newsflow.services.channel_sync_enforcement import ChannelSyncEnforcement
+
+    factory, root = source_store
+    photos = Photos()
+    execution = runner(factory, root, photos)
+    job_id = enqueue(execution)
+    old = execution.claim_next(now=NOW)
+    ChannelSyncEnforcement(factory).enable(now=NOW)
+    with factory.begin() as session:
+        source = session.get(TelegramAccount, 1)
+        source.health_status, source.cooldown_until = "COOLDOWN", NOW + timedelta(seconds=10)
+    late = NOW + timedelta(seconds=61)
+    recovered = runner(factory, root, photos, clock=lambda: late)
+    assert recovered.run_next(now=late) == "IDLE"
+    with factory() as session:
+        job = session.get(MediaAcquisitionJobModel, job_id)
+        assert (job.state, job.attempts, job.claim_token) == ("RUNNING", 1, old.token)
+    assert recovered.execute(old) == "LOST_LEASE"
+    assert photos.calls == []
 
 
 @pytest.mark.parametrize("license_code,credit", [(None, ""), ("CC0", ""), ("PERMISSION", " ")])

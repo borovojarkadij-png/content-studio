@@ -436,6 +436,7 @@ def main() -> None:
     publication_cursor = 0
     publication_recovery_cursor = 0
     channel_sync_cursor = 0
+    channel_health_cursor = 0
     source_replay_cursor = 0
     semantic_admission = SemanticAdmissionState()
     media_admission = MediaAdmissionState()
@@ -469,13 +470,16 @@ def main() -> None:
                     credentials_path=sync_credentials_path,
                     cursor=channel_sync_cursor,
                     replay_cursor=source_replay_cursor,
+                    health_cursor=channel_health_cursor,
                 )
                 channel_sync_cursor, source_replay_cursor = sync.cursor, sync.replay_cursor
+                channel_health_cursor = sync.health_cursor
                 logger.info(
                     "channel_sync.tick",
                     outcomes=sync.outcomes,
                     replay_outcomes=sync.replay_outcomes,
                     import_outcomes=import_outcomes,
+                    health_outcomes=sync.health_outcomes,
                 )
             except Exception:  # noqa: BLE001 - do not expose credentials or skip safety on failure
                 logger.warning("channel_sync.execution_interrupted", recovery="persisted_state")
