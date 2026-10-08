@@ -30,6 +30,11 @@ function Invoke-ChannelSyncProbe([string]$Mode) {
         & docker @composeArgs exec -T worker python - $Mode
     if ($LASTEXITCODE -ne 0) { throw "Synthetic channel sync probe failed: $Mode" }
 }
+function Invoke-RewriteSyncWaitProbe([string]$Mode) {
+    Get-Content -LiteralPath (Join-Path $PSScriptRoot 'docker_rewrite_sync_wait_probe.py') -Raw |
+        & docker @composeArgs exec -T worker python - $Mode
+    if ($LASTEXITCODE -ne 0) { throw "Synthetic rewrite sync wait probe failed: $Mode" }
+}
 if ($MediaGuard -and -not $SemanticGuard) {
     throw 'MediaGuard requires a fresh synthetic SemanticGuard run.'
 }
@@ -323,6 +328,18 @@ if ($ChannelSyncGuard) {
         Invoke-ChannelSyncProbe 'verify'
     }
     Invoke-ChannelSyncProbe 'concurrency'
+    Invoke-RewriteSyncWaitProbe 'seed'
+    Invoke-VerificationCompose down
+    Invoke-VerificationCompose up -d --wait --wait-timeout 180
+    Invoke-RewriteSyncWaitProbe 'verify-pending'
+    Write-Output 'Waiting for the original synthetic sync/rewrite retry to become due.'
+    for ($tick = 0; $tick -lt 7; $tick++) { Start-Sleep -Seconds 5 }
+    Invoke-RewriteSyncWaitProbe 'recover'
+    Invoke-VerificationCompose restart worker
+    Invoke-RewriteSyncWaitProbe 'verify'
+    Invoke-VerificationCompose down
+    Invoke-VerificationCompose up -d --wait --wait-timeout 180
+    Invoke-RewriteSyncWaitProbe 'verify'
 }
 Write-Output "Synthetic persistence checks passed. Stack retained: $Project"
 Write-Output 'No real Telegram authorization, network AI calls or publications.'

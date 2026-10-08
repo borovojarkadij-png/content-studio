@@ -2,6 +2,14 @@
 
 ## VERIFIED WORKING
 
+- Create-only rewrite-sync-wait recovery probe OFFLINE: 7 dedicated / 33 combined /
+  full backend 988 PASS (77961), exact CI lint/changed format/compile/PowerShell
+  parse/explicit D: round-trip/drift PASS. Original jobs/budget survive reopen,
+  validated difference permits only one synthetic PENDING rewrite; REJECT/delete/
+  exhausted zero-provider and real Inbox/output APIs verified. Actual new wait
+  Docker/PostgreSQL acceptance pending. See REWRITE_SYNC_WAIT_PROBE_VERIFICATION.md.
+- Probe ab13403 CI 37748969125 and post-lock 60596f5 CI 37749741849 completed
+  SUCCESS in all five jobs (actual gh list). Linux evidence, not current Windows.
 - Bounded nonterminal temporary-sync rewrite wait OFFLINE: 16 dedicated /
   75 combined / full backend 981 PASS (48068), exact CI lint/changed format/
   compile/explicit D: round-trip/drift PASS. Original job/previous attempt budget
@@ -740,14 +748,22 @@ combined / full 981 backend PASS (48068), exact CI lint/format/compile/explicit
 D: drift PASS. Same job/attempt budget, repeated early wait, SQL reopen/fresh
 PENDING resume and permanent-source/reject/exhausted guard regression verified.
 
-NEXT_STEP: checkpoint rewrite wait and inspect exact CI. Add a SEPARATE create-only
-terminal rewrite-sync-wait probe to ChannelSyncGuard: retain the original pending
-job/attempt and known transient cursor through down/up; clear sync only through
-validated actual synthetic difference, then recover SAME job via synthetic
-provider into PENDING review. Verify rejected/deleted/exhausted cases zero-provider.
-Never reseed old manifests, revive SUPERSEDED history or invent legacy continuity.
-Keep all operational flags unchanged and current Windows Docker NOT VERIFIED /
-BLOCKED BY ENVIRONMENT.
+Wait checkpoint committed/pushed 3adf69234e9bcfd610194e2cfbd476e0175c4a4e;
+CI 37750506085 backend/frontend/dedicated sync SUCCESS, two legacy Docker variants
+in progress at inspection. Earlier ab13403 and 60596f5 all-five CI SUCCESS.
+Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
+33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
+parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
+
+NEXT_STEP: checkpoint wait probe and inspect its exact dedicated PostgreSQL CI job,
+fix any failure without weakening guards. Then implement read-only donor sync
+health/status API from persisted policy/baseline/lease/error/account health:
+new baseline missing, legacy resync, active/recovery due, retry, gap and ready
+must be distinct; never expose tokens/session/key or fabricate live connectivity.
+Wire truthful status into existing Donors UI without redesign/DEMO-live mixing,
+test-first API/React/browser regression and relevant gates. Never reseed old
+fixtures, revive SUPERSEDED history or invent legacy continuity. Keep all operational
+flags unchanged and Windows Docker NOT VERIFIED / BLOCKED BY ENVIRONMENT.
 Never activate operational flags as a test.
 Never initialize/reset legacy cursor from latest-message IDs or TooLong, never
 advance pts until all observations/mappings persist. No public cursor-reset or
