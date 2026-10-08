@@ -100,3 +100,30 @@ def test_failed_restart_is_a_failure_without_private_subprocess_output(monkeypat
             )
         )
     assert "private-token" not in str(error.value)
+
+
+@pytest.mark.parametrize(
+    "stderr, expected",
+    [
+        ("Refusing a foreign service database. private-token", "SERVICE_DATABASE"),
+        ("Network/provider workers must remain disabled. private-token", "NETWORK_FLAGS"),
+        ("Original persistent media storage is missing or redirected.", "MEDIA_STORAGE"),
+        ("private-token UNKNOWN_FAILURE", "UNKNOWN"),
+    ],
+)
+def test_failed_restart_reports_only_known_guard_code(monkeypatch, stderr, expected):
+    monkeypatch.setenv("NEWSFLOW_UNATTENDED_RESTART_PROJECT", PROJECT)
+    monkeypatch.setenv("NEWSFLOW_UNATTENDED_POSTGRES_URL", BASE)
+
+    def failed(*_, **__):
+        raise subprocess.CalledProcessError(1, ["pwsh"], output="private-token", stderr=stderr)
+
+    monkeypatch.setattr(subprocess, "run", failed)
+    with pytest.raises(RuntimeError) as error:
+        restart_stack_before_stage(
+            scoped_postgres_url(BASE, "unattended_" + "a" * 32).render_as_string(
+                hide_password=False
+            )
+        )
+    assert f"reason={expected}" in str(error.value)
+    assert "private-token" not in str(error.value)

@@ -2,6 +2,11 @@
 
 ## VERIFIED WORKING
 
+- a9fbb90 CI 37769576690 full-stack job 113285528034 FAILED at the first
+  restart hook after healthy build/startup. Ordinary harness/runtime failure,
+  not an external blocker and not accepted restart proof. Safe fixed-code
+  subprocess diagnostics added RED -> GREEN (4 new / 56 combined PASS, 22433);
+  exact new CI required to locate the hidden guard failure. No guard relaxed.
 - Create-only combined full-stack restart controller implemented OFFLINE: exact
   owned fixture/family/key/named PG/media bind/flag guards, same existing FloodWait
   vertical scenario with nine pre-stage down/up/Redis-worker/PG crash boundaries.
@@ -898,8 +903,10 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: checkpoint/push verified create-only combined Compose controller; inspect
-its exact new eight-job CI, especially actual full-stack restart job. Diagnose/fix/
+NEXT_STEP: push safe fixed-code restart diagnostics, inspect exact new full-stack
+CI to identify first failing guard, then reproduce/fix/retest root cause. Prior
+a9fbb90 run 37769576690 failed first hook after healthy startup; preserve this
+failure record, do not claim runtime success. Diagnose/fix/
 retest ordinary configuration/SQL/runtime failures without disabling assertions,
 reusing/reseeding fixtures or touching current Windows daemon/storage. All prior
 dd78455/1cedac8/567e263 workflows completed SUCCESS. After actual new combined

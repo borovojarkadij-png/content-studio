@@ -57,9 +57,13 @@ checked; this is not a new provider model qualification.
 
 ## Actual runtime status
 
-New dedicated full-stack restart CI job is implemented, **PENDING exact push and
-execution**. Local parser/policy tests and the prior PostgreSQL reopen acceptance
-do not prove this new actual down/up/crash procedure worked.
+Actual a9fbb90 CI 37769576690 job 113285528034 **FAILED** at the first restart
+hook after healthy full-stack build/startup. Captured subprocess output hid the
+guard reason. Safe known static reason codes now cross that boundary; arbitrary
+output/credentials remain redacted. Four diagnostic regressions RED -> GREEN,
+56 combined PASS (22433), Ruff/format PASS. New diagnostic CI pending; no
+assertion disabled and no accepted combined restart proof yet. This ordinary
+implementation failure is distinct from the Windows external blocker.
 
 Prior dd78455 / 37766880597 and 1cedac8 / 37767782693 completed SUCCESS in all
 seven jobs; 567e263 / 37766368319 completed all-six SUCCESS (actual gh inspection).
