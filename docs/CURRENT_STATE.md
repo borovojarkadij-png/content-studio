@@ -36,9 +36,20 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
   1626 passed/1 skip). Controlled cold-inspect RED reproduced; test-only budget
   separation fixed; reviewer-found early-timeout false-PASS fenced by actual
   post-kill response markers, two RED then 16 dedicated PASS/13.00s, review clear.
-  Full 15501 precedes final marker assertions; exact final corrective CI pending.
+  Full 15501: 1628 PASS/1 PG-only SKIP/371.43s, but precedes final marker
+  assertions. Exact final fac5704 CI 37810532600 backend SUCCESS: 1628 PASS/1
+  PG-only SKIP/318.68s plus lint/compile/owned migrations/no drift; PG 217
+  PASS/151.25s, frontend 205 units/33 browser/format/build/audit PASS, sync and
+  admission SUCCESS. Fresh terminal inspection: unattended 1 PASS/4 deselected/
+  356.28s + packaged drift, both general recovery families SUCCESS; all eight
+  jobs and whole exact fac5704 workflow SUCCESS. All eight CI desktop captures
+  compared with saved captures, unchanged palette/layout/source. Font/wrapping/
+  native-time and pre-existing/capture SVG paint differences remain documented;
+  no pixel-perfect or fresh eight-section Windows visual acceptance claim.
+  Prior 7cc4b61 CI
+  terminal FAILURE in backend only, all seven other jobs SUCCESS.
   Production helper/limits unchanged; mixed 39692 failed and is not final proof.
-  C: ~7.5GB free at final inspection, no cleanup/prune; completed synthetic OPENAI/OPENROUTER/sync
+  C: 13.51GB / D: 97.91GB free at final inspection, no cleanup/prune; completed synthetic OPENAI/OPENROUTER/sync
   containers stopped with all storage retained. See WINDOWS_DOCKER_ACCEPTANCE_20261008.md;
   PHASE 1 not complete, operational deployment/auth/provider qualification pending.
 - Windows Docker Engine availability restored 2026-10-08: existing signed Docker
@@ -1216,10 +1227,23 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: inspect preceding full backend 15501 and exact corrective CI for test-only
-cold-runner regression. Preserve 7cc4b61 CI 37809146965 backend failure (1 failed/
+NEXT_STEP: implement transactional canonical illustration review/revocation and
+audit behind trusted server-side human identity, starting with RED regressions;
+never accept client reviewer ID/provenance/hashes as authentication. Do not
+release the library publication hold or generate reviewer credentials. Keep
+source/draft/editorial/rights/stale/idempotency/clean-session fences, then relevant
+regression/migration/reopen checks and independent review. A missing real reviewer
+secret cannot justify an unauthenticated writer or block other offline work.
+Exact code/test fac5704 CI 37810532600 completed all-eight SUCCESS; source full
+1628 PASS/1 PG-only SKIP/318.68s, PG217/151.25s, frontend205/browser33 and all
+five runtime families PASS. Report-only follow-up CI is supporting evidence;
+track by HEAD without repeating/reseeding completed Windows fixtures. Preserve
+old failures. Preceding local full 15501 completed
+1628 PASS/1 PG-only SKIP/371.43s, not final marker-assertion proof.
+Preserve 7cc4b61 CI 37809146965 backend failure (1 failed/
 1626 passed/1 skipped/288.38s), never promote it; inspect its remaining runtime
-jobs independently. Final 16-case target includes completed post-kill timing
+jobs independently: all seven other jobs subsequently SUCCESS, whole workflow
+FAILURE. Final 16-case target includes completed post-kill timing
 markers (PASS/13.00s, review clear); 15501 started before that final assertion
 correction and cannot prove the final test source. Production helper unchanged.
 Preceding full 26833 completed 1627 PASS/1
@@ -1228,10 +1252,13 @@ skipped/341.19s); do not promote it or rerun completed Windows seed phases.
 42343a8 CI 37807341995 is intermediate source, not final reviewed helper proof;
 9e33fba/37805519893 OpenRouter failure remains recorded. All five Windows synthetic
 families and 217 strict PG tests passed; do not reseed/repeat completed seed phases.
-After final source CI, continue authenticated human illustration review/audit
+Continue authenticated human illustration review/audit
 behind trusted server-side identity, without a publication-hold release.
 Preserve all current source/draft/editorial constraints, automations paused,
-original storage and ~7.5GB C: reserve; no additional large fixture allocation.
+original storage; C: 13.51GB/D:97.91GB at final inspection, recheck before any
+additional large build/fixture. Scoped visual capture follow-up must reproduce
+pre-existing/CI SVG paint omissions and font/native-control differences without
+redesigning or overwriting accepted references; not proof of a new source regression.
 Storage-only source is implemented and verified locally plus actual PostgreSQL;
 the paragraphs below preserve its earlier checkpoint history. Do not duplicate it:
 IllustrationReviewRecordModel, c5e81b29a704 immutable-history migration and
@@ -1427,7 +1454,7 @@ Consolidated external/live-verification limitations:
 - Historical C: disk-full / containerd read-only failure and later missing engine
   pipe prevented operational image acceptance. Engine is now running and fresh
   synthetic Windows recovery gates passed as recorded above. Operational images
-  remain exited/unverified, not implicitly deployed. C: ~7.5GB free; use D: for
+  remain exited/unverified, not implicitly deployed. C: 13.51GB at final inspection; use D: for
   new isolated test files, no volume/key cleanup or large fixtures. Recheck safe
   storage capacity and daemon health before any later operational deployment.
 - Current authorized Downloads/апи.txt contains no usable supported-format key;

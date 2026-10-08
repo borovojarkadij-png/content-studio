@@ -7,6 +7,10 @@ Application source: `9e33fbaede4e00ee76a1ced0f21ffcc9c76f4107`
 Reviewed verification-helper implementation source:
 `7cc4b612190b81a818cd8f520a2be73b9c952ceb`; backend business logic and frontend
 source were unchanged in the helper corrections.
+Final test-only cold-runner/observation-marker correction:
+`fac570419ab01411e987413397cc47988651bb5c`, exact CI `37810532600`:
+terminal SUCCESS in all eight jobs at fresh inspection. This is the verified
+code/test candidate; a subsequent report-only commit does not change its inputs.
 Branch `codex/dark-navy-ui`, origin
 `https://github.com/borovojarkadij-png/content-studio.git`.
 Windows Docker Desktop 4.91.0 / Linux Engine 29.8.0 / WSL2.
@@ -138,23 +142,51 @@ assertions reproduced RED; timing tests now require the kill and actual complete
 post-kill response before accepting timeout. Cmdlet/JSON initialization alone is
 primed outside their measured invocation, no Docker observation/authority granted.
 Final independent static review: no actionable findings. Dedicated corrected
-**16 PASS /13.00s**, Ruff/format PASS. Full run 15501 started before those final
-marker assertions and remains preceding test-source proof only. Fresh exact
-corrective CI must verify the final test source;
-do not relabel the failed workflow or infer Linux proof from Windows success.
+**16 PASS /13.00s**, Ruff/format PASS. Full run 15501 completed **1628 PASS /1
+PG-only SKIP /371.43s**, exit 0, but started before those final marker assertions
+and remains preceding test-source proof only. Fresh exact corrective CI below
+verified the final test source; do not relabel the failed workflow or infer Linux
+proof from Windows success.
+Subsequent terminal inspection of 37809146965: overall FAILURE, the seven other
+jobs all SUCCESS (both persistence providers, sync, admission, unattended,
+PostgreSQL and frontend). These prove the unchanged helper/application inputs,
+not the later corrective test source. Git blob identity of the helper matches
+between 7cc4b61 and fac5704; backend and frontend source trees match 9e33fba. Full corrective
+CI acceptance still requires its own exact terminal evidence. Corrective fac5704
+backend job `113425918560` is now SUCCESS: **1628 PASS /1 PG-only SKIP /318.68s**,
+Ruff/compile and owned migration round-trip/no drift PASS. PostgreSQL job
+`113425918260`: **217 PASS /151.25s**. Frontend job `113425918317`: **205 units
+/33 browser PASS**, format/typecheck/build/audit (zero vulnerabilities) PASS.
+Sync/admission SUCCESS. Unattended job `113425918584`: **1 PASS /4 deselected
+/356.28s**, actual nine restart boundaries and packaged drift PASS. Both general
+recovery jobs `113425918571` / `113425918670` completed final retained publication
+state/zero-resend assertions and synthetic persistence PASS. All eight jobs and
+whole exact workflow `37810532600` now terminal SUCCESS.
+This is fresh final marker-assertion source proof, not the preceding local run.
+
+Downloaded the exact CI `ui-dark-navy` artifact to
+`D:/Codex-Recovery/content-studio-20261008/ci-fac5704-ui/` and visually inspected
+all eight `1440x900/01_overview.png` through `08_settings.png` against saved
+workspace captures. Navy palette, panels, navigation layout and selected states
+remain the same; source tree identity is unchanged. Files are not byte-identical:
+font metrics/wrapping/full-page heights differ, and native time controls show
+AM/PM in CI versus 24-hour in saved Windows captures. Some SVG paint omissions
+appear in CI Accounts and also in the preceding saved Settings capture; do not
+claim pixel-perfect equivalence or a fresh full Windows visual acceptance. These
+capture/runtime differences need a scoped reproducible visual check before a
+visual release gate, without changing the accepted design or overwriting references.
 
 Only the three completed new OPENAI/OPENROUTER/sync stacks were stopped to reduce
 idle resources; their containers and volumes are retained. Unattended/admission
-fixtures remain available. C: has about 7.5 GB free at the final local inspection; no
+fixtures remain available. C: has 13.51 GB / D: 97.91 GB free at final inspection; no
 prune, deletion, compaction or original volume cleanup was performed. Further
 large builds require storage capacity, not destructive automatic cleanup.
 
 ## Remaining gates
 
-Windows synthetic application gates above are complete. Final implementation
-source CI `37809146965` has a failed backend test and remaining runtime jobs
-pending at this checkpoint. Re-verify the cold-runner test correction locally and
-on exact new CI before calling its gate green. Keep authenticated
+Windows synthetic application gates above and exact corrective source CI
+`37810532600` are complete. Prior source CI `37809146965` remains terminal
+FAILURE in the old backend test only; never relabel it. Keep authenticated
 human illustration review/audit and final transport integration pending. Library
 illustration publication hold remains in effect. Real Telegram login/restart,
 explicit test-channel transport and reviewed fixed-model semantic benchmark
