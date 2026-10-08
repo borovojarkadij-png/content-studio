@@ -15,11 +15,22 @@ param(
     [switch]$SourcePhotoGuard,
     [switch]$PublicationGuard,
     [switch]$ChannelSyncGuard,
+    [switch]$AdmissionGuard,
     [ValidateSet('OPENAI', 'OPENROUTER')]
     [string]$RewriteProvider = 'OPENAI'
 )
 
 $ErrorActionPreference = 'Stop'
+if ($AdmissionGuard -and ($ChannelSyncGuard -or $RewriteRecovery -or $SourceGuard -or
+    $SemanticGuard -or $MediaGuard -or $IngestionGuard -or $PeerGuard -or $MappingGuard -or
+    $ResolutionGuard -or $SourcePhotoGuard -or $PublicationGuard)) {
+    throw 'AdmissionGuard requires a separate fresh fixture; never mix retained recovery families.'
+}
+function Invoke-AdmissionProbe([string]$Mode) {
+    Get-Content -LiteralPath (Join-Path $PSScriptRoot 'docker_admission_probe.py') -Raw |
+        & docker @composeArgs exec -T worker python - $Mode
+    if ($LASTEXITCODE -ne 0) { throw "Synthetic admission probe failed: $Mode" }
+}
 if ($ChannelSyncGuard -and ($RewriteRecovery -or $SourceGuard -or $SemanticGuard -or
     $MediaGuard -or $IngestionGuard -or $PeerGuard -or $MappingGuard -or
     $ResolutionGuard -or $SourcePhotoGuard -or $PublicationGuard)) {
@@ -340,6 +351,23 @@ if ($ChannelSyncGuard) {
     Invoke-VerificationCompose down
     Invoke-VerificationCompose up -d --wait --wait-timeout 180
     Invoke-RewriteSyncWaitProbe 'verify'
+}
+if ($AdmissionGuard) {
+    Invoke-AdmissionProbe 'seed'
+    Invoke-VerificationCompose down
+    Invoke-VerificationCompose up -d --wait --wait-timeout 180
+    Invoke-AdmissionProbe 'verify-pending'
+    Invoke-AdmissionProbe 'admit'
+    Invoke-VerificationCompose restart redis worker
+    Invoke-AdmissionProbe 'verify'
+    Invoke-VerificationCompose down
+    Invoke-VerificationCompose up -d --wait --wait-timeout 180
+    Invoke-AdmissionProbe 'verify'
+    if ($CrashRecovery) {
+        Invoke-VerificationCompose kill -s SIGKILL postgres
+        Invoke-VerificationCompose up -d --wait --wait-timeout 180
+        Invoke-AdmissionProbe 'verify'
+    }
 }
 Write-Output "Synthetic persistence checks passed. Stack retained: $Project"
 Write-Output 'No real Telegram authorization, network AI calls or publications.'

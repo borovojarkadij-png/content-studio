@@ -2,6 +2,18 @@
 
 ## VERIFIED WORKING
 
+- Separate create-only admission restart probe OFFLINE: 11 dedicated / 56
+  combined / full backend 1068 PASS (82526), expanded CI lint/format/D: compile/
+  explicit D: round-trip/drift PASS; PowerShell parse + actual unsafe family/
+  operational target refusal PASS. Original SQL/ciphertext/history, bounded late
+  rows/zero attempts, idempotence/corrupt IDs verified. New dedicated Linux
+  PostgreSQL restart job added, actual execution pending exact new CI. See
+  ADMISSION_RESTART_PROBE_VERIFICATION.md. No operational activation.
+- Corrective Overview 351b137 CI 37757293108 and media e46ee47 CI 37757580448
+  completed SUCCESS in all five jobs (actual gh list). Semantic bdb66a9 CI
+  37758555880 backend/frontend/dedicated sync SUCCESS, legacy variants still
+  in progress. Current Windows environment remains independently blocked.
+
 - Fair semantic admission and guarded main-loop cursor OFFLINE: 17 dedicated /
   74 combined / full backend 1057 PASS (39884), exact CI lint/changed format/D:
   compile/explicit D: round-trip/drift PASS. Current historical rejects spend
@@ -804,13 +816,13 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: checkpoint the verified semantic fairness increment and inspect exact
-new CI plus corrective 351b137 CI 37757293108/media e46ee47 CI 37757580448. Their
-dedicated sync jobs passed, both legacy Docker variants still in progress.
-Next create-only synthetic media/semantic admission PostgreSQL restart probe in
-a separate fresh fixture; preserve source rights, original history/budgets and
-bounded scans. Test-first real SQL/reopen, guard unsafe CLI/configuration before
-DB, integrate separate Compose verification/CI without resetting sync fixtures.
+NEXT_STEP: checkpoint the verified create-only admission probe and inspect its
+exact six-job CI, especially new dedicated PostgreSQL down/up/crash acceptance.
+Also inspect bdb66a9 CI 37758555880 overall completion. Correct ordinary failures
+without weakening checks. Then read-only per-draft semantic verification status
+API + existing real Planner diagnostics: manual/qualification/job/budget/current
+guard state, never permission to classify/approve/retry/publish. Strict fresh DTO,
+no secrets/RPC, refresh/cancellation/DEMO separation, real SQL/browser verification.
 No live provider call, operational approval or download/send test side effects;
 preserve pinned qualification and all operational flags 0.
 Never expose tokens/session/key or call live providers for a dashboard. Never reseed old
