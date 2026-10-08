@@ -26,6 +26,7 @@ from newsflow.persistence.models import (
 )
 from newsflow.security.master_key import load_runtime_master_key
 from newsflow.security.session_cipher import SessionCipher
+from newsflow.services.channel_sync_enforcement import ChannelSyncEnforcement
 from newsflow.services.channel_sync_tick import run_channel_sync_tick as _channel_sync_tick
 from newsflow.services.donor_import_resolution import DonorImportResolutionRunner
 from newsflow.services.donor_ingestion_runner import DonorIngestionRunner
@@ -47,7 +48,7 @@ logger = structlog.get_logger()
 
 
 def run_channel_sync_tick(session_factory, **options):
-    """Guarded synchronization seam; not yet activated by the main loop."""
+    """Guarded synchronization with persistent enforcement and explicit opt-in."""
     return _channel_sync_tick(session_factory, **options)
 
 
@@ -113,6 +114,12 @@ def rewrite_enabled(value: str) -> bool:
 def publication_enabled(value: str) -> bool:
     if value not in {"0", "1"}:
         raise ValueError("NEWSFLOW_PUBLICATION_ENABLED must be exactly 0 or 1")
+    return value == "1"
+
+
+def channel_sync_enabled(value: str) -> bool:
+    if value not in {"0", "1"}:
+        raise ValueError("NEWSFLOW_TELEGRAM_CHANNEL_SYNC_ENABLED must be exactly 0 or 1")
     return value == "1"
 
 
@@ -367,6 +374,11 @@ def main() -> None:
     semantic_enabled = rewrite_enabled(getenv("NEWSFLOW_SEMANTIC_VERIFICATION_ENABLED", "0"))
     media_enabled = rewrite_enabled(getenv("NEWSFLOW_INTERNET_MEDIA_ENABLED", "0"))
     ingestion_enabled = rewrite_enabled(getenv("NEWSFLOW_TELEGRAM_INGESTION_ENABLED", "0"))
+    channel_sync_network_enabled = channel_sync_enabled(
+        getenv("NEWSFLOW_TELEGRAM_CHANNEL_SYNC_ENABLED", "0")
+    )
+    if channel_sync_network_enabled and not ingestion_enabled:
+        raise ValueError("Channel sync requires NEWSFLOW_TELEGRAM_INGESTION_ENABLED=1")
     source_photo_enabled = rewrite_enabled(getenv("NEWSFLOW_SOURCE_PHOTO_ENABLED", "0"))
     publication_network_enabled = publication_enabled(getenv("NEWSFLOW_PUBLICATION_ENABLED", "0"))
     provider = getenv("NEWSFLOW_REWRITE_PROVIDER", "OPENAI")
@@ -384,9 +396,49 @@ def main() -> None:
     stopped = Event()
     publication_cursor = 0
     publication_recovery_cursor = 0
+    channel_sync_cursor = 0
+    source_replay_cursor = 0
+    if channel_sync_network_enabled:
+        sync_credentials_path = Path(
+            getenv("NEWSFLOW_TELEGRAM_CREDENTIALS_FILE", "/run/secrets/telegram_credentials")
+        )
+        load_telegram_credentials(sync_credentials_path)
+        # Global durable quarantine precedes every downstream action, including
+        # legacy donors outside this tick's bounded scan. Never erased by flag=0.
+        ChannelSyncEnforcement(factory).enable(now=datetime.now(UTC))
     for signum in (signal.SIGTERM, signal.SIGINT):
         signal.signal(signum, lambda *_: stopped.set())
     while not stopped.is_set():
+        if channel_sync_network_enabled:
+            try:
+                import_outcomes = run_donor_resolution_tick(
+                    factory,
+                    enabled=True,
+                    cipher=cipher,
+                    now=datetime.now(UTC),
+                    credentials_path=sync_credentials_path,
+                )
+                sync = run_channel_sync_tick(
+                    factory,
+                    enabled=True,
+                    cipher=cipher,
+                    now=datetime.now(UTC),
+                    clock=lambda: datetime.now(UTC),
+                    credentials_path=sync_credentials_path,
+                    cursor=channel_sync_cursor,
+                    replay_cursor=source_replay_cursor,
+                )
+                channel_sync_cursor, source_replay_cursor = sync.cursor, sync.replay_cursor
+                logger.info(
+                    "channel_sync.tick",
+                    outcomes=sync.outcomes,
+                    replay_outcomes=sync.replay_outcomes,
+                    import_outcomes=import_outcomes,
+                )
+            except Exception:  # noqa: BLE001 - do not expose credentials or skip safety on failure
+                logger.warning("channel_sync.execution_interrupted", recovery="persisted_state")
+                stopped.wait(interval)
+                continue
         try:
             result = run_scheduler_tick(factory, now=datetime.now(UTC))
             logger.info(
@@ -397,7 +449,7 @@ def main() -> None:
             )
         except SQLAlchemyError:
             logger.warning("scheduler.database_unavailable", retry="next_tick")
-        if ingestion_enabled and not stopped.is_set():
+        if ingestion_enabled and not channel_sync_network_enabled and not stopped.is_set():
             try:
                 import_outcomes = run_donor_resolution_tick(
                     factory,

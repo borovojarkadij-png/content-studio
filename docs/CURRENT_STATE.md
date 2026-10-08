@@ -2,6 +2,14 @@
 
 ## VERIFIED WORKING
 
+- Durable shared synchronization enforcement and strict default-disabled main-loop
+  opt-in OFFLINE: 81 targeted / fresh full backend 953 PASS (21080), exact CI
+  Ruff/changed format/compile/explicit D: migration round-trip/drift PASS.
+  Flag-off cannot waive retained quarantine; unscanned legacy/cached/retry/API
+  zero-provider and actual main-loop ordering/failure isolation verified. All
+  operational flags unchanged. See CHANNEL_SYNC_ENFORCEMENT_VERIFICATION.md.
+- Seam bb0ebf4 CI 37746062697 and replay 7215570 CI 37745127358 completed SUCCESS
+  (actual gh list); baseline/gap CI also completed SUCCESS. Linux != Windows proof.
 - Bounded default-disabled deletion-first worker seam OFFLINE: 17 dedicated /
   29 tick+replay / full backend 935 PASS (23980), exact CI Ruff/changed format/
   compile/explicit isolated D: drift PASS. Real encrypted factory/TL read/history,
@@ -677,16 +685,23 @@ Durable bounded retained-revision replay now verified OFFLINE with full backend
 7215570b932e9000d485be5beb249930e0c1ad87, CI 37745127358 in progress at inspection.
 Gap checkpoint CI 37744183380 subsequently completed SUCCESS (actual gh list).
 Bounded default-disabled new-only bootstrap → difference → history → exact replay
-worker facade now verified OFFLINE: 17 targeted / full 935 backend plus isolated
-lint/format/compile/drift PASS. Checkpoint it, then implement durable opt-in sync
-enforcement/legacy quarantine BEFORE connecting main loop. Missing/foreign/error/
-incomplete baselines under enforcement must fence all API/worker/publication paths
-through shared persisted state, including donors outside the current bounded scan.
-Turning a runtime flag off must not erase persisted quarantine or manufacture
-legacy continuity. No automatic legacy baseline reset/resync or real sends.
-Then main-loop/config wiring with all operational flags remaining 0; verify
-disabled/no-DB, restart, stale/API/worker zero-provider and ordering adversarial tests.
-before downstream planning/rewrite. Never activate operational flags as a test.
+worker facade verified OFFLINE: 17 targeted / full 935 backend plus isolated
+lint/format/compile/drift PASS; bb0ebf4 CI 37746062697 completed SUCCESS.
+Durable enforcement/legacy quarantine and opt-in main loop now verified OFFLINE:
+81 targeted / full 953 backend PASS (21080), exact CI lint/changed format/compile/
+explicit isolated D: round-trip/drift PASS. Missing/foreign/error/incomplete/active
+baselines fence shared API/worker/publication guards, including unscanned donors.
+Flag-off cannot waive quarantine. All operational flags remain unchanged.
+
+NEXT_STEP: checkpoint enforcement, then add a SEPARATE create-only synthetic
+channel-sync restart probe with Linux PostgreSQL/Docker CI acceptance. Do not
+enable global enforcement inside existing legacy probe suites or erase it to
+make fixtures pass. Verify encrypted session/pts/tombstones/exact replay across
+independent reopen/down-up, incomplete chunk/crash recovery, zero AI/send effects.
+No automatic legacy baseline reset/resync or real sends. Keep current Windows
+Docker NOT VERIFIED / BLOCKED BY ENVIRONMENT. Then assess concurrent replay
+source/binding lock order with PostgreSQL evidence; SQLite is not concurrency proof.
+Never activate operational flags as a test.
 Never initialize/reset legacy cursor from latest-message IDs or TooLong, never
 advance pts until all observations/mappings persist. No public cursor-reset or
 provider-send endpoint, no operational worker/flag activation.

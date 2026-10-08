@@ -29,6 +29,7 @@ from newsflow.providers.telegram import (
     validate_difference_request,
 )
 from newsflow.providers.telegram_difference import ChannelDifferenceGapUnresolved
+from newsflow.services.channel_sync_enforcement import sync_enforced
 from newsflow.services.source_deletions import SourceDeletionClaimLost, SourceDeletionService
 
 
@@ -311,6 +312,12 @@ class ChannelDifferenceRunner:
                 cursor.claim_token = cursor.lease_expires_at = None
                 if difference.final or cursor.last_error_code != "GAP_UNRESOLVED":
                     cursor.last_error_code = None
+                if (
+                    not difference.final
+                    and sync_enforced(session)
+                    and cursor.last_error_code != "GAP_UNRESOLVED"
+                ):
+                    cursor.last_error_code = "DIFFERENCE_INCOMPLETE"
             return "DIFFERENCE_COMPLETE" if difference.final else "DIFFERENCE_CONTINUE"
         except SourceDeletionClaimLost:
             return "STALE_CLAIM"

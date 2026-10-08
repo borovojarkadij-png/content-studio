@@ -38,6 +38,7 @@ def isolated_loop(store, monkeypatch):
         "NEWSFLOW_SEMANTIC_VERIFICATION_ENABLED",
         "NEWSFLOW_INTERNET_MEDIA_ENABLED",
         "NEWSFLOW_TELEGRAM_INGESTION_ENABLED",
+        "NEWSFLOW_TELEGRAM_CHANNEL_SYNC_ENABLED",
         "NEWSFLOW_SOURCE_PHOTO_ENABLED",
     ):
         monkeypatch.setenv(name, "0")

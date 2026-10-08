@@ -11,6 +11,7 @@ from newsflow.persistence.models import (
     SourceDeletionModel,
     TelegramAccount,
 )
+from newsflow.services.channel_sync_enforcement import sync_enforced
 
 
 def source_revision(session: Session, content_key: str) -> ContentRevisionModel | None:
@@ -77,9 +78,10 @@ def source_key_deleted(session: Session, content_key: str) -> bool:
 def source_identity_sync_blocked(session: Session, account: str, channel: str) -> bool:
     """A known gap/foreign baseline is not a current source, even with cached PASS.
 
-    Legacy sources without a difference ledger are not silently certified by this
-    check; they retain their old workflow until guarded opt-in synchronization.
+    Without persisted opt-in, legacy sources retain their existing workflow,
+    not a synchronization certificate. Opt-in also fences every missing ledger.
     """
+    enforced = sync_enforced(session)
     cursors = session.scalars(
         select(ChannelDifferenceCursorModel)
         .outerjoin(DonorChannel, DonorChannel.id == ChannelDifferenceCursorModel.donor_channel_id)
@@ -95,7 +97,7 @@ def source_identity_sync_blocked(session: Session, account: str, channel: str) -
         .limit(2)
     ).all()
     if not cursors:
-        return False
+        return enforced
     if len(cursors) != 1:
         return True
     cursor = cursors[0]
@@ -106,6 +108,16 @@ def source_identity_sync_blocked(session: Session, account: str, channel: str) -
     return (
         cursor.last_error_code == "GAP_UNRESOLVED"
         or owner is None
+        or (
+            enforced
+            and (
+                cursor.last_error_code is not None
+                or cursor.claim_token is not None
+                or cursor.lease_expires_at is not None
+                or owner.health_status != "CONNECTED"
+                or not owner.encrypted_session
+            )
+        )
         or (cursor.telegram_account_id, cursor.telegram_user_id, cursor.telegram_channel_id)
         != (donor.telegram_account_id, owner.telegram_user_id, donor.telegram_channel_id)
     )
@@ -114,7 +126,7 @@ def source_identity_sync_blocked(session: Session, account: str, channel: str) -
 def source_key_unavailable(session: Session, content_key: str) -> bool:
     revision = source_revision(session, content_key)
     if revision is None:
-        return False
+        return sync_enforced(session)
     post = session.get(IncomingPostModel, revision.incoming_post_id, populate_existing=True)
     return post is not None and (
         source_identity_deleted(

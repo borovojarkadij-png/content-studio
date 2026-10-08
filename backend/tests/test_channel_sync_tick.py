@@ -14,6 +14,7 @@ from newsflow.providers.telegram import (
     FakeTelegramProvider,
     TelegramChannelCheckpoint,
     TelegramChannelDifference,
+    TelegramMessage,
 )
 from newsflow.providers.telegram_difference import ChannelDifferenceGapUnresolved
 
@@ -251,3 +252,38 @@ def test_gap_retry_delay_prevents_early_rpc_and_keeps_old_pts(donor_store):
     )
     assert result.outcomes == ((1, "POLL_COMPLETE"),)
     assert provider.calls == ["checkpoint", "difference", "difference", "history"]
+
+
+def test_nonfinal_enforced_chunk_retains_obligation_until_final_recovery(donor_store):
+    healthy(donor_store)
+    provider = Provider(
+        TelegramChannelDifference(
+            "1",
+            CHANNEL,
+            10,
+            11,
+            False,
+            0,
+            (TelegramMessage("1", CHANNEL, 30, "Retained continuation", source_updated_at=NOW),),
+            (),
+        )
+    )
+    assert tick(donor_store, enabled=True, cipher=CIPHER, provider=provider).outcomes == (
+        (1, "DIFFERENCE_CONTINUE"),
+    )
+    with donor_store() as session:
+        assert (
+            session.get(models.ChannelDifferenceCursorModel, 1).last_error_code
+            == "DIFFERENCE_INCOMPLETE"
+        )
+        assert session.scalar(select(models.EditorialDecisionModel)) is None
+        assert session.scalar(select(models.RewriteJobModel)) is None
+    provider.difference = TelegramChannelDifference("1", CHANNEL, 11, 12, True, 0, (), ())
+    result = tick(donor_store, enabled=True, cipher=CIPHER, provider=provider)
+    assert result.outcomes == ((1, "POLL_COMPLETE"),)
+    assert any(outcome == "REPLAYED" for _, outcome in result.replay_outcomes)
+    with donor_store() as session:
+        assert session.get(models.ChannelDifferenceCursorModel, 1).last_error_code is None
+        decisions = session.scalars(select(models.EditorialDecisionModel)).all()
+        assert len(decisions) == 2 and all(row.status == "MANUAL_REVIEW" for row in decisions)
+        assert session.scalar(select(models.RewriteJobModel)) is None

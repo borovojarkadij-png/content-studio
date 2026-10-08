@@ -14,6 +14,7 @@ from newsflow.persistence.models import (
 )
 from newsflow.services.channel_baseline import ChannelBaselineService
 from newsflow.services.channel_difference_runner import ChannelDifferenceRunner, _clock
+from newsflow.services.channel_sync_enforcement import ChannelSyncEnforcement
 from newsflow.services.donor_ingestion_runner import DonorIngestionRunner
 from newsflow.services.source_sync_replay import SourceSyncReplayService
 from newsflow.services.telegram_provider_factory import (
@@ -67,6 +68,7 @@ def run_channel_sync_tick(
         provider = ConfiguredTelegramProvider(
             session_factory, cipher=cipher, api_id=api_id, api_hash=api_hash
         )
+    ChannelSyncEnforcement(session_factory).enable(now=now)
     with session_factory() as session:
 
         def scan(after):
