@@ -36,6 +36,7 @@
 - [x] Explicit encrypted text-only Telethon transport contract, final post-auth guard, exact nonce/channel/text acknowledgement, no paid sending and real durable-runner offline regressions; 684 backend gate, live/Docker blocked
 - [ ] Guarded original-photo sending/upload and opt-in publication tick; text-only transport does not satisfy photo publication
 - [x] Guarded original-photo upload/send contract and current rights/asset/hash reader, exact caption/nonce receipt, post-upload reject/change fencing and timeout zero-reupload; 703 backend gate, offline only
+- [x] Bounded fair due-plan admission and explicit publication tick/dispatcher seam; 717 backend gate, disabled-no-DB/future/expiry/uncertain/reject tests, runtime main-loop opt-in pending
 - [x] Publication-execution technical-filter guard (local preflight only; live RPC acceptance pending)
 - [~] Durable mapping-scoped exact content fingerprint deduplication before EditorialGate
 - [~] OpenAI/OpenRouter: encrypted settings/models, drafts/review, catalog and fact anchors complete; strict adapters/encrypted factory, explicitly opt-in provider-selected worker, bounded free-only OpenRouter failover, known token usage and per-channel natural tabloid style complete offline; live provider verification, semantic guard, rate configuration/cache/dashboard pending

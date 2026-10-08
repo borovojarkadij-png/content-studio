@@ -65,3 +65,23 @@ class ConfiguredTelegramPhotoPublisher(TelethonPhotoPublisher):
                 raise PublicationBlocked("CURRENT_BOUND_SOURCE_PHOTO_REQUIRED")
             content, _ = reader.preview(envelope.candidate_id)
             return content
+
+
+class ConfiguredTelegramPublisher:
+    """Explicit dispatch by bound media type, never fallback after an error."""
+
+    def __init__(
+        self, session_factory, media_root, *, cipher, api_id, api_hash, client_factory=None
+    ):
+        options = {
+            "cipher": cipher,
+            "api_id": api_id,
+            "api_hash": api_hash,
+            "client_factory": client_factory,
+        }
+        self._text = ConfiguredTelegramTextPublisher(session_factory, **options)
+        self._photo = ConfiguredTelegramPhotoPublisher(session_factory, media_root, **options)
+
+    def publish(self, envelope, nonce, *, execution_guard):
+        sender = self._text if envelope.media_asset_id is None else self._photo
+        return sender.publish(envelope, nonce, execution_guard=execution_guard)

@@ -2,6 +2,12 @@
 
 ## VERIFIED WORKING
 
+- Bounded fair publication tick/admission seam OFFLINE: full backend 717 /
+  Ruff/targeted format/compile PASS (15953), 14 targeted tick regressions PASS.
+  Encrypted text/photo dispatch, no disabled DB access, expiry/fair cursor and
+  uncertain-history zero-resend verified; main-loop runtime flag pending.
+  See PUBLICATION_TICK_VERIFICATION.md; no sending was enabled.
+
 - Guarded original-photo transport OFFLINE: full backend 703 / Ruff / targeted
   format / compile PASS (55064). Current source asset/rights/bytes, attribution,
   exact nonce/caption/photo receipt and post-upload state fencing verified in SQL
@@ -545,9 +551,10 @@
 Read-only status + explicit Alembic target guard committed/pushed as
 e14bdf47dbe383b17ad18ab22d6ba93d20ae7cad to correct origin.
 Text transport/factory committed/pushed f9a4075f7f860ce351f98e74a2273e0946b59f94.
-Original-photo transport/factory now implemented and full 703-test/lint/format/
-compile gate PASS (55064). Preserve/commit photo checkpoint, then implement
-guarded opt-in publication tick/orchestration with offline tests. Use D: for
+Photo checkpoint committed/pushed de51ad6f9ea983214ea432797d504c9cc685cdf2.
+Bounded fair admission/tick/dispatcher now implemented; full 717-test/lint/format/
+compile gate PASS (15953). Preserve/commit tick checkpoint, then main-loop
+opt-in (default 0), offline loop regressions and honest read-only UI wording. Use D: for
 temporary data. Difference reconciliation follows; no live sends
 as tests. Do not retry Docker deployment until host space and writable storage
 are confirmed; do not delete/prune volumes or user data.
@@ -574,6 +581,8 @@ CI 37710524239 for e14bdf4: backend/frontend SUCCESS, both Docker jobs in progre
 at last inspection; do not claim overall success yet.
 CI 37710873887 for f9a4075: backend/frontend SUCCESS, both Docker jobs in progress
 at last inspection; actual Windows packaging remains independently blocked.
+CI 37711279784 for de51ad6: backend/frontend SUCCESS, both Docker jobs in progress
+at last inspection; do not mark this or older pending runs all-four success.
 CI 37708938271: completed SUCCESS in all four jobs (actual gh inspection).
 Preceding aa075af CI 37707297625 and fdf8f06 CI 37706050198 all-four SUCCESS.
 

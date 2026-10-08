@@ -1,4 +1,4 @@
-"""Durable planning and explicitly opt-in provider drafts; never publication."""
+"""Durable planning/provider drafts; explicit publication tick is not main-loop wired."""
 
 import signal
 from collections.abc import Callable
@@ -29,6 +29,7 @@ from newsflow.security.session_cipher import SessionCipher
 from newsflow.services.donor_import_resolution import DonorImportResolutionRunner
 from newsflow.services.donor_ingestion_runner import DonorIngestionRunner
 from newsflow.services.durable_media_runner import DurableMediaRunner
+from newsflow.services.durable_publication_runner import DurablePublicationRunner
 from newsflow.services.durable_rewrite_runner import DurableRewriteRunner
 from newsflow.services.durable_semantic_runner import DurableSemanticRunner
 from newsflow.services.durable_source_photo_runner import DurableSourcePhotoRunner
@@ -39,8 +40,56 @@ from newsflow.services.telegram_provider_factory import (
     ConfiguredTelegramProvider,
     load_telegram_credentials,
 )
+from newsflow.services.telegram_publication_factory import ConfiguredTelegramPublisher
 
 logger = structlog.get_logger()
+
+
+@dataclass(frozen=True, slots=True)
+class PublicationTickResult:
+    outcome: str
+    cursor: int
+    queued_ids: tuple[int, ...]
+    blocked_ids: tuple[int, ...]
+
+
+def run_publication_tick(
+    session_factory,
+    *,
+    enabled: bool,
+    cipher: SessionCipher | None,
+    media_root,
+    now: datetime,
+    credentials_path=None,
+    publisher=None,
+    cursor=0,
+    admission_limit=16,
+    clock=lambda: datetime.now(UTC),
+):
+    """Opt-in seam; main-loop enablement is a separate verified checkpoint.
+
+    Cursor is only fair bounded scanning, not durable task state. Reset/wrap
+    always enumerates outstanding plans; jobs/nonce/leases remain PostgreSQL-owned.
+    """
+    if not enabled:
+        return PublicationTickResult("DISABLED", cursor, (), ())
+    if cipher is None:
+        raise ValueError("Explicit stable cipher is required for publication")
+    if publisher is None:
+        if credentials_path is None:
+            raise ValueError("Provision Telegram credentials before enabling publication")
+        api_id, api_hash = load_telegram_credentials(credentials_path)
+        publisher = ConfiguredTelegramPublisher(
+            session_factory, media_root, cipher=cipher, api_id=api_id, api_hash=api_hash
+        )
+    execution = DurablePublicationRunner(
+        session_factory, media_root, publisher=publisher, clock=clock
+    )
+    admission = execution.enqueue_due(now=now, after_id=cursor, limit=admission_limit)
+    outcome = execution.run_next(now=clock())
+    return PublicationTickResult(
+        outcome, admission.cursor, admission.queued_ids, admission.blocked_ids
+    )
 
 
 def rewrite_enabled(value: str) -> bool:

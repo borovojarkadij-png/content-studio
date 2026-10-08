@@ -56,12 +56,56 @@ class PublicationReceipt:
     message_id: int
 
 
+@dataclass(frozen=True, slots=True)
+class PublicationAdmission:
+    cursor: int
+    queued_ids: tuple[int, ...]
+    blocked_ids: tuple[int, ...]
+
+
 class DurablePublicationRunner:
     def __init__(
         self, session_factory, media_root=None, *, publisher=None, clock=lambda: datetime.now(UTC)
     ):
         self._factory, self._publisher, self._clock = session_factory, publisher, clock
         self._preflight = PublicationPreflight(session_factory, media_root)
+
+    def enqueue_due(self, *, now, after_id=0, limit=16):
+        _aware(now)
+        if (
+            type(after_id) is not int
+            or after_id < 0
+            or type(limit) is not int
+            or not 1 <= limit <= 64
+        ):
+            raise ValueError("Invalid bounded publication admission cursor/limit")
+        query = (
+            select(PlannedPublicationModel.id)
+            .where(
+                PlannedPublicationModel.state == "PLANNED",
+                PlannedPublicationModel.scheduled_for <= now,
+                PlannedPublicationModel.scheduled_for > now - timedelta(hours=6),
+                ~select(PublicationJobModel.id)
+                .where(PublicationJobModel.planned_id == PlannedPublicationModel.id)
+                .exists(),
+            )
+            .order_by(PlannedPublicationModel.id)
+            .limit(limit)
+        )
+        with self._factory() as session:
+            ids = tuple(session.scalars(query.where(PlannedPublicationModel.id > after_id)))
+            if not ids and after_id:
+                ids = tuple(session.scalars(query))
+        queued, blocked = [], []
+        for planned_id in ids:
+            try:
+                self.enqueue(planned_id, now=now)
+                queued.append(planned_id)
+            except (PublicationBlocked, LookupError, ValueError):
+                # Expected stale policy does not hide later channels; never create
+                # a forged send intent just to remember a rejected admission.
+                blocked.append(planned_id)
+        return PublicationAdmission(ids[-1] if ids else 0, tuple(queued), tuple(blocked))
 
     def enqueue(self, planned_id, *, now):
         envelope = self._preflight.prepare(planned_id, now=now)
