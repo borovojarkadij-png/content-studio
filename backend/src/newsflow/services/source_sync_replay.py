@@ -137,6 +137,35 @@ class SourceSyncReplayService:
         mappings, binding = ChannelDifferenceRunner._mapping_snapshot(session, donor.id, lock=True)
         if not mappings:
             return "WAIT_SYNC", None, None
+        # The early max/deletion reads are only a cheap precheck. A separate
+        # writer may commit while donor/cursor/account/mapping locks are acquired.
+        # Match ordinary ingress lock order (mapping -> post), then re-read the
+        # immutable latest revision before classifying or completing an obligation.
+        post = session.get(
+            IncomingPostModel,
+            revision.incoming_post_id,
+            populate_existing=True,
+            with_for_update=True,
+        )
+        if post is None:
+            return "INVALID_OBLIGATION", None, None
+        if (
+            source_identity_deleted(
+                session, post.telegram_account_id, post.donor_channel_id, post.telegram_message_id
+            )
+            or session.scalar(
+                select(func.max(ContentRevisionModel.revision_number)).where(
+                    ContentRevisionModel.incoming_post_id == post.id
+                )
+            )
+            != revision.revision_number
+        ):
+            return "SUPERSEDED", None, None
+        if (post.telegram_account_id, post.donor_channel_id) != (
+            str(account.id),
+            str(donor.telegram_channel_id),
+        ):
+            return "WAIT_SYNC", None, None
         context = _ReplayContext(
             donor.id,
             account.id,

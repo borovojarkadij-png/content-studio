@@ -1,5 +1,7 @@
+from datetime import timedelta
+
 import pytest
-from sqlalchemy import create_engine, select, text
+from sqlalchemy import create_engine, event, select, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
 from test_source_photo_acquisition import source_store as _source_store
@@ -40,6 +42,70 @@ def recovered(factory):
     with factory.begin() as session:
         row = session.get(models.ChannelDifferenceCursorModel, 1)
         row.pts, row.last_error_code = 11, None
+
+
+@pytest.mark.parametrize("change", ["revision", "deletion"])
+def test_concurrent_source_change_before_binding_locks_retires_obligation_without_classifier(
+    source_store, change
+):
+    from newsflow.domain.sql_ingestion import SqlAlchemyIngestionRepository
+    from newsflow.providers.telegram import TelegramChannelDifference
+    from newsflow.services.source_deletions import SourceDeletionService
+
+    factory, _ = source_store
+    mark_gap(factory)
+    key = quarantine(factory)
+    marker_id = marker(factory, key)
+    recovered(factory)
+    engine = factory.kw["bind"]
+    triggered = []
+
+    def interleave(_connection, _cursor, statement, _parameters, _context, _many):
+        if triggered or not statement.lstrip().startswith("SELECT donor_channels."):
+            return
+        triggered.append(change)
+        if change == "revision":
+            with factory.begin() as writer:
+                SqlAlchemyIngestionRepository(writer).ingest(
+                    TelegramMessage(
+                        "1",
+                        CHANNEL,
+                        99,
+                        "Newer independent observation",
+                        is_edit=True,
+                        source_updated_at=NOW + timedelta(seconds=1),
+                    ),
+                    NOW + timedelta(seconds=1),
+                )
+        else:
+            SourceDeletionService(factory).record(
+                TelegramChannelDifference("1", CHANNEL, 11, 12, True, 0, (), (99,)),
+                observed_at=NOW + timedelta(seconds=1),
+            )
+
+    event.listen(engine, "before_cursor_execute", interleave)
+    try:
+        assert runtime(factory).replay(marker_id) == "SUPERSEDED"
+        assert triggered == [change]
+        assert runtime(factory).replay(marker_id) == "ALREADY_COMPLETED"
+        with factory() as session:
+            assert (
+                session.scalar(
+                    select(models.EditorialDecisionModel).where(
+                        models.EditorialDecisionModel.content_key == key
+                    )
+                )
+                is None
+            )
+            assert (
+                session.scalar(
+                    select(models.RewriteJobModel).where(models.RewriteJobModel.content_key == key)
+                )
+                is None
+            )
+            assert session.scalar(select(models.RewriteUsageModel)) is None
+    finally:
+        event.remove(engine, "before_cursor_execute", interleave)
 
 
 def runtime(factory):

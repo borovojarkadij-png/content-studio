@@ -192,3 +192,20 @@ def test_probe_checks_actual_inbox_truth_before_and_after_recovery(monkeypatch, 
             probe.verify_inbox(response.json(), manifest, completed=True)
     finally:
         engine.dispose()
+
+
+def test_probe_concurrent_source_interleavings_preserve_history_and_refuse_reseed(tmp_path):
+    probe = load_probe()
+    engine = create_engine(f"sqlite:///{tmp_path / 'concurrent.db'}")
+    models.Base.metadata.create_all(engine)
+    sessions = sessionmaker(engine)
+    try:
+        probe.concurrent_sources(sessions, now=datetime(2030, 1, 1, tzinfo=UTC))
+        with pytest.raises(RuntimeError, match="refusing"):
+            probe.concurrent_sources(sessions, now=datetime(2030, 1, 1, tzinfo=UTC))
+        with sessions() as session:
+            assert session.scalar(select(models.RewriteJobModel)) is None
+            assert session.scalar(select(models.RewriteUsageModel)) is None
+            assert len(session.scalars(select(models.ContentRevisionModel)).all()) == 3
+    finally:
+        engine.dispose()

@@ -7,15 +7,16 @@ No real Telegram adapter, credentials, AI client or sending transport is used.
 import json
 import os
 import sys
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from urllib.request import urlopen
 
-from sqlalchemy import create_engine, select, text
+from sqlalchemy import create_engine, event, select, text
 from sqlalchemy.engine import make_url
 from sqlalchemy.orm import sessionmaker
 
 from newsflow.domain.durable_ingestion import DurableIngestionWorkflow
+from newsflow.domain.sql_ingestion import SqlAlchemyIngestionRepository
 from newsflow.persistence import models
 from newsflow.providers.telegram import (
     FakeTelegramProvider,
@@ -30,6 +31,7 @@ from newsflow.services.channel_difference_runner import ChannelDifferenceRunner
 from newsflow.services.channel_sync_enforcement import ChannelSyncEnforcement, sync_enforced
 from newsflow.services.channel_sync_tick import run_channel_sync_tick
 from newsflow.services.durable_rewrite_runner import DurableRewriteRunner
+from newsflow.services.source_deletions import SourceDeletionService
 from newsflow.services.source_revisions import source_is_current
 from newsflow.services.source_sync_replay import SourceSyncReplayService
 from newsflow.services.telegram_configuration import TelegramConfigurationService
@@ -329,6 +331,150 @@ def verify_inbox(payload, manifest, *, completed):
         )
 
 
+def concurrent_sources(sessions, *, now):
+    """Independent writers commit between max-read and binding locks, no network."""
+    name, channel = NAME + "-concurrency", CHANNEL - 20
+    with sessions() as session:
+        if session.scalar(
+            select(models.TelegramAccount.id).where(models.TelegramAccount.name == name)
+        ):
+            raise RuntimeError("Use a fresh fixture; refusing to replace concurrency history")
+        config = TelegramConfigurationService(session)
+        account = config.create_account(name, 700802)
+        donor = config.create_donor(account["id"], channel, name)
+        output = config.create_output(account["id"], channel - 1, name)
+        mapping = config.create_mapping(donor["id"], output["id"], 100, 50)
+    with sessions.begin() as session:
+        row = session.get(models.TelegramAccount, account["id"])
+        row.encrypted_session = SessionCipher(KEY).encrypt("synthetic concurrency session")
+        row.health_status = "CONNECTED"
+    ChannelSyncEnforcement(sessions).enable(now=now)
+    provider = FakeTelegramProvider()
+    provider.seed_channel_checkpoint(
+        TelegramChannelCheckpoint(str(account["id"]), str(channel), 700802, 10)
+    )
+    provider.seed_channel_difference(
+        TelegramChannelDifference(str(account["id"]), str(channel), 10, 11, True, 0, (), ())
+    )
+    assert (
+        ChannelBaselineService(sessions, provider=provider, clock=lambda: now).bootstrap(
+            donor["id"]
+        )
+        == "BASELINE_RECORDED"
+    )
+    runner = ChannelDifferenceRunner(sessions, provider=provider, clock=lambda: now)
+    claim = runner.claim(donor["id"], now=now)
+    assert claim is not None
+    for message in (99, 100):
+        with sessions() as session:
+            assert (
+                DurableIngestionWorkflow(session, configured_mapping_id=mapping["id"])
+                .ingest(
+                    TelegramMessage(
+                        str(account["id"]),
+                        str(channel),
+                        message,
+                        f"Unknown concurrency source {message}",
+                        source_updated_at=now,
+                    ),
+                    observed_at=now,
+                )
+                .status
+                == "SOURCE_SYNC_REQUIRED"
+            )
+    assert runner.execute(claim) == "DIFFERENCE_COMPLETE"
+    engine = sessions.kw["bind"]
+    for message in (99, 100):
+        key = f"{account['id']}:{channel}:{message}:revision:1"
+        with sessions() as session:
+            marker_id = session.scalars(
+                select(models.OutboxEventModel.id).where(
+                    models.OutboxEventModel.idempotency_key == f"source.sync_quarantined:{key}"
+                )
+            ).one()
+        triggered = []
+
+        def interleave(
+            _connection,
+            _cursor,
+            statement,
+            _parameters,
+            _context,
+            _many,
+            *,
+            message=message,
+            triggered=triggered,
+        ):
+            if triggered or not statement.lstrip().startswith("SELECT donor_channels."):
+                return
+            triggered.append(message)
+            if message == 100:
+
+                def bounded_writer(writer):
+                    if writer.bind.dialect.name == "postgresql":
+                        writer.execute(text("SET LOCAL lock_timeout = '2s'"))
+                    return True
+
+                SourceDeletionService(sessions).record(
+                    TelegramChannelDifference(
+                        str(account["id"]), str(channel), 11, 12, True, 0, (), (message,)
+                    ),
+                    observed_at=now,
+                    transaction_guard=bounded_writer,
+                )
+                return
+            with sessions.begin() as writer:
+                if writer.bind.dialect.name == "postgresql":
+                    writer.execute(text("SET LOCAL lock_timeout = '2s'"))
+                SqlAlchemyIngestionRepository(writer).ingest(
+                    TelegramMessage(
+                        str(account["id"]),
+                        str(channel),
+                        message,
+                        "Newer independent source",
+                        is_edit=True,
+                        source_updated_at=now + timedelta(seconds=1),
+                    ),
+                    now + timedelta(seconds=1),
+                )
+
+        event.listen(engine, "before_cursor_execute", interleave)
+        try:
+            replay = SourceSyncReplayService(sessions, clock=lambda: now)
+            assert replay.replay(marker_id) == "SUPERSEDED"
+            assert triggered == [message]
+            assert replay.replay(marker_id) == "ALREADY_COMPLETED"
+        finally:
+            event.remove(engine, "before_cursor_execute", interleave)
+        with sessions() as session:
+            assert (
+                session.scalar(
+                    select(models.EditorialDecisionModel).where(
+                        models.EditorialDecisionModel.content_key == key
+                    )
+                )
+                is None
+            )
+            assert (
+                session.scalar(
+                    select(models.RewriteJobModel).where(models.RewriteJobModel.content_key == key)
+                )
+                is None
+            )
+            assert (
+                session.scalar(
+                    select(models.OutboxEventModel.id).where(
+                        models.OutboxEventModel.idempotency_key
+                        == f"source.sync_replay_completed:{key}"
+                    )
+                )
+                is not None
+            )
+    with sessions() as session:
+        assert session.get(models.ChannelDifferenceCursorModel, donor["id"]).pts == 11
+        assert session.scalar(select(models.RewriteUsageModel)) is None
+
+
 def main(mode):
     url = os.environ["DATABASE_URL"]
     if (
@@ -337,7 +483,7 @@ def main(mode):
         or make_url(url).get_backend_name() != "postgresql"
     ):
         raise RuntimeError("Channel-sync probe requires isolated PostgreSQL verification database")
-    if mode not in {"seed", "recover", "verify-pending", "verify"}:
+    if mode not in {"seed", "recover", "verify-pending", "verify", "concurrency"}:
         raise ValueError("Unsupported channel-sync probe mode")
     for flag in (
         "NEWSFLOW_TELEGRAM_CHANNEL_SYNC_ENABLED",
@@ -361,6 +507,9 @@ def main(mode):
             manifest = json.loads((root / FILE).read_text(encoding="utf-8"))
             if mode == "recover":
                 recover(sessions, manifest, now=datetime.now(UTC))
+            elif mode == "concurrency":
+                verify(sessions, manifest, completed=True)
+                concurrent_sources(sessions, now=datetime.now(UTC))
             else:
                 verify(sessions, manifest, completed=mode == "verify")
                 with urlopen("http://api:8000/api/telegram/incoming-posts", timeout=15) as response:

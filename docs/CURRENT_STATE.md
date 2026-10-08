@@ -2,6 +2,16 @@
 
 ## VERIFIED WORKING
 
+- Replay post-lock exact source/deletion reload OFFLINE: two interleaving RED →
+  GREEN, 59 combined / full backend 965 PASS (97075), exact CI lint/changed format/
+  compile/PowerShell parse/explicit D: round-trip/drift PASS. No obsolete editorial/
+  job/usage, immutable history/idempotent retirement retained. Separate create-only
+  concurrency probe added; its actual PostgreSQL execution pending exact CI.
+  See SOURCE_SYNC_POSTLOCK_VERIFICATION.md.
+- Prior ab13403 dedicated PostgreSQL channel-sync restart job in CI 37748969125
+  completed SUCCESS; other jobs in progress at inspection. Linux restart/PG crash/
+  encrypted session/pts/tombstones/replay/RPC lock evidence is not Windows proof.
+- Enforcement 72685a3 CI 37747730266 completed SUCCESS (actual gh list).
 - Separate create-only channel-sync recovery probe OFFLINE: 9 dedicated /
   44 combined / full backend 962 PASS (24877), exact CI lint/changed format/
   compile/explicit D: round-trip/drift and PowerShell parser/runtime refusal PASS.
@@ -706,13 +716,21 @@ Separate create-only channel-sync restart probe implemented and verified OFFLINE
 compile/explicit D: round-trip/drift and PowerShell parser/runtime refusal PASS.
 Dedicated Linux PostgreSQL Docker job added; actual new Docker acceptance pending.
 
-NEXT_STEP: checkpoint sync probe and inspect exact GitHub job. Then harden replay's
-source snapshot AFTER acquiring current donor/cursor/account/mapping locks:
-concurrently committed source edits must not be classified from an older max-read.
-Add test-first interleaving regression, fresh gates and PostgreSQL concurrency
-evidence; SQLite is not lock proof. Keep separate fixture global enforcement and
-all operational flags unchanged. No automatic legacy baseline reset/resync or
-real sends. Current Windows Docker NOT VERIFIED / BLOCKED BY ENVIRONMENT.
+Probe committed/pushed ab134033d15f5be0d9e24918d4cc1813a97044f6;
+CI 37748969125 dedicated PostgreSQL channel-sync restart SUCCESS; other jobs in
+progress at inspection. Enforcement CI 37747730266 completed SUCCESS.
+Post-lock replay reload now verified OFFLINE: 59 combined / full 965 backend PASS
+(97075), exact CI lint/format/compile/PowerShell parse/explicit D: drift PASS.
+Create-only concurrency probe added; actual PostgreSQL execution pending.
+
+NEXT_STEP: checkpoint post-lock reload and inspect exact dedicated PostgreSQL CI
+concurrency job, fix failures without weakening guards. Then implement bounded
+nonterminal rewrite waiting for temporary active/error synchronization cursors,
+preserving original durable jobs and attempt budget with zero provider calls.
+Deletion/stale revisions/editorial REJECT remain terminal; never reactivate old
+SUPERSEDED jobs or invent missing/foreign/legacy continuity. Add restart/expiry/
+fresh-state regression tests before any allowed provider execution. Keep all
+operational flags unchanged and Windows Docker NOT VERIFIED / BLOCKED BY ENVIRONMENT.
 Never activate operational flags as a test.
 Never initialize/reset legacy cursor from latest-message IDs or TooLong, never
 advance pts until all observations/mappings persist. No public cursor-reset or

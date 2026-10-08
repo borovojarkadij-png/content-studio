@@ -322,6 +322,7 @@ if ($ChannelSyncGuard) {
         Invoke-VerificationCompose up -d --wait --wait-timeout 180
         Invoke-ChannelSyncProbe 'verify'
     }
+    Invoke-ChannelSyncProbe 'concurrency'
 }
 Write-Output "Synthetic persistence checks passed. Stack retained: $Project"
 Write-Output 'No real Telegram authorization, network AI calls or publications.'
