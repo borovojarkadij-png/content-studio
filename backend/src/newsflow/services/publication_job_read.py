@@ -58,6 +58,7 @@ class PublicationJobReader:
             if job and job.completed_at
             else None,
             "reason_code": job.last_error_code if job else None,
-            # This checkpoint intentionally has no live sender / public send API.
+            # Public send controls remain unavailable; server worker opt-in is
+            # separate configuration, not live authorization/delivery proof.
             "live_publication_available": False,
         }

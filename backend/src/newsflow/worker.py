@@ -1,4 +1,4 @@
-"""Durable planning/provider drafts; explicit publication tick is not main-loop wired."""
+"""Durable planning/provider work with strictly opt-in Telegram publication."""
 
 import signal
 from collections.abc import Callable
@@ -66,7 +66,7 @@ def run_publication_tick(
     admission_limit=16,
     clock=lambda: datetime.now(UTC),
 ):
-    """Opt-in seam; main-loop enablement is a separate verified checkpoint.
+    """Opt-in bounded processing; never a public send endpoint.
 
     Cursor is only fair bounded scanning, not durable task state. Reset/wrap
     always enumerates outstanding plans; jobs/nonce/leases remain PostgreSQL-owned.
@@ -95,6 +95,12 @@ def run_publication_tick(
 def rewrite_enabled(value: str) -> bool:
     if value not in {"0", "1"}:
         raise ValueError("NEWSFLOW_REWRITE_ENABLED must be exactly 0 or 1")
+    return value == "1"
+
+
+def publication_enabled(value: str) -> bool:
+    if value not in {"0", "1"}:
+        raise ValueError("NEWSFLOW_PUBLICATION_ENABLED must be exactly 0 or 1")
     return value == "1"
 
 
@@ -350,15 +356,21 @@ def main() -> None:
     media_enabled = rewrite_enabled(getenv("NEWSFLOW_INTERNET_MEDIA_ENABLED", "0"))
     ingestion_enabled = rewrite_enabled(getenv("NEWSFLOW_TELEGRAM_INGESTION_ENABLED", "0"))
     source_photo_enabled = rewrite_enabled(getenv("NEWSFLOW_SOURCE_PHOTO_ENABLED", "0"))
+    publication_network_enabled = publication_enabled(getenv("NEWSFLOW_PUBLICATION_ENABLED", "0"))
     provider = getenv("NEWSFLOW_REWRITE_PROVIDER", "OPENAI")
     if provider not in {"OPENAI", "OPENROUTER"}:
         raise ValueError("NEWSFLOW_REWRITE_PROVIDER must be OPENAI or OPENROUTER")
     cipher = (
         SessionCipher(load_runtime_master_key())
-        if network_enabled or semantic_enabled or ingestion_enabled or source_photo_enabled
+        if network_enabled
+        or semantic_enabled
+        or ingestion_enabled
+        or source_photo_enabled
+        or publication_network_enabled
         else None
     )
     stopped = Event()
+    publication_cursor = 0
     for signum in (signal.SIGTERM, signal.SIGINT):
         signal.signal(signum, lambda *_: stopped.set())
     while not stopped.is_set():
@@ -448,6 +460,31 @@ def main() -> None:
                 logger.info("source_photo.tick", outcome=outcome)
             except Exception:  # noqa: BLE001 - preserve leases, never log sessions or provider data
                 logger.warning("source_photo.execution_interrupted", recovery="persisted_lease")
+        if publication_network_enabled and not stopped.is_set():
+            try:
+                delivery = run_publication_tick(
+                    factory,
+                    enabled=True,
+                    cipher=cipher,
+                    media_root=Path(getenv("NEWSFLOW_MEDIA_ROOT", "/var/lib/newsflow/media")),
+                    now=datetime.now(UTC),
+                    cursor=publication_cursor,
+                    credentials_path=Path(
+                        getenv(
+                            "NEWSFLOW_TELEGRAM_CREDENTIALS_FILE",
+                            "/run/secrets/telegram_credentials",
+                        )
+                    ),
+                )
+                publication_cursor = delivery.cursor
+                logger.info(
+                    "publication.tick",
+                    outcome=delivery.outcome,
+                    queued_count=len(delivery.queued_ids),
+                    blocked_plan_ids=delivery.blocked_ids,
+                )
+            except Exception:  # noqa: BLE001 -- durable uncertain intent survives; never leak secrets
+                logger.warning("publication.execution_interrupted", recovery="persisted_intent")
         stopped.wait(interval)
 
 

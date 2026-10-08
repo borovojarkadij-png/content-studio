@@ -28,3 +28,27 @@ Next: main-loop opt-in flag defaults 0, offline main-loop regressions and honest
 UI wording about server worker versus public send actions, then synthetic packaged
 acceptance when Docker is writable. Verified difference reconciliation and real
 authorization remain pending; never make a timeout into proof of non-delivery.
+
+## Main-loop follow-up (verified offline)
+
+NEWSFLOW_PUBLICATION_ENABLED is now strictly 0/1 and defaults 0. The actual main
+loop calls the bounded tick only on explicit 1, using the existing stable key and
+optional Telegram credentials mount. It retains fair admission cursor between
+iterations, sends at most one persisted job per iteration and logs only safe IDs/
+codes/counts. Failures leave durable intents intact; no reset or resend controls.
+All operational .env/secrets remain unchanged; this flag was NOT enabled there.
+
+Two initial main-loop regressions RED (flag ignored / invalid value accepted), then
+three loop tests GREEN. They run actual encrypted factory/preflight/SQL/TL
+transport, replacing ONLY external client construction, against synthetic stores.
+Default flag never loads a key or creates a job. UI regression RED for claiming
+worker disconnected, then GREEN for distinguishing server configuration from
+unavailable public send controls. Public metadata stays no-store/false; it is not
+an assertion that a separately configured server worker is disabled.
+
+Fresh final gate: backend 720/Ruff/targeted format/compile PASS; explicit isolated
+D: migration round-trip/drift PASS (51530). Frontend 56 unit/23 browser/format/
+typecheck/build/audit PASS (5676), screenshots refreshed/inspected on mobile.
+Browser output/temp is on D: due C: exhaustion; traces disabled only for this local
+rerun, not CI. Docker packaging/operational/live verification still environment/
+authorization blocked. This is not PHASE 1 completion.

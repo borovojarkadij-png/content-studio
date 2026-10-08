@@ -2,6 +2,13 @@
 
 ## VERIFIED WORKING
 
+- Strict default-disabled publication main-loop wiring OFFLINE: backend 720 /
+  Ruff/targeted format/compile/explicit D: migration round-trip/drift PASS (51530),
+  frontend 56 units/23 browser/format/typecheck/build/audit PASS (5676).
+  Actual main loop verified with synthetic SQL/encrypted session/TL network only;
+  missing flag inert, invalid flag rejected. Working .env/secrets unchanged,
+  no actual send enabled. Current packaged/operational/live NOT VERIFIED.
+
 - Bounded fair publication tick/admission seam OFFLINE: full backend 717 /
   Ruff/targeted format/compile PASS (15953), 14 targeted tick regressions PASS.
   Encrypted text/photo dispatch, no disabled DB access, expiry/fair cursor and
@@ -552,9 +559,12 @@ Read-only status + explicit Alembic target guard committed/pushed as
 e14bdf47dbe383b17ad18ab22d6ba93d20ae7cad to correct origin.
 Text transport/factory committed/pushed f9a4075f7f860ce351f98e74a2273e0946b59f94.
 Photo checkpoint committed/pushed de51ad6f9ea983214ea432797d504c9cc685cdf2.
-Bounded fair admission/tick/dispatcher now implemented; full 717-test/lint/format/
-compile gate PASS (15953). Preserve/commit tick checkpoint, then main-loop
-opt-in (default 0), offline loop regressions and honest read-only UI wording. Use D: for
+Tick checkpoint committed/pushed 69fa0f1cc808155cb991b012d497bb41863aec7d.
+Main-loop opt-in (default 0) and honest read-only UI wording implemented, full
+720 backend + 56 frontend units / 23 browser / explicit migration gate PASS.
+Preserve/commit this main-loop checkpoint, then implement durable immutable send
+request/recovery observations and verified no-resend reconciliation using offline
+fixtures. Do not guess message identity by text/time. Use D: for
 temporary data. Difference reconciliation follows; no live sends
 as tests. Do not retry Docker deployment until host space and writable storage
 are confirmed; do not delete/prune volumes or user data.
@@ -577,12 +587,12 @@ targeted / 684 full backend PASS. No live send flag, HTTP endpoint or worker add
 
 Last committed HEAD before this text increment: e14bdf47dbe383b17ad18ab22d6ba93d20ae7cad,
 codex/dark-navy-ui, correct origin borovojarkadij-png/content-studio.
-CI 37710524239 for e14bdf4: backend/frontend SUCCESS, both Docker jobs in progress
-at last inspection; do not claim overall success yet.
+CI 37710524239 for e14bdf4 completed SUCCESS in all four jobs (gh inspection).
 CI 37710873887 for f9a4075: backend/frontend SUCCESS, both Docker jobs in progress
 at last inspection; actual Windows packaging remains independently blocked.
 CI 37711279784 for de51ad6: backend/frontend SUCCESS, both Docker jobs in progress
 at last inspection; do not mark this or older pending runs all-four success.
+CI 37711738606 for 69fa0f1 is in progress at last inspection; track separately.
 CI 37708938271: completed SUCCESS in all four jobs (actual gh inspection).
 Preceding aa075af CI 37707297625 and fdf8f06 CI 37706050198 all-four SUCCESS.
 

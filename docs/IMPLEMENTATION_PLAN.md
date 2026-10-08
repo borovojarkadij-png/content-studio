@@ -37,6 +37,7 @@
 - [ ] Guarded original-photo sending/upload and opt-in publication tick; text-only transport does not satisfy photo publication
 - [x] Guarded original-photo upload/send contract and current rights/asset/hash reader, exact caption/nonce receipt, post-upload reject/change fencing and timeout zero-reupload; 703 backend gate, offline only
 - [x] Bounded fair due-plan admission and explicit publication tick/dispatcher seam; 717 backend gate, disabled-no-DB/future/expiry/uncertain/reject tests, runtime main-loop opt-in pending
+- [x] Strict default-disabled publication main-loop flag, stable credentials/cipher, fair bounded tick and safe failure logging; offline actual main-loop gate 720 backend / 56 frontend / 23 browser PASS, operational activation NOT enabled
 - [x] Publication-execution technical-filter guard (local preflight only; live RPC acceptance pending)
 - [~] Durable mapping-scoped exact content fingerprint deduplication before EditorialGate
 - [~] OpenAI/OpenRouter: encrypted settings/models, drafts/review, catalog and fact anchors complete; strict adapters/encrypted factory, explicitly opt-in provider-selected worker, bounded free-only OpenRouter failover, known token usage and per-channel natural tabloid style complete offline; live provider verification, semantic guard, rate configuration/cache/dashboard pending

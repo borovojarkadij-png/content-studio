@@ -26,6 +26,22 @@ const pending = {
 };
 const json = (value: unknown) => ({ ok: true, json: async () => value });
 
+it("does not confuse unavailable public send controls with server worker configuration", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async () => json(pending)),
+  );
+  render(<PublicationDelivery plannedId={4} />);
+  await screen.findByText(/Задание отправки не создано/);
+  expect(
+    screen.queryByText(/Автоматическая отправка пока не подключена/),
+  ).toBeNull();
+  expect(screen.getByText(/Интерфейс не запускает отправку/)).toBeTruthy();
+  expect(
+    screen.getByText(/Настройка worker выполняется отдельно на сервере/),
+  ).toBeTruthy();
+});
+
 it("shows unknown delivery honestly, does not offer resend and only uses GET", async () => {
   const methods: string[] = [];
   vi.stubGlobal(
