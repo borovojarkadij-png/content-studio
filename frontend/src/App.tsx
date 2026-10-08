@@ -25,6 +25,7 @@ import {
 } from "./ui";
 import {
   canProcess,
+  technicalHoldLabels,
   channelSettingsError,
   createDemo,
   navigation,
@@ -694,6 +695,27 @@ function Inbox({
                 contentKey={`${selected.id}:revision:${selected.revision}`}
               />
             )}
+            {!demo && !!selected.technicalReasons?.length && (
+              <section aria-label="Технические ограничения">
+                <div className="notice error" role="alert">
+                  <h3>Технические ограничения</h3>
+                  <p>
+                    Историческое editorial-решение:{" "}
+                    {selected.editorial === "PENDING"
+                      ? "не принято или ручная проверка"
+                      : selected.editorial}
+                    . Оно не изменено.
+                  </p>
+                  {selected.technicalReasons.map((reason) => (
+                    <p key={reason}>{technicalHoldLabels[reason]}</p>
+                  ))}
+                  <p>
+                    Рерайт, планирование и публикация заблокированы. Это
+                    диагностика, не разрешение на обработку.
+                  </p>
+                </div>
+              </section>
+            )}
             <section className="rewrite-box">
               <PanelTitle title="Предложение AI" icon="spark">
                 <button
@@ -709,9 +731,11 @@ function Inbox({
                         ? "Нужна синхронизация Telegram: рерайт запрещён"
                         : selected.albumObserved
                           ? "Состав альбома не подтверждён: рерайт запрещён"
-                          : !canProcess(selected)
-                            ? "EditorialGate не разрешил рерайт"
-                            : "Применить к черновику"
+                          : selected.technicalReasons?.length
+                            ? "Технические ограничения: рерайт запрещён"
+                            : !canProcess(selected)
+                              ? "EditorialGate не разрешил рерайт"
+                              : "Применить к черновику"
                   }
                 >
                   Применить вариант
@@ -725,9 +749,11 @@ function Inbox({
                       ? "Синхронизация Telegram не завершена. AI-рерайт недоступен."
                       : selected.albumObserved
                         ? "Состав альбома не подтверждён. AI-рерайт недоступен."
-                        : canProcess(selected)
-                          ? "AI-вариант пока отсутствует. Провайдер не вызывается в DEMO."
-                          : "EditorialGate не разрешил рерайт. AI-вызовы недоступны.")}
+                        : selected.technicalReasons?.length
+                          ? "Материал остановлен техническими фильтрами. AI-рерайт недоступен."
+                          : canProcess(selected)
+                            ? "AI-вариант пока отсутствует. Провайдер не вызывается в DEMO."
+                            : "EditorialGate не разрешил рерайт. AI-вызовы недоступны.")}
               </p>
             </section>
             <label className="field">

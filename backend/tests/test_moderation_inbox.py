@@ -72,6 +72,7 @@ def test_moderation_inbox_api_returns_latest_revision_and_editorial_decision() -
                 "editorial_reason_codes": [],
                 "source_deleted": False,
                 "album_observed": False,
+                "technical_reason_codes": [],
             }
         ]
     }
@@ -128,6 +129,7 @@ def test_moderation_inbox_api_reads_database_configured_by_environment(
                 "editorial_reason_codes": ["PROTECTED_ENTITY_NEGATIVE"],
                 "source_deleted": False,
                 "album_observed": False,
+                "technical_reason_codes": [],
             }
         ]
     }

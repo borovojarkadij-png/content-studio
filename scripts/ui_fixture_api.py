@@ -10,7 +10,7 @@ from tempfile import TemporaryDirectory
 import uvicorn
 from alembic.config import Config
 from PIL import Image
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, null
 from sqlalchemy.orm import Session, sessionmaker
 
 from alembic import command
@@ -359,6 +359,51 @@ def main() -> None:
             TelegramChannelDifference("1", "-1003333333333", 10, 11, True, 0, (), (990009,)),
             observed_at=datetime.now(UTC),
         )
+        # Read-only technical holds: isolated sources, no rewrite/publish jobs.
+        with Session(engine) as session:
+            for message_id, caption, kind, links in (
+                (991001, "Изолированное видео без автоматизации API", "video", []),
+                (
+                    991002,
+                    "Изолированная скрытая ссылка API",
+                    "text",
+                    ["https://youtu.be/synthetic"],
+                ),
+                (991003, "Изолированные непроверенные ссылки API", "text", None),
+                (
+                    991004,
+                    "Изолированные повреждённые ссылки API",
+                    "text",
+                    {"private": "synthetic-only"},
+                ),
+            ):
+                source = IncomingPostModel(
+                    telegram_account_id="1",
+                    donor_channel_id="-1003333333333",
+                    telegram_message_id=message_id,
+                    state="MANUAL_REVIEW",
+                )
+                session.add(source)
+                session.flush()
+                session.add(
+                    ContentRevisionModel(
+                        incoming_post_id=source.id,
+                        revision_number=1,
+                        source_text=caption,
+                        media_type=kind,
+                        link_destinations=null() if links is None else links,
+                    )
+                )
+                session.add(
+                    EditorialDecisionModel(
+                        content_key=f"1:-1003333333333:{message_id}:revision:1",
+                        status="PASS",
+                        rewrite_allowed=True,
+                        sentiment="neutral",
+                        framing="neutral",
+                    )
+                )
+            session.commit()
         # Explicit synthetic unresolved-gap ledger, never operational configuration.
         with Session(engine) as session:
             source = IncomingPostModel(

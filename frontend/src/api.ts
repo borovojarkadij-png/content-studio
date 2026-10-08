@@ -1,4 +1,8 @@
-import type { Post } from "./studio";
+import {
+  technicalHoldLabels,
+  type Post,
+  type TechnicalHoldReason,
+} from "./studio";
 
 export type RewriteProvider = "OPENAI" | "OPENROUTER";
 
@@ -19,6 +23,7 @@ type IncomingRecord = {
   editorial_reason_codes: string[];
   source_deleted?: boolean;
   album_observed?: boolean;
+  technical_reason_codes?: TechnicalHoldReason[];
 };
 
 function isRecord(value: unknown): value is IncomingRecord {
@@ -41,14 +46,24 @@ function isRecord(value: unknown): value is IncomingRecord {
     (row.source_deleted === undefined ||
       typeof row.source_deleted === "boolean") &&
     (row.album_observed === undefined ||
-      typeof row.album_observed === "boolean")
+      typeof row.album_observed === "boolean") &&
+    (row.technical_reason_codes === undefined ||
+      (Array.isArray(row.technical_reason_codes) &&
+        row.technical_reason_codes.length <= 7 &&
+        new Set(row.technical_reason_codes).size ===
+          row.technical_reason_codes.length &&
+        row.technical_reason_codes.every(
+          (code) =>
+            typeof code === "string" &&
+            Object.hasOwn(technicalHoldLabels, code),
+        )))
   );
 }
 
 export async function loadInbox(signal: AbortSignal): Promise<Post[]> {
   const response = await fetch(
     `${import.meta.env.VITE_API_BASE_URL ?? ""}/api/telegram/incoming-posts`,
-    { signal },
+    { signal, cache: "no-store" },
   );
   if (!response.ok) throw new Error(`API вернул HTTP ${response.status}`);
   const payload: unknown = await response.json();
@@ -86,6 +101,7 @@ export async function loadInbox(signal: AbortSignal): Promise<Post[]> {
           ? "REJECT"
           : "PENDING",
     rewriteAllowed:
+      !item.technical_reason_codes?.length &&
       item.album_observed !== true &&
       item.source_deleted !== true &&
       item.state !== "SOURCE_DELETED" &&
@@ -97,6 +113,7 @@ export async function loadInbox(signal: AbortSignal): Promise<Post[]> {
       item.source_deleted === true || item.state === "SOURCE_DELETED",
     sourceSyncBlocked: item.state === "SOURCE_SYNC_REQUIRED",
     albumObserved: item.album_observed === true,
+    technicalReasons: item.technical_reason_codes ?? [],
   }));
 }
 

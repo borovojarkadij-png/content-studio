@@ -13,6 +13,25 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
 
 ## VERIFIED WORKING
 
+- Read-only Inbox technical-hold diagnostics implemented/verified OFFLINE:
+  latest SQL fixed codes for video manual-only, YouTube/malformed/unknown/corrupt
+  source links, album/protection; preserved editorial/source/job history,
+  private destination redaction, no-store and clean-session/fresh-read guards.
+  Strict real UI explains holds without invented editorial rejection or new
+  action/permission; DEMO and manual data unchanged. 31 new SQL cases /103 combined
+  PASS; full isolated Telethon 1.45 backend 1402 PASS /145.57s (48858), exact
+  lint/changed format/D: compile/explicit isolated migration drift PASS.
+  Frontend 200/format/build/audit0 PASS; final real migrated API/browser 33
+  PASS /55.0s (72664), GET-only/reload/no console errors/WCAG/1440-390.
+  Actual nested paragraph defect reproduced and fixed; independent review no
+  outstanding Critical/Important issue. Both final screenshots visually inspected
+  under `.artifacts/ui-dark-navy/inbox-technical-holds-20261008/`.
+  Expanded PostgreSQL CI includes 31 new cases; actual new checkpoint CI pending.
+  See INBOX_TECHNICAL_HOLDS_VERIFICATION.md. No operational migration/flags/key,
+  provider calls or real send. Windows Docker still independently environment blocked.
+- Corrected hidden-link 30280de / CI 37787946778 and docs f2ce40d / CI
+  37788650164 completed all-eight SUCCESS, actual fresh gh inspection.
+  Linux synthetic acceptance is not current Windows Desktop proof.
 - Hidden-link increment verified OFFLINE: provider captures bounded actual
   TextUrl/inline-button destinations without rewriting caption; immutable JSON
   metadata survives SQL reopen/edits and sync replay/photo comparisons. Unknown/
@@ -44,8 +63,8 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
   DB-dependent cases use migrated create-only PG namespace and actual reopen.
   CI used Telethon 1.45.0 / SQLAlchemy 2.1.4. Backend job 113347455180 lint/test/
   compile/migration gate SUCCESS and frontend job 113347455097 SUCCESS now
-  actually inspected. Remaining runtime jobs running at inspection;
-  no all-eight success claim. Original failed jobs remain failures.
+  actually inspected. Runtime jobs subsequently completed, all-eight SUCCESS
+  freshly inspected above. Original failed jobs remain failures.
 - Donor video/manual-only and visible YouTube/invalid URL exclusions verified
   OFFLINE: discard by default, optional MANUAL_REVIEW retention, no classifier/
   fingerprint/candidate/RewriteJob, ordinary source-created audit retained.
@@ -1054,14 +1073,17 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: inspect remaining exact 30280de CI 37787946778 (PG job 113347455090
-already 85 PASS /38.37s), diagnose/fix any genuine failed job without disabling
-checks or reseeding fixtures;
-do not call queued/running jobs PASS. Then add read-only moderation Inbox technical
-hold diagnostics for video manual-only, blocked links and legacy unknown/corrupt
-source-link metadata. Preserve historical editorial status while explaining
-why automation is unavailable; no override, AI, source download or publish action.
-Add regression and API/UI/narrow browser tests, document and continue independently.
+NEXT_STEP: commit/push verified Inbox technical diagnostics to the existing
+correct origin/codex/dark-navy-ui, inspect its exact expanded PostgreSQL CI
+(116 total cases expected; 31 new Inbox cases), diagnose/fix genuine failures
+without disabling checks or reseeding. Record actual checkpoint/run IDs below;
+queued/running is not PASS. Then continue independent approved media work:
+read existing MediaPreparation/mediaApi/media job-reader/publication-preflight
+contracts and expose the currently enforced library illustration relevance hold
+honestly in the existing Planner. Use read-only diagnostics/strict DTO/API/UI
+tests, no fabricated visual-semantic approval, provider qualification, worker
+enablement, network download or send. Existing generic queue/preview is already
+implemented; do not repeat it or claim a keyword match depicts the actual event.
 Video remains manual-only/discard; do NOT implement automatic video rewrite,
 download/upload or publication as a follow-on task. Ordinary hidden-link work
 does not require live login/paid AI/Docker. Keep Telegram-only scope.

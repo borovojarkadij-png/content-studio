@@ -52,6 +52,73 @@ const navigate = async (page: Page, name: string) => {
     .click();
 };
 
+test("real Inbox explains video and hidden-link holds without changing editorial history or sending writes", async ({
+  page,
+}, testInfo) => {
+  const writes: string[] = [];
+  const consoleErrors: string[] = [];
+  page.on("console", (message) => {
+    if (message.type() === "error") consoleErrors.push(message.text());
+  });
+  page.on("request", (request) => {
+    if (request.url().includes("/api/") && request.method() !== "GET")
+      writes.push(request.method());
+  });
+  await page.goto("/");
+  await navigate(page, "Входящие");
+  const panel = page.getByRole("region", { name: "Технические ограничения" });
+  for (const [source, explanation] of [
+    [
+      "Изолированное видео без автоматизации API",
+      "Видео: только ручная проверка",
+    ],
+    ["Изолированная скрытая ссылка API", "Ссылка YouTube"],
+    ["Изолированные непроверенные ссылки API", "Ссылки источника не проверены"],
+    ["Изолированные повреждённые ссылки API", "Метаданные ссылок повреждены"],
+  ]) {
+    await page.getByRole("button", { name: new RegExp(source) }).click();
+    await expect(panel).toContainText(explanation);
+    await expect(panel).toContainText("Историческое editorial-решение: PASS");
+    await expect(page.getByText(/EDITORIAL REJECT:/)).toHaveCount(0);
+    await expect(
+      page.getByText(/EditorialGate не разрешил рерайт/),
+    ).toHaveCount(0);
+    for (const name of ["Применить вариант", "Запланировать", "Опубликовать"])
+      await expect(
+        page.getByRole("button", { name, exact: true }),
+      ).toBeDisabled();
+    await expect(page.getByLabel("Черновик варианта")).toBeDisabled();
+  }
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await expect(panel).toContainText("Метаданные ссылок повреждены");
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    expect(
+      (
+        await new AxeBuilder({ page })
+          .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
+          .analyze()
+      ).violations,
+    ).toEqual([]);
+    await page.screenshot({
+      path: testInfo.outputPath(`inbox-technical-holds-${width}.png`),
+      fullPage: true,
+    });
+  }
+  await page.reload();
+  await navigate(page, "Входящие");
+  await page
+    .getByRole("button", { name: /Изолированная скрытая ссылка API/ })
+    .click();
+  await expect(panel).toContainText("Ссылка YouTube");
+  expect(writes).toEqual([]);
+  expect(consoleErrors).toEqual([]);
+});
+
 test("real Connections explains manual-only video and mandatory YouTube exclusion without writes", async ({
   page,
 }, testInfo) => {

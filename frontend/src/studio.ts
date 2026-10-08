@@ -8,6 +8,22 @@ export type Page =
   | "accounts"
   | "settings";
 export type Tone = "blue" | "green" | "orange" | "violet" | "red" | "muted";
+export const technicalHoldLabels = {
+  VIDEO_MANUAL_REVIEW_REQUIRED:
+    "Видео: только ручная проверка, без автоматического рерайта и публикации.",
+  YOUTUBE_LINK:
+    "Ссылка YouTube в тексте или скрытых элементах: материал исключён до AI.",
+  INVALID_LINK: "Некорректная ссылка: автоматическая обработка недоступна.",
+  SOURCE_LINKS_UNKNOWN:
+    "Ссылки источника не проверены: нужна новая достоверная Telegram-ревизия; история сохранена.",
+  SOURCE_LINKS_INVALID:
+    "Метаданные ссылок повреждены: автоматическая обработка недоступна; история сохранена.",
+  ALBUM_NORMALIZATION_REQUIRED:
+    "Состав альбома не подтверждён: автоматическая обработка недоступна.",
+  PROTECTED_CONTENT:
+    "Источник защищён от копирования: автоматическая обработка недоступна.",
+} as const;
+export type TechnicalHoldReason = keyof typeof technicalHoldLabels;
 export type ContentState =
   | "Новый"
   | "На проверке"
@@ -32,6 +48,7 @@ export type Post = {
   sourceDeleted?: boolean;
   sourceSyncBlocked?: boolean;
   albumObserved?: boolean;
+  technicalReasons?: TechnicalHoldReason[];
 };
 export type Donor = {
   id: string;
@@ -492,6 +509,7 @@ export function datePlus(date: string, days: number) {
 }
 export function canProcess(post: Post) {
   return (
+    !post.technicalReasons?.length &&
     !post.albumObserved &&
     !post.sourceDeleted &&
     !post.sourceSyncBlocked &&

@@ -588,8 +588,10 @@ def plan_publications_for_day(
 
 @router.get("/incoming-posts")
 def list_incoming_posts(
+    response: Response,
     reader: Annotated[ModerationInboxReader | None, Depends(get_moderation_inbox_reader)],
 ) -> dict[str, list[object]]:
+    response.headers["Cache-Control"] = "no-store"
     return {"items": [] if reader is None else [item.as_dict() for item in reader.list_items()]}
 
 
