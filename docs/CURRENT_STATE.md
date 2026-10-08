@@ -2,6 +2,12 @@
 
 ## VERIFIED WORKING
 
+- Overview PG integral aggregate serialization reproduced/fixed OFFLINE: actual
+  HTTP `'1' != 1` RED -> GREEN; SQL SUM(bigint) Decimal normalized to int, exact
+  monetary estimate unchanged. 41 combined overview/wait/media regressions PASS,
+  explicit fresh D: round-trip/drift PASS. Original 322603e CI 37755335470 failed
+  dedicated PG probe; its other four jobs passed. Corrective exact PG CI pending.
+
 - Real read-only Overview/known AI usage OFFLINE: 5 dedicated / 30 combined /
   fresh full backend 1011 PASS (74185); frontend 97 units / 28 browser PASS (38350),
   exact CI Ruff/format/compile/explicit D: drift/build/typecheck/audit0 PASS. Precise
@@ -779,8 +785,11 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: checkpoint Overview and inspect its exact dedicated PG/quality CI,
-fix ordinary failures without weakening guards. Continue bounded fair automatic
+NEXT_STEP: checkpoint the Overview PG integral-counter correction and inspect
+its exact dedicated PG/quality CI, without weakening guards. Finish/checkpoint
+the current bounded fair media increment: core and main-loop regressions GREEN,
+28 dedicated tests and earlier 1039 full backend PASS; fresh combined full gate
+is running after PG fix. Continue bounded fair automatic
 media admission: first-N rejected/stale pending candidates must not starve later
 eligible candidates. Preserve fresh gates/source-rights/idempotency and terminal
 history, keep network flags disabled. Test-first real SQL/reopen, then guarded

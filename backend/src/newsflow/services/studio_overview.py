@@ -54,7 +54,10 @@ class StudioOverviewReader:
             ),
             "unknown_cost_records": unknown,
             "durable_attempts": attempts,
-            "unobserved_attempts": unobserved,
+            # PG SUM(bigint) is NUMERIC (psycopg Decimal), unlike SQLite.
+            # This sum contains only integral counts; keep JSON a counter,
+            # not a Decimal-serialized string. Monetary estimates stay exact.
+            "unobserved_attempts": int(unobserved),
         }
 
     def read(self, *, now: datetime) -> dict[str, object]:

@@ -152,6 +152,49 @@ def test_overview_http_is_read_only_no_store_and_storage_errors_are_redacted(
         assert "SELECT" not in response.text and "missing-tables.db" not in response.text
 
 
+def test_postgresql_numeric_attempt_sum_is_an_integer_in_real_http_contract(rewrite_store):
+    from types import SimpleNamespace
+
+    from newsflow.api.studio import get_overview_reader
+    from newsflow.services.studio_overview import StudioOverviewReader
+
+    with rewrite_store.begin() as session:
+        session.get(models.RewriteJobModel, 1).attempts = 1
+
+    class NumericSumDriver:
+        """Only emulate PG SUM(bigint); all query/results still come from real SQL."""
+
+        def __init__(self, session):
+            self.session = session
+
+        def scalar(self, statement):
+            return self.session.scalar(statement)
+
+        def execute(self, statement):
+            row = self.session.execute(statement).one()
+            if len(row) == 2:
+                row = (row[0], Decimal(row[1]))
+            return SimpleNamespace(one=lambda: row)
+
+    def reader():
+        with rewrite_store() as session:
+            yield StudioOverviewReader(NumericSumDriver(session))
+
+    app.dependency_overrides[get_overview_reader] = reader
+    try:
+        with TestClient(app) as client:
+            response = client.get("/api/studio/overview")
+            assert response.status_code == 200
+            report = response.json()
+            assert report["usage"][0]["unobserved_attempts"] == 1
+            assert report["usage"][1]["unobserved_attempts"] == 0
+            for usage in report["usage"]:
+                assert type(usage["unobserved_attempts"]) is int
+                assert usage["known_estimated_cost_usd"] == "0.0000000000"
+    finally:
+        app.dependency_overrides.pop(get_overview_reader, None)
+
+
 def test_acknowledged_and_uncertain_history_are_never_confused(source_store):
     from test_publication_preflight import seed_plan
     from test_publication_runner import NOW as publication_now

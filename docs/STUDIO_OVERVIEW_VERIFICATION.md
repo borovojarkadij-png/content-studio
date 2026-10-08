@@ -55,8 +55,21 @@ DEMO's existing eight reference-based compositions and behavior are unchanged.
 
 Create-only dedicated sync/wait probe now checks the real Overview HTTP response
 before/after recovery/down-up: exact scope, no-store, unknown billing/usage and
-retained history. Its consumer test is RED -> GREEN locally. New PostgreSQL runtime
-execution remains pending this exact commit's GitHub CI; SQLite is not PG proof.
+retained history. Its consumer test is RED -> GREEN locally. Exact Overview commit
+322603ee85164c624801847217279791e48f332e CI 37755335470 completed FAILURE:
+backend/frontend and both legacy Docker variants succeeded, but the dedicated
+PostgreSQL sync probe found a JSON counter string at `verify_overview` line 271.
+This is an implementation defect, not the independent Windows environment blocker.
+
+Root cause: `SUM(CASE ... job.attempts - COUNT(usage.id) ...)` sums PostgreSQL
+BIGINT, whose result is NUMERIC/psycopg Decimal; FastAPI serializes that Decimal
+as a JSON string. SQLite returned an integer, so its prior gate did not expose
+the mismatch. A real SQL reader + narrowly simulated PG result adapter through
+the actual HTTP endpoint reproduced `'1' != 1` RED. Normalize only the integral
+`unobserved_attempts` result to Python int; monetary Decimal subtotal remains
+exactly ten fractional digits. Same HTTP regression now GREEN; no consumer
+validation/probe weakened or skipped. 41 combined overview/wait/media regressions
+PASS; new exact PostgreSQL rerun remains pending the corrective commit's CI.
 
 Donor status predecessor 6d93131 CI **37753560333** completed SUCCESS in all five
 jobs (actual gh view). Current Windows Docker remains **NOT VERIFIED / BLOCKED BY
