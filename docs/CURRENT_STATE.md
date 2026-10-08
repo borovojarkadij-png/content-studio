@@ -1,7 +1,23 @@
 # Current state
 
+## Current user scope — 2026-10-08
+
+Content Studio is Telegram-only. The user explicitly excluded YouTube from
+the project deliverable, not merely from PHASE 1. Continue donor ingestion,
+filters/editorial/dedup, per-output rewrites, original/selected media,
+automatic channel planning and guarded Telegram publication in the existing
+repository. Do not implement, schedule or include YouTube in progress estimates.
+Earlier YouTube references are historical scope, superseded by this instruction.
+The goal tool was inspected: no separate active goal is currently configured;
+do not invent a new goal. NEXT_STEP below remains Telegram-only.
+
 ## VERIFIED WORKING
 
+- Fan-out dedup checkpoint 34df8727f8a6bec2da5c2f0d1be45863b19b8987 committed/pushed
+  to correct origin. Fresh 32 combined tests / lint / changed format PASS.
+  Exact CI 37779474808 PostgreSQL job 113318630963 completed SUCCESS with
+  61 PASS / 31.35s, including all ten new rollback/concurrency/per-output cases.
+  Remaining jobs not yet accepted as completed. No operational flags changed.
 - Shared mapping exact dedup on retained-source fan-out implemented OFFLINE:
   four migrated behavior RED; corrected missing reservation then actual SQLite
   first-savepoint rollback RED; targeted atomic PG/SQLite conflict insert GREEN.
@@ -984,9 +1000,17 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: checkpoint atomic mapping fan-out dedup (final full backend 1230
-PASS / 133.53s, 1325), commit/push verified increment to correct origin and
-inspect exact new PostgreSQL concurrency/rollback job and eight-job CI.
+NEXT_STEP: finish bounded single-source raw video provider contract regression
+cycle in test_telegram_video_download.py and providers/telegram.py; initial
+three missing-method RED -> three GREEN plus 15 existing photo PASS. Expanded
+guard cases currently RED (request/DTO source validation, ambiguous media and
+missing encrypted factory forwarding); correct fixture parameter IDs to avoid
+oversized pytest node IDs, then fix production guards and re-test. This work
+is UNCOMMITTED / NOT VERIFIED, not playable-media or publication support.
+Inspect remaining exact dedup CI 37779474808 (PG job 113318630963: 61 PASS),
+then relevant/full gates, docs, commit/push only verified changes.
+Atomic fan-out dedup checkpoint 34df872 has final full backend 1230 PASS
+/ 133.53s (1325) and fresh 32 combined confirmation PASS.
 UI 7471132 / 37777065559 completed all-eight SUCCESS (actual gh inspection).
 Then
 continue bounded album/video provider contracts and guarded media workflow,

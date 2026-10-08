@@ -1,5 +1,10 @@
 # Implementation plan
 
+Current scope (user clarification, 2026-10-08): Telegram Content Studio only.
+YouTube analysis/distribution/upload is excluded from the deliverable and all
+remaining-work/progress estimates. This overrides historical master-spec
+YouTube sections without changing the approved Telegram architecture or gates.
+
 - [x] Repository, backend test harness, frontend build foundation
 - [x] Alembic explicit-target guard for CLI/programmatic use, isolated sentinel regressions and dedicated CI migration DB; local target incident documented in ALEMBIC_TARGET_GUARD.md
 - [x] Editorial/Rewrite/Publication domain hard-gate prototype with tests

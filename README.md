@@ -5,6 +5,9 @@
 PHASE 1 строит Telegram News Hub как modular monolith. Основной режим — ручная
 модерация; автоматическая публикация не включена по умолчанию.
 
+Актуальный объём проекта (уточнение пользователя 2026-10-08): только Telegram
+Content Studio. YouTube исключён из реализации и оценки оставшейся работы.
+
 ## Local development
 
 1. With Docker Desktop running, explicitly run `scripts/initialize-local.ps1`

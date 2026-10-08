@@ -30,6 +30,6 @@ must not be regenerated after encrypted data exists.
 ## Module boundaries
 
 `content`, `editorial`, `telegram`, `media`, `routing`, `scheduler`, `ai`, and
-`analytics` expose domain/service contracts. Future YouTube uses shared
-`ContentItem`, `ContentEntity`, `ContentTopic`, `EditorialDecision`,
-`DistributionRule` and `ScheduleSlot`, rather than a separate policy engine.
+`analytics` expose domain/service contracts. Current Content Studio scope is
+Telegram-only (explicit user clarification, 2026-10-08). Earlier YouTube plans
+are excluded; generic boundaries do not authorize a new platform subsystem.

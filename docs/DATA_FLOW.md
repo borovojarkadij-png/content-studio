@@ -11,8 +11,10 @@
 7. Scheduler applies limits, TTL, timezone, quiet hours and locks.
 8. Moderator approves; publication revalidates current hard constraints before send.
 
-## YouTube (future contract)
+## YouTube (historical contract — out of scope)
 
 URL import → metadata/transcript when available → shared content analysis →
 editorial decision → channel matching → editable schedule plan. No live YouTube
-transport is part of PHASE 1.
+transport is implemented. The user excluded YouTube from the entire current
+Content Studio deliverable on 2026-10-08; this flow is historical context, not
+a remaining task or permission to implement it.

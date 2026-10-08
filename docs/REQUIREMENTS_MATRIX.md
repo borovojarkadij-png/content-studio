@@ -19,5 +19,5 @@
 | UI-002 | Preserve source/manual drafts | UI | VERIFIED LOCALLY | navigation/overwrite-confirm/reject read-only regressions |
 | UI-003 | Honest DEMO/API boundaries | UI | VERIFIED LOCALLY | actual isolated API, HTTP retry, malformed response and no DEMO API traffic tests |
 | UI-004 | Accessible/responsive default sections | UI | VERIFIED LOCALLY | axe A/AA checks; five viewport sizes; modal focus regressions |
-| R-008 | YouTube contracts | Future | NOT IMPLEMENTED | architecture only |
+| R-008 | YouTube contracts (historical requirement) | Excluded | OUT OF SCOPE | User explicitly restricted Content Studio to Telegram on 2026-10-08; no implementation or progress weight |
 | R-015 | Exact source-photo reuse with explicit rights | 1 | PARTIAL | immutable protected identity, bounded decoded acquisition and original-photo transport, rights/attribution, durable jobs, Connections rights/Planner queue/exact protected preview; synthetic recovery verified; actual authorized source download/send pending |
