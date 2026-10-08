@@ -64,18 +64,25 @@ are unchanged; technical retention is not a fabricated editorial decision.
 Hidden-link SQL tests use the migrated create-only mapping_store fixture, which
 selects a strict separately named PostgreSQL namespace only when the validated
 CI environment URL exists, otherwise isolated SQLite. GitHub PostgreSQL job now
-includes test_hidden_donor_links.py; actual new PG acceptance is still pending.
+includes test_hidden_donor_links.py; actual corrective PG acceptance is recorded below.
 Exact committed/pushed source checkpoint:
 `d871dd1d2ae26af6bb5a8c680a6ff7f223d53cd4`, `codex/dark-navy-ui`, correct
-origin `https://github.com/borovojarkadij-png/content-studio.git`. Preceding
-New CI 37786943304 backend/PG jobs FAILED collection because Telethon 1.45
+origin `https://github.com/borovojarkadij-png/content-studio.git`.
+Original CI 37786943304 backend/PG jobs FAILED collection because Telethon 1.45
 removed KeyboardButtonUrl. The actual downloaded SDK introduces nested
 KeyboardInlineButton/InlineButtonTypeUrl destinations; compatible fixtures then
 reproduced 2 missing-capture behavior RED. Minimal bounded capture supports both
 new and old formats; 110 relevant PASS with isolated 1.45, 24 hidden tests PASS
 with installed 1.44. Full isolated 1.45 1371 PASS /119.78s (41174), fresh exact
 Ruff/format/D: compile PASS, independent read-only review no actionable findings.
-Corrective CI acceptance still pending. Docs-only 19d6eda /37787154561 also
+Corrective checkpoint 30280de993045a83d93e73447f0c3a6bd3831773 / CI 37787946778:
+actual PostgreSQL job 113347455090 SUCCESS, 85 PASS /38.37s with Telethon 1.45.0
+and SQLAlchemy 2.1.4, including all 24 hidden-link tests (SQL-dependent cases
+actually use isolated migrated PG). Backend job 113347455180 complete lint/test/
+compile/migration gate SUCCESS and frontend job 113347455097 SUCCESS actually
+inspected. Remaining runtime jobs still running at inspection, not all-eight proof.
+The NOT NULL database log is the existing deliberate dedup integrity regression,
+not a failed job. Docs-only 19d6eda /37787154561 also
 backend/PG FAILED at inspection. No older
 dependency pin, skipped test or gate relaxation. Preceding
 e8064d7 /37784840224 completed all-eight SUCCESS, actual gh inspection; this

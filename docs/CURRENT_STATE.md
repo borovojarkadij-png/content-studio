@@ -38,7 +38,14 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
   1371 PASS /119.78s (41174), Ruff/format/D: compile PASS. Independent required
   review found no actionable correction issue; no reviewer test execution.
   Docs-only 19d6eda /37787154561 also backend/PG FAILED at inspection.
-  Corrective new GitHub execution pending; original failures remain failures.
+  Corrective source checkpoint committed/pushed
+  30280de993045a83d93e73447f0c3a6bd3831773. Exact CI 37787946778 PostgreSQL
+  job 113347455090 SUCCESS: 85 PASS /38.37s, including 24 hidden-link cases;
+  DB-dependent cases use migrated create-only PG namespace and actual reopen.
+  CI used Telethon 1.45.0 / SQLAlchemy 2.1.4. Backend job 113347455180 lint/test/
+  compile/migration gate SUCCESS and frontend job 113347455097 SUCCESS now
+  actually inspected. Remaining runtime jobs running at inspection;
+  no all-eight success claim. Original failed jobs remain failures.
 - Donor video/manual-only and visible YouTube/invalid URL exclusions verified
   OFFLINE: discard by default, optional MANUAL_REVIEW retention, no classifier/
   fingerprint/candidate/RewriteJob, ordinary source-created audit retained.
@@ -1047,9 +1054,9 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: checkpoint verified Telethon 1.44/1.45 nested inline-button correction,
-then inspect exact corrective
-CI, especially create-only migrated PostgreSQL hidden-link tests;
+NEXT_STEP: inspect remaining exact 30280de CI 37787946778 (PG job 113347455090
+already 85 PASS /38.37s), diagnose/fix any genuine failed job without disabling
+checks or reseeding fixtures;
 do not call queued/running jobs PASS. Then add read-only moderation Inbox technical
 hold diagnostics for video manual-only, blocked links and legacy unknown/corrupt
 source-link metadata. Preserve historical editorial status while explaining
