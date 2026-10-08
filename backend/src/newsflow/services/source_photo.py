@@ -13,7 +13,15 @@ from tempfile import NamedTemporaryFile
 
 from sqlalchemy import select
 
-from newsflow.persistence.models import IncomingPostModel, RewriteOutputModel, TelegramAccount
+from newsflow.persistence.models import (
+    ChannelMappingModel,
+    DonorChannel,
+    IncomingPostModel,
+    MappingSourceRightsModel,
+    PublicationCandidateModel,
+    RewriteOutputModel,
+    TelegramAccount,
+)
 from newsflow.providers.telegram import TelegramMessage, TelegramPhotoDownload
 from newsflow.services.media_selection import (
     LocalMediaSelectionService,
@@ -25,6 +33,78 @@ from newsflow.services.source_revisions import source_revision
 
 def _utc(value):
     return value.replace(tzinfo=UTC) if value.tzinfo is None else value.astimezone(UTC)
+
+
+def validate_source_rights(license_code, attribution):
+    if (
+        not isinstance(license_code, str)
+        or license_code not in {"OWNED", "PERMISSION"}
+        or not isinstance(attribution, str)
+        or len(attribution.strip()) > 2048
+        or (license_code == "PERMISSION" and not attribution.strip())
+    ):
+        raise ValueError("Source reuse requires explicit valid rights/attribution")
+    return license_code, attribution.strip()
+
+
+def source_job_digest(binding, license_code, attribution, policy_revision=None):
+    key, channel_id, revision_id, user_id, message, draft_sha = binding
+    observation = (
+        message.account_id,
+        message.donor_identifier,
+        message.message_id,
+        message.text,
+        message.media_type,
+        message.media_id,
+        message.media_protected,
+        message.album_id,
+        message.source_updated_at.isoformat(),
+    )
+    value = (
+        key,
+        channel_id,
+        revision_id,
+        user_id,
+        observation,
+        draft_sha,
+        license_code,
+        attribution,
+        policy_revision,
+    )
+    return sha256(json.dumps(value, ensure_ascii=False).encode()).hexdigest()
+
+
+def source_job_binding_digest(session, acquisition, candidate_id, license_code, attribution):
+    binding = acquisition._binding(session, candidate_id)
+    candidate = session.get(PublicationCandidateModel, candidate_id, populate_existing=True)
+    revision = None
+    if candidate.mapping_id is not None:
+        mapping = session.scalar(
+            select(ChannelMappingModel)
+            .where(ChannelMappingModel.id == candidate.mapping_id)
+            .execution_options(populate_existing=True)
+            .with_for_update()
+        )
+        rights = session.get(MappingSourceRightsModel, candidate.mapping_id, populate_existing=True)
+        donor = (
+            session.get(DonorChannel, mapping.donor_channel_id, populate_existing=True)
+            if mapping
+            else None
+        )
+        if (
+            mapping is None
+            or donor is None
+            or mapping.media_policy != "REUSE_SOURCE"
+            or mapping.output_channel_id != candidate.output_channel_id
+            or str(donor.telegram_account_id) != binding[4].account_id
+            or str(donor.telegram_channel_id) != binding[4].donor_identifier
+            or rights is None
+            or (rights.license_code, rights.attribution) != (license_code, attribution)
+            or rights.license_code not in {"OWNED", "PERMISSION"}
+        ):
+            raise MediaSelectionBlocked("CURRENT_MAPPING_SOURCE_RIGHTS_REQUIRED")
+        revision = (mapping.id, rights.revision)
+    return source_job_digest(binding, license_code, attribution, revision)
 
 
 class SourcePhotoAcquisition:
@@ -73,7 +153,7 @@ class SourcePhotoAcquisition:
         if (
             account is None
             or not account.encrypted_session
-            or account.health_status != "CONNECTED"
+            or account.health_status not in {"CONNECTED", "COOLDOWN"}
             or (account.cooldown_until is not None and _utc(account.cooldown_until) > now)
         ):
             raise MediaSelectionBlocked("HEALTHY_PROVISIONED_SOURCE_ACCOUNT_REQUIRED")
@@ -122,14 +202,18 @@ class SourcePhotoAcquisition:
         )
 
     def acquire(
-        self, candidate_id: int, *, license_code: str, attribution: str, tags: tuple[str, ...] = ()
+        self,
+        candidate_id: int,
+        *,
+        license_code: str,
+        attribution: str,
+        tags: tuple[str, ...] = (),
+        execution_guard=None,
+        completion=None,
     ) -> dict[str, object]:
+        license_code, attribution = validate_source_rights(license_code, attribution)
         if (
-            license_code not in {"OWNED", "PERMISSION"}
-            or not isinstance(attribution, str)
-            or len(attribution.strip()) > 2048
-            or (license_code == "PERMISSION" and not attribution.strip())
-            or not isinstance(tags, (tuple, list))
+            not isinstance(tags, (tuple, list))
             or len(tags) > 20
             or any(not isinstance(tag, str) or not 0 < len(tag.strip()) <= 100 for tag in tags)
         ):
@@ -137,6 +221,8 @@ class SourcePhotoAcquisition:
         attribution = attribution.strip()
         tags = tuple(sorted({tag.strip().casefold() for tag in tags}))
         with self._factory() as session:
+            if execution_guard:
+                execution_guard(session)
             binding = self._binding(session, candidate_id)
         expected = binding[4]
         result = self._provider.download_photo(
@@ -154,6 +240,8 @@ class SourcePhotoAcquisition:
         else:
             raise MediaUnavailable("Unsupported source photo signature")
         with self._factory() as session:
+            if execution_guard:
+                execution_guard(session)
             if self._binding(session, candidate_id) != binding:
                 raise MediaSelectionBlocked("SOURCE_PHOTO_BINDING_CHANGED")
             directory = self._root / "source"
@@ -175,6 +263,8 @@ class SourcePhotoAcquisition:
             try:
                 media = LocalMediaSelectionService(session, self._root)
                 digest, mime = media._read_photo("source/" + temporary.name)
+                if execution_guard:
+                    execution_guard(session)
                 if self._binding(session, candidate_id) != binding:
                     raise MediaSelectionBlocked("SOURCE_PHOTO_BINDING_CHANGED")
                 try:
@@ -198,6 +288,8 @@ class SourcePhotoAcquisition:
                 )
                 if self._binding(session, candidate_id) != binding:
                     raise MediaSelectionBlocked("SOURCE_PHOTO_BINDING_CHANGED")
+                if completion:
+                    completion(session, asset["id"])
                 session.commit()
             finally:
                 temporary.unlink()  # Only this invocation's generated staging file.

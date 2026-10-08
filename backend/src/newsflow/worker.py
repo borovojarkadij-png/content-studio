@@ -31,6 +31,7 @@ from newsflow.services.donor_ingestion_runner import DonorIngestionRunner
 from newsflow.services.durable_media_runner import DurableMediaRunner
 from newsflow.services.durable_rewrite_runner import DurableRewriteRunner
 from newsflow.services.durable_semantic_runner import DurableSemanticRunner
+from newsflow.services.durable_source_photo_runner import DurableSourcePhotoRunner
 from newsflow.services.publication_planning import PlanValidationError, PublicationPlanningService
 from newsflow.services.rewrite_provider_factory import ConfiguredRewriteProviderFactory
 from newsflow.services.semantic_verifier_factory import ConfiguredSemanticVerifierFactory
@@ -98,6 +99,32 @@ def run_media_tick(
     if not enabled:
         return "DISABLED"
     execution = DurableMediaRunner(session_factory, media_root, provider=provider)
+    execution.enqueue_pending(now=now)
+    return execution.run_next(now=now)
+
+
+def run_source_photo_tick(
+    session_factory,
+    *,
+    media_root: Path,
+    enabled: bool,
+    cipher: SessionCipher | None,
+    now: datetime,
+    credentials_path: Path | None = None,
+    provider=None,
+) -> str:
+    if not enabled:
+        return "DISABLED"
+    if cipher is None:
+        raise ValueError("Explicit stable cipher is required for source-photo acquisition")
+    if provider is None:
+        if credentials_path is None:
+            raise ValueError("Provision Telegram credentials before enabling source acquisition")
+        api_id, api_hash = load_telegram_credentials(credentials_path)
+        provider = ConfiguredTelegramProvider(
+            session_factory, cipher=cipher, api_id=api_id, api_hash=api_hash
+        )
+    execution = DurableSourcePhotoRunner(session_factory, media_root, provider=provider)
     execution.enqueue_pending(now=now)
     return execution.run_next(now=now)
 
@@ -273,12 +300,13 @@ def main() -> None:
     semantic_enabled = rewrite_enabled(getenv("NEWSFLOW_SEMANTIC_VERIFICATION_ENABLED", "0"))
     media_enabled = rewrite_enabled(getenv("NEWSFLOW_INTERNET_MEDIA_ENABLED", "0"))
     ingestion_enabled = rewrite_enabled(getenv("NEWSFLOW_TELEGRAM_INGESTION_ENABLED", "0"))
+    source_photo_enabled = rewrite_enabled(getenv("NEWSFLOW_SOURCE_PHOTO_ENABLED", "0"))
     provider = getenv("NEWSFLOW_REWRITE_PROVIDER", "OPENAI")
     if provider not in {"OPENAI", "OPENROUTER"}:
         raise ValueError("NEWSFLOW_REWRITE_PROVIDER must be OPENAI or OPENROUTER")
     cipher = (
         SessionCipher(load_runtime_master_key())
-        if network_enabled or semantic_enabled or ingestion_enabled
+        if network_enabled or semantic_enabled or ingestion_enabled or source_photo_enabled
         else None
     )
     stopped = Event()
@@ -353,6 +381,24 @@ def main() -> None:
                 logger.info("media.tick", outcome=outcome)
             except Exception:  # noqa: BLE001 - retain committed lease, never log private data
                 logger.warning("media.execution_interrupted", recovery="persisted_lease")
+        if source_photo_enabled and not stopped.is_set():
+            try:
+                outcome = run_source_photo_tick(
+                    factory,
+                    enabled=True,
+                    cipher=cipher,
+                    media_root=Path(getenv("NEWSFLOW_MEDIA_ROOT", "/var/lib/newsflow/media")),
+                    now=datetime.now(UTC),
+                    credentials_path=Path(
+                        getenv(
+                            "NEWSFLOW_TELEGRAM_CREDENTIALS_FILE",
+                            "/run/secrets/telegram_credentials",
+                        )
+                    ),
+                )
+                logger.info("source_photo.tick", outcome=outcome)
+            except Exception:  # noqa: BLE001 - preserve leases, never log sessions or provider data
+                logger.warning("source_photo.execution_interrupted", recovery="persisted_lease")
         stopped.wait(interval)
 
 

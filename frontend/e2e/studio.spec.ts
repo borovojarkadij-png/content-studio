@@ -145,6 +145,30 @@ test("real configuration persists filters, delay, imports and names through relo
   await expect(page.getByLabel("Дополнительные рекламные маркеры")).toHaveValue(
     "buy now",
   );
+  await expect(page.getByLabel("Права на исходное фото")).toHaveValue(
+    "UNDECLARED",
+  );
+  await page.getByLabel("Права на исходное фото").selectOption("PERMISSION");
+  await page
+    .getByLabel("Основание / авторство")
+    .fill("Разрешение синтетического правообладателя");
+  await page
+    .getByRole("button", { name: "Сохранить права на фото", exact: true })
+    .click();
+  await expect(page.getByText("Права сохранены в базе данных.")).toBeVisible();
+  await page.reload();
+  await navigate(page, "Связи");
+  await expect(page.getByLabel("Права на исходное фото")).toHaveValue(
+    "PERMISSION",
+  );
+  await expect(page.getByLabel("Основание / авторство")).toHaveValue(
+    "Разрешение синтетического правообладателя",
+  );
+  await page.getByLabel("Права на исходное фото").selectOption("UNDECLARED");
+  await page
+    .getByRole("button", { name: "Сохранить права на фото", exact: true })
+    .click();
+  await expect(page.getByText("Права сохранены в базе данных.")).toBeVisible();
   await page
     .getByLabel("Донор нового маршрута")
     .selectOption({ label: "Другой изолированный донор API" });

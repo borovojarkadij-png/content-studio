@@ -257,6 +257,9 @@ if ($SourcePhotoGuard) {
     Invoke-SourcePhotoProbe 'seed'
     Invoke-VerificationCompose down
     Invoke-VerificationCompose up -d --wait --wait-timeout 180
+    Write-Output 'Waiting for the synthetic source-photo lease to expire.'
+    for ($tick = 0; $tick -lt 13; $tick++) { Start-Sleep -Seconds 5 }
+    Invoke-SourcePhotoProbe 'recover'
     Invoke-VerificationCompose restart worker
     Invoke-SourcePhotoProbe 'verify'
     Invoke-SourcePhotoProbe 'blocked'

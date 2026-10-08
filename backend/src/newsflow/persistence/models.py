@@ -166,6 +166,27 @@ class ChannelMappingModel(Base):
     media_policy: Mapped[str] = mapped_column(String(32), nullable=False, default="REUSE_SOURCE")
 
 
+class MappingSourceRightsModel(Base):
+    """Explicit human declaration. Absence never implies donor media permission."""
+
+    __tablename__ = "mapping_source_rights"
+    __table_args__ = (
+        CheckConstraint("revision > 0", name="ck_source_rights_revision"),
+        CheckConstraint(
+            "license_code IN ('UNDECLARED', 'OWNED', 'PERMISSION')", name="ck_source_rights_license"
+        ),
+        CheckConstraint(
+            "length(attribution) <= 2048 AND (license_code <> 'PERMISSION' OR length(trim(attribution)) > 0) "
+            "AND (license_code <> 'UNDECLARED' OR attribution = '')",
+            name="ck_source_rights_attribution",
+        ),
+    )
+    mapping_id: Mapped[int] = mapped_column(ForeignKey("channel_mappings.id"), primary_key=True)
+    license_code: Mapped[str] = mapped_column(String(16), nullable=False)
+    attribution: Mapped[str] = mapped_column(String(2048), nullable=False)
+    revision: Mapped[int] = mapped_column(Integer, nullable=False)
+
+
 class DonorImportModel(Base):
     """Unresolved identifiers are not fabricated operational Telegram channels."""
 
@@ -306,7 +327,7 @@ class MediaAssetModel(Base):
 
 
 class MediaAcquisitionJobModel(Base):
-    """Internet illustration acquisition; selected bytes never live only in a container."""
+    """Mode-bound acquisition; rights and selected bytes survive worker restarts."""
 
     __tablename__ = "media_acquisition_jobs"
     __table_args__ = (
@@ -320,12 +341,28 @@ class MediaAcquisitionJobModel(Base):
             "state <> 'RUNNING' OR (claim_token IS NOT NULL AND lease_expires_at IS NOT NULL)"
         ),
         CheckConstraint("state <> 'SUCCEEDED' OR selected_asset_id IS NOT NULL"),
+        CheckConstraint(
+            "acquisition_mode IN ('LICENSED_LIBRARY', 'REUSE_SOURCE')",
+            name="ck_media_job_mode",
+        ),
+        CheckConstraint(
+            "(acquisition_mode = 'LICENSED_LIBRARY' AND license_code IS NULL AND attribution IS NULL) OR "
+            "(acquisition_mode = 'REUSE_SOURCE' AND license_code IS NOT NULL AND attribution IS NOT NULL "
+            "AND license_code IN ('OWNED', 'PERMISSION') AND length(attribution) <= 2048 "
+            "AND (license_code <> 'PERMISSION' OR length(trim(attribution)) > 0))",
+            name="ck_media_job_rights",
+        ),
     )
     id: Mapped[int] = mapped_column(primary_key=True)
     candidate_id: Mapped[int] = mapped_column(
         ForeignKey("publication_candidates.id"), nullable=False, index=True
     )
     binding_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    acquisition_mode: Mapped[str] = mapped_column(
+        String(32), nullable=False, default="LICENSED_LIBRARY", server_default="LICENSED_LIBRARY"
+    )
+    license_code: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    attribution: Mapped[str | None] = mapped_column(String(2048), nullable=True)
     state: Mapped[str] = mapped_column(String(16), nullable=False)
     attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
     available_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)

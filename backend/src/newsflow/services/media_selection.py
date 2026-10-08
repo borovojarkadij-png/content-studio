@@ -14,7 +14,9 @@ from sqlalchemy.orm import Session
 
 from newsflow.domain.editorial import editorial_allows_rewrite
 from newsflow.persistence.models import (
+    ChannelMappingModel,
     EditorialDecisionModel,
+    MappingSourceRightsModel,
     MediaAssetModel,
     PublicationCandidateModel,
     RewriteOutputModel,
@@ -181,7 +183,13 @@ class LocalMediaSelectionService:
         if type(limit) is not int or not 1 <= limit <= 10 or len(query) > 10000:
             raise ValueError("Invalid media selection limit/query")
         candidate = self._require_current_candidate(candidate_id)
-        binding = (candidate.content_key, candidate.output_channel_id, candidate.media_policy)
+        rights_binding = self._source_rights_binding(candidate)
+        binding = (
+            candidate.content_key,
+            candidate.output_channel_id,
+            candidate.media_policy,
+            rights_binding,
+        )
         if candidate.media_policy == "REUSE_SOURCE":
             assets = self._session.scalars(
                 select(MediaAssetModel)
@@ -192,6 +200,12 @@ class LocalMediaSelectionService:
                 .order_by(MediaAssetModel.id)
                 .execution_options(populate_existing=True)
             ).all()
+            if rights_binding is not None:
+                assets = [
+                    asset
+                    for asset in assets
+                    if (asset.license_code, asset.attribution) == rights_binding[1:3]
+                ]
         elif candidate.media_policy == "LICENSED_LIBRARY":
             matches = _tokens(query)
             ranked = []
@@ -215,7 +229,12 @@ class LocalMediaSelectionService:
                 raise MediaUnavailable("Persisted media integrity check failed")
             selected.append(_project(asset))
         current = self._require_current_candidate(candidate_id)
-        if (current.content_key, current.output_channel_id, current.media_policy) != binding:
+        if (
+            current.content_key,
+            current.output_channel_id,
+            current.media_policy,
+            self._source_rights_binding(current),
+        ) != binding:
             raise MediaSelectionBlocked("MEDIA_BINDING_CHANGED")
         return {
             "status": "SELECTED" if selected else "NO_MATCH",
@@ -250,4 +269,28 @@ class LocalMediaSelectionService:
         )
         if output is None or not approval_is_current(self._session, output):
             raise MediaSelectionBlocked("CURRENT_APPROVAL_REQUIRED")
+        if candidate.mapping_id is not None and candidate.media_policy == "REUSE_SOURCE":
+            mapping = self._session.get(
+                ChannelMappingModel, candidate.mapping_id, populate_existing=True
+            )
+            rights = self._session.get(
+                MappingSourceRightsModel, candidate.mapping_id, populate_existing=True
+            )
+            if (
+                mapping is None
+                or mapping.media_policy != "REUSE_SOURCE"
+                or rights is None
+                or rights.license_code not in {"OWNED", "PERMISSION"}
+            ):
+                raise MediaSelectionBlocked("CURRENT_MAPPING_SOURCE_RIGHTS_REQUIRED")
         return candidate
+
+    def _source_rights_binding(self, candidate):
+        if candidate.mapping_id is None or candidate.media_policy != "REUSE_SOURCE":
+            return None
+        rights = self._session.get(
+            MappingSourceRightsModel, candidate.mapping_id, populate_existing=True
+        )
+        if rights is None or rights.license_code not in {"OWNED", "PERMISSION"}:
+            raise MediaSelectionBlocked("CURRENT_MAPPING_SOURCE_RIGHTS_REQUIRED")
+        return (candidate.mapping_id, rights.license_code, rights.attribution, rights.revision)

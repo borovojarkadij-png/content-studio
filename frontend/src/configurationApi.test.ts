@@ -2,6 +2,7 @@ import { afterEach, expect, it, vi } from "vitest";
 import {
   loadConfiguration,
   mappingFilters,
+  sourceMediaRights,
   saveMapping,
   bulkImportDonors,
   type MappingConfig,
@@ -27,6 +28,46 @@ const filters = {
   effective_ad_markers: ["реклама"],
 };
 const json = (value: unknown) => ({ ok: true, json: async () => value });
+it("source rights are bound to mapping identity and invalid declarations fail closed", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async () =>
+      json({
+        mapping_id: 4,
+        license_code: "OWNED",
+        attribution: "",
+        revision: 1,
+      }),
+    ),
+  );
+  await expect(
+    sourceMediaRights(3, new AbortController().signal),
+  ).rejects.toThrow("контракт");
+  for (const invalid of [
+    {
+      mapping_id: 3,
+      license_code: "PERMISSION",
+      attribution: " ",
+      revision: 1,
+    },
+    { mapping_id: 3, license_code: "CC0", attribution: "", revision: 1 },
+    { mapping_id: 3, license_code: "OWNED", attribution: "", revision: -1 },
+    {
+      mapping_id: 3,
+      license_code: "UNDECLARED",
+      attribution: "Invented",
+      revision: 1,
+    },
+  ]) {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => json(invalid)),
+    );
+    await expect(
+      sourceMediaRights(3, new AbortController().signal),
+    ).rejects.toThrow("контракт");
+  }
+});
 it("fails closed on malformed identities and transport failures rather than demo fallback", async () => {
   vi.stubGlobal(
     "fetch",

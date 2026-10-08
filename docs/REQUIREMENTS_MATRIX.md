@@ -20,4 +20,4 @@
 | UI-003 | Honest DEMO/API boundaries | UI | VERIFIED LOCALLY | actual isolated API, HTTP retry, malformed response and no DEMO API traffic tests |
 | UI-004 | Accessible/responsive default sections | UI | VERIFIED LOCALLY | axe A/AA checks; five viewport sizes; modal focus regressions |
 | R-008 | YouTube contracts | Future | NOT IMPLEMENTED | architecture only |
-| R-015 | Exact source-photo reuse with explicit rights | 1 | PARTIAL | immutable media identity/protection, bounded read-only adapter, current approval/editorial/source guards, create-only exact bytes, 548-test gate and actual synthetic Windows Docker persistence; SOURCE_PHOTO_VERIFICATION.md; durable worker/UI and live authorization pending |
+| R-015 | Exact source-photo reuse with explicit rights | 1 | PARTIAL | immutable media identity/protection, bounded adapter, fenced durable source jobs, versioned explicit mapping rights, queue/status API and Connections rights UI, 581 backend/42 frontend/21 browser gate and actual synthetic Windows Docker recovery; SOURCE_PHOTO_JOBS_VERIFICATION.md; candidate media UI and live authorization pending |

@@ -2,6 +2,20 @@
 
 ## VERIFIED WORKING
 
+- Durable source-photo runner, versioned explicit mapping rights, real queue/status
+  API, default-disabled worker and real Connections rights form implemented.
+  Backend 581 tests/lint/isolated migration round-trip PASS; frontend 42 unit /
+  21 browser/format/typecheck/build/audit PASS. Actual source-job Windows Docker
+  recovery PASS in newsflow-verification-sourcejobs20261008; fixture stopped with
+  history/volumes retained. Operational API/worker/frontend rebuilt/migrated:
+  PG drift/health/inbox PASS, all five network enablement flags 0.
+  See SOURCE_PHOTO_JOBS_VERIFICATION.md. Combined fixture rerun is separate.
+- Provider checkpoint f4124e8 CI 37704439283 completed FAILURE: backend/frontend
+  SUCCESS, both Docker jobs failed synthetic user-ID collision with mapping probe.
+  Regression reproduced; distinct source fixture identity now implemented. Fresh
+  combined Windows CrashRecovery/MappingGuard/SourcePhotoGuard PASS in
+  newsflow-verification-sourcecombo20261008 (18020/15193/18100).
+
 - Exact source-photo acquisition seam, immutable signed media identity/protection
   and history-preserving migration verified: 548 backend tests/lint/compile PASS,
   40 frontend unit/21 browser/format/typecheck/build/audit PASS. Actual Windows
@@ -522,13 +536,20 @@ newsflow-verification-donorimports20261008 (18015/15188/18095; CrashRecovery +
 IngestionGuard + PeerGuard + MappingGuard + ResolutionGuard), including resolved
 API state and actual PostgreSQL drift; stopped retaining history/volumes.
 CI 37699179678 for d1fd02c completed SUCCESS in all four jobs.
-Exact NEXT_STEP: commit/push verified source-photo checkpoint and track its own CI.
-Continue fenced durable source-photo jobs with explicit persisted rights (no
-inferred permission from REUSE_SOURCE), committed attempt budget, restart recovery,
-fresh pre/post-RPC lease/source/editorial checks and atomic registry completion.
-Then implement honest API/UI controls and opt-in worker configuration. The current
-source acquisition seam and immutable identity/protection are verified; its durable
-worker/API/UI are not. Full album manifests/deletion/batching
+Exact NEXT_STEP: commit/push the verified source jobs/rights/Connections UI
+checkpoint, then track its own CI. Combined Windows Docker session 63404 completed
+PASS in newsflow-verification-sourcecombo20261008 (18020/15193/18100); packaged
+drift/stop retaining history being checked separately. Next increment already has
+three RED API tests in uncommitted test_media_acquisition_api.py: generic library
+queue returns 405 instead of 202, reject returns 405 instead of 409, preview missing.
+Implement generic guarded queue API and exact gated preview, then Planner media
+progress/queue UI, relevant regression/browser/API/Docker checks and documentation.
+Backend final gate 581 tests/lint/isolated migration PASS (session 13781 completed).
+Frontend 42 units/21 browser/format/typecheck/build/audit PASS (88317 completed).
+Operational deployment 34260 completed with PG drift/health/inbox PASS and all
+five network flags 0. Earlier f4124e8 CI failure was a reproduced fixture-ID
+collision, not an overall PASS. Then continue guarded publication-execution
+contracts/worker without actual sends. Full album manifests/deletion/batching
 remain pending and must not be inferred from the observation seam. Track media
 and subsequent album CI separately. Frontend 40 units / 21
 browser/format/typecheck/build/audit PASS. Do not reseed existing fixtures.

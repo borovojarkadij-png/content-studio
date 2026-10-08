@@ -58,6 +58,13 @@ function fixture(handler?: (path: string, init?: RequestInit) => unknown) {
     const override = handler?.(path, init);
     if (override !== undefined) return override;
     if (path.endsWith("technical-filters")) return json(filter);
+    if (path.endsWith("source-media-rights"))
+      return json({
+        mapping_id: 3,
+        license_code: "UNDECLARED",
+        attribution: "",
+        revision: 0,
+      });
     if (path.endsWith("accounts")) return json({ items: [account] });
     if (path.endsWith("donors")) return json({ items: [donor] });
     if (path.endsWith("output-channels")) return json({ items: [output] });
@@ -66,6 +73,53 @@ function fixture(handler?: (path: string, init?: RequestInit) => unknown) {
     throw new Error(`Unexpected ${path}`);
   });
 }
+it("persists source permission explicitly, preserves failed drafts and never pretends download or send", async () => {
+  let fail = true;
+  const fetch = fixture((path, init) => {
+    if (path.endsWith("source-media-rights") && init?.method === "PUT") {
+      if (fail) return { ok: false, status: 503 };
+      return json({
+        mapping_id: 3,
+        ...JSON.parse(String(init.body)),
+        revision: 1,
+      });
+    }
+  });
+  vi.stubGlobal("fetch", fetch);
+  render(<App initialDemo={false} />);
+  navigate("Связи");
+  const license = await screen.findByLabelText("Права на исходное фото");
+  await waitFor(() =>
+    expect((license as HTMLSelectElement).disabled).toBe(false),
+  );
+  expect((license as HTMLSelectElement).value).toBe("UNDECLARED");
+  fireEvent.change(license, { target: { value: "PERMISSION" } });
+  fireEvent.change(screen.getByLabelText("Основание / авторство"), {
+    target: { value: "Разрешение автора" },
+  });
+  fireEvent.click(
+    screen.getByRole("button", { name: /^Сохранить права на фото$/ }),
+  );
+  expect(await screen.findByText(/Не удалось сохранить права/)).toBeTruthy();
+  expect(
+    (screen.getByLabelText("Основание / авторство") as HTMLTextAreaElement)
+      .value,
+  ).toBe("Разрешение автора");
+  expect(screen.queryByText("Права сохранены в базе данных.")).toBeNull();
+  fail = false;
+  fireEvent.click(
+    screen.getByRole("button", { name: /^Сохранить права на фото$/ }),
+  );
+  expect(
+    await screen.findByText("Права сохранены в базе данных."),
+  ).toBeTruthy();
+  expect(
+    fetch.mock.calls.filter(([, init]) => init?.method).map(([path]) => path),
+  ).toEqual([
+    "/api/telegram/mappings/3/source-media-rights",
+    "/api/telegram/mappings/3/source-media-rights",
+  ]);
+});
 it("loads real account health without claiming authorization or creating demo rows", async () => {
   const fetch = fixture();
   vi.stubGlobal("fetch", fetch);

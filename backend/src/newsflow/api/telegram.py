@@ -1,7 +1,7 @@
 """Minimal Telegram configuration API; state changes remain service-owned."""
 
 from collections.abc import Iterator
-from datetime import date
+from datetime import UTC, date, datetime
 from os import getenv
 from pathlib import Path
 from typing import Annotated, Literal
@@ -10,11 +10,12 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.exc import SQLAlchemyError
 
-from newsflow.persistence.database import database_session
+from newsflow.persistence.database import configured_session_factory, database_session
 from newsflow.services.automatic_approval import (
     AutomaticApprovalBlocked,
     AutomaticApprovalPolicyService,
 )
+from newsflow.services.durable_source_photo_runner import DurableSourcePhotoRunner
 from newsflow.services.media_job_read import MediaJobReader
 from newsflow.services.media_selection import (
     LocalMediaSelectionService,
@@ -206,6 +207,27 @@ def get_media_acquisition_status(
     return reader.get_status(candidate_id)
 
 
+@router.post("/publication-candidates/{candidate_id}/source-photo-acquisition", status_code=202)
+def enqueue_source_photo(candidate_id: int) -> dict[str, object]:
+    factory = configured_session_factory()
+    root = getenv("NEWSFLOW_MEDIA_ROOT", "").strip()
+    if factory is None or not root:
+        raise HTTPException(503, "Durable database and persistent media root are required")
+    try:
+        execution = DurableSourcePhotoRunner(factory, Path(root), provider=None)
+        job_id = execution.enqueue_configured(candidate_id, now=datetime.now(UTC))
+        with factory() as session:
+            return MediaJobReader(session, Path(root)).get_status(candidate_id, job_id=job_id)
+    except LookupError as exc:
+        raise HTTPException(404, str(exc)) from None
+    except (MediaSelectionBlocked, MediaUnavailable) as exc:
+        raise HTTPException(409, str(exc)) from None
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from None
+    except SQLAlchemyError:
+        raise HTTPException(503, "Durable database is unavailable or requires migrations") from None
+
+
 def get_moderation_inbox_reader() -> Iterator[ModerationInboxReader | None]:
     """Create a request-scoped durable inbox reader when DATABASE_URL is set."""
     for session in database_session():
@@ -269,6 +291,23 @@ class MappingFilterRequest(StrictRequest):
     allowed_media_types: tuple[Literal["text", "photo", "video"], ...] = Field(max_length=3)
     blocked_domains: tuple[str, ...] = Field(max_length=100)
     ad_markers: tuple[str, ...] = Field(max_length=20)
+
+
+class SourceMediaRightsRequest(StrictRequest):
+    license_code: Literal["UNDECLARED", "OWNED", "PERMISSION"]
+    attribution: str = Field(default="", max_length=2048)
+
+
+@router.get("/mappings/{mapping_id}/source-media-rights")
+def get_source_media_rights(mapping_id: int, service: Configuration) -> dict[str, object]:
+    return service.source_media_rights(mapping_id)
+
+
+@router.put("/mappings/{mapping_id}/source-media-rights")
+def set_source_media_rights(
+    mapping_id: int, request: SourceMediaRightsRequest, service: Configuration
+) -> dict[str, object]:
+    return service.set_source_media_rights(mapping_id, request.license_code, request.attribution)
 
 
 class PublicationPlanRequest(StrictRequest):

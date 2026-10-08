@@ -32,6 +32,8 @@ class MediaClaim:
 
 
 class DurableMediaRunner:
+    acquisition_mode = "LICENSED_LIBRARY"
+
     def __init__(
         self, session_factory, media_root, *, provider=None, clock=lambda: datetime.now(UTC)
     ):
@@ -49,7 +51,10 @@ class DurableMediaRunner:
                     PublicationCandidateModel.state.in_(("READY", "SCHEDULED")),
                     PublicationCandidateModel.media_policy == "LICENSED_LIBRARY",
                     ~select(MediaAcquisitionJobModel.id)
-                    .where(MediaAcquisitionJobModel.candidate_id == PublicationCandidateModel.id)
+                    .where(
+                        MediaAcquisitionJobModel.candidate_id == PublicationCandidateModel.id,
+                        MediaAcquisitionJobModel.acquisition_mode == self.acquisition_mode,
+                    )
                     .exists(),
                 )
                 .order_by(PublicationCandidateModel.id)
@@ -80,6 +85,7 @@ class DurableMediaRunner:
             job = session.scalar(
                 select(MediaAcquisitionJobModel)
                 .where(
+                    MediaAcquisitionJobModel.acquisition_mode == self.acquisition_mode,
                     or_(
                         and_(
                             MediaAcquisitionJobModel.state == "QUEUED",
@@ -89,7 +95,7 @@ class DurableMediaRunner:
                             MediaAcquisitionJobModel.state == "RUNNING",
                             MediaAcquisitionJobModel.lease_expires_at <= now,
                         ),
-                    )
+                    ),
                 )
                 .order_by(MediaAcquisitionJobModel.id)
                 .with_for_update(skip_locked=True)
@@ -119,6 +125,7 @@ class DurableMediaRunner:
         )
         if (
             job is None
+            or job.acquisition_mode != self.acquisition_mode
             or job.state != "RUNNING"
             or job.claim_token != claim.token
             or job.attempts != claim.attempt

@@ -16,10 +16,12 @@ from newsflow.persistence.models import (
     DonorChannel,
     DonorImportModel,
     MappingFilterPolicyModel,
+    MappingSourceRightsModel,
     OutputChannel,
     TelegramAccount,
 )
 from newsflow.services.mapping_filters import mapping_filter, normalize_filter_policy
+from newsflow.services.source_photo import validate_source_rights
 
 
 class ConfigurationConflict(ValueError):
@@ -121,6 +123,50 @@ def _project(row) -> dict[str, object]:
 
 
 class TelegramConfigurationService:
+    def source_media_rights(self, mapping_id):
+        self._require(ChannelMappingModel, mapping_id)
+        row = self._session.get(MappingSourceRightsModel, mapping_id, populate_existing=True)
+        return {
+            "mapping_id": mapping_id,
+            "license_code": row.license_code if row else "UNDECLARED",
+            "attribution": row.attribution if row else "",
+            "revision": row.revision if row else 0,
+        }
+
+    def set_source_media_rights(self, mapping_id, license_code, attribution):
+        if license_code == "UNDECLARED":
+            if not isinstance(attribution, str) or attribution.strip():
+                raise ValueError("Undeclared rights must not carry attribution")
+            attribution = ""
+        else:
+            license_code, attribution = validate_source_rights(license_code, attribution)
+        try:
+            mapping = self._session.scalar(
+                select(ChannelMappingModel)
+                .where(ChannelMappingModel.id == mapping_id)
+                .with_for_update()
+                .execution_options(populate_existing=True)
+            )
+            if mapping is None:
+                raise LookupError("Referenced mapping was not found")
+            row = self._session.get(MappingSourceRightsModel, mapping_id, populate_existing=True)
+            if row is None:
+                row = MappingSourceRightsModel(
+                    mapping_id=mapping_id,
+                    license_code=license_code,
+                    attribution=attribution,
+                    revision=1,
+                )
+                self._session.add(row)
+            elif (row.license_code, row.attribution) != (license_code, attribution):
+                row.license_code, row.attribution = license_code, attribution
+                row.revision += 1
+            self._session.commit()
+            return self.source_media_rights(mapping_id)
+        except Exception:
+            self._session.rollback()
+            raise
+
     def mapping_filters(self, mapping_id):
         mapping = self._require(ChannelMappingModel, mapping_id)
         effective = mapping_filter(self._session, mapping)

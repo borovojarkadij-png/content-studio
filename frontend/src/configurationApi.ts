@@ -196,6 +196,42 @@ export async function mappingFilters(
     throw contract();
   return payload as FilterConfig;
 }
+export type SourceRightsPolicy = {
+  license_code: "UNDECLARED" | "OWNED" | "PERMISSION";
+  attribution: string;
+};
+export type SourceRightsConfig = SourceRightsPolicy & {
+  mapping_id: number;
+  revision: number;
+};
+export async function sourceMediaRights(
+  mappingId: number,
+  signal: AbortSignal,
+  policy?: SourceRightsPolicy,
+): Promise<SourceRightsConfig> {
+  const payload = await request(
+    `mappings/${mappingId}/source-media-rights`,
+    signal,
+    policy,
+    "PUT",
+  );
+  if (
+    !row(payload) ||
+    payload.mapping_id !== mappingId ||
+    !["UNDECLARED", "OWNED", "PERMISSION"].includes(
+      String(payload.license_code),
+    ) ||
+    typeof payload.attribution !== "string" ||
+    payload.attribution.length > 2048 ||
+    !Number.isSafeInteger(payload.revision) ||
+    Number(payload.revision) < 0 ||
+    (payload.license_code === "PERMISSION" && !payload.attribution.trim()) ||
+    (payload.license_code === "UNDECLARED" && payload.attribution !== "") ||
+    (payload.license_code !== "UNDECLARED" && payload.revision === 0)
+  )
+    throw contract();
+  return payload as SourceRightsConfig;
+}
 export async function bulkImportDonors(
   accountId: number,
   raw: string,

@@ -8,12 +8,15 @@ import {
   mappingFilters,
   renameConfiguration,
   saveMapping,
+  sourceMediaRights,
   type AccountConfig,
   type ChannelConfig,
   type FilterConfig,
   type ImportConfig,
   type MappingConfig,
   type MappingPolicy,
+  type SourceRightsConfig,
+  type SourceRightsPolicy,
 } from "./configurationApi";
 
 type Props = Pick<WorkspaceProps, "markDirty">;
@@ -780,6 +783,8 @@ function MappingEditor({
   const [busy, busyState] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [rightsDirty, setRightsDirty] = useState(false);
+  const [rightsBusy, setRightsBusy] = useState(false);
   const lifetime = useLifetime();
   const mappingDirty = !equal(draft, policy(mapping));
   const filtersDirty =
@@ -788,13 +793,13 @@ function MappingEditor({
       domains !== filters.blocked_domains.join("\n") ||
       markers !== filters.ad_markers.join("\n"));
   useEffect(() => {
-    setDirty(mappingDirty || filtersDirty);
+    setDirty(mappingDirty || filtersDirty || rightsDirty);
     return () => setDirty(false);
-  }, [mappingDirty, filtersDirty, setDirty]);
+  }, [mappingDirty, filtersDirty, rightsDirty, setDirty]);
   useEffect(() => {
-    setBusy(busy || loading);
+    setBusy(busy || loading || rightsBusy);
     return () => setBusy(false);
-  }, [busy, loading, setBusy]);
+  }, [busy, loading, rightsBusy, setBusy]);
   const resetFilters = (saved: FilterConfig) => {
     setFilters(saved);
     setMedia(saved.allowed_media_types);
@@ -1010,6 +1015,11 @@ function MappingEditor({
           </div>
         </fieldset>
       </form>
+      <SourceRightsEditor
+        mappingId={mapping.id}
+        setDirty={setRightsDirty}
+        setBusy={setRightsBusy}
+      />
       <section className="detail-section">
         <h3>Технические фильтры</h3>
         {loading && <p role="status">Загрузка фильтров…</p>}
@@ -1107,5 +1117,176 @@ function MappingEditor({
         рерайт для EDITORIAL REJECT и не отправляет публикацию.
       </p>
     </Panel>
+  );
+}
+
+function SourceRightsEditor({
+  mappingId,
+  setDirty,
+  setBusy,
+}: {
+  mappingId: number;
+  setDirty: (dirty: boolean) => void;
+  setBusy: (busy: boolean) => void;
+}) {
+  const [saved, setSaved] = useState<SourceRightsConfig | null>(null);
+  const [draft, setDraft] = useState<SourceRightsPolicy>({
+    license_code: "UNDECLARED",
+    attribution: "",
+  });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [reload, setReload] = useState(0);
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const lifetime = useLifetime();
+  const dirty =
+    saved !== null &&
+    (draft.license_code !== saved.license_code ||
+      draft.attribution !== saved.attribution);
+  const reset = (value: SourceRightsConfig) => {
+    setSaved(value);
+    setDraft({
+      license_code: value.license_code,
+      attribution: value.attribution,
+    });
+  };
+  useEffect(() => {
+    setDirty(dirty);
+    return () => setDirty(false);
+  }, [dirty, setDirty]);
+  useEffect(() => {
+    setBusy(loading || saving);
+    return () => setBusy(false);
+  }, [loading, saving, setBusy]);
+  useEffect(() => {
+    const controller = new AbortController();
+    setLoading(true);
+    setError("");
+    void sourceMediaRights(mappingId, controller.signal)
+      .then((value) => {
+        if (!controller.signal.aborted) reset(value);
+      })
+      .catch((error) => {
+        if (!controller.signal.aborted)
+          setError(`Не удалось загрузить права. ${errorText(error)}`);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
+      });
+    return () => controller.abort();
+  }, [mappingId, reload]);
+  const save = async () => {
+    if (loading || saving || !saved || !dirty || !lifetime.current) return;
+    const controller = lifetime.current;
+    setSaving(true);
+    setError("");
+    setNotice("");
+    try {
+      const value = await sourceMediaRights(
+        mappingId,
+        controller.signal,
+        draft,
+      );
+      if (!controller.signal.aborted) {
+        reset(value);
+        setNotice("Права сохранены в базе данных.");
+      }
+    } catch (error) {
+      if (!controller.signal.aborted)
+        setError(
+          `Не удалось сохранить права. Правки сохранены в форме. ${errorText(error)}`,
+        );
+    } finally {
+      if (!controller.signal.aborted) setSaving(false);
+    }
+  };
+  return (
+    <section className="detail-section">
+      <h3>Права на фото донора</h3>
+      <p className="help-copy">
+        Доступ к каналу не даёт разрешения на копирование. Без явного
+        подтверждения прав исходные фото не скачиваются. Защищённый контент и
+        альбомы блокируются. Сохранение не подключает Telegram и не публикует
+        посты; source-photo worker включается отдельно.
+      </p>
+      {error && <Notice error>{error}</Notice>}
+      {notice && <Notice>{notice}</Notice>}
+      {loading && <p role="status">Загрузка прав…</p>}
+      {!saved && !loading && (
+        <button onClick={() => setReload((value) => value + 1)}>
+          Повторить загрузку прав
+        </button>
+      )}
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          void save();
+        }}
+      >
+        <fieldset
+          className="live-planner-fields"
+          disabled={loading || saving || saved === null}
+        >
+          <label className="field">
+            Права на исходное фото
+            <select
+              value={draft.license_code}
+              onChange={(event) => {
+                const license_code = event.target
+                  .value as SourceRightsPolicy["license_code"];
+                setDraft({
+                  license_code,
+                  attribution:
+                    license_code === "UNDECLARED" ? "" : draft.attribution,
+                });
+                setNotice("");
+              }}
+            >
+              <option value="UNDECLARED">Не подтверждены — не скачивать</option>
+              <option value="OWNED">Я владею правами</option>
+              <option value="PERMISSION">
+                Есть разрешение правообладателя
+              </option>
+            </select>
+          </label>
+          <label className="field">
+            Основание / авторство
+            <textarea
+              maxLength={2048}
+              required={draft.license_code === "PERMISSION"}
+              disabled={draft.license_code === "UNDECLARED"}
+              value={draft.attribution}
+              onChange={(event) => {
+                setDraft({ ...draft, attribution: event.target.value });
+                setNotice("");
+              }}
+            />
+          </label>
+          <div className="action-row">
+            <button
+              className="primary-button"
+              disabled={
+                !dirty ||
+                (draft.license_code === "PERMISSION" &&
+                  !draft.attribution.trim())
+              }
+            >
+              Сохранить права на фото
+            </button>
+            <button
+              type="button"
+              disabled={!dirty}
+              onClick={() => {
+                if (saved) reset(saved);
+                setNotice("");
+              }}
+            >
+              Отменить правки прав
+            </button>
+          </div>
+        </fieldset>
+      </form>
+    </section>
   );
 }

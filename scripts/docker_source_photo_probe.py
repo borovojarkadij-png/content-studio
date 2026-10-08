@@ -1,6 +1,7 @@
 """Create-only synthetic source-photo persistence probe; never live authorization."""
 
 import io
+import json
 import os
 import sys
 from datetime import UTC, datetime
@@ -17,12 +18,16 @@ from sqlalchemy.orm import sessionmaker
 from newsflow.domain.durable_ingestion import DurableIngestionWorkflow
 from newsflow.persistence.models import (
     EditorialDecisionModel,
+    MappingSourceRightsModel,
+    MediaAcquisitionJobModel,
     PublicationCandidateModel,
     RewriteJobModel,
     TelegramAccount,
 )
 from newsflow.providers.telegram import FakeTelegramProvider, TelegramMessage
 from newsflow.security.session_cipher import SessionCipher
+from newsflow.services.durable_media_runner import MediaClaim
+from newsflow.services.durable_source_photo_runner import DurableSourcePhotoRunner
 from newsflow.services.media_selection import LocalMediaSelectionService, MediaSelectionBlocked
 from newsflow.services.rewrite_outputs import RewriteOutputService
 from newsflow.services.source_photo import SourcePhotoAcquisition
@@ -31,6 +36,22 @@ from newsflow.services.telegram_configuration import TelegramConfigurationServic
 
 NAME = "synthetic-source-photo"
 CHANNEL = -1001666555000
+
+
+def seed_configuration(sessions):
+    with sessions() as session:
+        if (
+            session.scalar(select(TelegramAccount.id).where(TelegramAccount.name == NAME))
+            is not None
+        ):
+            raise RuntimeError("Use a fresh fixture; refusing to replace source photo history")
+        config = TelegramConfigurationService(session)
+        account = config.create_account(NAME, 600601)
+        donor = config.create_donor(account["id"], CHANNEL, NAME)
+        output = config.create_output(account["id"], CHANNEL - 1, NAME)
+        mapping = config.create_mapping(donor["id"], output["id"], 100, 100)
+        config.set_source_media_rights(mapping["id"], "OWNED", "")
+        return account, mapping
 
 
 def photo():
@@ -67,6 +88,12 @@ class SyntheticPhotos(FakeTelegramProvider):
                 .where(EditorialDecisionModel.content_key == candidate.content_key)
                 .with_for_update()
             )
+            session.scalars(
+                select(MediaAcquisitionJobModel)
+                .where(MediaAcquisitionJobModel.candidate_id == self.candidate_id)
+                .with_for_update()
+            ).all()
+            session.get(MappingSourceRightsModel, candidate.mapping_id, with_for_update=True)
         return super().download_photo(account_id, donor_identifier, message_id)
 
 
@@ -77,23 +104,13 @@ def main(mode):
         or make_url(url).database != "newsflow_verification"
     ):
         raise RuntimeError("Source photo probe requires the isolated verification database")
-    if mode not in {"seed", "verify", "blocked"}:
+    if mode not in {"seed", "recover", "verify", "blocked"}:
         raise ValueError("Unsupported source photo probe mode")
     engine = create_engine(url)
     sessions = sessionmaker(engine)
     root = Path(os.environ["NEWSFLOW_MEDIA_ROOT"])
     if mode == "seed":
-        with sessions() as session:
-            if (
-                session.scalar(select(TelegramAccount.id).where(TelegramAccount.name == NAME))
-                is not None
-            ):
-                raise RuntimeError("Use a fresh fixture; refusing to replace source photo history")
-            config = TelegramConfigurationService(session)
-            account = config.create_account(NAME, 600600)
-            donor = config.create_donor(account["id"], CHANNEL, NAME)
-            output = config.create_output(account["id"], CHANNEL - 1, NAME)
-            mapping = config.create_mapping(donor["id"], output["id"], 100, 100)
+        account, mapping = seed_configuration(sessions)
         with sessions.begin() as session:
             row = session.get(TelegramAccount, account["id"])
             row.encrypted_session = SessionCipher(
@@ -147,9 +164,36 @@ def main(mode):
         )
     provider = SyntheticPhotos(sessions, candidate_id, event)
     operation = SourcePhotoAcquisition(sessions, root, provider=provider)
+    execution = DurableSourcePhotoRunner(sessions, root, provider=provider)
     if mode == "seed":
         result = operation.acquire(candidate_id, license_code="OWNED", attribution="")
         assert result["status"] == "ACQUIRED" and not result["illustration"] and provider.calls == 1
+        job_id = execution.enqueue_configured(candidate_id, now=datetime.now(UTC))
+        assert execution.enqueue_configured(candidate_id, now=datetime.now(UTC)) == job_id
+        old = execution.claim_next(now=datetime.now(UTC))
+        assert old.job_id == job_id and old.attempt == 1
+        with sessions() as session:
+            job = session.get(MediaAcquisitionJobModel, job_id)
+            assert job.state == "RUNNING" and job.selected_asset_id is None
+    elif mode == "recover":
+        with sessions() as session:
+            job = session.scalars(
+                select(MediaAcquisitionJobModel).where(
+                    MediaAcquisitionJobModel.candidate_id == candidate_id,
+                    MediaAcquisitionJobModel.acquisition_mode == "REUSE_SOURCE",
+                )
+            ).one()
+            assert job.state == "RUNNING" and job.attempts == 1
+            old = MediaClaim(job.id, job.claim_token, job.attempts)
+        new = execution.claim_next(now=datetime.now(UTC))
+        assert (
+            new is not None
+            and new.job_id == old.job_id
+            and new.attempt == 2
+            and new.token != old.token
+        )
+        assert execution.execute(old) == "LOST_LEASE" and provider.calls == 0
+        assert execution.execute(new) == "SUCCEEDED" and provider.calls == 1
     elif mode == "blocked":
         with sessions.begin() as session:
             decision = session.scalars(
@@ -171,6 +215,36 @@ def main(mode):
                 raise AssertionError("Rejected source photo remained selectable")
         except HTTPError as error:
             assert error.code == 409
+        with urlopen(
+            f"http://api:8000/api/telegram/publication-candidates/{candidate_id}/media-acquisition",
+            timeout=15,
+        ) as response:
+            status = json.load(response)
+            assert (
+                status["state"] == "SUCCEEDED"
+                and status["selected_allowed"] is False
+                and status["asset"] is None
+            )
+    if mode == "verify":
+        with sessions() as session:
+            job = session.scalars(
+                select(MediaAcquisitionJobModel).where(
+                    MediaAcquisitionJobModel.candidate_id == candidate_id,
+                    MediaAcquisitionJobModel.acquisition_mode == "REUSE_SOURCE",
+                )
+            ).one()
+            assert (
+                job.state == "SUCCEEDED" and job.attempts == 2 and job.selected_asset_id is not None
+            )
+            rights = session.get(MappingSourceRightsModel, candidate.mapping_id)
+            assert rights.license_code == "OWNED" and rights.revision == 1
+        with urlopen(
+            f"http://api:8000/api/telegram/publication-candidates/{candidate_id}/media-acquisition",
+            timeout=15,
+        ) as response:
+            status = json.load(response)
+            assert status["selected_allowed"] is True and status["illustration"] is False
+            assert status["asset"]["origin"] == "SOURCE"
     if mode != "blocked":
         with sessions() as session:
             selected = LocalMediaSelectionService(session, root).select_for_candidate(
