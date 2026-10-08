@@ -70,16 +70,25 @@ def restart_stack_before_stage(raw):
             timeout=300,
         )
     except (subprocess.CalledProcessError, subprocess.TimeoutExpired, OSError) as error:
-        reason = "UNKNOWN"
+        reason, location = "UNKNOWN", "UNKNOWN"
         if isinstance(error, subprocess.CalledProcessError) and isinstance(error.stderr, str):
-            # PowerShell's terminal styling must not hide a known fixed phrase.
             plain = re.sub(r"\x1b\[[0-9;]*m", "", error.stderr)
             reason = next((code for phrase, code in GUARD_CODES.items() if phrase in plain), reason)
+            if isinstance(error.stdout, str):
+                marker = re.search(
+                    r"^UNATTENDED_FAILURE stage=(CONTEXT|OWNERSHIP|DOWN|UP|REDIS_WORKER|"
+                    r"POSTGRES_CRASH|POSTGRES_RECOVERY|HEALTH) line=([0-9]{1,5})$",
+                    error.stdout,
+                    re.MULTILINE,
+                )
+                if marker:
+                    location = f"{marker[1]}:{marker[2]}"
         elif isinstance(error, subprocess.TimeoutExpired):
             reason = "TIMEOUT"
         elif isinstance(error, OSError):
             reason = "PROCESS_UNAVAILABLE"
         raise RuntimeError(
-            f"Isolated full-stack restart failed; reason={reason}; preserve fixture and inspect CI"
+            f"Isolated full-stack restart failed; reason={reason}; location={location}; "
+            "preserve fixture and inspect CI"
         ) from None
     print("Synthetic full-stack down/up and PostgreSQL crash boundary verified")

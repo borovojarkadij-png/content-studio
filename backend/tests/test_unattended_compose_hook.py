@@ -127,3 +127,29 @@ def test_failed_restart_reports_only_known_guard_code(monkeypatch, stderr, expec
         )
     assert f"reason={expected}" in str(error.value)
     assert "private-token" not in str(error.value)
+
+
+@pytest.mark.parametrize(
+    "output, expected",
+    [
+        ("UNATTENDED_FAILURE stage=OWNERSHIP line=78\nprivate-token", "OWNERSHIP:78"),
+        ("UNATTENDED_FAILURE stage=private-token line=1", "UNKNOWN"),
+        ("UNATTENDED_FAILURE stage=DOWN line=private-token", "UNKNOWN"),
+    ],
+)
+def test_restart_failure_location_is_bounded_and_redacted(monkeypatch, output, expected):
+    monkeypatch.setenv("NEWSFLOW_UNATTENDED_RESTART_PROJECT", PROJECT)
+    monkeypatch.setenv("NEWSFLOW_UNATTENDED_POSTGRES_URL", BASE)
+
+    def failed(*_, **__):
+        raise subprocess.CalledProcessError(1, ["pwsh"], output=output, stderr="private-token")
+
+    monkeypatch.setattr(subprocess, "run", failed)
+    with pytest.raises(RuntimeError) as error:
+        restart_stack_before_stage(
+            scoped_postgres_url(BASE, "unattended_" + "a" * 32).render_as_string(
+                hide_password=False
+            )
+        )
+    assert f"location={expected}" in str(error.value)
+    assert "private-token" not in str(error.value)

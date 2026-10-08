@@ -2,6 +2,13 @@
 
 ## VERIFIED WORKING
 
+- Diagnostic 076db47 CI 37770391723 restart still FAILED with UNKNOWN before
+  first stage. Added bounded fixed stage/numeric line marker (actual missing
+  ownership RED -> GREEN), 60 combined PASS (95961). Real read-only Compose
+  config PASS rules out scoped host DATABASE_URL rebinding; no daemon used.
+  Same CI caught a frontend passive-effect timing race at policy test line 103;
+  test now waits for settled dirty=false AND disabled saved form, 19 PASS,
+  format PASS. No production UI/state/guard changed; corrective CI pending.
 - a9fbb90 CI 37769576690 full-stack job 113285528034 FAILED at the first
   restart hook after healthy build/startup. Ordinary harness/runtime failure,
   not an external blocker and not accepted restart proof. Safe fixed-code
@@ -903,8 +910,9 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: push safe fixed-code restart diagnostics, inspect exact new full-stack
-CI to identify first failing guard, then reproduce/fix/retest root cause. Prior
+NEXT_STEP: push bounded restart-stage/numeric-line diagnostics and settled React
+test, inspect exact new full-stack CI to identify first failing boundary, then
+reproduce/fix/retest root cause. Prior
 a9fbb90 run 37769576690 failed first hook after healthy startup; preserve this
 failure record, do not claim runtime success. Diagnose/fix/
 retest ordinary configuration/SQL/runtime failures without disabling assertions,

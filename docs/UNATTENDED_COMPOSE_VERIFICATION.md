@@ -65,6 +65,15 @@ output/credentials remain redacted. Four diagnostic regressions RED -> GREEN,
 assertion disabled and no accepted combined restart proof yet. This ordinary
 implementation failure is distinct from the Windows external blocker.
 
+076db47 / 37770391723 again FAILED at first hook, known reason UNKNOWN. Added
+fixed stage/numeric line marker through real PowerShell catch, bounded allowlist
+and private-output regression RED -> GREEN; 60 combined PASS (95961). Actual
+read-only Compose config (no daemon) confirms scoped host migration DATABASE_URL
+does not rebind packaged services. Frontend job separately failed an existing
+test's immediate passive-effect assertion at ApprovalPolicyPanel.test.tsx:103;
+wait for dirty=false and the settled disabled form, 19 unit/format PASS. New CI
+pending; neither failure is reclassified as acceptance or external blocker.
+
 Prior dd78455 / 37766880597 and 1cedac8 / 37767782693 completed SUCCESS in all
 seven jobs; 567e263 / 37766368319 completed all-six SUCCESS (actual gh inspection).
 dd78455's real PostgreSQL vertical job ran 23 PASS in 14.97s. Earlier combined

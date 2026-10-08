@@ -4,6 +4,7 @@ import {
   fireEvent,
   render,
   screen,
+  waitFor,
 } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { ApprovalPolicyPanel } from "./ApprovalPolicyPanel";
@@ -100,7 +101,14 @@ it("cancel restores saved policy and PUT persists only the selected qualified re
     ),
   ).toEqual({ mode: "VERIFIED", release_id: 3 });
   expect(saved).toHaveBeenCalledTimes(1);
-  expect(dirty).toHaveBeenLastCalledWith(false);
+  // The persisted notice can commit before the passive dirty notification.
+  // Wait for the actual settled form contract, not merely the notice render.
+  await waitFor(() => {
+    expect(dirty).toHaveBeenLastCalledWith(false);
+    expect(
+      screen.getByRole("button", { name: "Сохранить одобрение" }),
+    ).toHaveProperty("disabled", true);
+  });
 });
 
 it("refused save retains draft without successful notice or side effects", async () => {

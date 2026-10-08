@@ -188,6 +188,7 @@ def test_actual_restart_requires_retained_ownership_before_docker():
     )
     assert result.returncode != 0
     assert "missing or redirected" in result.stderr
+    assert "UNATTENDED_FAILURE stage=OWNERSHIP" in result.stdout
 
 
 def test_all_actual_unattended_scripts_parse_without_execution():
