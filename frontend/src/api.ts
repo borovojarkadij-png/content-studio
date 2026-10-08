@@ -17,6 +17,7 @@ type IncomingRecord = {
   editorial_status: string | null;
   rewrite_allowed: boolean | null;
   editorial_reason_codes: string[];
+  source_deleted?: boolean;
 };
 
 function isRecord(value: unknown): value is IncomingRecord {
@@ -35,7 +36,9 @@ function isRecord(value: unknown): value is IncomingRecord {
       row.rewrite_allowed === false ||
       row.rewrite_allowed === null) &&
     Array.isArray(row.editorial_reason_codes) &&
-    row.editorial_reason_codes.every((reason) => typeof reason === "string")
+    row.editorial_reason_codes.every((reason) => typeof reason === "string") &&
+    (row.source_deleted === undefined ||
+      typeof row.source_deleted === "boolean")
   );
 }
 
@@ -62,9 +65,12 @@ export async function loadInbox(signal: AbortSignal): Promise<Post[]> {
     suggestion: "",
     draft: "",
     state:
-      item.editorial_status === "REJECT" || item.state.startsWith("REJECTED")
-        ? "Отклонён"
-        : "На проверке",
+      item.source_deleted === true || item.state === "SOURCE_DELETED"
+        ? "Удалён у донора"
+        : item.editorial_status === "REJECT" ||
+            item.state.startsWith("REJECTED")
+          ? "Отклонён"
+          : "На проверке",
     time: `Ревизия ${item.revision_number}`,
     art: "",
     destinations: [],
@@ -75,8 +81,13 @@ export async function loadInbox(signal: AbortSignal): Promise<Post[]> {
           ? "REJECT"
           : "PENDING",
     rewriteAllowed:
-      item.rewrite_allowed === true && item.editorial_status === "PASS",
+      item.source_deleted !== true &&
+      item.state !== "SOURCE_DELETED" &&
+      item.rewrite_allowed === true &&
+      item.editorial_status === "PASS",
     revision: item.revision_number,
+    sourceDeleted:
+      item.source_deleted === true || item.state === "SOURCE_DELETED",
   }));
 }
 

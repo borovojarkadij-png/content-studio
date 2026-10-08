@@ -10,6 +10,7 @@ from newsflow.persistence.models import (
     EditorialDecisionModel,
     IncomingPostModel,
 )
+from newsflow.services.source_revisions import source_identity_deleted
 
 
 @dataclass(frozen=True, slots=True)
@@ -21,6 +22,7 @@ class ModerationInboxItem:
     editorial_status: str | None
     rewrite_allowed: bool | None
     editorial_reason_codes: list[str]
+    source_deleted: bool = False
 
     def as_dict(self) -> dict[str, object]:
         return asdict(self)
@@ -34,7 +36,9 @@ class ModerationInboxReader:
 
     def list_items(self) -> list[ModerationInboxItem]:
         posts = self._session.scalars(
-            select(IncomingPostModel).order_by(IncomingPostModel.created_at.desc(), IncomingPostModel.id.desc())
+            select(IncomingPostModel).order_by(
+                IncomingPostModel.created_at.desc(), IncomingPostModel.id.desc()
+            )
         ).all()
         items: list[ModerationInboxItem] = []
         for post in posts:
@@ -45,22 +49,38 @@ class ModerationInboxReader:
             )
             if revision is None:
                 continue
-            source_key = f"{post.telegram_account_id}:{post.donor_channel_id}:{post.telegram_message_id}"
+            source_key = (
+                f"{post.telegram_account_id}:{post.donor_channel_id}:{post.telegram_message_id}"
+            )
             decision = self._session.scalar(
                 select(EditorialDecisionModel).where(
-                    EditorialDecisionModel.content_key == f"{source_key}:revision:{revision.revision_number}"
+                    EditorialDecisionModel.content_key
+                    == f"{source_key}:revision:{revision.revision_number}"
                 )
             )
-            reason_codes = decision.reason_codes.split(",") if decision and decision.reason_codes else []
+            reason_codes = (
+                decision.reason_codes.split(",") if decision and decision.reason_codes else []
+            )
+            deleted = source_identity_deleted(
+                self._session,
+                post.telegram_account_id,
+                post.donor_channel_id,
+                post.telegram_message_id,
+            )
             items.append(
                 ModerationInboxItem(
                     source_key=source_key,
-                    state=post.state,
+                    state="SOURCE_DELETED" if deleted else post.state,
                     revision_number=revision.revision_number,
                     source_text=revision.source_text,
                     editorial_status=decision.status if decision else None,
-                    rewrite_allowed=decision.rewrite_allowed if decision else None,
+                    rewrite_allowed=False
+                    if deleted
+                    else decision.rewrite_allowed
+                    if decision
+                    else None,
                     editorial_reason_codes=reason_codes,
+                    source_deleted=deleted,
                 )
             )
         return items

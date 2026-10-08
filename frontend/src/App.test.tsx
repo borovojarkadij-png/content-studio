@@ -24,6 +24,52 @@ const disabled = (name: string) =>
   (screen.getByRole("button", { name }) as HTMLButtonElement).disabled;
 
 describe("Content Studio UI contracts", () => {
+  it("shows source deletion separately from historical editorial PASS and disables all processing", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          items: [
+            {
+              source_key: "1:-1001234567890:20",
+              state: "REWRITE_QUEUED",
+              revision_number: 1,
+              source_text: "Исторический удалённый источник",
+              editorial_status: "PASS",
+              rewrite_allowed: true,
+              editorial_reason_codes: [],
+              source_deleted: true,
+            },
+          ],
+        }),
+      }),
+    );
+    render(<App />);
+    navigate("Входящие");
+    fireEvent.click(
+      await screen.findByRole("button", {
+        name: /Исторический удалённый источник/,
+      }),
+    );
+    expect(screen.getAllByText("Удалён у донора").length).toBeGreaterThan(0);
+    expect(screen.getByRole("alert").textContent).toContain(
+      "Сохранена историческая копия",
+    );
+    expect(screen.queryByText(/EDITORIAL REJECT:/)).toBeNull();
+    expect(
+      screen.getByText(/Входящие сейчас доступны только для чтения/),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: "Опубликовать" }).textContent,
+    ).toContain("не подключено");
+    expect(disabled("Применить вариант")).toBe(true);
+    expect(disabled("Запланировать")).toBe(true);
+    expect(
+      (screen.getByLabelText("Черновик варианта") as HTMLTextAreaElement)
+        .disabled,
+    ).toBe(true);
+  });
   it("confirms AI overwrites and retains a read-only manual draft after rejection", () => {
     render(<App initialDemo />);
     navigate("Входящие");

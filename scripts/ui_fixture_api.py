@@ -34,9 +34,11 @@ def main() -> None:
         TelegramAccount,
     )
     from newsflow.providers.commons_images import ImageSearchResult
+    from newsflow.providers.telegram import TelegramChannelDifference
     from newsflow.services.durable_media_runner import DurableMediaRunner
     from newsflow.services.publication_planning import PublicationPlanningService
     from newsflow.services.rewrite_outputs import RewriteOutputService
+    from newsflow.services.source_deletions import SourceDeletionService
     from newsflow.services.telegram_configuration import TelegramConfigurationService
 
     with TemporaryDirectory(prefix="content-studio-ui-test-") as directory:
@@ -262,6 +264,38 @@ def main() -> None:
                     )
                 )
             session.commit()
+        # Retained synthetic original + historical PASS, no rewrite job/provider.
+        # Use the actual deletion service against this create-only isolated DB.
+        with Session(engine) as session:
+            deleted_source = IncomingPostModel(
+                telegram_account_id="1",
+                donor_channel_id="-1002222222222",
+                telegram_message_id=90,
+                state="RECEIVED",
+            )
+            session.add(deleted_source)
+            session.flush()
+            session.add(
+                ContentRevisionModel(
+                    incoming_post_id=deleted_source.id,
+                    revision_number=1,
+                    source_text="Изолированный удалённый источник API",
+                )
+            )
+            session.add(
+                EditorialDecisionModel(
+                    content_key="1:-1002222222222:90:revision:1",
+                    status="PASS",
+                    rewrite_allowed=True,
+                    sentiment="neutral",
+                    framing="neutral",
+                )
+            )
+            session.commit()
+        SourceDeletionService(sessionmaker(engine)).record(
+            TelegramChannelDifference("1", "-1002222222222", 10, 11, True, 0, (), (90,)),
+            observed_at=datetime.now(UTC),
+        )
         engine.dispose()
         try:
             uvicorn.run(app, host="127.0.0.1", port=5181, log_level="warning")

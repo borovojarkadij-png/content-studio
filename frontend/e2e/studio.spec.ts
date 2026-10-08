@@ -52,6 +52,72 @@ const navigate = async (page: Page, name: string) => {
     .click();
 };
 
+test("real deleted-source inbox keeps historical copy and forbids processing after reload", async ({
+  page,
+}) => {
+  const inboxMethods: string[] = [];
+  page.on("request", (request) => {
+    if (request.url().includes("/incoming-posts"))
+      inboxMethods.push(request.method());
+  });
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/");
+    await navigate(page, "Входящие");
+    await page
+      .getByRole("button", { name: /Изолированный удалённый источник API/ })
+      .click();
+    await expect(page.getByRole("alert")).toContainText(
+      "Сохранена историческая копия",
+    );
+    await expect(page.getByLabel("Оригинал материала")).toHaveText(
+      "Изолированный удалённый источник API",
+    );
+    await expect(
+      page.getByRole("button", { name: "Применить вариант" }),
+    ).toBeDisabled();
+    await expect(
+      page.getByRole("button", { name: "Запланировать", exact: true }),
+    ).toBeDisabled();
+    await expect(page.getByLabel("Черновик варианта")).toBeDisabled();
+    await expect(page.getByText(/EDITORIAL REJECT:/)).toHaveCount(0);
+    await page.getByRole("button", { name: /^Удалён у донора/ }).click();
+    await expect(page.locator(".inbox-card")).toHaveCount(1);
+    await page
+      .getByRole("button", { name: /Изолированный удалённый источник API/ })
+      .click();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth,
+      ),
+    ).toBe(true);
+    const violations = await new AxeBuilder({ page })
+      .withTags(["wcag2a", "wcag2aa"])
+      .analyze();
+    expect(violations.violations).toEqual([]);
+    await page.evaluate(() => {
+      (document.activeElement as HTMLElement)?.blur();
+      window.scrollTo(0, 0);
+    });
+    await page.screenshot({
+      path: path.resolve(
+        `../.artifacts/ui-dark-navy/live-inbox-deleted-${width}.png`,
+      ),
+      fullPage: true,
+    });
+    await page.reload();
+    await navigate(page, "Входящие");
+    await page
+      .getByRole("button", { name: /Изолированный удалённый источник API/ })
+      .click();
+    await expect(page.getByRole("alert")).toContainText(
+      "Источник удалён у донора",
+    );
+  }
+  expect(inboxMethods.length).toBeGreaterThanOrEqual(4);
+  expect(inboxMethods.every((method) => method === "GET")).toBe(true);
+});
+
 test("real configuration persists filters, delay, imports and names through reload without auth or publication", async ({
   page,
 }) => {

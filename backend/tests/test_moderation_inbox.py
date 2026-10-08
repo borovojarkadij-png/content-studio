@@ -66,6 +66,7 @@ def test_moderation_inbox_api_returns_latest_revision_and_editorial_decision() -
                 "editorial_status": "PASS",
                 "rewrite_allowed": True,
                 "editorial_reason_codes": [],
+                "source_deleted": False,
             }
         ]
     }
@@ -118,6 +119,7 @@ def test_moderation_inbox_api_reads_database_configured_by_environment(
                 "editorial_status": "REJECT",
                 "rewrite_allowed": False,
                 "editorial_reason_codes": ["PROTECTED_ENTITY_NEGATIVE"],
+                "source_deleted": False,
             }
         ]
     }

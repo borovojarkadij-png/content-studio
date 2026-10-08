@@ -8,7 +8,8 @@ export type Page =
   | "accounts"
   | "settings";
 export type Tone = "blue" | "green" | "orange" | "violet" | "red" | "muted";
-export type ContentState = "Новый" | "На проверке" | "Готово" | "Отклонён";
+export type ContentState =
+  "Новый" | "На проверке" | "Готово" | "Отклонён" | "Удалён у донора";
 export type Post = {
   id: string;
   source: string;
@@ -23,6 +24,7 @@ export type Post = {
   editorial: "PASS" | "REJECT" | "PENDING";
   rewriteAllowed: boolean;
   revision: number;
+  sourceDeleted?: boolean;
 };
 export type Donor = {
   id: string;
@@ -483,6 +485,8 @@ export function datePlus(date: string, days: number) {
 }
 export function canProcess(post: Post) {
   return (
+    !post.sourceDeleted &&
+    post.state !== "Удалён у донора" &&
     post.editorial === "PASS" &&
     post.rewriteAllowed &&
     post.state !== "Отклонён"
@@ -510,6 +514,8 @@ export function scheduleError(
   date: string,
   time: string,
 ) {
+  if (post?.sourceDeleted || post?.state === "Удалён у донора")
+    return "Источник удалён у донора. Планирование запрещено.";
   if (!post || !canProcess(post))
     return "Материал не прошёл EditorialGate. Планирование запрещено.";
   if (!channel) return "Выберите канал.";

@@ -597,22 +597,29 @@ function Inbox({
           placeholder="Поиск по входящим"
         />
         <div className="filter-row">
-          {["Все", "Новый", "На проверке", "Готово", "Отклонён"].map(
-            (value) => (
-              <button
-                key={value}
-                className={`filter ${filter === value ? "active" : ""}`}
-                onClick={() => setFilter(value)}
-              >
-                {value}
-                <em>
-                  {value === "Все"
-                    ? items.length
-                    : items.filter((item) => item.state === value).length}
-                </em>
-              </button>
-            ),
-          )}
+          {[
+            "Все",
+            "Новый",
+            "На проверке",
+            "Готово",
+            "Отклонён",
+            ...(items.some((item) => item.sourceDeleted)
+              ? ["Удалён у донора"]
+              : []),
+          ].map((value) => (
+            <button
+              key={value}
+              className={`filter ${filter === value ? "active" : ""}`}
+              onClick={() => setFilter(value)}
+            >
+              {value}
+              <em>
+                {value === "Все"
+                  ? items.length
+                  : items.filter((item) => item.state === value).length}
+              </em>
+            </button>
+          ))}
         </div>
         <div className="inbox-queue">
           {visible.map((item) => (
@@ -687,9 +694,11 @@ function Inbox({
                   }
                   onClick={apply}
                   title={
-                    !canProcess(selected)
-                      ? "EditorialGate не разрешил рерайт"
-                      : "Применить к черновику"
+                    selected.sourceDeleted
+                      ? "Источник удалён: рерайт запрещён"
+                      : !canProcess(selected)
+                        ? "EditorialGate не разрешил рерайт"
+                        : "Применить к черновику"
                   }
                 >
                   Применить вариант
@@ -697,9 +706,11 @@ function Inbox({
               </PanelTitle>
               <p>
                 {selected.suggestion ||
-                  (canProcess(selected)
-                    ? "AI-вариант пока отсутствует. Провайдер не вызывается в DEMO."
-                    : "EditorialGate не разрешил рерайт. AI-вызовы недоступны.")}
+                  (selected.sourceDeleted
+                    ? "Источник удалён у донора. AI-рерайт недоступен."
+                    : canProcess(selected)
+                      ? "AI-вариант пока отсутствует. Провайдер не вызывается в DEMO."
+                      : "EditorialGate не разрешил рерайт. AI-вызовы недоступны.")}
               </p>
             </section>
             <label className="field">
@@ -725,6 +736,12 @@ function Inbox({
             {selected.editorial === "REJECT" && (
               <Notice error>
                 EDITORIAL REJECT: рерайт и планирование запрещены.
+              </Notice>
+            )}
+            {selected.sourceDeleted && (
+              <Notice error>
+                Источник удалён у донора. Сохранена историческая копия; рерайт и
+                планирование запрещены.
               </Notice>
             )}
             {notice && <Notice>{notice}</Notice>}
@@ -766,15 +783,18 @@ function Inbox({
             ))
           ) : (
             <p className="help-copy">
-              Получатели появятся после подключения рабочего API маршрутов.
+              {demo
+                ? "Получатели появятся после подключения рабочего API маршрутов."
+                : "Маршруты этого материала пока не доступны в API входящих."}
             </p>
           )}
         </Panel>
         <Panel>
           <PanelTitle title="Публикация" icon="clock" />
           <p className="help-copy">
-            Одобрение сохраняет решение редактора. Время публикации задаётся
-            отдельно в планировщике.
+            {demo
+              ? "Одобрение сохраняет решение редактора. Время публикации задаётся отдельно в планировщике."
+              : "Входящие сейчас доступны только для чтения. Проверка рерайтов и планирование — в Планировщике."}
           </p>
           <div className="policy-note">
             <Icon name="shield" size={20} />
@@ -834,10 +854,14 @@ function Inbox({
           className="full"
           aria-label="Опубликовать"
           disabled
-          title="API публикации пока не реализован"
+          title={
+            demo
+              ? "API публикации пока не реализован"
+              : "Отправка из входящих не подключена"
+          }
         >
           <Icon name="channels" />
-          Опубликовать <small>требуется API</small>
+          Опубликовать <small>{demo ? "требуется API" : "не подключено"}</small>
         </button>
       </div>
       {schedule && selected && (

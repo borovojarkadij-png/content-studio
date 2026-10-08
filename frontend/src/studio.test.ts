@@ -10,6 +10,20 @@ import {
   validateDonors,
 } from "./studio";
 describe("Demo domain protections", () => {
+  it("source deletion cannot be bypassed with historical PASS and rewrite permission", () => {
+    const data = createDemo();
+    const deleted = {
+      ...data.posts[0],
+      sourceDeleted: true,
+      editorial: "PASS" as const,
+      rewriteAllowed: true,
+      state: "Готово" as const,
+    };
+    expect(canProcess(deleted)).toBe(false);
+    expect(
+      scheduleError(deleted, data.channels[0], "2026-10-02", "15:00"),
+    ).toContain("Источник удалён");
+  });
   it("groups visually overlapping calendar cards and retains each distinct job identity", () => {
     const first = createDemo().scheduled[0];
     const groups = calendarSlots([
