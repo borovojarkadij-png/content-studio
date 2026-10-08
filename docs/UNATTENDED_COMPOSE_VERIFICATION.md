@@ -74,6 +74,17 @@ test's immediate passive-effect assertion at ApprovalPolicyPanel.test.tsx:103;
 wait for dirty=false and the settled disabled form, 19 unit/format PASS. New CI
 pending; neither failure is reclassified as acceptance or external blocker.
 
+69e42cc / 37770953130 safe marker identified **CONTEXT:10**, before Docker.
+Root cause reproduced locally with real PowerShell: Get-Item on an existing
+hidden `.artifacts` fails without `-Force`. Linux treats dot directories as
+hidden, so initial create works but the first retained-state restart fails.
+Minimal explicit-path `Get-Item -Force` fixes reading, not ownership permission;
+reparse-point checks remain. Hidden retained marker RED -> GREEN; actual hidden
+junction/symlink refusal and unchanged original marker verified. 62 combined
+PASS (45092), Ruff/format PASS. Earlier fresh full backend 1190 PASS (3984),
+frontend 139/build/audit0 PASS. Final corrective full-stack CI still pending;
+no successful restart claim until actual nine boundaries complete.
+
 Prior dd78455 / 37766880597 and 1cedac8 / 37767782693 completed SUCCESS in all
 seven jobs; 567e263 / 37766368319 completed all-six SUCCESS (actual gh inspection).
 dd78455's real PostgreSQL vertical job ran 23 PASS in 14.97s. Earlier combined

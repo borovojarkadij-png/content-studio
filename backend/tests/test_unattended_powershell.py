@@ -1,6 +1,7 @@
 """Execute real PowerShell policy; replace only read-only Docker config boundary."""
 
 import json
+import shutil
 import subprocess
 from pathlib import Path
 from uuid import uuid4
@@ -203,3 +204,63 @@ def test_all_actual_unattended_scripts_parse_without_execution():
             check=False,
         )
         assert result.returncode == 0, result.stdout + result.stderr
+
+
+def test_existing_hidden_owned_artifacts_are_readable_without_recreation(tmp_path):
+    scripts = tmp_path / "scripts"
+    scripts.mkdir()
+    common = scripts / "unattended-compose-common.ps1"
+    shutil.copyfile(ROOT / "scripts/unattended-compose-common.ps1", common)
+    artifact = tmp_path / ".artifacts"
+    fixture = artifact / "docker-verification" / PROJECT
+    fixture.mkdir(parents=True)
+    marker = fixture / "retained-proof"
+    marker.write_text("original-only", encoding="utf-8")
+    code = f"""
+. {quoted(common)}
+$artifact = Get-Item -LiteralPath {quoted(artifact)} -Force
+if ($IsWindows) {{ $artifact.Attributes = $artifact.Attributes -bor [IO.FileAttributes]::Hidden }}
+$context = Get-UnattendedContext '{PROJECT}'
+if ($context.Directory -cne {quoted(fixture)}) {{ throw 'Wrong fixture identity' }}
+Write-Output 'RETAINED_CONTEXT'
+"""
+    result = subprocess.run(
+        ["pwsh", "-NoProfile", "-Command", code],
+        capture_output=True,
+        text=True,
+        timeout=30,
+        check=False,
+    )
+    assert result.returncode == 0 and result.stdout.strip() == "RETAINED_CONTEXT", result.stderr
+    assert marker.read_text(encoding="utf-8") == "original-only"
+
+
+def test_hidden_artifact_link_is_still_refused_before_mutation(tmp_path):
+    scripts = tmp_path / "scripts"
+    scripts.mkdir()
+    common = scripts / "unattended-compose-common.ps1"
+    shutil.copyfile(ROOT / "scripts/unattended-compose-common.ps1", common)
+    target = tmp_path / "original-storage"
+    target.mkdir()
+    marker = target / "proof"
+    marker.write_text("retain", encoding="utf-8")
+    artifact = tmp_path / ".artifacts"
+    code = f"""
+. {quoted(common)}
+$linkType = if ($IsWindows) {{ 'Junction' }} else {{ 'SymbolicLink' }}
+New-Item -ItemType $linkType -Path {quoted(artifact)} -Target {quoted(target)} | Out-Null
+$context = Get-UnattendedContext '{PROJECT}'
+Write-Output 'UNEXPECTED_CONTEXT'
+"""
+    result = subprocess.run(
+        ["pwsh", "-NoProfile", "-Command", code],
+        capture_output=True,
+        text=True,
+        timeout=30,
+        check=False,
+    )
+    assert result.returncode != 0
+    assert "must not redirect to other storage" in result.stderr
+    assert "UNEXPECTED_CONTEXT" not in result.stdout
+    assert marker.read_text(encoding="utf-8") == "retain"
+    assert list(target.iterdir()) == [marker]

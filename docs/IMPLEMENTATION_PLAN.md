@@ -61,6 +61,7 @@
 - [ ] Actual new combined full-stack restart CI acceptance; current Windows Docker remains separately environment blocked
 - [~] Diagnose first restart hook failure in a9fbb90 CI 37769576690 after healthy startup; safe fixed-code diagnostics 4 new / 56 combined PASS, no guard relaxation; actual corrective CI pending
 - [~] 076db47 diagnostic CI 37770391723 still UNKNOWN; bounded stage/line capture, read-only actual Compose environment characterization and settled React effect test correction, 60 backend / 19 frontend targeted PASS; exact new CI pending
+- [x] Hidden artifact root cause located by 69e42cc / 37770953130 CONTEXT:10 and actual PowerShell RED; explicit-path -Force fix, retained marker and unchanged hidden junction/symlink refusal, 62 combined PASS; actual corrective restart CI pending
 - [x] Overview PostgreSQL integral SUM/Decimal JSON serialization regression reproduced through actual HTTP and fixed without relaxing strict UI/probe contract; original exact CI 37755335470 dedicated PG failure recorded, corrective actual PG rerun pending
 - [x] Retained source deletion truth in read-only moderation inbox/API/UI, preserved historical PASS/source/jobs, contradictory/legacy/malformed guards, real migrated API/reload/WCAG/narrow screenshots; 833 backend / 62 frontend units / 25 browser gate
 - [x] Bounded sparse album observation in provider/factory/fake, explicit incomplete-membership contract and ingress/stale-worker/manual-review/planner fail-closed gate; 500-test backend verification

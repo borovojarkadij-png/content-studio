@@ -7,7 +7,7 @@ function Get-UnattendedContext([string]$Project) {
     $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
     $fixture = [IO.Path]::GetFullPath((Join-Path $repoRoot ".artifacts/docker-verification/$Project"))
     foreach ($path in @((Join-Path $repoRoot '.artifacts'), (Join-Path $repoRoot '.artifacts/docker-verification'), $fixture)) {
-        if ((Test-Path -LiteralPath $path) -and ((Get-Item -LiteralPath $path).Attributes -band [IO.FileAttributes]::ReparsePoint)) {
+        if ((Test-Path -LiteralPath $path) -and ((Get-Item -LiteralPath $path -Force).Attributes -band [IO.FileAttributes]::ReparsePoint)) {
             throw 'Fixture path must not redirect to other storage.'
         }
     }

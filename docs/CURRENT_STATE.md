@@ -2,6 +2,14 @@
 
 ## VERIFIED WORKING
 
+- Root cause confirmed by 69e42cc CI 37770953130 safe CONTEXT:10 marker and
+  actual local hidden-artifact reproduction RED: Get-Item without -Force
+  cannot read retained hidden .artifacts after first startup (natural on Linux).
+  Minimal explicit-path -Force fix retains reparse-point refusal; original
+  marker survives, actual hidden junction/symlink still refused before mutation.
+  62 combined PASS (45092), Ruff/format PASS. Fresh earlier full backend
+  1190 PASS (3984), frontend 139/build/audit0 PASS; final root-fix CI pending.
+  a9fbb90/076db47/69e42cc failed restart runs remain failures, not accepted proof.
 - Diagnostic 076db47 CI 37770391723 restart still FAILED with UNKNOWN before
   first stage. Added bounded fixed stage/numeric line marker (actual missing
   ownership RED -> GREEN), 60 combined PASS (95961). Real read-only Compose
@@ -910,9 +918,10 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: push bounded restart-stage/numeric-line diagnostics and settled React
-test, inspect exact new full-stack CI to identify first failing boundary, then
-reproduce/fix/retest root cause. Prior
+NEXT_STEP: push minimal hidden-artifact explicit-path read fix and regressions,
+inspect exact corrective full-stack CI for all nine original-state restart/crash
+boundaries; diagnose/reproduce/fix any further ordinary failure. Run final full
+local gate after root fix and update evidence. Prior
 a9fbb90 run 37769576690 failed first hook after healthy startup; preserve this
 failure record, do not claim runtime success. Diagnose/fix/
 retest ordinary configuration/SQL/runtime failures without disabling assertions,
