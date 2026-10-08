@@ -2,6 +2,14 @@
 
 ## VERIFIED WORKING
 
+- Exact direct-response publication observations/no-resend recovery OFFLINE:
+  full backend 750 / exact CI lint/targeted format/compile/explicit D: migration
+  round-trip/drift PASS. Real SQL insert failures/crash, historical reject/edit,
+  corrupt/missing/conflicting receipt, bounded fair cursor and active lease
+  verified. Frontend 58 units/format/typecheck/build, final browser 24 PASS
+  (17486). See PUBLICATION_OBSERVATION_VERIFICATION.md.
+  No actual sending enabled; current Windows Docker/live NOT VERIFIED.
+
 - Encrypted immutable publication request snapshots OFFLINE: full backend 737 /
   Ruff/targeted format/compile/explicit D: Alembic round-trip/drift PASS.
   Same-transaction snapshot+intent+outbox, historical reads after rejection,
@@ -570,9 +578,15 @@ Tick checkpoint committed/pushed 69fa0f1cc808155cb991b012d497bb41863aec7d.
 Main-loop opt-in (default 0) and honest read-only UI wording implemented, full
 720 backend + 56 frontend units / 23 browser / explicit migration gate PASS.
 Main-loop checkpoint committed/pushed 6aaaefabc5df9636ee794e2edab630311798f5c8.
-Encrypted immutable request snapshots implemented and gate verified (737 tests).
-Commit/push this snapshot checkpoint, then implement persisted trusted exact
-delivery observations and no-resend reconciliation using offline fixtures.
+Encrypted snapshot checkpoint committed/pushed eda7574c64910cb59471f91d27d3f12db7ad1977.
+Direct-response observation/no-resend recovery implemented and gate verified
+(750 backend, 58 frontend, final browser 24 PASS in 17486).
+Commit/push this observation checkpoint, then extend the
+create-only synthetic PostgreSQL/Docker publication probe to exercise immutable
+encrypted requests and crash-after-observed-ack down/up recovery. Test probe
+logic locally with isolated SQL/synthetic transport; actual current Windows
+Docker stays blocked, inspect GitHub CI separately. Then continue approved
+independent PHASE 1 tasks; full update-difference/deletion recovery is still pending.
 Do not guess message identity by text/time. Use D: for
 temporary data. Difference reconciliation follows; no live sends
 as tests. Do not retry Docker deployment until host space and writable storage
@@ -594,16 +608,16 @@ browser all 23 PASS after moving temporary/output files to D: (68626).
 Guarded text sender initial 19/factory 4 test-first RED cases now GREEN; 35 final
 targeted / 684 full backend PASS. No live send flag, HTTP endpoint or worker added.
 
-Last committed HEAD before this snapshot increment: 6aaaefabc5df9636ee794e2edab630311798f5c8,
+Last committed HEAD before this observation increment: eda7574c64910cb59471f91d27d3f12db7ad1977,
 codex/dark-navy-ui, correct origin borovojarkadij-png/content-studio.
 CI 37710524239 for e14bdf4 completed SUCCESS in all four jobs (gh inspection).
 CI 37710873887 for f9a4075: completed SUCCESS in all four jobs (actual gh run list).
 Actual current Windows packaging remains independently blocked.
-CI 37711279784 for de51ad6: backend/frontend SUCCESS, both Docker jobs in progress
-at last inspection; do not mark this or older pending runs all-four success.
-CI 37711738606 for 69fa0f1 is in progress at last inspection; track separately.
-CI 37712004387 for 6aaaefa: backend/frontend SUCCESS, both Docker jobs in progress
-at last actual inspection; not all-four SUCCESS yet.
+CI 37711279784 for de51ad6, 37711738606 for 69fa0f1 and 37712004387 for 6aaaefa:
+completed SUCCESS in all four jobs (actual gh run list/view). This does not
+resolve current Windows Docker environment failure.
+CI 37712575263 for eda7574: backend/frontend SUCCESS, both Docker jobs in progress
+at last actual inspection; do not mark it all-four SUCCESS yet.
 CI 37708938271: completed SUCCESS in all four jobs (actual gh inspection).
 Preceding aa075af CI 37707297625 and fdf8f06 CI 37706050198 all-four SUCCESS.
 

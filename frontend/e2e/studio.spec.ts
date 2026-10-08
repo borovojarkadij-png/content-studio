@@ -447,6 +447,59 @@ test("real read-only delivery history distinguishes unknown from acknowledged af
   expect(deliveryMethods.every((method) => method === "GET")).toBe(true);
 });
 
+test("read-only receipt conflict warning survives refresh and fits narrow screens", async ({
+  page,
+}) => {
+  // Inject only the HTTP reason on existing isolated history; no operational
+  // job mutation, Telegram send, or false claim of real conflict delivery.
+  await page.route(
+    "**/api/telegram/planned-publications/*/delivery-status",
+    async (route) => {
+      const response = await route.fetch();
+      const payload = await response.json();
+      if (payload.state === "NEEDS_RECONCILIATION")
+        payload.reason_code = "PUBLICATION_OBSERVATION_CONFLICT";
+      await route.fulfill({ response, json: payload });
+    },
+  );
+  await page.goto("/");
+  await navigate(page, "Планировщик");
+  await page
+    .getByLabel("Канал плана")
+    .selectOption({ label: "Изолированная история доставки API" });
+  await page.getByLabel("Дата плана").fill("2026-10-08");
+  const warning = page.getByText(/Получены противоречивые подтверждения/);
+  await expect(warning).toBeVisible();
+  await expect(warning).toHaveAttribute("role", "alert");
+  await expect(
+    page.getByRole("button", { name: /Повторить отправку|Отправить сейчас/ }),
+  ).toHaveCount(0);
+  await page
+    .getByRole("button", { name: "Обновить доставку 1", exact: true })
+    .click();
+  await expect(warning).toBeVisible();
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+  ).toBe(true);
+  const accessibility = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa"])
+    .analyze();
+  expect(accessibility.violations).toEqual([]);
+  await page.evaluate(() => {
+    (document.activeElement as HTMLElement)?.blur();
+    window.scrollTo(0, 0);
+  });
+  await page.screenshot({
+    path: path.resolve(
+      "../.artifacts/ui-dark-navy/live-delivery-conflict-390.png",
+    ),
+    fullPage: true,
+  });
+});
+
 test("inbox repeated scheduling keeps saved date and time", async ({
   page,
 }) => {

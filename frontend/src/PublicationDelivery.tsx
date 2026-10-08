@@ -60,6 +60,12 @@ export function PublicationDelivery({ plannedId }: { plannedId: number }) {
           )}
           {status.state === "NEEDS_RECONCILIATION" && (
             <Notice error>
+              {status.reason_code === "PUBLICATION_OBSERVATION_CONFLICT" && (
+                <>
+                  Получены противоречивые подтверждения; автоматическая сверка
+                  остановлена.{" "}
+                </>
+              )}
               Повторная отправка запрещена до сверки с Telegram. Неизвестный
               результат продолжает занимать дневной лимит.
             </Notice>

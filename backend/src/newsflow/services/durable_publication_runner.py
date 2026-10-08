@@ -17,10 +17,16 @@ from newsflow.persistence.models import (
     OutboxEventModel,
     PlannedPublicationModel,
     PublicationCandidateModel,
+    PublicationDeliveryObservationModel,
     PublicationJobModel,
 )
 from newsflow.services.durable_semantic_runner import _aware, _utc
 from newsflow.services.publication import PublicationBlocked
+from newsflow.services.publication_observations import (
+    PublicationObservations,
+    PublicationReceipt,
+    receipt_matches,
+)
 from newsflow.services.publication_preflight import PublicationPreflight
 from newsflow.services.publication_request_snapshot import PublicationRequestSnapshots
 
@@ -50,14 +56,6 @@ class PublicationClaim:
 
 
 @dataclass(frozen=True, slots=True)
-class PublicationReceipt:
-    account_id: int
-    telegram_channel_id: int
-    request_nonce: int
-    message_id: int
-
-
-@dataclass(frozen=True, slots=True)
 class PublicationAdmission:
     cursor: int
     queued_ids: tuple[int, ...]
@@ -81,6 +79,10 @@ class DurablePublicationRunner:
             if cipher is not None
             else None
         )
+        self._observations = (
+            PublicationObservations(session_factory, cipher=cipher) if cipher is not None else None
+        )
+        self.recovery_cursor = 0
 
     def enqueue_due(self, *, now, after_id=0, limit=16):
         _aware(now)
@@ -240,7 +242,67 @@ class DurablePublicationRunner:
             if original.envelope != envelope or original.request_nonce != nonce:
                 raise PublicationBlocked("PUBLICATION_REQUEST_SNAPSHOT_CHANGED")
 
-    def run_next(self, *, now):
+    def _reconcile(self, *, now, after_id=0, limit=16):
+        _aware(now)
+        if (
+            type(after_id) is not int
+            or after_id < 0
+            or type(limit) is not int
+            or not 1 <= limit <= 64
+        ):
+            raise ValueError("Invalid bounded publication recovery cursor/limit")
+        query = (
+            select(PublicationJobModel.id)
+            .join(
+                PublicationDeliveryObservationModel,
+                PublicationDeliveryObservationModel.job_id == PublicationJobModel.id,
+            )
+            .where(
+                or_(
+                    and_(
+                        PublicationJobModel.state == "SENDING",
+                        PublicationJobModel.lease_expires_at <= now,
+                    ),
+                    and_(
+                        PublicationJobModel.state == "NEEDS_RECONCILIATION",
+                        PublicationJobModel.last_error_code == "PUBLICATION_SEND_OUTCOME_UNKNOWN",
+                    ),
+                )
+            )
+            .order_by(PublicationJobModel.id)
+            .limit(limit)
+        )
+        with self._factory() as session:
+            ids = tuple(session.scalars(query.where(PublicationJobModel.id > after_id)))
+            if not ids and after_id:
+                ids = tuple(session.scalars(query))
+        self.recovery_cursor = 0
+        for job_id in ids:
+            self.recovery_cursor = job_id
+            try:
+                snapshot, observation = self._observations.read(job_id)
+                with self._factory() as session:
+                    job = session.get(PublicationJobModel, job_id)
+                    if job is None:
+                        raise PublicationBlocked("PUBLICATION_OBSERVATION_UNAVAILABLE")
+                    token = job.claim_token or ""
+                result = self._complete(
+                    PublicationClaim(job_id, token, observation.attempt),
+                    observation.receipt,
+                    snapshot.envelope,
+                    snapshot.request_nonce,
+                )
+                if result == "SUCCEEDED":
+                    return True
+            except (PublicationBlocked, PublicationLeaseLost, LookupError):
+                # Corrupt evidence stays quarantined, never interpreted as empty
+                # or proof of non-delivery. Fair cursor advances past it.
+                continue
+        return False
+
+    def run_next(self, *, now, recovery_after_id=0):
+        if self._observations is not None and self._reconcile(now=now, after_id=recovery_after_id):
+            return "RECONCILED"
         claim = self.claim_next(now=now)
         return "IDLE" if claim is None else self.execute(claim)
 
@@ -281,6 +343,8 @@ class DurablePublicationRunner:
                     "PUBLICATION_TRANSPORT_GUARD_MISSING",
                     sending=True,
                 )
+            if self._observations is not None:
+                self._observations.record(claim, receipt, envelope, nonce)
             return self._complete(claim, receipt, envelope, nonce)
         except Exception as exc:  # noqa: BLE001 -- unknown remote outcomes must be durably quarantined
             if isinstance(guard_failure, PublicationLeaseLost) or (
@@ -325,22 +389,8 @@ class DurablePublicationRunner:
         except PublicationLeaseLost:
             return "LOST_LEASE"
 
-    def _complete(self, claim, receipt, envelope, nonce):
-        if (
-            not isinstance(receipt, PublicationReceipt)
-            or any(
-                type(value) is not int
-                for value in (
-                    receipt.account_id,
-                    receipt.telegram_channel_id,
-                    receipt.request_nonce,
-                    receipt.message_id,
-                )
-            )
-            or (receipt.account_id, receipt.telegram_channel_id, receipt.request_nonce)
-            != (envelope.account_id, envelope.telegram_channel_id, nonce)
-            or not 0 < receipt.message_id <= 2**31 - 1
-        ):
+    def _complete(self, claim, receipt: PublicationReceipt, envelope, nonce):
+        if not receipt_matches(receipt, envelope, nonce):
             return self._finish(
                 claim, "NEEDS_RECONCILIATION", "PUBLICATION_RECEIPT_INVALID", sending=True
             )
@@ -368,9 +418,22 @@ class DurablePublicationRunner:
             ):
                 raise PublicationLeaseLost("PUBLICATION_ACK_OWNERSHIP_LOST")
             item = session.get(PlannedPublicationModel, job.planned_id, with_for_update=True)
+            if (
+                item is None
+                or item.id != envelope.planned_id
+                or item.candidate_id != envelope.candidate_id
+                or item.output_channel_id != envelope.output_channel_id
+            ):
+                raise PublicationBlocked("PUBLICATION_ACK_PLAN_IDENTITY_CHANGED")
             candidate = session.get(
                 PublicationCandidateModel, item.candidate_id, with_for_update=True
             )
+            if (
+                candidate is None
+                or candidate.output_channel_id != envelope.output_channel_id
+                or candidate.content_key != envelope.content_key
+            ):
+                raise PublicationBlocked("PUBLICATION_ACK_CANDIDATE_IDENTITY_CHANGED")
             self._terminal(job, "SUCCEEDED", None)
             job.sent_message_id, job.completed_at = receipt.message_id, self._clock()
             item.state, candidate.state = "PUBLISHED", "PUBLISHED"

@@ -94,3 +94,28 @@ def test_untrusted_persisted_error_detail_is_not_returned_as_a_reason_code(
         response = client.get("/api/telegram/planned-publications/1/delivery-status")
         assert response.status_code == 503
         assert "synthetic private error detail" not in response.text
+
+
+def test_trusted_receipt_conflict_is_visible_without_exposing_evidence_or_allowing_send(
+    source_store, monkeypatch
+):
+    seed_plan(source_store)
+    monkeypatch.setenv("DATABASE_URL", str(source_store[0].kw["bind"].url))
+    job_id = runner(source_store, None).enqueue(1, now=NOW)
+    with source_store[0].begin() as session:
+        job = session.get(models.PublicationJobModel, job_id)
+        job.state, job.attempts, job.last_error_code = (
+            "NEEDS_RECONCILIATION",
+            1,
+            "PUBLICATION_OBSERVATION_CONFLICT",
+        )
+    with TestClient(app) as client:
+        response = client.get("/api/telegram/planned-publications/1/delivery-status")
+        assert response.status_code == 200
+        payload = response.json()
+        assert payload["reason_code"] == "PUBLICATION_OBSERVATION_CONFLICT"
+        assert payload["sent_message_id"] is None and payload["live_publication_available"] is False
+        assert not {"encrypted_receipt", "encrypted_envelope", "request_nonce"} & payload.keys()
+        assert (
+            client.post("/api/telegram/planned-publications/1/delivery-status").status_code == 405
+        )

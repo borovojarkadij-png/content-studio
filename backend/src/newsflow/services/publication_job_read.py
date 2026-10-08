@@ -42,6 +42,7 @@ class PublicationJobReader:
             "PUBLICATION_PREPARATION_FAILED",
             "PUBLICATION_KNOWN_NOT_SENT",
             "PUBLICATION_RECEIPT_INVALID",
+            "PUBLICATION_OBSERVATION_CONFLICT",
         }:
             # Never expose arbitrary stored provider exception text through an
             # unauthenticated metadata endpoint, even after data corruption.

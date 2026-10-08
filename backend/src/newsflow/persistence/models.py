@@ -471,6 +471,22 @@ class PublicationRequestSnapshotModel(Base):
     )
 
 
+class PublicationDeliveryObservationModel(Base):
+    """Trusted exact acknowledgement observed before terminal status commit."""
+
+    __tablename__ = "publication_delivery_observations"
+    __table_args__ = (
+        CheckConstraint(
+            "length(encrypted_receipt) BETWEEN 1 AND 4096", name="ck_publication_observation_size"
+        ),
+    )
+    job_id: Mapped[int] = mapped_column(ForeignKey("publication_jobs.id"), primary_key=True)
+    encrypted_receipt: Mapped[str] = mapped_column(Text, nullable=False)
+    observed_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+
 class OutboxEventModel(Base):
     __tablename__ = "outbox_events"
     id: Mapped[int] = mapped_column(primary_key=True)

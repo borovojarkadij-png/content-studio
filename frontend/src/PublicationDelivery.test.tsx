@@ -26,6 +26,32 @@ const pending = {
 };
 const json = (value: unknown) => ({ ok: true, json: async () => value });
 
+it("conflicting acknowledgements never appear delivered or offer automatic resend", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async () =>
+      json({
+        ...pending,
+        job_id: 3,
+        attempts: 1,
+        state: "NEEDS_RECONCILIATION",
+        reason_code: "PUBLICATION_OBSERVATION_CONFLICT",
+      }),
+    ),
+  );
+  render(<PublicationDelivery plannedId={4} />);
+  expect(
+    await screen.findByText(/Получены противоречивые подтверждения/),
+  ).toBeTruthy();
+  expect(screen.getByRole("alert").textContent).toContain(
+    "автоматическая сверка остановлена",
+  );
+  expect(screen.queryByText(/Доставка подтверждена/)).toBeNull();
+  expect(
+    screen.queryByRole("button", { name: /Отправить|Повторить отправку/ }),
+  ).toBeNull();
+});
+
 it("does not confuse unavailable public send controls with server worker configuration", async () => {
   vi.stubGlobal(
     "fetch",

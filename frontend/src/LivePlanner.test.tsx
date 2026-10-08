@@ -49,6 +49,24 @@ const navigate = () =>
   );
 const json = (value: unknown) => ({ ok: true, json: async () => value });
 
+it("planning does not claim a configured server worker is absent or that a slot proves delivery", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (path: string) =>
+      json({ items: path.endsWith("output-channels") ? [channel] : [] }),
+    ),
+  );
+  render(<App initialDemo={false} />);
+  navigate();
+  await screen.findByText(/Доставка подтверждается только в истории/);
+  expect(screen.queryByText(/отправка в Telegram не подключена/)).toBeNull();
+  expect(
+    screen.queryByRole("button", {
+      name: /Отправить сейчас|Повторить отправку/,
+    }),
+  ).toBeNull();
+});
+
 it("persists tabloid style only after successful API response and never generates or publishes", async () => {
   let style = "NEUTRAL";
   const fetch = vi.fn(async (path: string, init?: RequestInit) => {

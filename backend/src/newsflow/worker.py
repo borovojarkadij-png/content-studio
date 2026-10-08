@@ -51,6 +51,7 @@ class PublicationTickResult:
     cursor: int
     queued_ids: tuple[int, ...]
     blocked_ids: tuple[int, ...]
+    recovery_cursor: int = 0
 
 
 def run_publication_tick(
@@ -63,6 +64,7 @@ def run_publication_tick(
     credentials_path=None,
     publisher=None,
     cursor=0,
+    recovery_cursor=0,
     admission_limit=16,
     clock=lambda: datetime.now(UTC),
 ):
@@ -72,7 +74,7 @@ def run_publication_tick(
     always enumerates outstanding plans; jobs/nonce/leases remain PostgreSQL-owned.
     """
     if not enabled:
-        return PublicationTickResult("DISABLED", cursor, (), ())
+        return PublicationTickResult("DISABLED", cursor, (), (), recovery_cursor)
     if cipher is None:
         raise ValueError("Explicit stable cipher is required for publication")
     if publisher is None:
@@ -86,9 +88,13 @@ def run_publication_tick(
         session_factory, media_root, publisher=publisher, cipher=cipher, clock=clock
     )
     admission = execution.enqueue_due(now=now, after_id=cursor, limit=admission_limit)
-    outcome = execution.run_next(now=clock())
+    outcome = execution.run_next(now=clock(), recovery_after_id=recovery_cursor)
     return PublicationTickResult(
-        outcome, admission.cursor, admission.queued_ids, admission.blocked_ids
+        outcome,
+        admission.cursor,
+        admission.queued_ids,
+        admission.blocked_ids,
+        execution.recovery_cursor,
     )
 
 
@@ -371,6 +377,7 @@ def main() -> None:
     )
     stopped = Event()
     publication_cursor = 0
+    publication_recovery_cursor = 0
     for signum in (signal.SIGTERM, signal.SIGINT):
         signal.signal(signum, lambda *_: stopped.set())
     while not stopped.is_set():
@@ -469,6 +476,7 @@ def main() -> None:
                     media_root=Path(getenv("NEWSFLOW_MEDIA_ROOT", "/var/lib/newsflow/media")),
                     now=datetime.now(UTC),
                     cursor=publication_cursor,
+                    recovery_cursor=publication_recovery_cursor,
                     credentials_path=Path(
                         getenv(
                             "NEWSFLOW_TELEGRAM_CREDENTIALS_FILE",
@@ -477,6 +485,7 @@ def main() -> None:
                     ),
                 )
                 publication_cursor = delivery.cursor
+                publication_recovery_cursor = delivery.recovery_cursor
                 logger.info(
                     "publication.tick",
                     outcome=delivery.outcome,

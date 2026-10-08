@@ -68,8 +68,8 @@ export function LivePlanner({ markDirty }: Pick<WorkspaceProps, "markDirty">) {
       <Panel>
         <PanelTitle title="Планы каналов" icon="planner" />
         <p className="help-copy">
-          Данные из API. Подбор только резервирует слоты — отправка в Telegram
-          не подключена.
+          Данные из API. Подбор резервирует слоты; отправка зависит от отдельной
+          настройки worker. Доставка подтверждается только в истории.
         </p>
         {loading && <p role="status">Загрузка планировщика…</p>}
         {error && (

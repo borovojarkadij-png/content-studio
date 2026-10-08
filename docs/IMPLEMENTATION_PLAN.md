@@ -39,7 +39,8 @@
 - [x] Bounded fair due-plan admission and explicit publication tick/dispatcher seam; 717 backend gate, disabled-no-DB/future/expiry/uncertain/reject tests, runtime main-loop opt-in pending
 - [x] Strict default-disabled publication main-loop flag, stable credentials/cipher, fair bounded tick and safe failure logging; offline actual main-loop gate 720 backend / 56 frontend / 23 browser PASS, operational activation NOT enabled
 - [x] Encrypted immutable exact publication request snapshots in the intent/outbox transaction; strict restart/key/schema/legacy/reject guards and history-preserving b7e426d9ab15 migration; offline 737 backend gate PASS
-- [ ] Persist trusted exact delivery observations and reconcile crash-after-ack without another send; evidence-free ambiguity remains quarantined, update-difference/nonce observation coverage not yet implemented
+- [x] Persist trusted encrypted direct-response delivery observations and reconcile crash-after-ack without another send; fair bounded scan, real SQL storage failures/conflicts/identity/read-only UI regressions; 750 backend / 58 frontend / 24 browser gate
+- [ ] Extend create-only synthetic PostgreSQL/Docker publication probe to encrypted request/observed-ack down/up recovery; current Windows environment blocked, GitHub CI independent
 - [x] Publication-execution technical-filter guard (local preflight only; live RPC acceptance pending)
 - [~] Durable mapping-scoped exact content fingerprint deduplication before EditorialGate
 - [~] OpenAI/OpenRouter: encrypted settings/models, drafts/review, catalog and fact anchors complete; strict adapters/encrypted factory, explicitly opt-in provider-selected worker, bounded free-only OpenRouter failover, known token usage and per-channel natural tabloid style complete offline; live provider verification, semantic guard, rate configuration/cache/dashboard pending
