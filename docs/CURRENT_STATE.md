@@ -2,6 +2,14 @@
 
 ## VERIFIED WORKING
 
+- Bounded fair automatic media admission and separate main-loop scan states
+  OFFLINE: 28 dedicated / 41 combined / fresh full backend 1040 PASS (83958),
+  exact CI Ruff/changed format/D: bytecode compile/explicit D: round-trip/drift
+  PASS. 100 earlier rejects cannot starve a later eligible row; SQL reopen,
+  concurrent mode wrap, current reject/rights, terminal history and provider
+  crash attempts verified. Operational flags unchanged. See
+  MEDIA_ADMISSION_FAIRNESS_VERIFICATION.md. New exact CI pending.
+
 - Overview PG integral aggregate serialization reproduced/fixed OFFLINE: actual
   HTTP `'1' != 1` RED -> GREEN; SQL SUM(bigint) Decimal normalized to int, exact
   monetary estimate unchanged. 41 combined overview/wait/media regressions PASS,
@@ -785,15 +793,14 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: checkpoint the Overview PG integral-counter correction and inspect
-its exact dedicated PG/quality CI, without weakening guards. Finish/checkpoint
-the current bounded fair media increment: core and main-loop regressions GREEN,
-28 dedicated tests and earlier 1039 full backend PASS; fresh combined full gate
-is running after PG fix. Continue bounded fair automatic
-media admission: first-N rejected/stale pending candidates must not starve later
-eligible candidates. Preserve fresh gates/source-rights/idempotency and terminal
-history, keep network flags disabled. Test-first real SQL/reopen, then guarded
-worker/main-loop fairness integration and full gates. No real download/send tests.
+NEXT_STEP: checkpoint the verified media fairness increment, inspect corrective
+351b137 CI 37757293108 (in progress at inspection) and exact new media CI.
+Correct ordinary failures without weakening guards. Then bounded fair semantic
+verification admission: old PENDING drafts rejected by current source/editorial/
+release binding must not starve later eligible rows. Test-first real SQL/reopen,
+then opt-in worker/main-loop cursor and full gates. Preserve pinned qualification,
+per-output evidence/idempotency, terminal/exhausted history and network flags 0.
+No live provider call, operational approval or download/send test side effects.
 Never expose tokens/session/key or call live providers for a dashboard. Never reseed old
 fixtures, revive SUPERSEDED history or invent legacy continuity. Keep all operational
 flags unchanged and Windows Docker NOT VERIFIED / BLOCKED BY ENVIRONMENT.

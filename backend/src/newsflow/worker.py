@@ -167,13 +167,30 @@ def run_semantic_tick(
     return execution.run_next(now=now)
 
 
+@dataclass
+class MediaAdmissionState:
+    """Caller-owned scan progress only; all task/retry/history truth remains SQL."""
+
+    cursor: int = 0
+
+
 def run_media_tick(
-    session_factory, *, media_root: Path, enabled: bool, now: datetime, provider=None
+    session_factory,
+    *,
+    media_root: Path,
+    enabled: bool,
+    now: datetime,
+    provider=None,
+    admission: MediaAdmissionState | None = None,
 ) -> str:
     if not enabled:
         return "DISABLED"
     execution = DurableMediaRunner(session_factory, media_root, provider=provider)
-    execution.enqueue_pending(now=now)
+    window = execution.enqueue_window(
+        now=now, after_id=0 if admission is None else admission.cursor
+    )
+    if admission is not None:
+        admission.cursor = window.cursor
     return execution.run_next(now=now)
 
 
@@ -186,6 +203,7 @@ def run_source_photo_tick(
     now: datetime,
     credentials_path: Path | None = None,
     provider=None,
+    admission: MediaAdmissionState | None = None,
 ) -> str:
     if not enabled:
         return "DISABLED"
@@ -199,7 +217,11 @@ def run_source_photo_tick(
             session_factory, cipher=cipher, api_id=api_id, api_hash=api_hash
         )
     execution = DurableSourcePhotoRunner(session_factory, media_root, provider=provider)
-    execution.enqueue_pending(now=now)
+    window = execution.enqueue_window(
+        now=now, after_id=0 if admission is None else admission.cursor
+    )
+    if admission is not None:
+        admission.cursor = window.cursor
     return execution.run_next(now=now)
 
 
@@ -398,6 +420,8 @@ def main() -> None:
     publication_recovery_cursor = 0
     channel_sync_cursor = 0
     source_replay_cursor = 0
+    media_admission = MediaAdmissionState()
+    source_photo_admission = MediaAdmissionState()
     if channel_sync_network_enabled:
         sync_credentials_path = Path(
             getenv("NEWSFLOW_TELEGRAM_CREDENTIALS_FILE", "/run/secrets/telegram_credentials")
@@ -503,6 +527,7 @@ def main() -> None:
                     enabled=True,
                     media_root=Path(getenv("NEWSFLOW_MEDIA_ROOT", "/var/lib/newsflow/media")),
                     now=datetime.now(UTC),
+                    admission=media_admission,
                 )
                 logger.info("media.tick", outcome=outcome)
             except Exception:  # noqa: BLE001 - retain committed lease, never log private data
@@ -515,6 +540,7 @@ def main() -> None:
                     cipher=cipher,
                     media_root=Path(getenv("NEWSFLOW_MEDIA_ROOT", "/var/lib/newsflow/media")),
                     now=datetime.now(UTC),
+                    admission=source_photo_admission,
                     credentials_path=Path(
                         getenv(
                             "NEWSFLOW_TELEGRAM_CREDENTIALS_FILE",

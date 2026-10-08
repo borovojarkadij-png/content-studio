@@ -31,6 +31,14 @@ class MediaClaim:
     attempt: int
 
 
+@dataclass(frozen=True, slots=True)
+class MediaAdmissionWindow:
+    cursor: int
+    scanned_ids: tuple[int, ...]
+    queued_ids: tuple[int, ...]
+    blocked_ids: tuple[int, ...]
+
+
 class DurableMediaRunner:
     acquisition_mode = "LICENSED_LIBRARY"
 
@@ -75,44 +83,51 @@ class DurableMediaRunner:
                     raise
             return job.id
 
+    def _pending_query(self):
+        return select(PublicationCandidateModel.id).where(
+            PublicationCandidateModel.state.in_(("READY", "SCHEDULED")),
+            PublicationCandidateModel.media_policy == self.acquisition_mode,
+            ~select(MediaAcquisitionJobModel.id)
+            .where(
+                MediaAcquisitionJobModel.candidate_id == PublicationCandidateModel.id,
+                MediaAcquisitionJobModel.acquisition_mode == self.acquisition_mode,
+            )
+            .exists(),
+        )
+
+    def _enqueue_automatic(self, candidate_id, *, now):
+        return self.enqueue_candidate(candidate_id, now=now)
+
     def enqueue_pending(self, *, now, limit=100):
+        return len(self.enqueue_window(now=now, after_id=0, limit=limit).queued_ids)
+
+    def enqueue_window(self, *, now, after_id=0, limit=16):
+        """Bounded fair admission; progress never overrides a current media gate.
+
+        Caller retains only scan progress. Reset/wrap/restart enumerate retained
+        candidates again; task identity, terminal history and retries remain SQL-owned.
+        """
         _aware(now)
         if type(limit) is not int or not 1 <= limit <= 100:
             raise ValueError("Media enqueue limit must be between 1 and 100")
+        if type(after_id) is not int or after_id < 0:
+            raise ValueError("Media scan cursor must be a nonnegative canonical integer")
         with self._factory() as session:
             ids = session.scalars(
-                select(PublicationCandidateModel.id)
-                .where(
-                    PublicationCandidateModel.state.in_(("READY", "SCHEDULED")),
-                    PublicationCandidateModel.media_policy == "LICENSED_LIBRARY",
-                    ~select(MediaAcquisitionJobModel.id)
-                    .where(
-                        MediaAcquisitionJobModel.candidate_id == PublicationCandidateModel.id,
-                        MediaAcquisitionJobModel.acquisition_mode == self.acquisition_mode,
-                    )
-                    .exists(),
-                )
+                self._pending_query()
+                .where(PublicationCandidateModel.id > after_id)
                 .order_by(PublicationCandidateModel.id)
                 .limit(limit)
             ).all()
-        created = 0
+        queued, blocked = [], []
         for candidate_id in ids:
             try:
-                with self._factory() as session:
-                    binding = self._acquisition._binding(session, candidate_id)
-                    session.add(
-                        MediaAcquisitionJobModel(
-                            candidate_id=candidate_id,
-                            binding_sha256=_digest(binding),
-                            state="QUEUED",
-                            available_at=now,
-                        )
-                    )
-                    session.commit()
-                    created += 1
-            except (MediaSelectionBlocked, IntegrityError):
-                continue
-        return created
+                queued.append(self._enqueue_automatic(candidate_id, now=now))
+            except (MediaSelectionBlocked, ValueError, LookupError, IntegrityError):
+                blocked.append(candidate_id)
+        return MediaAdmissionWindow(
+            ids[-1] if ids else 0, tuple(ids), tuple(queued), tuple(blocked)
+        )
 
     def claim_next(self, *, now):
         _aware(now)

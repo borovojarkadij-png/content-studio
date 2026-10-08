@@ -90,39 +90,19 @@ class DurableSourcePhotoRunner(DurableMediaRunner):
             candidate_id, license_code=license_code, attribution=attribution, now=now
         )
 
-    def enqueue_pending(self, *, now, limit=100):
-        _aware(now)
-        if type(limit) is not int or not 1 <= limit <= 100:
-            raise ValueError("Source-photo enqueue limit must be between 1 and 100")
-        with self._factory() as session:
-            ids = session.scalars(
-                select(PublicationCandidateModel.id)
-                .join(
-                    MappingSourceRightsModel,
-                    MappingSourceRightsModel.mapping_id == PublicationCandidateModel.mapping_id,
-                )
-                .where(
-                    PublicationCandidateModel.state.in_(("READY", "SCHEDULED")),
-                    PublicationCandidateModel.media_policy == "REUSE_SOURCE",
-                    MappingSourceRightsModel.license_code.in_(("OWNED", "PERMISSION")),
-                    ~select(MediaAcquisitionJobModel.id)
-                    .where(
-                        MediaAcquisitionJobModel.candidate_id == PublicationCandidateModel.id,
-                        MediaAcquisitionJobModel.acquisition_mode == self.acquisition_mode,
-                    )
-                    .exists(),
-                )
-                .order_by(PublicationCandidateModel.id)
-                .limit(limit)
-            ).all()
-        count = 0
-        for candidate_id in ids:
-            try:
-                self.enqueue_configured(candidate_id, now=now)
-                count += 1
-            except (MediaSelectionBlocked, ValueError, LookupError, IntegrityError):
-                continue
-        return count
+    def _pending_query(self):
+        return (
+            super()
+            ._pending_query()
+            .join(
+                MappingSourceRightsModel,
+                MappingSourceRightsModel.mapping_id == PublicationCandidateModel.mapping_id,
+            )
+            .where(MappingSourceRightsModel.license_code.in_(("OWNED", "PERMISSION")))
+        )
+
+    def _enqueue_automatic(self, candidate_id, *, now):
+        return self.enqueue_configured(candidate_id, now=now)
 
     def _guard(self, session, claim):
         job = self._owned(session, claim)
