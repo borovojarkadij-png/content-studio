@@ -1,14 +1,22 @@
-"""Explicitly injected text-only sender; never constructed by the runtime worker.
+"""Explicitly injected text/photo sender; never constructed by the runtime worker.
 
 No hidden retries, scheduling, forwarding, Markdown parsing or paid sending.
 Only a nonce-correlated, exact output-channel message is a delivery receipt.
 """
 
+import re
+from hashlib import sha256
+
 from telethon.errors import FloodWaitError
-from telethon.tl.functions.messages import SendMessageRequest
+from telethon.tl.functions.messages import SendMediaRequest, SendMessageRequest
 from telethon.tl.types import (
     Channel,
+    InputFile,
+    InputFileBig,
+    InputMediaUploadedPhoto,
     Message,
+    MessageMediaPhoto,
+    Photo,
     UpdateMessageID,
     UpdateNewChannelMessage,
     Updates,
@@ -23,6 +31,8 @@ from newsflow.services.publication_preflight import PublicationEnvelope
 
 
 class TelethonTextPublisher:
+    _text_limit = 4096
+
     def __init__(self, adapter_for_envelope):
         if not callable(adapter_for_envelope):
             raise TypeError("An explicit bound Telegram adapter factory is required")
@@ -49,11 +59,10 @@ class TelethonTextPublisher:
             or envelope.telegram_channel_id >= -1000000000000
             or not isinstance(envelope.text, str)
             or not envelope.text.strip()
-            or len(envelope.text.encode("utf-16-le")) // 2 > 4096
+            or len(envelope.text.encode("utf-16-le")) // 2 > self._text_limit
         ):
             raise ValueError("Invalid bound text publication request")
-        if envelope.media_asset_id is not None or envelope.media_sha256 is not None:
-            raise PublicationBlocked("TEXT_TRANSPORT_DOES_NOT_SUPPORT_MEDIA")
+        self._validate_media(envelope)
         adapter = self._adapter_for(envelope)
         if (
             not isinstance(adapter, TelethonTelegramProvider)
@@ -83,15 +92,7 @@ class TelethonTextPublisher:
                 )
             ):
                 raise PublicationBlocked("CURRENT_DESTINATION_POST_PERMISSION_REQUIRED")
-            request = SendMessageRequest(
-                peer=peer,
-                message=envelope.text,
-                random_id=nonce,
-                no_webpage=True,
-                entities=[],
-                allow_paid_stars=0,
-                allow_paid_floodskip=False,
-            )
+            request = await self._prepare_request(client, envelope, peer, nonce)
             # Final local fresh decision/lease validation after all read-only RPCs.
             # No await, database lock or media/network preparation between this
             # callback and the one send RPC. The runner already committed SENDING.
@@ -105,6 +106,69 @@ class TelethonTextPublisher:
             return _exact_receipt(result, envelope, nonce)
 
         return adapter._run(str(envelope.account_id), send)
+
+    def _validate_media(self, envelope):
+        if envelope.media_asset_id is not None or envelope.media_sha256 is not None:
+            raise PublicationBlocked("TEXT_TRANSPORT_DOES_NOT_SUPPORT_MEDIA")
+
+    async def _prepare_request(self, client, envelope, peer, nonce):
+        return SendMessageRequest(
+            peer=peer,
+            message=envelope.text,
+            random_id=nonce,
+            no_webpage=True,
+            entities=[],
+            allow_paid_stars=0,
+            allow_paid_floodskip=False,
+        )
+
+
+class TelethonPhotoPublisher(TelethonTextPublisher):
+    _text_limit = 1024
+
+    def __init__(self, adapter_for_envelope, *, photo_for_envelope):
+        super().__init__(adapter_for_envelope)
+        if not callable(photo_for_envelope):
+            raise TypeError("An explicit bound source-photo reader is required")
+        self._photo_for = photo_for_envelope
+
+    def _validate_media(self, envelope):
+        if (
+            type(envelope.media_asset_id) is not int
+            or envelope.media_asset_id <= 0
+            or not isinstance(envelope.media_sha256, str)
+            or re.fullmatch(r"[a-f0-9]{64}", envelope.media_sha256) is None
+        ):
+            raise ValueError("An exact bound source photo is required")
+
+    async def _prepare_request(self, client, envelope, peer, nonce):
+        content = self._photo_for(envelope)
+        if (
+            type(content) is not bytes
+            or not 0 < len(content) <= 16 * 1024 * 1024
+            or sha256(content).hexdigest() != envelope.media_sha256
+        ):
+            raise PublicationBlocked("CURRENT_PHOTO_BYTE_IDENTITY_REQUIRED")
+        if content.startswith(b"\x89PNG\r\n\x1a\n"):
+            file_name = "source.png"
+        elif content.startswith(b"\xff\xd8\xff"):
+            file_name = "source.jpg"
+        else:
+            raise PublicationBlocked("SUPPORTED_PHOTO_SIGNATURE_REQUIRED")
+        # Configured reader has already bounded/decoded bytes and checked current
+        # rights. Upload is preparation, not channel publication. Guard runs later.
+        uploaded = await client.upload_file(content, file_name=file_name)
+        if not isinstance(uploaded, (InputFile, InputFileBig)):
+            raise TypeError("Photo upload returned no usable file handle")
+        return SendMediaRequest(
+            peer=peer,
+            media=InputMediaUploadedPhoto(file=uploaded),
+            message=envelope.text,
+            random_id=nonce,
+            entities=[],
+            allow_paid_stars=0,
+            allow_paid_floodskip=False,
+        )
 
 
 def _exact_receipt(result, envelope, nonce):
@@ -127,12 +191,22 @@ def _exact_receipt(result, envelope, nonce):
     if len(messages) != 1:
         raise ValueError("Publication response has no unambiguous channel message")
     message = messages[0]
+    media_matches = message.media is None
+    if envelope.media_asset_id is not None:
+        media_matches = (
+            isinstance(message.media, MessageMediaPhoto)
+            and isinstance(message.media.photo, Photo)
+            and type(message.media.photo.id) is int
+            and message.media.photo.id > 0
+            and not message.media.video
+            and not message.media.live_photo
+        )
     if (
         get_peer_id(message.peer_id) != envelope.telegram_channel_id
         or message.out is not True
         or message.post is not True
         or message.message != envelope.text
-        or message.media is not None
+        or not media_matches
         or message.fwd_from is not None
         or message.from_scheduled
         or message.grouped_id is not None

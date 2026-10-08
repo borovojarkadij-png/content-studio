@@ -2,6 +2,12 @@
 
 ## VERIFIED WORKING
 
+- Guarded original-photo transport OFFLINE: full backend 703 / Ruff / targeted
+  format / compile PASS (55064). Current source asset/rights/bytes, attribution,
+  exact nonce/caption/photo receipt and post-upload state fencing verified in SQL
+  with synthetic network. Unknown send never resends/reuploads on restart.
+  No runtime flag/API enabled. See TELEGRAM_PHOTO_TRANSPORT_VERIFICATION.md.
+
 - Guarded encrypted text-only transport OFFLINE: 35 targeted transport/factory
   regressions, full backend 684 / Ruff / compile PASS. No worker/send API enabled.
   Exact nonce/channel/text receipt, final post-auth reject/source/session/review
@@ -538,10 +544,11 @@
 
 Read-only status + explicit Alembic target guard committed/pushed as
 e14bdf47dbe383b17ad18ab22d6ba93d20ae7cad to correct origin.
-Text-only transport/factory implemented and full 684-test/lint/compile gate PASS
-(session 57958). Preserve/commit this text checkpoint, then implement guarded
-original-photo preparation/upload/send with offline tests. Use D: for temporary
-data. Opt-in publication tick and difference reconciliation follow; no live sends
+Text transport/factory committed/pushed f9a4075f7f860ce351f98e74a2273e0946b59f94.
+Original-photo transport/factory now implemented and full 703-test/lint/format/
+compile gate PASS (55064). Preserve/commit photo checkpoint, then implement
+guarded opt-in publication tick/orchestration with offline tests. Use D: for
+temporary data. Difference reconciliation follows; no live sends
 as tests. Do not retry Docker deployment until host space and writable storage
 are confirmed; do not delete/prune volumes or user data.
 Architecture is approved; do not repeat completed media/publication setup.
@@ -565,6 +572,8 @@ Last committed HEAD before this text increment: e14bdf47dbe383b17ad18ab22d6ba93d
 codex/dark-navy-ui, correct origin borovojarkadij-png/content-studio.
 CI 37710524239 for e14bdf4: backend/frontend SUCCESS, both Docker jobs in progress
 at last inspection; do not claim overall success yet.
+CI 37710873887 for f9a4075: backend/frontend SUCCESS, both Docker jobs in progress
+at last inspection; actual Windows packaging remains independently blocked.
 CI 37708938271: completed SUCCESS in all four jobs (actual gh inspection).
 Preceding aa075af CI 37707297625 and fdf8f06 CI 37706050198 all-four SUCCESS.
 

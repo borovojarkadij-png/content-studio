@@ -32,7 +32,7 @@ def configured(store, client):
     )
 
 
-def setup(store):
+def setup(store, client=None):
     seed_plan(store)
     with store[0].begin() as session:
         session.get(models.TelegramAccount, 1).encrypted_session = CIPHER.encrypt("synthetic")
@@ -47,7 +47,7 @@ def setup(store):
                 }
             )
         )
-    client = Client()
+    client = client or Client()
     client.channel.id = 1234567891
 
     async def permission(peer):
@@ -73,11 +73,8 @@ class ReceiptClient(Client):
 
 
 def test_encrypted_factory_real_runner_commits_exact_receipt_once(source_store):
-    prepared = setup(source_store)
-    client = ReceiptClient()
+    client = setup(source_store, ReceiptClient())
     client.factory = source_store[0]
-    client.channel = prepared.channel
-    client.get_entity = prepared.get_entity
     execution = DurablePublicationRunner(
         *source_store, publisher=configured(source_store, client), clock=lambda: NOW
     )
