@@ -2,6 +2,13 @@
 
 ## VERIFIED WORKING
 
+- Encrypted immutable publication request snapshots OFFLINE: full backend 737 /
+  Ruff/targeted format/compile/explicit D: Alembic round-trip/drift PASS.
+  Same-transaction snapshot+intent+outbox, historical reads after rejection,
+  strict JSON/key/nonce/binding and legacy-zero-send verified. Migration
+  b7e426d9ab15 preserves legacy history and refuses populated downgrade.
+  See PUBLICATION_SNAPSHOT_VERIFICATION.md; Windows Docker/live remain blocked.
+
 - Strict default-disabled publication main-loop wiring OFFLINE: backend 720 /
   Ruff/targeted format/compile/explicit D: migration round-trip/drift PASS (51530),
   frontend 56 units/23 browser/format/typecheck/build/audit PASS (5676).
@@ -562,9 +569,11 @@ Photo checkpoint committed/pushed de51ad6f9ea983214ea432797d504c9cc685cdf2.
 Tick checkpoint committed/pushed 69fa0f1cc808155cb991b012d497bb41863aec7d.
 Main-loop opt-in (default 0) and honest read-only UI wording implemented, full
 720 backend + 56 frontend units / 23 browser / explicit migration gate PASS.
-Preserve/commit this main-loop checkpoint, then implement durable immutable send
-request/recovery observations and verified no-resend reconciliation using offline
-fixtures. Do not guess message identity by text/time. Use D: for
+Main-loop checkpoint committed/pushed 6aaaefabc5df9636ee794e2edab630311798f5c8.
+Encrypted immutable request snapshots implemented and gate verified (737 tests).
+Commit/push this snapshot checkpoint, then implement persisted trusted exact
+delivery observations and no-resend reconciliation using offline fixtures.
+Do not guess message identity by text/time. Use D: for
 temporary data. Difference reconciliation follows; no live sends
 as tests. Do not retry Docker deployment until host space and writable storage
 are confirmed; do not delete/prune volumes or user data.
@@ -585,14 +594,16 @@ browser all 23 PASS after moving temporary/output files to D: (68626).
 Guarded text sender initial 19/factory 4 test-first RED cases now GREEN; 35 final
 targeted / 684 full backend PASS. No live send flag, HTTP endpoint or worker added.
 
-Last committed HEAD before this text increment: e14bdf47dbe383b17ad18ab22d6ba93d20ae7cad,
+Last committed HEAD before this snapshot increment: 6aaaefabc5df9636ee794e2edab630311798f5c8,
 codex/dark-navy-ui, correct origin borovojarkadij-png/content-studio.
 CI 37710524239 for e14bdf4 completed SUCCESS in all four jobs (gh inspection).
-CI 37710873887 for f9a4075: backend/frontend SUCCESS, both Docker jobs in progress
-at last inspection; actual Windows packaging remains independently blocked.
+CI 37710873887 for f9a4075: completed SUCCESS in all four jobs (actual gh run list).
+Actual current Windows packaging remains independently blocked.
 CI 37711279784 for de51ad6: backend/frontend SUCCESS, both Docker jobs in progress
 at last inspection; do not mark this or older pending runs all-four success.
 CI 37711738606 for 69fa0f1 is in progress at last inspection; track separately.
+CI 37712004387 for 6aaaefa: backend/frontend SUCCESS, both Docker jobs in progress
+at last actual inspection; not all-four SUCCESS yet.
 CI 37708938271: completed SUCCESS in all four jobs (actual gh inspection).
 Preceding aa075af CI 37707297625 and fdf8f06 CI 37706050198 all-four SUCCESS.
 

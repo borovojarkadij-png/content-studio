@@ -83,7 +83,7 @@ def run_publication_tick(
             session_factory, media_root, cipher=cipher, api_id=api_id, api_hash=api_hash
         )
     execution = DurablePublicationRunner(
-        session_factory, media_root, publisher=publisher, clock=clock
+        session_factory, media_root, publisher=publisher, cipher=cipher, clock=clock
     )
     admission = execution.enqueue_due(now=now, after_id=cursor, limit=admission_limit)
     outcome = execution.run_next(now=clock())

@@ -18,6 +18,7 @@ from sqlalchemy import (
     Integer,
     Numeric,
     String,
+    Text,
     UniqueConstraint,
     func,
     text,
@@ -449,6 +450,25 @@ class PublicationJobModel(Base):
     sent_message_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     last_error_code: Mapped[str | None] = mapped_column(String(64), nullable=True)
+
+
+class PublicationRequestSnapshotModel(Base):
+    """Encrypted immutable request history, not permission to publish."""
+
+    __tablename__ = "publication_request_snapshots"
+    __table_args__ = (
+        CheckConstraint("length(binding_sha256) = 64", name="ck_publication_snapshot_binding"),
+        CheckConstraint(
+            "length(encrypted_envelope) BETWEEN 1 AND 32768",
+            name="ck_publication_snapshot_size",
+        ),
+    )
+    job_id: Mapped[int] = mapped_column(ForeignKey("publication_jobs.id"), primary_key=True)
+    binding_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    encrypted_envelope: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
 
 
 class OutboxEventModel(Base):

@@ -22,6 +22,7 @@ from newsflow.persistence.models import (
 from newsflow.services.durable_semantic_runner import _aware, _utc
 from newsflow.services.publication import PublicationBlocked
 from newsflow.services.publication_preflight import PublicationPreflight
+from newsflow.services.publication_request_snapshot import PublicationRequestSnapshots
 
 
 class PublicationLeaseLost(PermissionError):
@@ -65,10 +66,21 @@ class PublicationAdmission:
 
 class DurablePublicationRunner:
     def __init__(
-        self, session_factory, media_root=None, *, publisher=None, clock=lambda: datetime.now(UTC)
+        self,
+        session_factory,
+        media_root=None,
+        *,
+        publisher=None,
+        cipher=None,
+        clock=lambda: datetime.now(UTC),
     ):
         self._factory, self._publisher, self._clock = session_factory, publisher, clock
         self._preflight = PublicationPreflight(session_factory, media_root)
+        self._snapshots = (
+            PublicationRequestSnapshots(session_factory, cipher=cipher)
+            if cipher is not None
+            else None
+        )
 
     def enqueue_due(self, *, now, after_id=0, limit=16):
         _aware(now)
@@ -131,6 +143,9 @@ class DurablePublicationRunner:
                     )
                 )
                 try:
+                    if self._snapshots is not None:
+                        session.flush()
+                        self._snapshots.record(session, job, envelope)
                     session.commit()
                 except IntegrityError:
                     session.rollback()
@@ -217,6 +232,13 @@ class DurablePublicationRunner:
             job = self._owned(session, claim, state="SENDING")
             if job.binding_sha256 != current.binding_sha256:
                 raise PublicationBlocked("PUBLICATION_JOB_BINDING_CHANGED")
+            self._validate_snapshot(job.id, current, job.request_nonce)
+
+    def _validate_snapshot(self, job_id, envelope, nonce):
+        if self._snapshots is not None:
+            original = self._snapshots.read(job_id)
+            if original.envelope != envelope or original.request_nonce != nonce:
+                raise PublicationBlocked("PUBLICATION_REQUEST_SNAPSHOT_CHANGED")
 
     def run_next(self, *, now):
         claim = self.claim_next(now=now)
@@ -245,6 +267,7 @@ class DurablePublicationRunner:
             envelope = self._preflight.prepare(planned_id, now=self._clock())
             if envelope.binding_sha256 != digest:
                 raise PublicationBlocked("PUBLICATION_JOB_BINDING_CHANGED")
+            self._validate_snapshot(claim.job_id, envelope, nonce)
             with self._factory() as session:
                 job = self._owned(session, claim, state="CLAIMED")
                 job.state = "SENDING"
