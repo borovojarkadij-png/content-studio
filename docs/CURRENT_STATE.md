@@ -2,6 +2,13 @@
 
 ## VERIFIED WORKING
 
+- Known channel gap/foreign-baseline shared source quarantine OFFLINE: final
+  full backend 906 PASS (21914), 70 targeted, exact CI Ruff/changed format/compile/
+  explicit isolated D: drift PASS; 65 frontend units / 26 browser PASS (91631),
+  format/typecheck/build/audit 0. Cached PASS/retry/API/manual/media/final-send
+  zero-provider and historical receipt zero-resend verified. Real read-only Inbox
+  distinct sync state, reload/WCAG/narrow screenshots visually inspected. See
+  SOURCE_SYNC_GUARD_VERIFICATION.md. Durable retained-observation replay pending.
 - Authenticated read-only checkpoint and create-only new-donor baseline OFFLINE:
   53 targeted / full backend 886 PASS (12463), exact CI Ruff/changed format/
   compile/explicit isolated D: Alembic round-trip/drift PASS. SQL-reopen identity,
@@ -646,10 +653,14 @@ with full 833 backend / 62 frontend units / final 25 browser PASS; committed/pus
 b6b4d98f6b6d59fcb091d9c3cf1aaa832fb2a0bc, CI 37715889965 all-four SUCCESS.
 Trusted read-only checkpoint/create-only baseline now verified OFFLINE with
 53 targeted / full 886 backend tests plus explicit D: round-trip/drift PASS.
-Checkpoint this increment, then implement shared fail-closed freshness for a
-persisted unresolved channel gap/foreign baseline before optional worker wiring.
-Test cached PASS/retry/API/manual scheduling/media/final publication and zero
-provider calls; preserve history and exact receipt recovery without resending.
+Baseline committed/pushed 9c4dcf12c07e289298f3c3c0aae1c4d1232cd23a;
+CI 37742573673 backend/frontend SUCCESS, both Docker jobs in progress at inspection.
+Shared unresolved-gap/foreign-baseline freshness now verified OFFLINE with full
+906 backend / 65 frontend units / 26 browser gate PASS. Checkpoint this increment,
+then add durable bounded replay obligations for exact stored revisions retained
+without classification during a gap. Test crash after partial mapping fan-out,
+SQL reopen, current source/session/cursor/mapping fencing, unknown classification
+remaining MANUAL_REVIEW, stale/rejected/deleted zero-AI and no fake PASS.
 Then bounded fair opt-in deletion-first bootstrap/difference/history orchestration,
 before downstream planning/rewrite. Never activate operational flags as a test.
 Never initialize/reset legacy cursor from latest-message IDs or TooLong, never

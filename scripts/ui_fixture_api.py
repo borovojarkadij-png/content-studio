@@ -23,6 +23,7 @@ def main() -> None:
     from newsflow.app import app
     from newsflow.persistence.database import reset_database_session_factory
     from newsflow.persistence.models import (
+        ChannelDifferenceCursorModel,
         ContentRevisionModel,
         EditorialDecisionModel,
         IncomingPostModel,
@@ -296,6 +297,44 @@ def main() -> None:
             TelegramChannelDifference("1", "-1002222222222", 10, 11, True, 0, (), (90,)),
             observed_at=datetime.now(UTC),
         )
+        # Explicit synthetic unresolved-gap ledger, never operational configuration.
+        with Session(engine) as session:
+            source = IncomingPostModel(
+                telegram_account_id="1",
+                donor_channel_id="-1002222222222",
+                telegram_message_id=91,
+                state="RECEIVED",
+            )
+            session.add(source)
+            session.flush()
+            session.add(
+                ContentRevisionModel(
+                    incoming_post_id=source.id,
+                    revision_number=1,
+                    source_text="Изолированный источник с gap API",
+                )
+            )
+            session.add(
+                EditorialDecisionModel(
+                    content_key="1:-1002222222222:91:revision:1",
+                    status="PASS",
+                    rewrite_allowed=True,
+                    sentiment="neutral",
+                    framing="neutral",
+                )
+            )
+            session.add(
+                ChannelDifferenceCursorModel(
+                    donor_channel_id=donor["id"],
+                    telegram_account_id=1,
+                    telegram_user_id=1001,
+                    telegram_channel_id=-1002222222222,
+                    pts=10,
+                    available_at=datetime.now(UTC),
+                    last_error_code="GAP_UNRESOLVED",
+                )
+            )
+            session.commit()
         engine.dispose()
         try:
             uvicorn.run(app, host="127.0.0.1", port=5181, log_level="warning")

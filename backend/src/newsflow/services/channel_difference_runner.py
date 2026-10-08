@@ -114,7 +114,8 @@ class ChannelDifferenceRunner:
                 str(account.id), str(donor.telegram_channel_id), cursor.pts, self._size
             )
             cursor.claim_token, cursor.lease_expires_at = str(uuid4()), now + timedelta(seconds=60)
-            cursor.last_error_code = None
+            if cursor.last_error_code != "GAP_UNRESOLVED":
+                cursor.last_error_code = None
             return ChannelDifferenceClaim(
                 donor_id,
                 account.id,
@@ -298,7 +299,8 @@ class ChannelDifferenceRunner:
                     mappings,
                     mapping_binding,
                 ):
-                    cursor.last_error_code = "MAPPING_CHANGED"
+                    if cursor.last_error_code != "GAP_UNRESOLVED":
+                        cursor.last_error_code = "MAPPING_CHANGED"
                     cursor.available_at = _clock(self._clock()) + timedelta(seconds=30)
                     cursor.claim_token = cursor.lease_expires_at = None
                     return "MAPPING_CHANGED"
@@ -307,7 +309,8 @@ class ChannelDifferenceRunner:
                     seconds=difference.retry_after_seconds if difference.final else 0
                 )
                 cursor.claim_token = cursor.lease_expires_at = None
-                cursor.last_error_code = None
+                if difference.final or cursor.last_error_code != "GAP_UNRESOLVED":
+                    cursor.last_error_code = None
             return "DIFFERENCE_COMPLETE" if difference.final else "DIFFERENCE_CONTINUE"
         except SourceDeletionClaimLost:
             return "STALE_CLAIM"
@@ -320,7 +323,9 @@ class ChannelDifferenceRunner:
             cursor = self._owned(session, claim)
             if cursor is None:
                 return "STALE_CLAIM"
-            cursor.available_at, cursor.last_error_code = now + timedelta(seconds=delay), code
+            cursor.available_at = now + timedelta(seconds=delay)
+            if cursor.last_error_code != "GAP_UNRESOLVED":
+                cursor.last_error_code = code
             cursor.claim_token = cursor.lease_expires_at = None
             if health is not None:
                 account = session.get(

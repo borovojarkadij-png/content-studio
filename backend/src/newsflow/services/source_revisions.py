@@ -1,9 +1,16 @@
 """Resolve immutable source keys without ambiguous delimiter parsing."""
 
-from sqlalchemy import String, cast, func, select
+from sqlalchemy import String, cast, func, or_, select
 from sqlalchemy.orm import Session
 
-from newsflow.persistence.models import ContentRevisionModel, IncomingPostModel, SourceDeletionModel
+from newsflow.persistence.models import (
+    ChannelDifferenceCursorModel,
+    ContentRevisionModel,
+    DonorChannel,
+    IncomingPostModel,
+    SourceDeletionModel,
+    TelegramAccount,
+)
 
 
 def source_revision(session: Session, content_key: str) -> ContentRevisionModel | None:
@@ -28,8 +35,11 @@ def source_revision(session: Session, content_key: str) -> ContentRevisionModel 
 
 def revision_is_latest(session: Session, revision: ContentRevisionModel) -> bool:
     post = session.get(IncomingPostModel, revision.incoming_post_id, populate_existing=True)
-    if post is None or source_identity_deleted(
-        session, post.telegram_account_id, post.donor_channel_id, post.telegram_message_id
+    if post is None or (
+        source_identity_deleted(
+            session, post.telegram_account_id, post.donor_channel_id, post.telegram_message_id
+        )
+        or source_identity_sync_blocked(session, post.telegram_account_id, post.donor_channel_id)
     ):
         return False
     return (
@@ -61,4 +71,54 @@ def source_key_deleted(session: Session, content_key: str) -> bool:
     post = session.get(IncomingPostModel, revision.incoming_post_id, populate_existing=True)
     return post is not None and source_identity_deleted(
         session, post.telegram_account_id, post.donor_channel_id, post.telegram_message_id
+    )
+
+
+def source_identity_sync_blocked(session: Session, account: str, channel: str) -> bool:
+    """A known gap/foreign baseline is not a current source, even with cached PASS.
+
+    Legacy sources without a difference ledger are not silently certified by this
+    check; they retain their old workflow until guarded opt-in synchronization.
+    """
+    cursors = session.scalars(
+        select(ChannelDifferenceCursorModel)
+        .outerjoin(DonorChannel, DonorChannel.id == ChannelDifferenceCursorModel.donor_channel_id)
+        .where(
+            or_(
+                (cast(DonorChannel.telegram_account_id, String) == account)
+                & (cast(DonorChannel.telegram_channel_id, String) == channel),
+                (cast(ChannelDifferenceCursorModel.telegram_account_id, String) == account)
+                & (cast(ChannelDifferenceCursorModel.telegram_channel_id, String) == channel),
+            )
+        )
+        .execution_options(populate_existing=True)
+        .limit(2)
+    ).all()
+    if not cursors:
+        return False
+    if len(cursors) != 1:
+        return True
+    cursor = cursors[0]
+    donor = session.get(DonorChannel, cursor.donor_channel_id, populate_existing=True)
+    if donor is None:
+        return True
+    owner = session.get(TelegramAccount, donor.telegram_account_id, populate_existing=True)
+    return (
+        cursor.last_error_code == "GAP_UNRESOLVED"
+        or owner is None
+        or (cursor.telegram_account_id, cursor.telegram_user_id, cursor.telegram_channel_id)
+        != (donor.telegram_account_id, owner.telegram_user_id, donor.telegram_channel_id)
+    )
+
+
+def source_key_unavailable(session: Session, content_key: str) -> bool:
+    revision = source_revision(session, content_key)
+    if revision is None:
+        return False
+    post = session.get(IncomingPostModel, revision.incoming_post_id, populate_existing=True)
+    return post is not None and (
+        source_identity_deleted(
+            session, post.telegram_account_id, post.donor_channel_id, post.telegram_message_id
+        )
+        or source_identity_sync_blocked(session, post.telegram_account_id, post.donor_channel_id)
     )

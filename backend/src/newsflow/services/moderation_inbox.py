@@ -10,7 +10,7 @@ from newsflow.persistence.models import (
     EditorialDecisionModel,
     IncomingPostModel,
 )
-from newsflow.services.source_revisions import source_identity_deleted
+from newsflow.services.source_revisions import source_identity_deleted, source_identity_sync_blocked
 
 
 @dataclass(frozen=True, slots=True)
@@ -67,15 +67,22 @@ class ModerationInboxReader:
                 post.donor_channel_id,
                 post.telegram_message_id,
             )
+            sync_blocked = source_identity_sync_blocked(
+                self._session, post.telegram_account_id, post.donor_channel_id
+            )
             items.append(
                 ModerationInboxItem(
                     source_key=source_key,
-                    state="SOURCE_DELETED" if deleted else post.state,
+                    state="SOURCE_DELETED"
+                    if deleted
+                    else "SOURCE_SYNC_REQUIRED"
+                    if sync_blocked
+                    else post.state,
                     revision_number=revision.revision_number,
                     source_text=revision.source_text,
                     editorial_status=decision.status if decision else None,
                     rewrite_allowed=False
-                    if deleted
+                    if deleted or sync_blocked
                     else decision.rewrite_allowed
                     if decision
                     else None,

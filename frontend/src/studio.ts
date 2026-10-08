@@ -9,7 +9,12 @@ export type Page =
   | "settings";
 export type Tone = "blue" | "green" | "orange" | "violet" | "red" | "muted";
 export type ContentState =
-  "Новый" | "На проверке" | "Готово" | "Отклонён" | "Удалён у донора";
+  | "Новый"
+  | "На проверке"
+  | "Готово"
+  | "Отклонён"
+  | "Удалён у донора"
+  | "Нужна синхронизация";
 export type Post = {
   id: string;
   source: string;
@@ -25,6 +30,7 @@ export type Post = {
   rewriteAllowed: boolean;
   revision: number;
   sourceDeleted?: boolean;
+  sourceSyncBlocked?: boolean;
 };
 export type Donor = {
   id: string;
@@ -486,6 +492,8 @@ export function datePlus(date: string, days: number) {
 export function canProcess(post: Post) {
   return (
     !post.sourceDeleted &&
+    !post.sourceSyncBlocked &&
+    post.state !== "Нужна синхронизация" &&
     post.state !== "Удалён у донора" &&
     post.editorial === "PASS" &&
     post.rewriteAllowed &&
@@ -516,6 +524,8 @@ export function scheduleError(
 ) {
   if (post?.sourceDeleted || post?.state === "Удалён у донора")
     return "Источник удалён у донора. Планирование запрещено.";
+  if (post?.sourceSyncBlocked || post?.state === "Нужна синхронизация")
+    return "Нужна синхронизация Telegram. Планирование запрещено.";
   if (!post || !canProcess(post))
     return "Материал не прошёл EditorialGate. Планирование запрещено.";
   if (!channel) return "Выберите канал.";

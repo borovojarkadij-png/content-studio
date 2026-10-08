@@ -67,10 +67,12 @@ export async function loadInbox(signal: AbortSignal): Promise<Post[]> {
     state:
       item.source_deleted === true || item.state === "SOURCE_DELETED"
         ? "Удалён у донора"
-        : item.editorial_status === "REJECT" ||
-            item.state.startsWith("REJECTED")
-          ? "Отклонён"
-          : "На проверке",
+        : item.state === "SOURCE_SYNC_REQUIRED"
+          ? "Нужна синхронизация"
+          : item.editorial_status === "REJECT" ||
+              item.state.startsWith("REJECTED")
+            ? "Отклонён"
+            : "На проверке",
     time: `Ревизия ${item.revision_number}`,
     art: "",
     destinations: [],
@@ -83,11 +85,13 @@ export async function loadInbox(signal: AbortSignal): Promise<Post[]> {
     rewriteAllowed:
       item.source_deleted !== true &&
       item.state !== "SOURCE_DELETED" &&
+      item.state !== "SOURCE_SYNC_REQUIRED" &&
       item.rewrite_allowed === true &&
       item.editorial_status === "PASS",
     revision: item.revision_number,
     sourceDeleted:
       item.source_deleted === true || item.state === "SOURCE_DELETED",
+    sourceSyncBlocked: item.state === "SOURCE_SYNC_REQUIRED",
   }));
 }
 

@@ -24,6 +24,19 @@ describe("Demo domain protections", () => {
       scheduleError(deleted, data.channels[0], "2026-10-02", "15:00"),
     ).toContain("Источник удалён");
   });
+  it("sync quarantine cannot be bypassed by contradictory historical PASS", () => {
+    const data = createDemo();
+    const blocked = {
+      ...data.posts[0],
+      sourceSyncBlocked: true,
+      editorial: "PASS" as const,
+      rewriteAllowed: true,
+    };
+    expect(canProcess(blocked)).toBe(false);
+    expect(
+      scheduleError(blocked, data.channels[0], "2026-10-02", "15:00"),
+    ).toContain("синхронизация");
+  });
   it("groups visually overlapping calendar cards and retains each distinct job identity", () => {
     const first = createDemo().scheduled[0];
     const groups = calendarSlots([

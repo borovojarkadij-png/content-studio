@@ -29,7 +29,7 @@ from newsflow.persistence.models import (
 )
 from newsflow.providers.telegram import TelegramMessage, validate_media_observation
 from newsflow.services.mapping_filters import mapping_filter
-from newsflow.services.source_revisions import source_identity_deleted
+from newsflow.services.source_revisions import source_identity_deleted, source_identity_sync_blocked
 
 
 class DurableIngestionWorkflow:
@@ -113,6 +113,13 @@ class DurableIngestionWorkflow:
                     False, source_key, "REJECTED_TECHNICAL", technical.reason_code
                 )
 
+            if source_identity_sync_blocked(
+                self._session, event.account_id, event.donor_identifier
+            ):
+                # Retain observed history, but do not classify, consume its exact
+                # fingerprint or create work from an unresolved channel gap.
+                persisted = repository.ingest(event, observed_at)
+                return IngestionResult(persisted.created, source_key, "SOURCE_SYNC_REQUIRED")
             if revision_number is None:
                 return self._route_existing_source(repository, event, source_key, observed_at)
             content_key = f"{source_key}:revision:{revision_number}"

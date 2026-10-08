@@ -78,6 +78,33 @@ def test_missing_checkpoint_never_invents_baseline_or_calls_provider(donor_store
     assert provider.calls == []
 
 
+@pytest.mark.parametrize(
+    "result,outcome",
+    [
+        (TimeoutError("synthetic"), "RETRY_PROVIDER"),
+        (chunk(final=False), "DIFFERENCE_CONTINUE"),
+        (chunk(), "DIFFERENCE_COMPLETE"),
+    ],
+)
+def test_gap_quarantine_survives_claim_failure_and_nonfinal_recovery(donor_store, result, outcome):
+    checkpoint(donor_store)
+    with donor_store.begin() as session:
+        session.get(models.ChannelDifferenceCursorModel, 1).last_error_code = "GAP_UNRESOLVED"
+
+    def observe():
+        with donor_store() as session:
+            assert (
+                session.get(models.ChannelDifferenceCursorModel, 1).last_error_code
+                == "GAP_UNRESOLVED"
+            )
+
+    execution = runner(donor_store, Provider(result, observe))
+    assert execution.run_donor(1, now=NOW) == outcome
+    with donor_store() as session:
+        code = session.get(models.ChannelDifferenceCursorModel, 1).last_error_code
+        assert code == (None if outcome == "DIFFERENCE_COMPLETE" else "GAP_UNRESOLVED")
+
+
 def test_difference_persists_messages_and_advances_pts_only_after_fanout(donor_store):
     checkpoint(donor_store)
     provider = Provider(chunk(messages=(message(),)))
@@ -226,8 +253,14 @@ def test_no_database_lock_is_held_across_difference_rpc(donor_store):
 
 
 @pytest.mark.parametrize("change", ["mapping", "policy"])
-def test_changed_fanout_or_filters_never_advances_partial_chunk(donor_store, monkeypatch, change):
+@pytest.mark.parametrize("gap", [False, True])
+def test_changed_fanout_or_filters_never_advances_partial_chunk(
+    donor_store, monkeypatch, change, gap
+):
     checkpoint(donor_store)
+    if gap:
+        with donor_store.begin() as session:
+            session.get(models.ChannelDifferenceCursorModel, 1).last_error_code = "GAP_UNRESOLVED"
     provider = Provider(chunk(messages=(message(),)))
     original = DurableIngestionWorkflow.ingest
     calls = 0
@@ -258,6 +291,11 @@ def test_changed_fanout_or_filters_never_advances_partial_chunk(donor_store, mon
     assert runner(donor_store, provider).run_donor(1, now=NOW) == "MAPPING_CHANGED"
     with donor_store() as session:
         assert session.get(models.ChannelDifferenceCursorModel, 1).pts == 10
+        if gap:
+            assert (
+                session.get(models.ChannelDifferenceCursorModel, 1).last_error_code
+                == "GAP_UNRESOLVED"
+            )
 
 
 @pytest.mark.parametrize(

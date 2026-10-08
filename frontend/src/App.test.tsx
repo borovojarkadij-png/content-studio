@@ -24,6 +24,42 @@ const disabled = (name: string) =>
   (screen.getByRole("button", { name }) as HTMLButtonElement).disabled;
 
 describe("Content Studio UI contracts", () => {
+  it("explains sync quarantine without fabricated editorial rejection", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          items: [
+            {
+              source_key: "1:-1001234567890:20",
+              state: "SOURCE_SYNC_REQUIRED",
+              revision_number: 1,
+              source_text: "Исторический источник с gap",
+              editorial_status: "PASS",
+              rewrite_allowed: true,
+              editorial_reason_codes: [],
+              source_deleted: false,
+            },
+          ],
+        }),
+      }),
+    );
+    render(<App />);
+    navigate("Входящие");
+    fireEvent.click(
+      await screen.findByRole("button", {
+        name: /Исторический источник с gap/,
+      }),
+    );
+    expect(screen.getByRole("alert").textContent).toContain(
+      "Нужна синхронизация Telegram",
+    );
+    expect(screen.queryByText(/EDITORIAL REJECT:/)).toBeNull();
+    expect(screen.queryByText(/EditorialGate не разрешил рерайт/)).toBeNull();
+    expect(disabled("Применить вариант")).toBe(true);
+    expect(disabled("Запланировать")).toBe(true);
+  });
   it("shows source deletion separately from historical editorial PASS and disables all processing", async () => {
     vi.stubGlobal(
       "fetch",

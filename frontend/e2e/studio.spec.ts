@@ -118,6 +118,72 @@ test("real deleted-source inbox keeps historical copy and forbids processing aft
   expect(inboxMethods.every((method) => method === "GET")).toBe(true);
 });
 
+test("real sync-gap inbox is readonly, distinct from editorial reject and survives reload", async ({
+  page,
+}) => {
+  const methods: string[] = [];
+  page.on("request", (request) => {
+    if (request.url().includes("/incoming-posts"))
+      methods.push(request.method());
+  });
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/");
+    await navigate(page, "Входящие");
+    await page
+      .getByRole("button", { name: /Изолированный источник с gap API/ })
+      .click();
+    await expect(page.getByRole("alert")).toContainText(
+      "Нужна синхронизация Telegram",
+    );
+    await expect(page.getByLabel("Оригинал материала")).toHaveText(
+      "Изолированный источник с gap API",
+    );
+    await expect(
+      page.getByRole("button", { name: "Применить вариант" }),
+    ).toBeDisabled();
+    await expect(
+      page.getByRole("button", { name: "Запланировать", exact: true }),
+    ).toBeDisabled();
+    await expect(page.getByLabel("Черновик варианта")).toBeDisabled();
+    await expect(page.getByText(/EDITORIAL REJECT:/)).toHaveCount(0);
+    await expect(
+      page.getByText(/EditorialGate не разрешил рерайт/),
+    ).toHaveCount(0);
+    await page.getByRole("button", { name: /^Нужна синхронизация/ }).click();
+    await expect(page.locator(".inbox-card")).toHaveCount(1);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth,
+      ),
+    ).toBe(true);
+    const result = await new AxeBuilder({ page })
+      .withTags(["wcag2a", "wcag2aa"])
+      .analyze();
+    expect(result.violations).toEqual([]);
+    await page.evaluate(() => {
+      (document.activeElement as HTMLElement)?.blur();
+      window.scrollTo(0, 0);
+    });
+    await page.screenshot({
+      path: path.resolve(
+        `../.artifacts/ui-dark-navy/live-inbox-sync-gap-${width}.png`,
+      ),
+      fullPage: true,
+    });
+    await page.reload();
+    await navigate(page, "Входящие");
+    await page
+      .getByRole("button", { name: /Изолированный источник с gap API/ })
+      .click();
+    await expect(page.getByRole("alert")).toContainText(
+      "история изменений источника не подтверждена",
+    );
+  }
+  expect(methods.length).toBeGreaterThanOrEqual(4);
+  expect(methods.every((method) => method === "GET")).toBe(true);
+});
+
 test("real configuration persists filters, delay, imports and names through reload without auth or publication", async ({
   page,
 }) => {

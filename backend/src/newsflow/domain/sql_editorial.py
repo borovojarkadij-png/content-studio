@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from newsflow.domain.editorial import EditorialGate, editorial_allows_rewrite
 from newsflow.persistence.models import EditorialDecisionModel, RewriteJobModel
-from newsflow.services.source_revisions import source_key_deleted
+from newsflow.services.source_revisions import source_key_unavailable
 
 
 class DurableEditorialService:
@@ -68,7 +68,7 @@ class DurableEditorialService:
     def create_rewrite_job(
         self, decision: EditorialDecisionModel, *, output_channel_id: int | None = None
     ) -> RewriteJobModel | None:
-        if not editorial_allows_rewrite(decision) or source_key_deleted(
+        if not editorial_allows_rewrite(decision) or source_key_unavailable(
             self._session, decision.content_key
         ):
             return None

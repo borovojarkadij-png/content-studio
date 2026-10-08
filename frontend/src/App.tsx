@@ -606,6 +606,9 @@ function Inbox({
             ...(items.some((item) => item.sourceDeleted)
               ? ["Удалён у донора"]
               : []),
+            ...(items.some((item) => item.sourceSyncBlocked)
+              ? ["Нужна синхронизация"]
+              : []),
           ].map((value) => (
             <button
               key={value}
@@ -696,9 +699,11 @@ function Inbox({
                   title={
                     selected.sourceDeleted
                       ? "Источник удалён: рерайт запрещён"
-                      : !canProcess(selected)
-                        ? "EditorialGate не разрешил рерайт"
-                        : "Применить к черновику"
+                      : selected.sourceSyncBlocked
+                        ? "Нужна синхронизация Telegram: рерайт запрещён"
+                        : !canProcess(selected)
+                          ? "EditorialGate не разрешил рерайт"
+                          : "Применить к черновику"
                   }
                 >
                   Применить вариант
@@ -708,9 +713,11 @@ function Inbox({
                 {selected.suggestion ||
                   (selected.sourceDeleted
                     ? "Источник удалён у донора. AI-рерайт недоступен."
-                    : canProcess(selected)
-                      ? "AI-вариант пока отсутствует. Провайдер не вызывается в DEMO."
-                      : "EditorialGate не разрешил рерайт. AI-вызовы недоступны.")}
+                    : selected.sourceSyncBlocked
+                      ? "Синхронизация Telegram не завершена. AI-рерайт недоступен."
+                      : canProcess(selected)
+                        ? "AI-вариант пока отсутствует. Провайдер не вызывается в DEMO."
+                        : "EditorialGate не разрешил рерайт. AI-вызовы недоступны.")}
               </p>
             </section>
             <label className="field">
@@ -742,6 +749,13 @@ function Inbox({
               <Notice error>
                 Источник удалён у донора. Сохранена историческая копия; рерайт и
                 планирование запрещены.
+              </Notice>
+            )}
+            {selected.sourceSyncBlocked && !selected.sourceDeleted && (
+              <Notice error>
+                Нужна синхронизация Telegram: история изменений источника не
+                подтверждена. Рерайт и планирование заблокированы; оригинал и
+                историческое editorial-решение сохранены.
               </Notice>
             )}
             {notice && <Notice>{notice}</Notice>}
