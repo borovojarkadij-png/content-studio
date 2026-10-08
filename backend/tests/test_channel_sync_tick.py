@@ -213,7 +213,16 @@ def test_missing_cipher_or_credentials_fails_before_database():
 
 
 @pytest.mark.parametrize(
-    "options", [{"enabled": 1}, {"cursor": True}, {"limit": 0}, {"limit": 5}, {"replay_cursor": -1}]
+    "options",
+    [
+        {"enabled": 1},
+        {"cursor": True},
+        {"limit": 0},
+        {"limit": 5},
+        {"replay_cursor": -1},
+        {"health_cursor": True},
+        {"health_cursor": -1},
+    ],
 )
 def test_invalid_sync_options_fail_before_storage(options):
     def forbidden():

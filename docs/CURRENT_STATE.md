@@ -2,6 +2,18 @@
 
 ## VERIFIED WORKING
 
+- Automatic reconnect authorization fencing OFFLINE: late success/invalid/flood
+  RPC cannot overwrite same-time invalidation or replaced user/session; automatic
+  eligibility rechecked under lock, canonical inputs before SQL, conservative
+  encrypted provider refresh + next-probe recovery and actual bounded three-tick
+  main-loop fairness verified. 27 new / 98 combined / full 1135 backend PASS
+  (67016), exact lint/format/D: compile/explicit isolated migration drift PASS;
+  2 relevant real API/browser checks PASS. See AUTOMATIC_HEALTH_FENCING_VERIFICATION.md.
+  No operational authorization, qualification, key or flag changes.
+- Original-photo vertical 58df443d900a5b055a41c8f2751a7310d77c0a2a committed/pushed
+  to correct origin; CI 37765616929 backend/frontend/dedicated admission SUCCESS,
+  remaining jobs still running at inspection, not overall success yet.
+
 - Synthetic original-photo unattended vertical slice OFFLINE: migrated SQL reopen
   between ingestion/per-output rewrite/pinned verification/media/automatic plan/
   publication, two independent drafts and idempotent acknowledged intents, daily
@@ -855,12 +867,12 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: checkpoint/push verified synthetic original-photo vertical integration
-and FloodWait/source-claim/sync-reconnect fixes, inspect exact six-job CI. Continue
-adversarial automatic health interleavings: invalidation/session replacement during
-RPC, eligibility change after bounded scan and real main-loop health cursor recovery.
-Then separate create-only PostgreSQL combined vertical restart acceptance; no existing
-fixture reseed. Library illustration publication is deliberately still blocked pending
+NEXT_STEP: checkpoint/push verified automatic health identity/eligibility fencing
+and actual main-loop fairness, inspect exact six-job CI plus 58df443 overall status.
+Next, isolated PostgreSQL execution of the combined vertical scenario in GitHub CI,
+using new create-only namespaces and synthetic external boundaries, no DB/schema
+reset or reused fixture. Then separate create-only combined Compose restart acceptance;
+no existing fixture reseed. Library illustration publication remains blocked pending
 visual-semantic relevance approval, not a successful unattended mode. Preserve original
 job/history/attempt budgets, protected reject zero new RewriteJob/zero rewrite calls,
 all current guards, test-only qualification and default-disabled operational flags.

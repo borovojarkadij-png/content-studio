@@ -161,3 +161,141 @@ def test_concurrent_floodwait_during_rpc_cannot_be_overwritten_by_connected_resu
             tzinfo=UTC
         ) == now + timedelta(minutes=2)
     engine.dispose()
+
+
+@pytest.mark.parametrize("change", ["invalidation", "session", "user", "removed_session"])
+@pytest.mark.parametrize("rpc_result", ["success", "invalid", "floodwait"])
+def test_health_rpc_cannot_change_concurrently_replaced_or_invalidated_authorization(
+    tmp_path, change, rpc_result
+):
+    from newsflow.providers.telegram import FloodWait, SessionUnavailable
+
+    engine = create_engine(f"sqlite:///{tmp_path / 'replacement-health.db'}")
+    Base.metadata.create_all(engine)
+    now = datetime(2030, 1, 1, tzinfo=UTC)
+    with Session(engine) as session:
+        account_id = _account(session).id
+        account = session.get(TelegramAccount, account_id)
+        account.health_status, account.cooldown_until = "COOLDOWN", now
+        session.commit()
+
+        class Probe(FakeTelegramProvider):
+            def verify_session(self, identity):
+                assert identity == str(account_id)
+                assert not session.in_transaction()
+                with Session(engine) as other:
+                    row = other.get(TelegramAccount, account_id)
+                    if change == "invalidation":
+                        row.health_status = "SESSION_INVALID"
+                    elif change == "session":
+                        row.encrypted_session = "replacement-synthetic-ciphertext"
+                    elif change == "user":
+                        row.telegram_user_id = 2001
+                    else:
+                        row.encrypted_session = ""
+                        row.health_status = "SESSION_INVALID"
+                    # Same-time updates must not be mistaken for older authority.
+                    row.health_checked_at = now
+                    other.commit()
+                if rpc_result == "invalid":
+                    raise SessionUnavailable("Private old-session failure")
+                if rpc_result == "floodwait":
+                    raise FloodWait(90)
+
+        result = AccountHealthService(session, Probe()).reconnect(account_id, now=now)
+        wanted = "SESSION_INVALID" if change in {"invalidation", "removed_session"} else "COOLDOWN"
+        assert result.status.value == wanted
+        row = session.get(TelegramAccount, account_id)
+        assert row.health_status == wanted
+        assert row.cooldown_until.replace(tzinfo=UTC) == now
+        assert row.health_checked_at.replace(tzinfo=UTC) == now
+    engine.dispose()
+
+
+@pytest.mark.parametrize(
+    "state", ["CONNECTED", "SESSION_INVALID", "DISCONNECTED", "empty", "no_cooldown"]
+)
+def test_automatic_health_rechecks_cooldown_eligibility_under_lock_before_rpc(tmp_path, state):
+    engine = create_engine(f"sqlite:///{tmp_path / 'automatic-health.db'}")
+    Base.metadata.create_all(engine)
+    now = datetime(2030, 1, 1, tzinfo=UTC)
+    provider = FakeTelegramProvider()
+    with Session(engine) as session:
+        account_id = _account(session).id
+        row = session.get(TelegramAccount, account_id)
+        row.health_status, row.cooldown_until = "COOLDOWN", now
+        if state == "empty":
+            row.encrypted_session = ""
+        elif state == "no_cooldown":
+            row.cooldown_until = None
+        else:
+            row.health_status = state
+        session.commit()
+        if state == "DISCONNECTED":
+            with pytest.raises(ValueError):
+                AccountHealthService(session, provider).reconnect(
+                    account_id, now=now, cooldown_only=True
+                )
+        else:
+            result = AccountHealthService(session, provider).reconnect(
+                account_id, now=now, cooldown_only=True
+            )
+            assert result.reconnect_attempted is False
+        assert provider.session_probe_count(str(account_id)) == 0
+        assert row.health_checked_at is None
+    engine.dispose()
+
+
+@pytest.mark.parametrize(
+    "identity,mode", [(True, False), ("1", False), (0, False), (-1, False), (1, "yes"), (1, 1)]
+)
+def test_health_rejects_noncanonical_identity_and_automatic_mode_before_sql(identity, mode):
+    with pytest.raises(ValueError):
+        AccountHealthService(None, FakeTelegramProvider()).reconnect(
+            identity, now=datetime(2030, 1, 1, tzinfo=UTC), cooldown_only=mode
+        )
+
+
+def test_legitimate_encrypted_session_refresh_needs_new_probe_without_losing_session(tmp_path):
+    from types import SimpleNamespace
+
+    from sqlalchemy.orm import sessionmaker
+    from test_telethon_rpc import Client
+
+    from newsflow.security.session_cipher import SessionCipher
+    from newsflow.services.telegram_provider_factory import ConfiguredTelegramProvider
+
+    engine = create_engine(f"sqlite:///{tmp_path / 'refreshed-health.db'}")
+    Base.metadata.create_all(engine)
+    factory = sessionmaker(engine)
+    cipher = SessionCipher("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=")
+    now = datetime(2030, 1, 1, tzinfo=UTC)
+    with factory.begin() as session:
+        session.add(
+            TelegramAccount(
+                id=1,
+                name="Synthetic refresh",
+                telegram_user_id=1001,
+                encrypted_session=cipher.encrypt("initial"),
+                health_status="COOLDOWN",
+                cooldown_until=now,
+            )
+        )
+    client = Client()
+    client.session = SimpleNamespace(save=lambda: "refreshed")
+    provider = ConfiguredTelegramProvider(
+        factory, cipher=cipher, api_id=123, api_hash="a" * 32, client_factory=lambda _: client
+    )
+    with factory() as session:
+        first = AccountHealthService(session, provider).reconnect(1, now=now, cooldown_only=True)
+        assert first.status.value == "COOLDOWN" and first.reconnect_attempted
+    with factory() as session:
+        assert cipher.decrypt(session.get(TelegramAccount, 1).encrypted_session) == "refreshed"
+        next_probe = AccountHealthService(session, provider).reconnect(
+            1, now=now + timedelta(seconds=1), cooldown_only=True
+        )
+        assert next_probe.status.value == "CONNECTED" and next_probe.reconnect_attempted
+        assert session.get(TelegramAccount, 1).cooldown_until is None
+        assert cipher.decrypt(session.get(TelegramAccount, 1).encrypted_session) == "refreshed"
+    assert client.connected == client.disconnected == 2
+    engine.dispose()

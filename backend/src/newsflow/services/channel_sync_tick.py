@@ -62,7 +62,9 @@ def _reconnect_cooled_accounts(session_factory, provider, *, now, after_id, limi
     for account_id in ids:
         try:
             with session_factory() as session:
-                result = AccountHealthService(session, provider).reconnect(account_id, now=now)
+                result = AccountHealthService(session, provider).reconnect(
+                    account_id, now=now, cooldown_only=True
+                )
                 outcome = result.status.value
         except (TimeoutError, ConnectionError):
             outcome = "RETRY_PROVIDER"
