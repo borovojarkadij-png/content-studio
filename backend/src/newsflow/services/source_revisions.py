@@ -134,3 +134,62 @@ def source_key_unavailable(session: Session, content_key: str) -> bool:
         )
         or source_identity_sync_blocked(session, post.telegram_account_id, post.donor_channel_id)
     )
+
+
+def revision_sync_waiting(session: Session, revision: ContentRevisionModel) -> bool:
+    """Temporary known synchronization, not legacy/foreign/stale/deleted permission.
+
+    Used only to retain a pending job. It never grants processing permission and
+    never revives terminal history or changes an editorial decision.
+    """
+    if not sync_enforced(session):
+        return False
+    post = session.get(IncomingPostModel, revision.incoming_post_id, populate_existing=True)
+    if (
+        post is None
+        or source_identity_deleted(
+            session, post.telegram_account_id, post.donor_channel_id, post.telegram_message_id
+        )
+        or session.scalar(
+            select(func.max(ContentRevisionModel.revision_number)).where(
+                ContentRevisionModel.incoming_post_id == post.id
+            )
+        )
+        != revision.revision_number
+    ):
+        return False
+    donors = session.scalars(
+        select(DonorChannel)
+        .where(
+            cast(DonorChannel.telegram_account_id, String) == post.telegram_account_id,
+            cast(DonorChannel.telegram_channel_id, String) == post.donor_channel_id,
+        )
+        .execution_options(populate_existing=True)
+        .limit(2)
+    ).all()
+    if len(donors) != 1:
+        return False
+    donor = donors[0]
+    cursor = session.get(ChannelDifferenceCursorModel, donor.id, populate_existing=True)
+    account = session.get(TelegramAccount, donor.telegram_account_id, populate_existing=True)
+    if (
+        cursor is None
+        or account is None
+        or not account.encrypted_session
+        or account.health_status not in {"CONNECTED", "COOLDOWN"}
+        or (cursor.telegram_account_id, cursor.telegram_user_id, cursor.telegram_channel_id)
+        != (account.id, account.telegram_user_id, donor.telegram_channel_id)
+    ):
+        return False
+    if cursor.last_error_code not in {
+        None,
+        "RETRY_PROVIDER",
+        "RETRY_PIPELINE",
+        "DIFFERENCE_INCOMPLETE",
+        "COOLDOWN",
+        "MAPPING_CHANGED",
+    }:
+        return False
+    return cursor.last_error_code is not None or (
+        cursor.claim_token is not None and cursor.lease_expires_at is not None
+    )

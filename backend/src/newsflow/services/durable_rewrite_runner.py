@@ -31,7 +31,11 @@ from newsflow.services.fact_guard import FactGuard, FactPreservationBlocked
 from newsflow.services.mapping_filters import candidate_technical_allowed
 from newsflow.services.rewrite import RewriteService, TextRewriteProvider
 from newsflow.services.rewrite_outputs import RewriteOutputService
-from newsflow.services.source_revisions import revision_is_latest, source_revision
+from newsflow.services.source_revisions import (
+    revision_is_latest,
+    revision_sync_waiting,
+    source_revision,
+)
 
 
 def _utc(value: datetime) -> datetime:
@@ -147,6 +151,8 @@ class DurableRewriteRunner:
             if revision is None:
                 return self._finish(session, job, "FAILED_SOURCE", "SOURCE_REVISION_MISSING")
             if not self._latest(session, revision):
+                if revision_sync_waiting(session, revision):
+                    return self._wait_sync(session, job, now=now, provider_attempted=False)
                 return self._finish(session, job, "SUPERSEDED", "SOURCE_REVISION_SUPERSEDED")
             if not candidate_technical_allowed(session, candidate):
                 return self._finish(session, job, "BLOCKED_TECHNICAL", "MAPPING_TECHNICAL_BLOCKED")
@@ -218,6 +224,8 @@ class DurableRewriteRunner:
             if not self._editorial_pass(decision):
                 return self._finish(session, job, "BLOCKED_EDITORIAL", "EDITORIAL_REWRITE_BLOCKED")
             if not self._latest(session, revision):
+                if revision_sync_waiting(session, revision):
+                    return self._wait_sync(session, job, now=now, provider_attempted=True)
                 return self._finish(session, job, "SUPERSEDED", "SOURCE_REVISION_SUPERSEDED")
             if not candidate_technical_allowed(session, candidate):
                 return self._finish(session, job, "BLOCKED_TECHNICAL", "MAPPING_TECHNICAL_BLOCKED")
@@ -243,6 +251,16 @@ class DurableRewriteRunner:
             and job.lease_expires_at is not None
             and _utc(job.lease_expires_at) > max(now, completed_at)
         )
+
+    @staticmethod
+    def _wait_sync(session, job, *, now, provider_attempted):
+        # Claim admission reserves a budget before possible AI. A pre-provider
+        # synchronization wait did not consume that reservation; known previous
+        # calls and the exhausted-budget sentinel must never be reset.
+        if not provider_attempted and job.last_error_code != "ATTEMPT_LIMIT":
+            job.attempts = max(0, job.attempts - 1)
+        job.available_at = now + timedelta(seconds=30)
+        return DurableRewriteRunner._finish(session, job, "RETRY", "SOURCE_SYNC_REQUIRED")
 
     @staticmethod
     def _finish(session: Session, job: RewriteJobModel, state: str, reason: str) -> str:

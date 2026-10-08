@@ -2,6 +2,15 @@
 
 ## VERIFIED WORKING
 
+- Bounded nonterminal temporary-sync rewrite wait OFFLINE: 16 dedicated /
+  75 combined / full backend 981 PASS (48068), exact CI lint/changed format/
+  compile/explicit D: round-trip/drift PASS. Original job/previous attempt budget
+  survives repeated wait/reopen; reject/stale/delete/missing/foreign/gap/invalid
+  states remain terminal, fresh successful draft still PENDING. No historical
+  SUPERSEDED reactivation. See REWRITE_SYNC_WAIT_VERIFICATION.md.
+- Post-lock 60596f5 CI 37749741849 dedicated PostgreSQL sync/concurrent-writer job,
+  backend and frontend completed SUCCESS (actual gh view); two legacy Docker
+  variants in progress at inspection. New wait PostgreSQL acceptance pending.
 - Replay post-lock exact source/deletion reload OFFLINE: two interleaving RED →
   GREEN, 59 combined / full backend 965 PASS (97075), exact CI lint/changed format/
   compile/PowerShell parse/explicit D: round-trip/drift PASS. No obsolete editorial/
@@ -723,14 +732,22 @@ Post-lock replay reload now verified OFFLINE: 59 combined / full 965 backend PAS
 (97075), exact CI lint/format/compile/PowerShell parse/explicit D: drift PASS.
 Create-only concurrency probe added; actual PostgreSQL execution pending.
 
-NEXT_STEP: checkpoint post-lock reload and inspect exact dedicated PostgreSQL CI
-concurrency job, fix failures without weakening guards. Then implement bounded
-nonterminal rewrite waiting for temporary active/error synchronization cursors,
-preserving original durable jobs and attempt budget with zero provider calls.
-Deletion/stale revisions/editorial REJECT remain terminal; never reactivate old
-SUPERSEDED jobs or invent missing/foreign/legacy continuity. Add restart/expiry/
-fresh-state regression tests before any allowed provider execution. Keep all
-operational flags unchanged and Windows Docker NOT VERIFIED / BLOCKED BY ENVIRONMENT.
+Post-lock checkpoint committed/pushed 60596f5c461ec27e3dd12b20ab442d7b2cc86ac5;
+CI 37749741849 dedicated sync/concurrent-writer PostgreSQL, backend and frontend
+SUCCESS; two legacy Docker variants still in progress at inspection.
+Bounded temporary-sync rewrite wait now verified OFFLINE: 16 dedicated / 75
+combined / full 981 backend PASS (48068), exact CI lint/format/compile/explicit
+D: drift PASS. Same job/attempt budget, repeated early wait, SQL reopen/fresh
+PENDING resume and permanent-source/reject/exhausted guard regression verified.
+
+NEXT_STEP: checkpoint rewrite wait and inspect exact CI. Add a SEPARATE create-only
+terminal rewrite-sync-wait probe to ChannelSyncGuard: retain the original pending
+job/attempt and known transient cursor through down/up; clear sync only through
+validated actual synthetic difference, then recover SAME job via synthetic
+provider into PENDING review. Verify rejected/deleted/exhausted cases zero-provider.
+Never reseed old manifests, revive SUPERSEDED history or invent legacy continuity.
+Keep all operational flags unchanged and current Windows Docker NOT VERIFIED /
+BLOCKED BY ENVIRONMENT.
 Never activate operational flags as a test.
 Never initialize/reset legacy cursor from latest-message IDs or TooLong, never
 advance pts until all observations/mappings persist. No public cursor-reset or

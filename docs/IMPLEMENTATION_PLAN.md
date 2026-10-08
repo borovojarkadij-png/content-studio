@@ -41,6 +41,9 @@
 - [x] Replay post-lock immutable latest/deletion/binding reload, independent-writer RED/GREEN and create-only terminal concurrency probe; 965 backend gate OFFLINE, new PostgreSQL concurrency execution pending
 - [x] Prior ab13403 dedicated channel-sync Linux PostgreSQL/Docker restart job SUCCESS in CI 37748969125; current Windows deployment remains environment blocked
 - [ ] Bounded nonterminal rewrite wait for temporary synchronization claim/error, attempt preservation/restart/revalidation; no historical SUPERSEDED reactivation or permanent-source/editorial bypass
+- [x] Bounded original-job RETRY/SOURCE_SYNC_REQUIRED for known temporary synchronization, previous attempt/exhaustion preservation, zero-provider wait/reopen/fresh PENDING recovery/permanent-source guards; 981 backend gate OFFLINE
+- [x] Post-lock independent writer PostgreSQL concurrency acceptance in dedicated CI 37749741849 job SUCCESS; Linux proof, current Windows blocked
+- [ ] Separate create-only rewrite-sync-wait PostgreSQL down/up acceptance with same job/budget, validated difference recovery and synthetic PENDING result; no real worker activation
 - [x] Retained source deletion truth in read-only moderation inbox/API/UI, preserved historical PASS/source/jobs, contradictory/legacy/malformed guards, real migrated API/reload/WCAG/narrow screenshots; 833 backend / 62 frontend units / 25 browser gate
 - [x] Bounded sparse album observation in provider/factory/fake, explicit incomplete-membership contract and ingress/stale-worker/manual-review/planner fail-closed gate; 500-test backend verification
 - [~] Filters, semantic dedup, events, hype, media, routing and scheduler; durable per-channel plan/timer, mapping-aware candidates, immediate/delayed/priority/media snapshots and gated activation complete; semantic dedup/events/hype, media acquisition and publication execution remain pending
