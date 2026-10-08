@@ -150,8 +150,21 @@ class SchedulerTickResult:
     failed_plan_ids: tuple[int, ...]
 
 
+@dataclass
+class SemanticAdmissionState:
+    """Transient draft enumeration only; verification truth/budget stays SQL."""
+
+    cursor: int = 0
+
+
 def run_semantic_tick(
-    session_factory, *, enabled: bool, cipher: SessionCipher | None, now: datetime, opener=None
+    session_factory,
+    *,
+    enabled: bool,
+    cipher: SessionCipher | None,
+    now: datetime,
+    opener=None,
+    admission: SemanticAdmissionState | None = None,
 ) -> str:
     if not enabled:
         return "DISABLED"
@@ -163,7 +176,11 @@ def run_semantic_tick(
             session_factory, cipher=cipher, opener=opener
         ),
     )
-    execution.enqueue_pending(now=now)
+    window = execution.enqueue_window(
+        now=now, after_id=0 if admission is None else admission.cursor
+    )
+    if admission is not None:
+        admission.cursor = window.cursor
     return execution.run_next(now=now)
 
 
@@ -420,6 +437,7 @@ def main() -> None:
     publication_recovery_cursor = 0
     channel_sync_cursor = 0
     source_replay_cursor = 0
+    semantic_admission = SemanticAdmissionState()
     media_admission = MediaAdmissionState()
     source_photo_admission = MediaAdmissionState()
     if channel_sync_network_enabled:
@@ -515,7 +533,11 @@ def main() -> None:
         if semantic_enabled and not stopped.is_set():
             try:
                 outcome = run_semantic_tick(
-                    factory, enabled=True, cipher=cipher, now=datetime.now(UTC)
+                    factory,
+                    enabled=True,
+                    cipher=cipher,
+                    now=datetime.now(UTC),
+                    admission=semantic_admission,
                 )
                 logger.info("semantic.tick", outcome=outcome)
             except Exception:  # noqa: BLE001 - preserve committed lease, never log secrets

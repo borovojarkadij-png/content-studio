@@ -42,14 +42,30 @@ class SemanticClaim:
     attempt: int
 
 
+@dataclass(frozen=True, slots=True)
+class SemanticAdmissionWindow:
+    cursor: int
+    scanned_ids: tuple[int, ...]
+    queued_ids: tuple[int, ...]
+    blocked_ids: tuple[int, ...]
+
+
 class DurableSemanticRunner:
     def __init__(self, session_factory, *, verifier_for_release, clock=lambda: datetime.now(UTC)):
         self._factory, self._verifier, self._clock = session_factory, verifier_for_release, clock
 
     def enqueue_pending(self, *, now: datetime, limit: int = 100) -> int:
+        return len(self.enqueue_window(now=now, limit=limit).queued_ids)
+
+    def enqueue_window(
+        self, *, now: datetime, after_id: int = 0, limit: int = 16
+    ) -> SemanticAdmissionWindow:
+        """Enumerate bounded drafts fairly; every ID still needs a fresh binding."""
         _aware(now)
         if type(limit) is not int or not 1 <= limit <= 100:
             raise ValueError("Verification enqueue limit must be between 1 and 100")
+        if type(after_id) is not int or after_id < 0:
+            raise ValueError("Verification scan cursor must be a nonnegative canonical integer")
         with self._factory() as session:
             ids = session.scalars(
                 select(RewriteOutputModel.id)
@@ -63,6 +79,7 @@ class DurableSemanticRunner:
                     SemanticVerifierReleaseModel.id == AutomaticApprovalPolicyModel.release_id,
                 )
                 .where(
+                    RewriteOutputModel.id > after_id,
                     RewriteOutputModel.approval_state == "PENDING",
                     AutomaticApprovalPolicyModel.mode == "VERIFIED",
                     SemanticVerifierReleaseModel.active.is_(True),
@@ -77,7 +94,7 @@ class DurableSemanticRunner:
                 .order_by(RewriteOutputModel.id)
                 .limit(limit)
             ).all()
-        created = 0
+        queued, blocked = [], []
         for output_id in ids:
             try:
                 with self._factory() as session:
@@ -95,14 +112,15 @@ class DurableSemanticRunner:
                         is not None
                     ):
                         continue
-                    session.add(
-                        SemanticVerificationJobModel(**fields, state="QUEUED", available_at=now)
-                    )
+                    job = SemanticVerificationJobModel(**fields, state="QUEUED", available_at=now)
+                    session.add(job)
                     session.commit()
-                    created += 1
+                    queued.append(job.id)
             except (AutomaticApprovalBlocked, FactPreservationBlocked, IntegrityError, ValueError):
-                continue  # Reject/manual/unqualified/stale drafts never queue verification.
-        return created
+                blocked.append(output_id)  # Reject/manual/unqualified/stale drafts never queue.
+        return SemanticAdmissionWindow(
+            ids[-1] if ids else 0, tuple(ids), tuple(queued), tuple(blocked)
+        )
 
     def claim_next(self, *, now: datetime) -> SemanticClaim | None:
         _aware(now)

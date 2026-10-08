@@ -2,6 +2,17 @@
 
 ## VERIFIED WORKING
 
+- Fair semantic admission and guarded main-loop cursor OFFLINE: 17 dedicated /
+  74 combined / full backend 1057 PASS (39884), exact CI lint/changed format/D:
+  compile/explicit D: round-trip/drift PASS. Current historical rejects spend
+  zero verifier/rewrite calls, late current draft progresses; reopen, fresh
+  source/release rejection, terminal/error histories preserved. No operational
+  model qualification/network flag change. See SEMANTIC_ADMISSION_FAIRNESS_VERIFICATION.md.
+- Corrective Overview 351b137 CI 37757293108 dedicated PG sync/restart completed
+  SUCCESS; media e46ee47 CI 37757580448 backend/frontend/dedicated sync SUCCESS.
+  Both runs' legacy Docker variants remain in progress at inspection. Original
+  322603e CI failure remains recorded, not retroactively marked success.
+
 - Bounded fair automatic media admission and separate main-loop scan states
   OFFLINE: 28 dedicated / 41 combined / fresh full backend 1040 PASS (83958),
   exact CI Ruff/changed format/D: bytecode compile/explicit D: round-trip/drift
@@ -793,14 +804,15 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: checkpoint the verified media fairness increment, inspect corrective
-351b137 CI 37757293108 (in progress at inspection) and exact new media CI.
-Correct ordinary failures without weakening guards. Then bounded fair semantic
-verification admission: old PENDING drafts rejected by current source/editorial/
-release binding must not starve later eligible rows. Test-first real SQL/reopen,
-then opt-in worker/main-loop cursor and full gates. Preserve pinned qualification,
-per-output evidence/idempotency, terminal/exhausted history and network flags 0.
-No live provider call, operational approval or download/send test side effects.
+NEXT_STEP: checkpoint the verified semantic fairness increment and inspect exact
+new CI plus corrective 351b137 CI 37757293108/media e46ee47 CI 37757580448. Their
+dedicated sync jobs passed, both legacy Docker variants still in progress.
+Next create-only synthetic media/semantic admission PostgreSQL restart probe in
+a separate fresh fixture; preserve source rights, original history/budgets and
+bounded scans. Test-first real SQL/reopen, guard unsafe CLI/configuration before
+DB, integrate separate Compose verification/CI without resetting sync fixtures.
+No live provider call, operational approval or download/send test side effects;
+preserve pinned qualification and all operational flags 0.
 Never expose tokens/session/key or call live providers for a dashboard. Never reseed old
 fixtures, revive SUPERSEDED history or invent legacy continuity. Keep all operational
 flags unchanged and Windows Docker NOT VERIFIED / BLOCKED BY ENVIRONMENT.
