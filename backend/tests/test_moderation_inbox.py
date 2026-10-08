@@ -33,8 +33,12 @@ def test_moderation_inbox_api_returns_latest_revision_and_editorial_decision() -
         session.flush()
         session.add_all(
             [
-                ContentRevisionModel(incoming_post_id=post.id, revision_number=1, source_text="original"),
-                ContentRevisionModel(incoming_post_id=post.id, revision_number=2, source_text="corrected"),
+                ContentRevisionModel(
+                    incoming_post_id=post.id, revision_number=1, source_text="original"
+                ),
+                ContentRevisionModel(
+                    incoming_post_id=post.id, revision_number=2, source_text="corrected"
+                ),
                 EditorialDecisionModel(
                     content_key="account-a:@donor:17:revision:2",
                     status="PASS",
@@ -67,6 +71,7 @@ def test_moderation_inbox_api_returns_latest_revision_and_editorial_decision() -
                 "rewrite_allowed": True,
                 "editorial_reason_codes": [],
                 "source_deleted": False,
+                "album_observed": False,
             }
         ]
     }
@@ -87,7 +92,9 @@ def test_moderation_inbox_api_reads_database_configured_by_environment(
         )
         session.add(post)
         session.flush()
-        session.add(ContentRevisionModel(incoming_post_id=post.id, revision_number=1, source_text="draft"))
+        session.add(
+            ContentRevisionModel(incoming_post_id=post.id, revision_number=1, source_text="draft")
+        )
         session.add(
             EditorialDecisionModel(
                 content_key="account-b:@durable-donor:18:revision:1",
@@ -120,6 +127,7 @@ def test_moderation_inbox_api_reads_database_configured_by_environment(
                 "rewrite_allowed": False,
                 "editorial_reason_codes": ["PROTECTED_ENTITY_NEGATIVE"],
                 "source_deleted": False,
+                "album_observed": False,
             }
         ]
     }

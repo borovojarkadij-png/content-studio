@@ -24,6 +24,48 @@ const disabled = (name: string) =>
   (screen.getByRole("button", { name }) as HTMLButtonElement).disabled;
 
 describe("Content Studio UI contracts", () => {
+  it("observed album has real read-only context while historical PASS cannot enable actions", async () => {
+    const fetch = vi.fn(async (_url: string) => ({
+      ok: true,
+      json: async () => ({
+        items: [
+          {
+            source_key: "1:-1001234567890:20",
+            state: "REWRITE_QUEUED",
+            revision_number: 1,
+            source_text: "Наблюдаемый альбом API",
+            editorial_status: "PASS",
+            rewrite_allowed: true,
+            editorial_reason_codes: [],
+            album_observed: true,
+          },
+        ],
+      }),
+    }));
+    vi.stubGlobal("fetch", fetch);
+    render(<App />);
+    navigate("Входящие");
+    fireEvent.click(
+      await screen.findByRole("button", { name: /Наблюдаемый альбом API/ }),
+    );
+    expect(
+      screen.getByRole("region", { name: "Наблюдение альбома" }),
+    ).toBeTruthy();
+    expect(screen.queryByText(/EDITORIAL REJECT:/)).toBeNull();
+    expect(screen.queryByText(/EditorialGate не разрешил рерайт/)).toBeNull();
+    expect(disabled("Применить вариант")).toBe(true);
+    expect(disabled("Запланировать")).toBe(true);
+    expect(disabled("Опубликовать")).toBe(true);
+    expect(
+      fetch.mock.calls.every(
+        ([url]) => !(url as string).includes("source-albums"),
+      ),
+    ).toBe(true);
+    fireEvent.click(screen.getByRole("switch", { name: "DEMO" }));
+    expect(
+      screen.queryByRole("region", { name: "Наблюдение альбома" }),
+    ).toBeNull();
+  });
   it("explains sync quarantine without fabricated editorial rejection", async () => {
     vi.stubGlobal(
       "fetch",

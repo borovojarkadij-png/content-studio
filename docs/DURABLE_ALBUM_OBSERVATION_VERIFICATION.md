@@ -51,7 +51,10 @@ between lookup and projection is refused instead of selecting its old group.
   missing test-selector filenames were corrected and actual selected suite run;
   no empty run is counted as PASS.
 - Existing strict create-only PostgreSQL namespace harness extended to these
-  tests in the separate PG CI job. Actual new PostgreSQL execution PENDING.
+  tests in the separate PG CI job. Corrective 8038585 / CI 37774826743 / job
+  113302940590 completed SUCCESS: actual migrated PostgreSQL **50 PASS / 29.82s**
+  (five vertical + 18 isolation + 27 retained album cases). All eight CI jobs
+  completed SUCCESS, inspected via gh. Linux only, not current Windows proof.
 - Full backend **1219 PASS**, 118.23s (59333), D: basetemp
   `D:/Codex-Recovery/content-studio-20261008/album-observation-full-1519`;
   UI source unchanged. No new migration; actual test schemas migrated using
@@ -79,4 +82,42 @@ while its ancestor fieldset was disabled. Await `matches(':disabled')=false`
 (own button.disabled alone misses the fieldset); controlled deferred-filter
 regression confirms disabled/no PATCH before read and real save afterward.
 14 targeted tests PASS. No production UI/loading guard changed. Corrective
-actual PG/full CI pending; original failures remain failures.
+actual PG/full CI 8038585 / 37774826743 completed all-eight SUCCESS; original
+failures remain failures.
+
+## Existing Inbox read-only context
+
+Latest grouped SQL revisions now report `album_observed=true` and derive
+`rewrite_allowed=false` even for retained historical PASS. Decision/source/job
+history remains unchanged. Frontend validates the optional boolean (old API
+without it remains compatible), applies an independent `canProcess` refusal,
+and exposes an on-demand metadata reader only in real mode. No new design/CSS
+or changes to the eight DEMO reference compositions.
+
+The client accepts exact public keys, ordered unique bounded members and exact
+signed64 group IDs, never parses source ownership from key delimiters or rounds
+IDs through Number. Unexpected/private fields, malformed/protected/deletion
+flags, missing anchor and forged complete/rewrite/publication permissions fail
+closed. Abort on key/revision change or unmount, duplicate pending-read refusal,
+discarding failed-refresh history and redacted transport errors prevent stale
+or fabricated success. This component has GET only; no download/upload/RPC/AI,
+manual save, approval, scheduling or publication path.
+
+Verified locally: backend new grouped historical PASS regression RED -> GREEN;
+**32 relevant / full 1220 PASS**, 122.87s (75576), exact lint/changed format/D:
+compile and explicit D: upgrade/check/downgrade/upgrade/check PASS. UI interface
+stub **5 behavior RED -> GREEN**, client/inbox initial **25 behavior RED -> GREEN**;
+full **184 frontend units / format / typecheck-build / audit0 PASS**. Real migrated
+API + Vite proxy sparse album browser initially PASS; full browser found one
+existing deletion-filter expectation assuming one fixture tombstone. New retained
+album deletion correctly adds a second: assert exactly both expected historical
+cards and exclude the nondeleted anchor, no production filter relaxation.
+Targeted corrected two browser checks PASS; final full **31 browser PASS / 44.9s**
+(14022). Actual migrated fixture/Vite proxy GET-only, selected exact immutable
+revision/no-store/reload, sparse photo/video/captionless/deleted/protected metadata,
+album-only block without gap quarantine, WCAG AA and no horizontal overflow at
+1440/390 PASS. Both final captures visually inspected; blocked notice uses
+existing error styling, not success green. Files:
+`.artifacts/ui-dark-navy/album-observation-20261008-1527/album-observation-1440.png`
+and `album-observation-390.png`. Temp/browser outputs remain on D:. Exact new
+CI for this UI increment pending; no current Windows Docker acceptance claimed.

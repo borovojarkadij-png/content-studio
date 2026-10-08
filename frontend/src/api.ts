@@ -18,6 +18,7 @@ type IncomingRecord = {
   rewrite_allowed: boolean | null;
   editorial_reason_codes: string[];
   source_deleted?: boolean;
+  album_observed?: boolean;
 };
 
 function isRecord(value: unknown): value is IncomingRecord {
@@ -38,7 +39,9 @@ function isRecord(value: unknown): value is IncomingRecord {
     Array.isArray(row.editorial_reason_codes) &&
     row.editorial_reason_codes.every((reason) => typeof reason === "string") &&
     (row.source_deleted === undefined ||
-      typeof row.source_deleted === "boolean")
+      typeof row.source_deleted === "boolean") &&
+    (row.album_observed === undefined ||
+      typeof row.album_observed === "boolean")
   );
 }
 
@@ -83,6 +86,7 @@ export async function loadInbox(signal: AbortSignal): Promise<Post[]> {
           ? "REJECT"
           : "PENDING",
     rewriteAllowed:
+      item.album_observed !== true &&
       item.source_deleted !== true &&
       item.state !== "SOURCE_DELETED" &&
       item.state !== "SOURCE_SYNC_REQUIRED" &&
@@ -92,6 +96,7 @@ export async function loadInbox(signal: AbortSignal): Promise<Post[]> {
     sourceDeleted:
       item.source_deleted === true || item.state === "SOURCE_DELETED",
     sourceSyncBlocked: item.state === "SOURCE_SYNC_REQUIRED",
+    albumObserved: item.album_observed === true,
   }));
 }
 

@@ -52,6 +52,89 @@ const navigate = async (page: Page, name: string) => {
     .click();
 };
 
+test("real Inbox reads sparse retained album observations without enabling rewrite or publication", async ({
+  page,
+}, testInfo) => {
+  const writes: string[] = [];
+  const albumReads: string[] = [];
+  page.on("request", (request) => {
+    if (request.url().includes("/api/") && request.method() !== "GET")
+      writes.push(request.method());
+    if (request.url().includes("/api/telegram/source-albums"))
+      albumReads.push(request.url());
+  });
+  const select = async () => {
+    await navigate(page, "Входящие");
+    await page
+      .getByRole("button", { name: /Изолированный альбом API/ })
+      .click();
+  };
+  await page.goto("/");
+  await select();
+  const panel = page.getByRole("region", { name: "Наблюдение альбома" });
+  await expect(panel.getByText(/Состав альбома не подтверждён/)).toBeVisible();
+  await expect(
+    page.getByText("Состав альбома не подтверждён. AI-рерайт недоступен.", {
+      exact: true,
+    }),
+  ).toBeVisible();
+  expect(albumReads).toHaveLength(0);
+  await panel
+    .getByRole("button", { name: "Посмотреть элементы альбома" })
+    .click();
+  await expect(panel.getByText(/Наблюдаемых элементов: 3/)).toBeVisible();
+  await expect(
+    panel.getByText("Изолированная подпись видео API", { exact: true }),
+  ).toBeVisible();
+  await expect(panel.getByText("Без подписи", { exact: true })).toBeVisible();
+  await expect(panel.getByText(/Нужна синхронизация источника/)).toHaveCount(0);
+  await expect(
+    panel.getByText(/Защищён от копирования.*Удалён у донора/),
+  ).toBeVisible();
+  expect(new URL(albumReads[0]).searchParams.get("content_key")).toBe(
+    "1:-1003333333333:990001:revision:1",
+  );
+  for (const name of ["Применить вариант", "Запланировать", "Опубликовать"]) {
+    await expect(
+      page.getByRole("button", { name, exact: true }),
+    ).toBeDisabled();
+  }
+  await expect(page.getByText(/EDITORIAL REJECT:/)).toHaveCount(0);
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await expect(panel.getByText(/Наблюдаемых элементов: 3/)).toBeVisible();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    expect(
+      (
+        await new AxeBuilder({ page })
+          .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
+          .analyze()
+      ).violations,
+    ).toEqual([]);
+    await page.screenshot({
+      path: testInfo.outputPath(`album-observation-${width}.png`),
+      fullPage: true,
+    });
+  }
+  await panel
+    .getByRole("button", { name: "Обновить элементы альбома" })
+    .click();
+  await expect(panel.getByText(/Наблюдаемых элементов: 3/)).toBeVisible();
+  expect(albumReads).toHaveLength(2);
+  await page.reload();
+  await select();
+  await expect(
+    panel.getByRole("button", { name: "Посмотреть элементы альбома" }),
+  ).toBeVisible();
+  await expect(panel.getByText(/Наблюдаемых элементов/)).toHaveCount(0);
+  expect(albumReads).toHaveLength(2);
+  expect(writes).toEqual([]);
+});
+
 test("real approval settings persist manual recovery without qualifying a model or losing plan edits", async ({
   page,
 }, testInfo) => {
@@ -406,7 +489,14 @@ test("real deleted-source inbox keeps historical copy and forbids processing aft
     await expect(page.getByLabel("Черновик варианта")).toBeDisabled();
     await expect(page.getByText(/EDITORIAL REJECT:/)).toHaveCount(0);
     await page.getByRole("button", { name: /^Удалён у донора/ }).click();
-    await expect(page.locator(".inbox-card")).toHaveCount(1);
+    // The synthetic album contributes a second retained deletion, not a live source.
+    await expect(page.locator(".inbox-card")).toHaveCount(2);
+    await expect(
+      page.getByRole("button", { name: /Изолированная подпись видео API/ }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /Изолированный альбом API/ }),
+    ).toHaveCount(0);
     await page
       .getByRole("button", { name: /Изолированный удалённый источник API/ })
       .click();

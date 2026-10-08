@@ -23,6 +23,7 @@ class ModerationInboxItem:
     rewrite_allowed: bool | None
     editorial_reason_codes: list[str]
     source_deleted: bool = False
+    album_observed: bool = False
 
     def as_dict(self) -> dict[str, object]:
         return asdict(self)
@@ -82,12 +83,13 @@ class ModerationInboxReader:
                     source_text=revision.source_text,
                     editorial_status=decision.status if decision else None,
                     rewrite_allowed=False
-                    if deleted or sync_blocked
+                    if deleted or sync_blocked or revision.album_id is not None
                     else decision.rewrite_allowed
                     if decision
                     else None,
                     editorial_reason_codes=reason_codes,
                     source_deleted=deleted,
+                    album_observed=revision.album_id is not None,
                 )
             )
         return items

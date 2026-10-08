@@ -1,7 +1,47 @@
 import { afterEach, expect, it, vi } from "vitest";
 import { loadInbox } from "./api";
+import { canProcess } from "./studio";
 
 afterEach(() => vi.unstubAllGlobals());
+
+it.each([true, "true", 1, null])(
+  "observed album metadata %j never grants historical PASS permission",
+  async (album) => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          items: [
+            {
+              source_key: "1:-1001234567890:20",
+              state: "REWRITE_QUEUED",
+              revision_number: 1,
+              source_text: "Grouped caption",
+              editorial_status: "PASS",
+              rewrite_allowed: true,
+              editorial_reason_codes: [],
+              source_deleted: false,
+              album_observed: album,
+            },
+          ],
+        }),
+      }),
+    );
+    if (album !== true) {
+      await expect(loadInbox(new AbortController().signal)).rejects.toThrow(
+        "контракту входящих",
+      );
+    } else {
+      const [post] = await loadInbox(new AbortController().signal);
+      expect(post.albumObserved).toBe(true);
+      expect(post.rewriteAllowed).toBe(false);
+      expect(
+        canProcess({ ...post, rewriteAllowed: true, state: "На проверке" }),
+      ).toBe(false);
+    }
+  },
+);
 
 it("unresolved sync state overrides contradictory historical PASS permission", async () => {
   vi.stubGlobal(

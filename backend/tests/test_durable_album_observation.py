@@ -27,6 +27,7 @@ from newsflow.persistence.models import (
 from newsflow.providers.telegram import TelegramMessage
 from newsflow.services.album_observation import AlbumObservationBlocked, AlbumObservationReader
 from newsflow.services.channel_sync_enforcement import ChannelSyncEnforcement
+from newsflow.services.moderation_inbox import ModerationInboxReader
 
 KEY = "1:-1001234567890:20:revision:1"
 
@@ -448,3 +449,28 @@ def test_real_grouped_ingress_reopens_as_observations_without_editorial_or_ai_ca
         assert session.scalar(select(func.count()).select_from(EditorialDecisionModel)) == 0
         assert session.scalar(select(func.count()).select_from(RewriteJobModel)) == 0
         assert session.scalar(select(func.count()).select_from(RewriteUsageModel)) == 0
+
+
+def test_inbox_reports_observed_album_without_historical_pass_permission(album_store):
+    engine, _ = album_store
+    with Session(engine) as session:
+        session.add(
+            EditorialDecisionModel(
+                content_key=KEY,
+                status="PASS",
+                rewrite_allowed=True,
+                sentiment="neutral",
+                framing="neutral",
+            )
+        )
+        session.commit()
+        item = next(
+            item.as_dict()
+            for item in ModerationInboxReader(session).list_items()
+            if item.source_key == "1:-1001234567890:20"
+        )
+        assert item.get("album_observed") is True
+        assert item["editorial_status"] == "PASS"
+        assert item["rewrite_allowed"] is False
+        assert session.scalar(select(EditorialDecisionModel)).rewrite_allowed is True
+        assert session.scalar(select(func.count()).select_from(RewriteJobModel)) == 0

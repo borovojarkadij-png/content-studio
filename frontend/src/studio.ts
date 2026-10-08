@@ -31,6 +31,7 @@ export type Post = {
   revision: number;
   sourceDeleted?: boolean;
   sourceSyncBlocked?: boolean;
+  albumObserved?: boolean;
 };
 export type Donor = {
   id: string;
@@ -491,6 +492,7 @@ export function datePlus(date: string, days: number) {
 }
 export function canProcess(post: Post) {
   return (
+    !post.albumObserved &&
     !post.sourceDeleted &&
     !post.sourceSyncBlocked &&
     post.state !== "Нужна синхронизация" &&

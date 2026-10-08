@@ -2,6 +2,25 @@
 
 ## VERIFIED WORKING
 
+- 8038585ad830fe7b29b7bbc909b9a64e0987503a / CI 37774826743 completed
+  all-eight SUCCESS (actual gh inspection). Expanded migrated PostgreSQL job
+  113302940590: 50 PASS / 29.82s, including 27 retained album tests and independent
+  anchor writer. Original ed0beac PG/frontend failures remain recorded below.
+  This is Linux proof; current Windows Docker remains environment blocked.
+- Existing Inbox now projects `album_observed` from latest SQL revision, derives
+  rewrite=false for grouped sources without altering historical PASS, and opens
+  strict read-only metadata on demand. Sparse captions/photo/video, deletion and
+  unknown protection are explicit; completeness/rewrite/publication stay false.
+  API/client/canProcess safeguards, abort/rebind/late response/duplicate read/
+  failed-refresh/private error/DEMO regressions PASS. 32 relevant / full 1220
+  backend PASS, 122.87s (75576), frontend 184 units/build/format/audit0 PASS;
+  exact CI lint/changed format/D: compile/explicit isolated migration round-trip
+  and drift PASS. Corrected final full browser 31 PASS / 44.9s (14022);
+  real migrated API GET-only/no-store/reload and WCAG/no horizontal overflow at
+  1440/390 PASS. Both final captures visually inspected and saved under
+  `.artifacts/ui-dark-navy/album-observation-20261008-1527/`.
+  No redesign, media download, AI/send, operational data/key/flag change.
+  See DURABLE_ALBUM_OBSERVATION_VERIFICATION.md.
 - ed0beac / CI 37774362437 expanded PG job 113301402293 FAILED: 49 PASS,
   one malformed-media fixture used 21 chars in varchar(20), rejected by PostgreSQL
   before API. Changed only synthetic invalid value to 15 chars, still noncanonical;
@@ -948,13 +967,15 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: commit/push corrected bounded malformed-media fixture and settled
-mapping-form test to correct origin, inspect exact new eight-job CI including
-expanded PostgreSQL album tests; ed0beac / 37774362437 PG/frontend FAILED ordinary
-test harness issues, not accepted overall proof. No production guard/schema changed.
-Full 1219 backend PASS (59333), no UI/schema/permission changes. After actual
-PG proof, wire read-only observed album context into existing Inbox components
-without redesign, preserving strict real/DEMO separation and no action permission.
+NEXT_STEP: commit/push verified read-only Inbox album context to correct origin.
+Track exact new eight-job CI, including
+expanded PostgreSQL album/inbox regression; do not call it successful while
+pending. Then close remaining durable mapping-scoped exact dedup fan-out
+regressions using migrated SQL/reopen and zero-provider tests before proceeding
+to bounded album/video/media workflow. No architecture replanning or redesign.
+8038585 / 37774826743 completed all-eight SUCCESS, actual PG 50 PASS;
+ed0beac / 37774362437 PG/frontend failures remain failures, not accepted proof.
+Full 1220 backend PASS (75576), frontend 184 units/build/format/audit0 PASS.
 Combined
 Linux e2225d0 / 37771372421 is all-eight SUCCESS (nine actual restart boundaries).
 Never infer complete membership from a history window/quiet delay or allow

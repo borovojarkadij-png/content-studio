@@ -317,6 +317,48 @@ def main() -> None:
             TelegramChannelDifference("1", "-1002222222222", 10, 11, True, 0, (), (90,)),
             observed_at=datetime.now(UTC),
         )
+        # Sparse, retained synthetic observations only: never a complete/sendable album.
+        with Session(engine) as session:
+            for message_id, text, kind, protection in (
+                (990001, "Изолированный альбом API", "photo", False),
+                (990009, "Изолированная подпись видео API", "video", True),
+                (990014, "", "photo", None),
+            ):
+                source = IncomingPostModel(
+                    telegram_account_id="1",
+                    donor_channel_id="-1003333333333",
+                    telegram_message_id=message_id,
+                    state="RECEIVED",
+                )
+                session.add(source)
+                session.flush()
+                session.add(
+                    ContentRevisionModel(
+                        incoming_post_id=source.id,
+                        revision_number=1,
+                        source_text=text,
+                        media_type=kind,
+                        album_id="991",
+                        media_id=str(message_id),
+                        media_protected=protection,
+                    )
+                )
+                if message_id == 990001:
+                    # Historical PASS must not authorize processing grouped observations.
+                    session.add(
+                        EditorialDecisionModel(
+                            content_key="1:-1003333333333:990001:revision:1",
+                            status="PASS",
+                            rewrite_allowed=True,
+                            sentiment="neutral",
+                            framing="neutral",
+                        )
+                    )
+            session.commit()
+        SourceDeletionService(sessionmaker(engine)).record(
+            TelegramChannelDifference("1", "-1003333333333", 10, 11, True, 0, (), (990009,)),
+            observed_at=datetime.now(UTC),
+        )
         # Explicit synthetic unresolved-gap ledger, never operational configuration.
         with Session(engine) as session:
             source = IncomingPostModel(

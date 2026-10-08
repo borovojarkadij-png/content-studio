@@ -6,6 +6,7 @@ import {
   type SetStateAction,
 } from "react";
 import { loadInbox } from "./api";
+import { AlbumObservationPanel } from "./AlbumObservationPanel";
 import { LivePlanner } from "./LivePlanner";
 import { LiveOverview } from "./LiveOverview";
 import { LiveConnections, LiveDirectory } from "./LiveConfiguration";
@@ -688,6 +689,11 @@ function Inbox({
                 <span>Иллюстрация DEMO</span>
               </div>
             )}
+            {!demo && selected.albumObserved && (
+              <AlbumObservationPanel
+                contentKey={`${selected.id}:revision:${selected.revision}`}
+              />
+            )}
             <section className="rewrite-box">
               <PanelTitle title="Предложение AI" icon="spark">
                 <button
@@ -701,9 +707,11 @@ function Inbox({
                       ? "Источник удалён: рерайт запрещён"
                       : selected.sourceSyncBlocked
                         ? "Нужна синхронизация Telegram: рерайт запрещён"
-                        : !canProcess(selected)
-                          ? "EditorialGate не разрешил рерайт"
-                          : "Применить к черновику"
+                        : selected.albumObserved
+                          ? "Состав альбома не подтверждён: рерайт запрещён"
+                          : !canProcess(selected)
+                            ? "EditorialGate не разрешил рерайт"
+                            : "Применить к черновику"
                   }
                 >
                   Применить вариант
@@ -715,9 +723,11 @@ function Inbox({
                     ? "Источник удалён у донора. AI-рерайт недоступен."
                     : selected.sourceSyncBlocked
                       ? "Синхронизация Telegram не завершена. AI-рерайт недоступен."
-                      : canProcess(selected)
-                        ? "AI-вариант пока отсутствует. Провайдер не вызывается в DEMO."
-                        : "EditorialGate не разрешил рерайт. AI-вызовы недоступны.")}
+                      : selected.albumObserved
+                        ? "Состав альбома не подтверждён. AI-рерайт недоступен."
+                        : canProcess(selected)
+                          ? "AI-вариант пока отсутствует. Провайдер не вызывается в DEMO."
+                          : "EditorialGate не разрешил рерайт. AI-вызовы недоступны.")}
               </p>
             </section>
             <label className="field">
