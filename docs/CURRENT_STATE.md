@@ -2,6 +2,17 @@
 
 ## VERIFIED WORKING
 
+- Durable source-deletion tombstones/shared freshness OFFLINE: 22 targeted /
+  full backend 801 PASS (10602), exact CI Ruff/targeted format/compile/explicit
+  D: migration round-trip/drift PASS. Deleted replay/cached PASS/stale retry/
+  real review API/manual planning/media/final send guards verified; historical
+  exact receipt recovery remains zero-resend. See SOURCE_DELETION_VERIFICATION.md.
+  Leased cursor application and current Windows/live acceptance remain pending.
+- Observed-ack version-2 probe checkpoint 6266b5a CI 37713732217 completed
+  SUCCESS, including both Linux Docker/PostgreSQL variants. This is not Windows
+  Docker Desktop verification; current Windows remains environment blocked.
+- Observation checkpoint 33757e6 CI 37713401088 completed SUCCESS in all four jobs.
+
 - Bounded read-only channel difference contract OFFLINE: full backend 779 /
   exact CI Ruff/targeted format/compile/explicit D: migration drift PASS.
   New/edited/deleted identities, pts/bounds/final, TooLong/unknown/foreign
@@ -597,14 +608,16 @@ Direct-response observation/no-resend recovery implemented and gate verified
 (750 backend, 58 frontend, final browser 24 PASS in 17486).
 Observation checkpoint committed/pushed 33757e6c873d108b6db1fcdce2eb28f1732a3c2a.
 Probe checkpoint committed/pushed 6266b5a0689409bc7af89b7e3dadec5ab7f2f206;
-its CI 37713732217 backend/frontend PASS, both Docker jobs in progress at inspection.
-Read-only channel difference provider/Fake/encrypted factory contract implemented;
-full 779 backend gate PASS. Commit/push this contract checkpoint, then implement
-durable source-deletion tombstones and shared freshness/ingestion guards with
-history-preserving migration and adversarial tests. Record deletions before message
-fan-out; do not resurrect sources through replay/new mapping/worker/retry/manual
-review or scheduling. Follow with leased channel-pts processing; never advance
-pts until all observations/mappings persist, never treat TooLong as full recovery.
+its CI 37713732217 completed SUCCESS in all four jobs (Linux Docker included).
+Read-only difference contract committed/pushed 2d744c20bf5adcb2a5e770db505fb7e95459e3e7;
+its CI 37714319250 backend/frontend PASS, Docker variants in progress at inspection.
+Source-deletion tombstones/shared freshness/ingestion guards implemented with
+history-preserving d9a648fbcd37 migration; full 801 backend gate PASS.
+Commit/push deletion checkpoint, then implement leased channel-pts processing:
+missing baseline explicit, current account/session/claim fencing, deletion-first
+bounded fan-out and replay after partial mappings. Never advance pts until all
+observations/mappings persist, never treat TooLong as full recovery. No public
+cursor-reset or provider-send endpoint, no operational worker/flag activation.
 Full durable gap/deletion application and live verification are pending. Windows Docker stays
 blocked; no deletion/prune/volume reset or live provider-send workaround.
 Do not guess message identity by text/time. Use D: for

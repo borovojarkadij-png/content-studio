@@ -24,6 +24,8 @@
 - [ ] Full Telegram update-difference/deletion recovery, album batching/download and live encrypted authorization restart acceptance
 - [x] Bounded read-only channel difference provider/Fake/encrypted factory contract: exact channel-pts/new/edit/deletion observations, TooLong/unknown/foreign fail-closed, strict user binding and 779 backend gate; no durable gap application or new worker enabled
 - [ ] Durable source-deletion tombstones, shared freshness/ingestion fencing and leased channel-pts recovery; deletion-first fan-out, atomic/idempotent persistence, no implicit TooLong reset
+- [x] Durable source-deletion tombstones/shared freshness/ingress guard, whole-vector transactional outbox, cached PASS/worker/retry/API/review/planner/media/pre-send zero-call guards and history-preserving d9a648fbcd37 migration; 801 backend gate OFFLINE
+- [ ] Leased channel-pts application with explicit missing-baseline state, deletion-first fan-out, partial mapping replay and durable cursor advancement; Windows/live acceptance pending
 - [x] Bounded sparse album observation in provider/factory/fake, explicit incomplete-membership contract and ingress/stale-worker/manual-review/planner fail-closed gate; 500-test backend verification
 - [~] Filters, semantic dedup, events, hype, media, routing and scheduler; durable per-channel plan/timer, mapping-aware candidates, immediate/delayed/priority/media snapshots and gated activation complete; semantic dedup/events/hype, media acquisition and publication execution remain pending
 - [~] Mapping-level deterministic filters for media, advertising markers and forbidden links
@@ -43,7 +45,8 @@
 - [x] Encrypted immutable exact publication request snapshots in the intent/outbox transaction; strict restart/key/schema/legacy/reject guards and history-preserving b7e426d9ab15 migration; offline 737 backend gate PASS
 - [x] Persist trusted encrypted direct-response delivery observations and reconcile crash-after-ack without another send; fair bounded scan, real SQL storage failures/conflicts/identity/read-only UI regressions; 750 backend / 58 frontend / 24 browser gate
 - [x] Extend create-only versioned synthetic PostgreSQL/Docker publication probe to encrypted request/observed-ack down/up recovery; actual consumer independent SQL reopen / full 751 backend gate verified
-- [ ] Run the new version-2 observed-ack PostgreSQL/Docker procedure on its exact pushed GitHub CI and Windows Docker Desktop; current Windows environment blocked, prior run success is not new-probe proof
+- [x] Exact version-2 probe checkpoint 6266b5a GitHub CI 37713732217 completed SUCCESS in all four jobs including Linux PostgreSQL/Docker variants
+- [ ] Run the new version-2 observed-ack PostgreSQL/Docker procedure on Windows Docker Desktop; current Windows environment blocked, Linux CI is not Windows proof
 - [x] Publication-execution technical-filter guard (local preflight only; live RPC acceptance pending)
 - [~] Durable mapping-scoped exact content fingerprint deduplication before EditorialGate
 - [~] OpenAI/OpenRouter: encrypted settings/models, drafts/review, catalog and fact anchors complete; strict adapters/encrypted factory, explicitly opt-in provider-selected worker, bounded free-only OpenRouter failover, known token usage and per-channel natural tabloid style complete offline; live provider verification, semantic guard, rate configuration/cache/dashboard pending

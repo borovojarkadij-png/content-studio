@@ -29,6 +29,7 @@ from newsflow.persistence.models import (
 )
 from newsflow.providers.telegram import TelegramMessage, validate_media_observation
 from newsflow.services.mapping_filters import mapping_filter
+from newsflow.services.source_revisions import source_identity_deleted
 
 
 class DurableIngestionWorkflow:
@@ -71,6 +72,10 @@ class DurableIngestionWorkflow:
         with self._session.begin():
             if self._transaction_guard is not None and not self._transaction_guard(self._session):
                 return IngestionResult(False, source_key, "STALE_CLAIM")
+            if source_identity_deleted(
+                self._session, event.account_id, event.donor_identifier, event.message_id
+            ):
+                return IngestionResult(False, source_key, "REJECTED_TECHNICAL", "SOURCE_DELETED")
             if self._configured_mapping_id is not None:
                 mapping = self._session.scalar(
                     select(ChannelMappingModel)

@@ -498,6 +498,29 @@ class OutboxEventModel(Base):
     )
 
 
+class SourceDeletionModel(Base):
+    """Permanent source tombstone, including identities not ingested yet."""
+
+    __tablename__ = "source_deletions"
+    __table_args__ = (
+        CheckConstraint(
+            "length(telegram_account_id) BETWEEN 1 AND 100", name="ck_source_deletion_account"
+        ),
+        CheckConstraint(
+            "length(donor_channel_id) BETWEEN 1 AND 100", name="ck_source_deletion_channel"
+        ),
+        CheckConstraint(
+            "telegram_message_id BETWEEN 1 AND 2147483647", name="ck_source_deletion_message"
+        ),
+        CheckConstraint("latest_pts BETWEEN 1 AND 2147483647", name="ck_source_deletion_pts"),
+    )
+    telegram_account_id: Mapped[str] = mapped_column(String(100), primary_key=True)
+    donor_channel_id: Mapped[str] = mapped_column(String(100), primary_key=True)
+    telegram_message_id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    latest_pts: Mapped[int] = mapped_column(Integer, nullable=False)
+    observed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
 class IncomingPostModel(Base):
     __tablename__ = "incoming_posts"
     __table_args__ = (
