@@ -865,3 +865,106 @@ class RewriteUsageModel(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
+
+
+def _illustration_digest_check(column: str) -> str:
+    remaining = column
+    for character in "0123456789abcdef":
+        remaining = f"replace({remaining}, '{character}', '')"
+    return f"length({column}) = 64 AND {remaining} = ''"
+
+
+class IllustrationReviewRecordModel(Base):
+    """Append-only human-review/revocation history; never authentication by itself.
+
+    Alembic installs database UPDATE/DELETE refusal. No application writer/API
+    or permission consumer exists yet. Synthetic rows cannot qualify a model,
+    attest an event photograph or remove the library publication hold.
+    """
+
+    __tablename__ = "illustration_review_records"
+    __table_args__ = (
+        UniqueConstraint("operation_key", name="uq_illustration_review_operation"),
+        UniqueConstraint("revokes_review_id", name="uq_illustration_review_revocation"),
+        CheckConstraint(
+            "id > 0 AND reviewer_id > 0 AND candidate_id > 0 AND output_channel_id > 0 "
+            "AND mapping_id > 0 AND source_revision_id > 0 "
+            "AND rewrite_output_id > 0 AND media_asset_id > 0",
+            name="ck_illustration_review_ids",
+        ),
+        CheckConstraint(
+            "provenance = 'AUTHENTICATED_HUMAN_V1'", name="ck_illustration_review_provenance"
+        ),
+        CheckConstraint(
+            "typeof(reviewer_id) = 'integer'", name="ck_illustration_review_reviewer_type"
+        ).ddl_if(dialect="sqlite"),
+        CheckConstraint(
+            "illustration_acknowledged IS NULL OR illustration_acknowledged IN (false, true)",
+            name="ck_illustration_review_ack",
+        ),
+        CheckConstraint(
+            "length(operation_key) BETWEEN 1 AND 128 AND length(trim(operation_key)) > 0",
+            name="ck_illustration_review_operation",
+        ),
+        CheckConstraint(
+            "length(content_key) BETWEEN 1 AND 255 AND length(trim(content_key)) > 0",
+            name="ck_illustration_review_content",
+        ),
+        CheckConstraint(
+            "length(review_note) BETWEEN 1 AND 2048 AND length(trim(review_note)) > 0",
+            name="ck_illustration_review_note",
+        ),
+        CheckConstraint(
+            "(record_kind = 'REVIEW' AND revokes_review_id IS NULL "
+            "AND verdict IS NOT NULL AND verdict IN "
+            "('APPROVED_ILLUSTRATION', 'REJECTED', 'UNCERTAIN') "
+            "AND illustration_acknowledged IS NOT NULL "
+            "AND (verdict <> 'APPROVED_ILLUSTRATION' OR illustration_acknowledged = true)) "
+            "OR (record_kind = 'REVOCATION' AND revokes_review_id IS NOT NULL "
+            "AND revokes_review_id < id AND verdict IS NULL "
+            "AND illustration_acknowledged IS NULL)",
+            name="ck_illustration_review_kind",
+        ),
+        *(
+            CheckConstraint(
+                _illustration_digest_check(column), name=f"ck_illustration_review_{column}"
+            )
+            for column in (
+                "source_sha256",
+                "draft_sha256",
+                "media_sha256",
+                "asset_metadata_sha256",
+            )
+        ),
+        Index("ix_illustration_review_candidate", "candidate_id", "id"),
+    )
+    id: Mapped[int] = mapped_column(primary_key=True)
+    operation_key: Mapped[str] = mapped_column(String(128), nullable=False)
+    record_kind: Mapped[str] = mapped_column(String(16), nullable=False)
+    revokes_review_id: Mapped[int | None] = mapped_column(
+        ForeignKey("illustration_review_records.id"), nullable=True
+    )
+    candidate_id: Mapped[int] = mapped_column(
+        ForeignKey("publication_candidates.id"), nullable=False
+    )
+    output_channel_id: Mapped[int] = mapped_column(ForeignKey("output_channels.id"), nullable=False)
+    mapping_id: Mapped[int] = mapped_column(ForeignKey("channel_mappings.id"), nullable=False)
+    content_key: Mapped[str] = mapped_column(String(255), nullable=False)
+    source_revision_id: Mapped[int] = mapped_column(
+        ForeignKey("incoming_post_revisions.id"), nullable=False
+    )
+    source_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    rewrite_output_id: Mapped[int] = mapped_column(ForeignKey("rewrite_outputs.id"), nullable=False)
+    draft_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    media_asset_id: Mapped[int] = mapped_column(ForeignKey("media_assets.id"), nullable=False)
+    media_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    asset_metadata_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    reviewer_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    provenance: Mapped[str] = mapped_column(String(32), nullable=False)
+    verdict: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    illustration_acknowledged: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+    review_note: Mapped[str] = mapped_column(Text, nullable=False)
+    reviewed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )

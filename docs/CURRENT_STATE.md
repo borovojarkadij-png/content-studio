@@ -13,11 +13,34 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
 
 ## VERIFIED WORKING
 
+- Immutable illustration review/revocation storage verified OFFLINE: guarded
+  c5e81b29a704 migration and exact canonical eleven-field history, strict row
+  shape/reference/type checks, SQLite replacement and PostgreSQL TRUNCATE fences,
+  protected populated/concurrent downgrade. All reviewer defects reproduced RED
+  and corrected; final review has no actionable findings. Combined 208 PASS/1
+  PG-only SKIP; corrected full 45505: 1612 PASS/1 SKIP /294.32s, exit 0.
+  Exact CI-context Ruff/changed format/D: compile, owned isolated full migration
+  no-drift and frontend 205/format/build PASS. No writer/authenticated API,
+  permission consumer or publication hold release; actual PG/new-source CI
+  pending. See ILLUSTRATION_REVIEW_STORAGE_VERIFICATION.md. PHASE 1 not complete.
+- Accepted existing UI restored in the local preview, not redesigned (2026-10-08).
+  The user selected `.artifacts/ui-dark-navy/1440x900/01_overview.png` as the
+  existing target. Before reload the browser DOM still showed the old symbolic
+  icons, 124/18/36/9 counters and no workspace header; no listener existed at
+  5173. Started the existing Vite application on loopback 5173, then reloaded
+  the DEMO tab. Current Overview has the accepted SVG navigation, navy panels,
+  6/4/1/2 counters, chart, donut and illustrated rows. Reference and fresh
+  capture inspected together at a 1440x900 viewport; no material Overview
+  design mismatch observed (not a pixel-identical assertion). Capture:
+  `.artifacts/ui-dark-navy/preview-restored-20261008/01_overview.jpg`.
+  Temporary viewport reset; current console warnings/errors empty. No frontend
+  source changes, real API/provider calls or automation restart. This proves
+  the Overview preview only, not a fresh eight-section or full release gate.
+  Commercial DEV/TEST/RC/STABLE evidence rules are in QUALITY_GATES.md.
 - Canonical resolver source checkpoint committed/pushed
   44fb130ab0dda51e9910f05e08d106e3d96077a8 to the correct origin/branch.
-  Exact CI 37798052676 is IN_PROGRESS at inspection, all eight jobs running;
-  new migrated PostgreSQL job 113382585290 is not yet proof of PASS. Inspect
-  exact source run and any later docs checkpoint before the next increment.
+  Exact CI 37798052676 completed SUCCESS at fresh inspection. This does not
+  verify uncommitted storage changes or current Windows Docker runtime.
 - Fresh read-only canonical SQL illustration-binding resolver implemented OFFLINE:
   clean-session refusal, current source/editorial/mapping/approved channel draft,
   latest selected library job, explicit rights and canonical metadata, bounded
@@ -1147,7 +1170,36 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: inspect exact latest canonical illustration-binding checkpoint CI by matching
+NEXT_STEP: inspect the committed storage checkpoint's exact GitHub CI, especially
+the expanded PostgreSQL suite, then continue the authenticated review boundary.
+Storage-only source is implemented and locally verified; do not duplicate it:
+IllustrationReviewRecordModel, c5e81b29a704 immutable-history migration and
+test_illustration_review_storage.py plus the strict PG CI inclusion. No application
+writer, authenticated API, permission consumer or publication hold release exists.
+Initial review found actual SQLite OR REPLACE overwrite and concurrent empty-count
+downgrade loss (both reproduced RED), plus PostgreSQL TRUNCATE bypass. Corrections
+add replacement/parent/row mutation/TRUNCATE fences and pre-count write/exclusive
+locking. Further parent-binding and positive-ID RED cases were corrected.
+Intermediate suite 34 PASS/1 explicit PG-only SKIP preceded positive-ID corrections.
+Earlier target session 23428 was interrupted; its result remains unclaimed.
+Further real SQLite dangling-reference and non-boolean acknowledgment RED cases
+were corrected with insert-time reference and strict boolean checks. Latest
+combined target session 48858 completed 205 PASS /1 explicit PostgreSQL-only
+SKIP /71.90s. A later independent reviewer-type finding was reproduced by three
+raw SQLite anonymous/fractional ID RED failures and fixed with SQLite-only
+integer-type CHECK. Final combined 84762: 208 PASS/1 PG-only SKIP /68.08s;
+final reviewer reports no remaining actionable findings. Fresh CI-context Ruff,
+changed format/D: compile, dialect DDL compilation, owned absent-path migration
+upgrade/check/downgrade/base/upgrade/check and frontend 205/format/build PASS.
+Prior full 85602: 1609 PASS/1 SKIP /280.89s, but it started before final fix;
+it does NOT prove the corrected candidate. Full corrected 45505 completed
+1612 PASS/1 PG-only SKIP /294.32s, exit 0. See storage verification report.
+PostgreSQL TRUNCATE needs actual strict CI, never infer from
+local SQLite. Preserve current source/draft/media/editorial/library holds.
+Resolver source 44fb130 CI 37798052676 PG job 113382585290 actually passed
+163 tests /75.86s; all eight jobs now actually SUCCESS at fresh inspection.
+This is not new storage or Windows proof.
+Then match the latest committed checkpoint using
 `git rev-parse HEAD` to `gh run list --repo borovojarkadij-png/content-studio
 --branch codex/dark-navy-ui --limit 3 --json databaseId,headSha,status,conclusion`;
 Do not repeat completed canonical resolver, Inbox/library diagnostics or the
@@ -1157,10 +1209,9 @@ ec4e560 CI 37791084343 and docs 008eef6 CI 37792828642 all-eight
 SUCCESS; d29d6f0 CI 37792513344 backend startup timeout is preserved as FAILED.
 Do not repeat completed Inbox/library diagnostics or the human domain contract.
 Previous review-contract 06cbd1e exact CI 37795331144 all-eight SUCCESS.
-Then implement bounded immutable durable human illustration review history:
-exact canonical binding from the resolver, explicit human verdict/illustration
-acknowledgment/rationale and trusted reviewer provenance; revoke rather than
-overwrite, transactional audit and migrated reopen/crash/unsafe regressions.
+After the storage gate, implement transactional canonical review/revocation and
+audit behind a trusted server-side reviewer-authentication boundary. Do not repeat
+the completed storage schema, domain contract or read-only binding resolver.
 Do not accept reviewer identity or approval from unauthenticated client fields.
 Authenticated workflow and fresh preflight/transport integration follow as
 separate increments. Human review does not qualify a model or prove event-photo
