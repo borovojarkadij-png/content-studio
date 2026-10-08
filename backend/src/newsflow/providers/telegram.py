@@ -69,6 +69,7 @@ class TelegramMessage:
 
 def _hidden_link_destinations(raw_message):
     """Bound entity/button URLs; unknown/malformed metadata is not empty."""
+    from telethon.tl import types as tltypes
     from telethon.tl.types import MessageEntityTextUrl, ReplyInlineMarkup
 
     links = []
@@ -96,7 +97,13 @@ def _hidden_link_destinations(raw_message):
             if count > 100:
                 return None
             for button in buttons:
-                if not type(button).__name__.startswith("KeyboardButton"):
+                inline_type = getattr(tltypes, "KeyboardInlineButton", None)
+                if inline_type is not None and isinstance(button, inline_type):
+                    # Telegram's newer layer moves destinations to button.type.
+                    button = button.type
+                    if not type(button).__name__.startswith("InlineButtonType"):
+                        return None
+                elif not type(button).__name__.startswith("KeyboardButton"):
                     return None
                 if hasattr(button, "url"):
                     links.append(button.url)

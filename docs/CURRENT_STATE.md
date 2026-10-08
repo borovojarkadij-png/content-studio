@@ -28,8 +28,17 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
   contradictory video-publication hint. No operational migration/live calls/flags.
   See HIDDEN_SOURCE_LINKS_VERIFICATION.md. Committed/pushed exact checkpoint
   d871dd1d2ae26af6bb5a8c680a6ff7f223d53cd4 to correct origin/branch; exact new
-  GitHub Actions 37786943304 including expanded create-only PG hidden tests
-  running at inspection; not accepted as PASS yet.
+  GitHub Actions 37786943304 backend job 113343992528 and expanded PG job
+  113343992428 FAILED collection: latest Telethon 1.45 removed KeyboardButtonUrl.
+  Actual downloaded 1.45 SDK confirms KeyboardInlineButton/InlineButtonTypeUrl
+  with nested destination. Fixture corrected to actual SDK type; 2 behavior RED
+  reproduced missing production capture, bounded compatible extraction fixed.
+  110 relevant PASS with isolated 1.45; 24 hidden regressions PASS with local
+  1.44. No dependency pin/downgrade/check disablement. Full isolated 1.45 gate
+  1371 PASS /119.78s (41174), Ruff/format/D: compile PASS. Independent required
+  review found no actionable correction issue; no reviewer test execution.
+  Docs-only 19d6eda /37787154561 also backend/PG FAILED at inspection.
+  Corrective new GitHub execution pending; original failures remain failures.
 - Donor video/manual-only and visible YouTube/invalid URL exclusions verified
   OFFLINE: discard by default, optional MANUAL_REVIEW retention, no classifier/
   fingerprint/candidate/RewriteJob, ordinary source-created audit retained.
@@ -1038,8 +1047,9 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: inspect exact d871dd1 GitHub Actions 37786943304, especially create-only migrated
-PostgreSQL hidden-link tests;
+NEXT_STEP: checkpoint verified Telethon 1.44/1.45 nested inline-button correction,
+then inspect exact corrective
+CI, especially create-only migrated PostgreSQL hidden-link tests;
 do not call queued/running jobs PASS. Then add read-only moderation Inbox technical
 hold diagnostics for video manual-only, blocked links and legacy unknown/corrupt
 source-link metadata. Preserve historical editorial status while explaining

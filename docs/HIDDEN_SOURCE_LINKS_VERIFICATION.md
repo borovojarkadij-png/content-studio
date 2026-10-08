@@ -68,7 +68,16 @@ includes test_hidden_donor_links.py; actual new PG acceptance is still pending.
 Exact committed/pushed source checkpoint:
 `d871dd1d2ae26af6bb5a8c680a6ff7f223d53cd4`, `codex/dark-navy-ui`, correct
 origin `https://github.com/borovojarkadij-png/content-studio.git`. Preceding
-New CI 37786943304 running, no success claim. Preceding
+New CI 37786943304 backend/PG jobs FAILED collection because Telethon 1.45
+removed KeyboardButtonUrl. The actual downloaded SDK introduces nested
+KeyboardInlineButton/InlineButtonTypeUrl destinations; compatible fixtures then
+reproduced 2 missing-capture behavior RED. Minimal bounded capture supports both
+new and old formats; 110 relevant PASS with isolated 1.45, 24 hidden tests PASS
+with installed 1.44. Full isolated 1.45 1371 PASS /119.78s (41174), fresh exact
+Ruff/format/D: compile PASS, independent read-only review no actionable findings.
+Corrective CI acceptance still pending. Docs-only 19d6eda /37787154561 also
+backend/PG FAILED at inspection. No older
+dependency pin, skipped test or gate relaxation. Preceding
 e8064d7 /37784840224 completed all-eight SUCCESS, actual gh inspection; this
 does not substitute for the new metadata/migration CI.
 No local PostgreSQL/Windows Docker success inferred from SQLite or Linux CI.

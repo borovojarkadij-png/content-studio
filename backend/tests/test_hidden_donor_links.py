@@ -6,12 +6,8 @@ from types import SimpleNamespace
 import pytest
 from sqlalchemy import create_engine, select, text
 from sqlalchemy.orm import sessionmaker
-from telethon.tl.types import (
-    KeyboardButtonRow,
-    KeyboardButtonUrl,
-    MessageEntityTextUrl,
-    ReplyInlineMarkup,
-)
+from telethon.tl import types as tltypes
+from telethon.tl.types import MessageEntityTextUrl, ReplyInlineMarkup
 from test_mapping_fanout_dedup import mapping_store as _mapping_store
 from test_persisted_mapping_filters import NOW, queued_source
 
@@ -29,6 +25,16 @@ from newsflow.services.mapping_filters import output_technical_allowed
 from newsflow.services.moderation_inbox import ModerationInboxReader
 
 mapping_store = _mapping_store
+
+
+KeyboardButtonRow = getattr(tltypes, "KeyboardInlineButtonRow", tltypes.KeyboardButtonRow)
+
+
+def KeyboardButtonUrl(label, url):
+    legacy = getattr(tltypes, "KeyboardButtonUrl", None)
+    if legacy is not None:
+        return legacy(label, url)
+    return tltypes.KeyboardInlineButton(label, tltypes.InlineButtonTypeUrl(url))
 
 
 @pytest.fixture
