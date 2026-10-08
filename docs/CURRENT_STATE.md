@@ -2,6 +2,17 @@
 
 ## VERIFIED WORKING
 
+- Create-only combined full-stack restart controller implemented OFFLINE: exact
+  owned fixture/family/key/named PG/media bind/flag guards, same existing FloodWait
+  vertical scenario with nine pre-stage down/up/Redis-worker/PG crash boundaries.
+  29 new / 52 combined / full 1182 backend PASS (25632), fresh 139 frontend /
+  30 browser PASS (6715), exact lint/format/D: compile/PowerShell parse/YAML/
+  explicit D: migration drift/build/audit PASS. Actual new full-stack CI PENDING;
+  parser/target tests are not Docker runtime proof. See UNATTENDED_COMPOSE_VERIFICATION.md.
+- PostgreSQL vertical dd78455 CI 37766880597 and subsequent 1cedac8 CI 37767782693
+  completed all-seven SUCCESS; health 567e263 CI 37766368319 all-six SUCCESS
+  (actual gh inspection). Linux acceptance is not current Windows proof.
+
 - Actual isolated PostgreSQL vertical CI dd78455ad3509dbcc0e772db058314fc789a0966
   run 37766880597, job 113276597192 SUCCESS: 23 PASS / 14.97s in completed job
   log, all five migrated real PostgreSQL scenarios plus 18 target guards.
@@ -887,13 +898,14 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: record/push exact PostgreSQL CI success; implement separate create-only
-combined Compose restart acceptance using the existing vertical scenario controlled
-from host pytest, new isolated full stack/named PostgreSQL volume/persistent media
-bind, exact public fixture key and all operational network flags 0. Restart between
-original SQL stages; no provider test sends, existing fixture reuse/reseed, operational
-DB/schema reset or volume deletion. Verify in dedicated Linux CI, keep Windows blocked.
-Inspect overall dd78455/567e263 CI without assuming pending jobs succeeded;
+NEXT_STEP: checkpoint/push verified create-only combined Compose controller; inspect
+its exact new eight-job CI, especially actual full-stack restart job. Diagnose/fix/
+retest ordinary configuration/SQL/runtime failures without disabling assertions,
+reusing/reseeding fixtures or touching current Windows daemon/storage. All prior
+dd78455/1cedac8/567e263 workflows completed SUCCESS. After actual new combined
+acceptance, continue remaining independent IMPLEMENTATION_PLAN tasks (bounded
+album/video contract and guarded media workflow), preserving manual qualification
+and no live provider-send/operational flag activation;
 no existing fixture reseed. Library illustration publication remains blocked pending
 visual-semantic relevance approval, not a successful unattended mode. Preserve original
 job/history/attempt budgets, protected reject zero new RewriteJob/zero rewrite calls,

@@ -11,6 +11,7 @@ from alembic.config import Config
 from PIL import Image
 from sqlalchemy import create_engine, func, select
 from sqlalchemy.orm import sessionmaker
+from unattended_compose import restart_stack_before_stage, validated_restart_project
 from unattended_postgres import create_postgres_namespace
 
 from alembic import command
@@ -58,6 +59,7 @@ REJECTED_KEY = f"1:{CHANNEL}:21:revision:1"
 
 @contextmanager
 def reopened(url):
+    restart_stack_before_stage(url)
     engine = create_engine(url)
     try:
         yield sessionmaker(engine)
@@ -67,6 +69,7 @@ def reopened(url):
 
 @pytest.fixture
 def unattended(tmp_path, monkeypatch):
+    validated_restart_project()  # Invalid opt-in must fail before SQL creation/migrations.
     postgres = getenv("NEWSFLOW_UNATTENDED_POSTGRES_URL")
     url = (
         create_postgres_namespace(postgres)
