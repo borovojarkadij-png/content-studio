@@ -23,6 +23,21 @@ const response = (value: unknown, status = 200) => ({
   json: async () => value,
 });
 
+it.each([null, true, "APPROVED", "RELEVANCE_ACCEPTED"])(
+  "library hold diagnostic %j cannot fake supported publication",
+  async (value) => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        response({ ...pendingMedia, publication_hold_reason_code: value }),
+      ),
+    );
+    await expect(mediaStatus(4, new AbortController().signal)).rejects.toThrow(
+      "контракт",
+    );
+  },
+);
+
 it("binds media status identity and rejects fabricated selection and attempts", async () => {
   for (const payload of [
     { ...pendingMedia, candidate_id: 5 },

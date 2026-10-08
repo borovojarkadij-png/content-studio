@@ -293,8 +293,10 @@ def get_media_job_reader() -> Iterator[MediaJobReader]:
 @router.get("/publication-candidates/{candidate_id}/media-acquisition")
 def get_media_acquisition_status(
     candidate_id: int,
+    response: Response,
     reader: Annotated[MediaJobReader, Depends(get_media_job_reader)],
 ) -> dict[str, object]:
+    response.headers["Cache-Control"] = "no-store"
     return reader.get_status(candidate_id)
 
 

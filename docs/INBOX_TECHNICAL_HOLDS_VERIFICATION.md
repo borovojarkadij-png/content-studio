@@ -64,8 +64,9 @@ real Telegram/AI/media call occurred.
   no console errors, WCAG A/AA and no horizontal overflow at 1440/390.
   Earlier 33 PASS /54.1s included React nesting warnings and is not final proof.
 - Expanded create-only PostgreSQL CI includes all **31** new SQL/HTTP tests.
-  Its actual new execution is pending the exact source checkpoint CI; local
-  SQLite does not count as PostgreSQL or current Windows Docker evidence.
+  Actual ec4e560 / CI 37791084343 / PG job 113358327396 completed SUCCESS:
+  **116 PASS /54.26s**, including all 31 new migrated SQL/HTTP cases. Local
+  SQLite and this Linux PG proof do not count as current Windows Docker evidence.
 - Preceding corrected source 30280de / CI **37787946778** and docs f2ce40d / CI
   **37788650164** now actually inspected: all eight jobs completed SUCCESS,
   including Linux synthetic full-stack/restart/PG and both provider variants.

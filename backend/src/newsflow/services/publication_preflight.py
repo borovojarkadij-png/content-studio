@@ -30,7 +30,7 @@ from newsflow.services.automatic_approval import approval_is_current
 from newsflow.services.durable_semantic_runner import _aware, _utc
 from newsflow.services.fact_guard import FactGuard, FactPreservationBlocked
 from newsflow.services.mapping_filters import candidate_technical_allowed, mapping_filter
-from newsflow.services.media_job_read import MediaJobReader
+from newsflow.services.media_job_read import LIBRARY_PUBLICATION_HOLD_CODE, MediaJobReader
 from newsflow.services.media_selection import MediaSelectionBlocked, MediaUnavailable
 from newsflow.services.publication import PublicationBlocked
 from newsflow.services.source_revisions import source_is_current, source_revision
@@ -188,7 +188,7 @@ class PublicationPreflight:
             raise PublicationBlocked("PROVISIONED_HEALTHY_OUTPUT_AND_PEER_REQUIRED")
         if candidate.media_policy != "REUSE_SOURCE":
             # Topic matching is not sufficient to approve an illustration's relevance.
-            raise PublicationBlocked("ILLUSTRATION_RELEVANCE_APPROVAL_NOT_IMPLEMENTED")
+            raise PublicationBlocked(LIBRARY_PUBLICATION_HOLD_CODE)
         asset = None
         media_job_id = None
         text = output.rewritten_text

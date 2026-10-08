@@ -13,6 +13,24 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
 
 ## VERIFIED WORKING
 
+- Existing Planner library-publication hold now explicit through real no-store
+  media status/strict client/UI. Current policy rather than historical media
+  success controls fixed reason; original-source null is not readiness. Actual
+  preflight condition unchanged, misleading manual-glance advice removed, no
+  approval/write/provider action added. 27 backend /13 frontend targeted PASS;
+  full isolated 1.45 backend 1403 PASS /177.79s (9946), exact lint/changed format/
+  D: compile/YAML/isolated migration drift PASS. Frontend 205/format/build PASS;
+  final real migrated API/browser 33 PASS (1.0m, 81157), exact preview/refresh/
+  library hold/narrow WCAG. Both captures visually inspected under
+  `.artifacts/ui-dark-navy/library-publication-hold-20261008/`.
+  Independent source review no actionable issue. See
+  LIBRARY_PUBLICATION_HOLD_VERIFICATION.md. Offline only; relevance workflow,
+  actual visual semantics and current Windows/live acceptance remain pending.
+- Inbox checkpoint committed/pushed ec4e5600a2fee44c41496caefd1f0a0de8d5b4f9
+  to correct origin/branch. Exact CI 37791084343 / expanded PG job 113358327396
+  SUCCESS: 116 PASS /54.26s, including 31 new actual migrated SQL/HTTP cases.
+  Backend/frontend/admission/sync SUCCESS; other restart jobs still running
+  at inspection. No overall/current Windows success inference.
 - Read-only Inbox technical-hold diagnostics implemented/verified OFFLINE:
   latest SQL fixed codes for video manual-only, YouTube/malformed/unknown/corrupt
   source links, album/protection; preserved editorial/source/job history,
@@ -26,7 +44,7 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
   Actual nested paragraph defect reproduced and fixed; independent review no
   outstanding Critical/Important issue. Both final screenshots visually inspected
   under `.artifacts/ui-dark-navy/inbox-technical-holds-20261008/`.
-  Expanded PostgreSQL CI includes 31 new cases; actual new checkpoint CI pending.
+  Expanded PostgreSQL CI includes 31 new cases; actual PG acceptance confirmed above.
   See INBOX_TECHNICAL_HOLDS_VERIFICATION.md. No operational migration/flags/key,
   provider calls or real send. Windows Docker still independently environment blocked.
 - Corrected hidden-link 30280de / CI 37787946778 and docs f2ce40d / CI
@@ -1073,17 +1091,20 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: commit/push verified Inbox technical diagnostics to the existing
-correct origin/codex/dark-navy-ui, inspect its exact expanded PostgreSQL CI
-(116 total cases expected; 31 new Inbox cases), diagnose/fix genuine failures
-without disabling checks or reseeding. Record actual checkpoint/run IDs below;
-queued/running is not PASS. Then continue independent approved media work:
-read existing MediaPreparation/mediaApi/media job-reader/publication-preflight
-contracts and expose the currently enforced library illustration relevance hold
-honestly in the existing Planner. Use read-only diagnostics/strict DTO/API/UI
-tests, no fabricated visual-semantic approval, provider qualification, worker
-enablement, network download or send. Existing generic queue/preview is already
-implemented; do not repeat it or claim a keyword match depicts the actual event.
+NEXT_STEP: commit/push verified library publication diagnostics to the existing
+correct origin/codex/dark-navy-ui, inspect remaining ec4e560 CI 37791084343
+(expanded PG already 116 PASS) and the new exact checkpoint CI. Diagnose/fix
+genuine failures without disabling checks/reseeding; queued/running is not PASS.
+Then continue approved library-photo relevance work OFFLINE: read existing
+media selection, immutable source/draft/asset and review/rights contracts; add
+a bounded fail-closed explicit illustration-relevance review domain contract
+with regression tests. Unknown/rejected/stale evidence must never grant use;
+human source/draft/asset binding is distinct from factual/model qualification.
+Keep actual library publication preflight blocked until a complete durable
+review boundary and relevant verification exist; no auto-approval, network
+call, public bypass/override, operational flags or real publication.
+Generic queue/preview and read-only library diagnostics are done; do not repeat
+them or pretend a keyword/topic match proves an actual event photograph.
 Video remains manual-only/discard; do NOT implement automatic video rewrite,
 download/upload or publication as a follow-on task. Ordinary hidden-link work
 does not require live login/paid AI/Docker. Keep Telegram-only scope.

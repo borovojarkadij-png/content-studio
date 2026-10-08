@@ -32,6 +32,28 @@ const json = (value: unknown, status = 200) => ({
   json: async () => value,
 });
 
+it("explains library publication hold without implying a manual glance grants approval", async () => {
+  const fetch = vi.fn(async () =>
+    json({
+      ...pending,
+      publication_hold_reason_code:
+        "ILLUSTRATION_RELEVANCE_APPROVAL_NOT_IMPLEMENTED",
+    }),
+  );
+  vi.stubGlobal("fetch", fetch);
+  render(<MediaPreparation candidateId={4} />);
+  expect(
+    await screen.findByText(/Публикация иллюстраций заблокирована/),
+  ).toBeTruthy();
+  expect(
+    screen.getByText(
+      /Подтверждение соответствия фото событию ещё не реализовано/,
+    ),
+  ).toBeTruthy();
+  expect(screen.queryByText(/Проверьте соответствие фото вручную/)).toBeNull();
+  expect(fetch.mock.calls).toHaveLength(1);
+});
+
 it("queues once and shows durable queue state, never download or publication success", async () => {
   let writes = 0;
   vi.stubGlobal(

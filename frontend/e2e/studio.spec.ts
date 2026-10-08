@@ -986,7 +986,7 @@ test("live planner persists approval and per-channel daily plan through the migr
 
 test("guarded real media preview renders exact fixture bytes and releases it on refresh", async ({
   page,
-}) => {
+}, testInfo) => {
   await page.goto("/");
   await navigate(page, "Планировщик");
   await page
@@ -1003,11 +1003,16 @@ test("guarded real media preview renders exact fixture bytes and releases it on 
     .click();
   const preview = page.getByRole("button", { name: "Предпросмотр медиа 3" });
   await expect(preview).toBeVisible();
+  const hold = page.getByText(/Публикация иллюстраций заблокирована/);
+  await expect(hold).toContainText(
+    "Подтверждение соответствия фото событию ещё не реализовано",
+  );
   await preview.click();
   const image = page.getByRole("img", {
     name: "Выбранная иллюстрация: соответствие событию не подтверждено",
   });
   await expect(image).toBeVisible();
+  await expect(hold).toBeVisible();
   expect(
     await image.evaluate((element: HTMLImageElement) => element.naturalWidth),
   ).toBe(64);
@@ -1016,9 +1021,7 @@ test("guarded real media preview renders exact fixture bytes and releases it on 
     window.scrollTo(0, 0);
   });
   await page.screenshot({
-    path: path.resolve(
-      "../.artifacts/ui-dark-navy/live-media-preview-1440.png",
-    ),
+    path: testInfo.outputPath("library-publication-hold-1440.png"),
     fullPage: true,
   });
   await page.setViewportSize({ width: 390, height: 844 });
@@ -1028,13 +1031,22 @@ test("guarded real media preview renders exact fixture bytes and releases it on 
     ),
   ).toBe(true);
   await page.evaluate(() => window.scrollTo(0, 0));
+  await expect(hold).toBeVisible();
+  expect(
+    (
+      await new AxeBuilder({ page })
+        .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
+        .analyze()
+    ).violations,
+  ).toEqual([]);
   await page.screenshot({
-    path: path.resolve("../.artifacts/ui-dark-navy/live-media-preview-390.png"),
+    path: testInfo.outputPath("library-publication-hold-390.png"),
     fullPage: true,
   });
   await page.getByRole("button", { name: "Обновить медиа 3" }).click();
   await expect(image).toHaveCount(0);
   await expect(preview).toBeVisible();
+  await expect(hold).toBeVisible();
 });
 
 test("real read-only delivery history distinguishes unknown from acknowledged after reload", async ({

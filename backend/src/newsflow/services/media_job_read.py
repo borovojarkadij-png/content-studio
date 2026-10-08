@@ -24,6 +24,8 @@ from newsflow.services.source_photo import (
     validate_source_rights,
 )
 
+LIBRARY_PUBLICATION_HOLD_CODE = "ILLUSTRATION_RELEVANCE_APPROVAL_NOT_IMPLEMENTED"
+
 
 class MediaJobReader:
     def __init__(self, session, media_root):
@@ -111,6 +113,11 @@ class MediaJobReader:
             "attempts": job.attempts if job else 0,
             "acquisition_mode": job.acquisition_mode if job else candidate.media_policy,
             "media_policy": candidate.media_policy,
+            # Current policy, not historical success or preview permission.
+            # None is not a readiness certificate for original-source media.
+            "publication_hold_reason_code": LIBRARY_PUBLICATION_HOLD_CODE
+            if candidate.media_policy == "LICENSED_LIBRARY"
+            else None,
             "queue_allowed": False,
             "queue_reason_code": None,
             "selected_allowed": False,

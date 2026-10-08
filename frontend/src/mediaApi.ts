@@ -29,6 +29,8 @@ export type MediaStatus = {
   asset: MediaAsset | null;
   reason_code: string | null;
   illustration: boolean;
+  publication_hold_reason_code?:
+    "ILLUSTRATION_RELEVANCE_APPROVAL_NOT_IMPLEMENTED" | null;
 };
 type Row = Record<string, unknown>;
 const row = (value: unknown): value is Row =>
@@ -86,6 +88,11 @@ function isStatus(value: unknown, candidateId: number): value is MediaStatus {
     typeof value.selected_allowed === "boolean" &&
     optionalString(value.reason_code) &&
     typeof value.illustration === "boolean" &&
+    (value.publication_hold_reason_code === undefined ||
+      value.publication_hold_reason_code ===
+        (value.media_policy === "LICENSED_LIBRARY"
+          ? "ILLUSTRATION_RELEVANCE_APPROVAL_NOT_IMPLEMENTED"
+          : null)) &&
     value.illustration === (value.acquisition_mode !== "REUSE_SOURCE") &&
     (value.selected_allowed
       ? value.state === "SUCCEEDED" &&
