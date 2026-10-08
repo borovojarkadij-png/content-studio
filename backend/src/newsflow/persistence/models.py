@@ -133,6 +133,36 @@ class DonorIngestionCursorModel(Base):
     last_error_code: Mapped[str | None] = mapped_column(String(64), nullable=True)
 
 
+class ChannelDifferenceCursorModel(Base):
+    """Trusted channel baseline; never initialized from message IDs or TooLong."""
+
+    __tablename__ = "channel_difference_cursors"
+    __table_args__ = (
+        CheckConstraint("pts BETWEEN 1 AND 2147483647", name="ck_difference_pts"),
+        CheckConstraint(
+            "telegram_account_id > 0 AND telegram_user_id > 0", name="ck_difference_account"
+        ),
+        CheckConstraint("telegram_channel_id < -1000000000000", name="ck_difference_channel"),
+        CheckConstraint(
+            "(claim_token IS NULL AND lease_expires_at IS NULL) OR (claim_token IS NOT NULL AND lease_expires_at IS NOT NULL)",
+            name="ck_difference_lease",
+        ),
+    )
+    donor_channel_id: Mapped[int] = mapped_column(ForeignKey("donor_channels.id"), primary_key=True)
+    telegram_account_id: Mapped[int] = mapped_column(
+        ForeignKey("telegram_accounts.id"), nullable=False
+    )
+    telegram_user_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    telegram_channel_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    pts: Mapped[int] = mapped_column(Integer, nullable=False)
+    available_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    claim_token: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    lease_expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    last_error_code: Mapped[str | None] = mapped_column(String(64), nullable=True)
+
+
 class ChannelMappingModel(Base):
     __tablename__ = "channel_mappings"
     __table_args__ = (

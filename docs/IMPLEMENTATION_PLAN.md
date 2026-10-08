@@ -26,6 +26,9 @@
 - [ ] Durable source-deletion tombstones, shared freshness/ingestion fencing and leased channel-pts recovery; deletion-first fan-out, atomic/idempotent persistence, no implicit TooLong reset
 - [x] Durable source-deletion tombstones/shared freshness/ingress guard, whole-vector transactional outbox, cached PASS/worker/retry/API/review/planner/media/pre-send zero-call guards and history-preserving d9a648fbcd37 migration; 801 backend gate OFFLINE
 - [ ] Leased channel-pts application with explicit missing-baseline state, deletion-first fan-out, partial mapping replay and durable cursor advancement; Windows/live acceptance pending
+- [x] Leased deletion-first channel-pts consumer, current session/user/donor/health fencing, immutable baseline binding, mapping/filter change replay, partial SQL-reopen recovery, bounded persistent retry and history-preserving eab7590cde48 migration; 831 backend gate OFFLINE
+- [ ] Trusted read-only channel baseline bootstrap, legacy gap/resynchronization policy and optional worker wiring; no fabricated bootstrap or implicit TooLong reset
+- [ ] Retained source deletion truth in read-only moderation inbox/API/UI, without relabeling historical editorial PASS or enabling unsafe controls
 - [x] Bounded sparse album observation in provider/factory/fake, explicit incomplete-membership contract and ingress/stale-worker/manual-review/planner fail-closed gate; 500-test backend verification
 - [~] Filters, semantic dedup, events, hype, media, routing and scheduler; durable per-channel plan/timer, mapping-aware candidates, immediate/delayed/priority/media snapshots and gated activation complete; semantic dedup/events/hype, media acquisition and publication execution remain pending
 - [~] Mapping-level deterministic filters for media, advertising markers and forbidden links

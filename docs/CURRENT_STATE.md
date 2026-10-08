@@ -2,6 +2,13 @@
 
 ## VERIFIED WORKING
 
+- Leased deletion-first channel-pts consumer OFFLINE: 30 targeted / full backend
+  831 PASS (66930), exact CI Ruff/targeted format/compile/explicit D: migration
+  round-trip/drift PASS. Current identity/session/lease and mapping/filter binding,
+  partial SQL-reopen fan-out replay, TooLong/missing-baseline/zero-RPC and actual
+  outbox storage fault verified. See CHANNEL_DIFFERENCE_RUNTIME_VERIFICATION.md.
+  No baseline fabrication, worker activation or live/Windows acceptance claimed.
+
 - Durable source-deletion tombstones/shared freshness OFFLINE: 22 targeted /
   full backend 801 PASS (10602), exact CI Ruff/targeted format/compile/explicit
   D: migration round-trip/drift PASS. Deleted replay/cached PASS/stale retry/
@@ -611,13 +618,17 @@ Probe checkpoint committed/pushed 6266b5a0689409bc7af89b7e3dadec5ab7f2f206;
 its CI 37713732217 completed SUCCESS in all four jobs (Linux Docker included).
 Read-only difference contract committed/pushed 2d744c20bf5adcb2a5e770db505fb7e95459e3e7;
 its CI 37714319250 backend/frontend PASS, Docker variants in progress at inspection.
-Source-deletion tombstones/shared freshness/ingestion guards implemented with
-history-preserving d9a648fbcd37 migration; full 801 backend gate PASS.
-Commit/push deletion checkpoint, then implement leased channel-pts processing:
-missing baseline explicit, current account/session/claim fencing, deletion-first
-bounded fan-out and replay after partial mappings. Never advance pts until all
-observations/mappings persist, never treat TooLong as full recovery. No public
-cursor-reset or provider-send endpoint, no operational worker/flag activation.
+Deletion checkpoint committed/pushed 0efb0b6ce311c1be452a31b124f3f93633c5b9b9;
+CI 37714969203 in progress at inspection, not an overall PASS yet.
+Leased channel-pts consumer implemented with history-preserving eab7590cde48
+migration; full 831 backend gate PASS. Commit/push this checkpoint, then expose
+retained source-deletion truth in read-only moderation inbox/API/UI, with no
+editorial-history relabeling or eligible rewrite/manual schedule controls. Add
+service/HTTP/frontend/browser regressions, relevant full gates and docs/checkpoint.
+Next independent provider work: trusted bounded read-only baseline bootstrap.
+Never initialize/reset legacy cursor from latest-message IDs or TooLong, never
+advance pts until all observations/mappings persist. No public cursor-reset or
+provider-send endpoint, no operational worker/flag activation.
 Full durable gap/deletion application and live verification are pending. Windows Docker stays
 blocked; no deletion/prune/volume reset or live provider-send workaround.
 Do not guess message identity by text/time. Use D: for
