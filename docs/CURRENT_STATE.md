@@ -13,6 +13,13 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
 
 ## VERIFIED WORKING
 
+- Library diagnostics committed/pushed source checkpoint
+  d29d6f0b51382c32e2d825f4fac66d2294d76d80, correct origin/codex/dark-navy-ui.
+  Exact CI 37792513344 started; all jobs running at inspection, not PASS.
+  Fresh Windows daemon read still fails missing dockerDesktopLinuxEngine pipe.
+  C: has 22,557,417,472 bytes free and D: 168,557,903,872 at inspection;
+  recovered space is not daemon/deployment acceptance. No restart/reset/storage
+  deletion, operational migration or provider call attempted.
 - Existing Planner library-publication hold now explicit through real no-store
   media status/strict client/UI. Current policy rather than historical media
   success controls fixed reason; original-source null is not readiness. Actual
@@ -1091,9 +1098,10 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: commit/push verified library publication diagnostics to the existing
-correct origin/codex/dark-navy-ui, inspect remaining ec4e560 CI 37791084343
-(expanded PG already 116 PASS) and the new exact checkpoint CI. Diagnose/fix
+NEXT_STEP: inspect remaining ec4e560 CI 37791084343 (expanded PG already
+116 PASS) and exact library d29d6f0 CI 37792513344, plus latest docs-only CI
+if applicable. Source checkpoints already committed/pushed, do not repeat.
+Diagnose/fix
 genuine failures without disabling checks/reseeding; queued/running is not PASS.
 Then continue approved library-photo relevance work OFFLINE: read existing
 media selection, immutable source/draft/asset and review/rights contracts; add

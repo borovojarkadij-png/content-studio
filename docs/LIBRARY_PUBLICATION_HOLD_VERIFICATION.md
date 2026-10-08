@@ -66,3 +66,10 @@ Continue their independent offline implementation. Live authorization and curren
 Windows Compose E2E remain **NOT VERIFIED / BLOCKED BY ENVIRONMENT**, distinct
 from historical Windows and successful synthetic Linux acceptance.
 PHASE 1 is not complete.
+
+Source checkpoint: `d29d6f0b51382c32e2d825f4fac66d2294d76d80`, pushed to the
+existing `borovojarkadij-png/content-studio` origin, `codex/dark-navy-ui`.
+Exact new CI **37792513344** started; all jobs still running at first inspection.
+Do not call that runtime acceptance PASS or merge main. Fresh Windows daemon
+inspection still reports missing `dockerDesktopLinuxEngine` pipe, despite
+confirmed recovered C: space. No resets, volumes deletion or live calls attempted.
