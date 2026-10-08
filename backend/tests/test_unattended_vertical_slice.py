@@ -3,6 +3,7 @@
 from contextlib import contextmanager
 from datetime import UTC, datetime, timedelta
 from io import BytesIO
+from os import getenv
 from pathlib import Path
 
 import pytest
@@ -10,6 +11,7 @@ from alembic.config import Config
 from PIL import Image
 from sqlalchemy import create_engine, func, select
 from sqlalchemy.orm import sessionmaker
+from unattended_postgres import create_postgres_namespace
 
 from alembic import command
 from newsflow import worker
@@ -65,7 +67,12 @@ def reopened(url):
 
 @pytest.fixture
 def unattended(tmp_path, monkeypatch):
-    url = f"sqlite:///{tmp_path / 'unattended.db'}"
+    postgres = getenv("NEWSFLOW_UNATTENDED_POSTGRES_URL")
+    url = (
+        create_postgres_namespace(postgres)
+        if postgres is not None
+        else f"sqlite:///{tmp_path / 'unattended.db'}"
+    )
     monkeypatch.setenv("DATABASE_URL", url)
     root = Path(__file__).resolve().parents[1]
     config = Config(str(root / "alembic.ini"))

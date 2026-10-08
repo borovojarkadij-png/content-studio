@@ -110,3 +110,34 @@ jobs:
       - name: Build and verify separate create-only admission fixture
         shell: pwsh
         run: ./scripts/verify-persistence.ps1 -Project newsflow-verification-admission-ci -CrashRecovery -AdmissionGuard
+
+  unattended-postgres:
+    name: Synthetic unattended PostgreSQL vertical slice
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: newsflow_unattended_ci
+          POSTGRES_USER: newsflow_fixture
+          POSTGRES_PASSWORD: synthetic-unattended-ci-only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U newsflow_fixture -d newsflow_unattended_ci"
+          --health-interval 5s --health-timeout 3s --health-retries 20
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install isolated backend test dependencies
+        run: python -m pip install -e ".[dev]"
+      - name: Migrated PostgreSQL vertical slice with original SQL reopen at every stage
+        env:
+          NEWSFLOW_UNATTENDED_POSTGRES_URL: postgresql+psycopg://newsflow_fixture:synthetic-unattended-ci-only@127.0.0.1:5432/newsflow_unattended_ci
+        run: python -m pytest tests/test_unattended_vertical_slice.py tests/test_unattended_postgres_target.py -q

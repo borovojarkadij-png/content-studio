@@ -2,6 +2,18 @@
 
 ## VERIFIED WORKING
 
+- Separate create-only PostgreSQL vertical-slice CI harness implemented; strict
+  named local synthetic target/role/query/schema guard and same five real durable
+  SQL-reopen scenarios, no reset/drop/operational target or provider side effect.
+  18 isolation / 23 combined / full 1153 backend PASS OFFLINE (40836), exact lint/
+  format/D: compile/YAML/explicit isolated migration round-trip/drift PASS.
+  Actual new PostgreSQL job PENDING exact CI; not yet PostgreSQL/Compose proof.
+  See UNATTENDED_POSTGRES_VERIFICATION.md.
+- Automatic health 567e2633b59e82547ff8d8af31dcf45f3c4751c3 committed/pushed;
+  CI 37766368319 backend/frontend/admission SUCCESS, other jobs running at
+  inspection. Vertical 58df443 CI 37765616929 backend/frontend/admission/sync
+  SUCCESS, two legacy variants running. No overall success assumed.
+
 - Automatic reconnect authorization fencing OFFLINE: late success/invalid/flood
   RPC cannot overwrite same-time invalidation or replaced user/session; automatic
   eligibility rechecked under lock, canonical inputs before SQL, conservative
@@ -867,11 +879,12 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: checkpoint/push verified automatic health identity/eligibility fencing
-and actual main-loop fairness, inspect exact six-job CI plus 58df443 overall status.
-Next, isolated PostgreSQL execution of the combined vertical scenario in GitHub CI,
-using new create-only namespaces and synthetic external boundaries, no DB/schema
-reset or reused fixture. Then separate create-only combined Compose restart acceptance;
+NEXT_STEP: checkpoint/push verified isolated PostgreSQL vertical CI harness and
+inspect its exact new seven-job run, especially actual migrated PostgreSQL scenarios;
+diagnose/fix/retest ordinary SQL/migration failures without weakening assertions.
+Inspect overall prior 58df443/567e263 runs too. Then separate create-only combined
+Compose restart acceptance using new fixture and synthetic external boundaries,
+no operational DB/schema reset or reused fixture;
 no existing fixture reseed. Library illustration publication remains blocked pending
 visual-semantic relevance approval, not a successful unattended mode. Preserve original
 job/history/attempt budgets, protected reject zero new RewriteJob/zero rewrite calls,
