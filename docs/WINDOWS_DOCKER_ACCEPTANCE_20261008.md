@@ -35,9 +35,26 @@ credentials, authorization, AI calls or Telegram publications were used.
   Original synchronization/deletion/quarantine/replay state, independent writer
   concurrency and bounded original rewrite-sync wait recovery all passed.
 - General OPENAI and OPENROUTER families, ports 18233/15398/18333 and
-  18236/15395/18336, are **in progress**, not yet complete at this checkpoint.
-- Expanded strict Windows PostgreSQL gate and corrected-source full backend
-  suite are **in progress**, not inferred from CI or the preceding SQLite gate.
+  18236/15395/18336, both completed exit 0 (sessions 20622/40927).
+  Build/config/migrations/health, actual changed-API-IP proxy recovery, stable
+  encrypted synthetic session/peer/config/media, original durable job/outbox,
+  Redis AOF and Redis loss, PG crash, expired rewrite/semantic/media/ingestion/
+  import/photo/publication leases, stale owners/source edits, mapping filters,
+  quota/observed acknowledgement and zero resend assertions all passed.
+- Expanded strict Windows PostgreSQL gate **217 PASS /235.80s**, session 73622,
+  including actual PostgreSQL TRUNCATE refusal, migrated storage references,
+  binding, hidden links, retained album, fan-out and five vertical scenarios.
+- Fresh frontend **205 PASS**, format and TypeScript/Vite build PASS. Actual
+  production container frontend HTTP/health and separate dev/production config
+  checks PASS. Production CSS/JS hashes exactly match the unchanged local build:
+  `be111c7230ebd0c852495befb243c61aebe61834b4f7e5c0919512f4a747e3de` /
+  `0b698687a5e580cbfc70075b9f9b82576b78c2d3546d785c41dd88fffdd9a6ff`.
+  No UI redesign. Browser eight-section evidence remains exact CI proof, not a
+  new Windows screenshot claim.
+- Intermediate full backend 96833 **1622 PASS/1 PG-only SKIP /368.82s** is
+  preceding barrier source, not the final reviewed correction. Run 39692 was
+  invalidated by further script corrections during execution; never use a mixed
+  candidate as final acceptance. Final frozen-source gate 26833 is in progress.
 
 Fixture paths are `.artifacts/docker-verification/<exact project>/`.
 PowerShell transcripts are retained in
@@ -58,22 +75,46 @@ the daemon's asynchronous exit-state observation; no storage assertion failed.
 Do not rerun blindly, sleep a guessed duration, disable checks or accept exit 137
 as recovery success.
 
-`verification-postgres-crash.ps1` now validates the exact original container ID,
-isolated project and PostgreSQL service labels, then kills it and waits boundedly
+`verification-postgres-crash.ps1` now resolves one full original container ID
+through native `ps -aq --no-trunc` with exact project/service filters, validates
+its labels/running state, kills that ID directly and waits boundedly
 for fresh observations of **that same ID** in exited/137 state before Compose up.
 Missing/foreign targets, kill/inspect failures, unexpected exits and timeout fail
 closed. Both persistence families and the unattended restart hook use the helper.
 
-Actual regression: initial missing-barrier RED, then **10 PASS /5.21s**; combined
-PowerShell/configuration/channel probe gate **60 PASS /16.64s**, Ruff PASS.
-Actual Windows runtime: three additional crash/recovery cycles on the retained
-new admission fixture, each followed by its existing read-only terminal verify,
-all PASS. No seed/replacement/volume removal or real provider execution.
+Review exposed service re-resolution at kill and an unbounded synchronous inspect;
+both independently reproduced RED and corrected. Every native CLI command uses
+remaining overall deadline, shell-free ProcessStartInfo.ArgumentList, async
+captured output and late-result refusal. Errors never emit child output. Owned
+live-root CLI cleanup is best effort, not general orphan-tree management; actual
+crash calls use native ps/inspect/kill, not Compose plugin children.
+
+Actual Windows execution exposed two more concrete CLI boundary failures:
+Get-Command returned docker.exe plus an extensionless Unix launcher, and default
+native ps returned only twelve ID characters. Real resolution RED regression and
+strict native-argv RED corrected single-application selection and --no-trunc.
+Invalid-project tests now trap the real process boundary before any Docker call.
+
+Final dedicated **15 PASS /8.24s**; combined PowerShell/configuration/channel
+probe gate **65 PASS /29.20s**, Ruff/format/compile PASS. Final independent static
+review: no remaining actionable findings, no reviewer runtime commands performed.
+Actual final helper Windows runtime: three retained admission crash/reverify
+cycles all PASS (37933). Final unattended hook also ran down/up/Redis-worker/
+direct-ID PG crash/health on the original retained stack (49095), exit 0; all
+175 owned PostgreSQL namespaces remain present, original storage/key retained.
+No seed/replacement/volume removal or real provider execution. Earlier three
+cycles (90936) prove only the initial correction, not this final helper.
+
+Only the three completed new OPENAI/OPENROUTER/sync stacks were stopped to reduce
+idle resources; their containers and volumes are retained. Unattended/admission
+fixtures remain available. C: has about 5 GB free after Docker VHDX growth; no
+prune, deletion, compaction or original volume cleanup was performed. Further
+large builds require storage capacity, not destructive automatic cleanup.
 
 ## Remaining gates
 
-Complete the two general Windows families, expanded PostgreSQL and full backend
-gates; inspect exact corrective CI before declaring it green. Keep authenticated
+Windows synthetic application gates above are complete. Finish frozen-source
+full backend and inspect final corrective CI before declaring it green. Keep authenticated
 human illustration review/audit and final transport integration pending. Library
 illustration publication hold remains in effect. Real Telegram login/restart,
 explicit test-channel transport and reviewed fixed-model semantic benchmark

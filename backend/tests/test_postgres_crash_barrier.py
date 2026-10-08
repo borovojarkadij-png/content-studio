@@ -2,6 +2,7 @@
 
 import json
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -21,6 +22,7 @@ CONTAINER = "a" * 64
         "inspect_failed",
         "wrong_exit",
         "timeout",
+        "late_inspect",
     ],
 )
 def test_actual_crash_barrier_waits_for_original_exit_and_refuses_invalid_targets(
@@ -52,21 +54,27 @@ $ErrorActionPreference = 'Stop'
 . '{common}'
 $script:reads = 0
 $script:killed = $false
-function docker {{
-    $global:LASTEXITCODE = 0
-    $operation = $args -join ' '
-    if ($operation -eq 'compose -p {PROJECT} ps -a -q postgres') {{
+function Invoke-VerificationDocker {{
+    param([string[]]$Arguments, [int]$TimeoutMilliseconds)
+    if ($TimeoutMilliseconds -lt 1 -or $TimeoutMilliseconds -gt 1000) {{ throw 'Invalid command deadline' }}
+    $operation = $Arguments -join ' '
+    if ($operation -eq 'ps -aq --no-trunc --filter label=com.docker.compose.project={PROJECT} --filter label=com.docker.compose.service=postgres') {{
         if ('{scenario}' -ne 'missing') {{ Write-Output '{CONTAINER}' }}
     }} elseif ($operation -eq 'inspect {CONTAINER}') {{
         Get-Content -LiteralPath '{observed}' -Raw
-    }} elseif ($operation -eq 'compose -p {PROJECT} kill -s SIGKILL postgres') {{
+    }} elseif ($operation -eq 'kill -s SIGKILL {CONTAINER}') {{
         if ('{scenario}' -eq 'foreign') {{ throw 'Foreign target mutated' }}
         $script:killed = $true
-        if ('{scenario}' -eq 'kill_failed') {{ $global:LASTEXITCODE = 1 }}
+        if ('{scenario}' -eq 'kill_failed') {{ throw 'Controlled kill failure' }}
     }} elseif ($operation -eq 'inspect -f {{{{json .State}}}} {CONTAINER}') {{
         if (-not $script:killed) {{ throw 'Observation made before crash' }}
         $script:reads++
-        if ('{scenario}' -eq 'inspect_failed') {{ $global:LASTEXITCODE = 1; return }}
+        if ('{scenario}' -eq 'late_inspect') {{
+            Start-Sleep -Milliseconds 1200
+            Write-Output '{{"Status":"exited","Running":false,"ExitCode":137}}'
+            return
+        }}
+        if ('{scenario}' -eq 'inspect_failed') {{ throw 'Controlled inspect failure' }}
         if ($script:reads -lt 3 -or '{scenario}' -eq 'timeout') {{
             Write-Output '{{"Status":"running","Running":true,"ExitCode":0}}'
         }} else {{
@@ -99,6 +107,7 @@ Write-Output 'ORIGINAL_EXIT_VERIFIED'
             "inspect_failed": "Synthetic PostgreSQL exit observation failed",
             "wrong_exit": "Unexpected synthetic PostgreSQL termination",
             "timeout": "Synthetic PostgreSQL exit barrier timed out",
+            "late_inspect": "Synthetic PostgreSQL exit barrier timed out",
         }[scenario]
         assert expected in result.stderr
 
@@ -109,7 +118,7 @@ def test_crash_barrier_refuses_operational_project_before_any_docker_call(projec
     code = f"""
 $ErrorActionPreference = 'Stop'
 . '{common}'
-function docker {{ throw 'Unexpected Docker access' }}
+function Invoke-VerificationDocker {{ throw 'Unexpected Docker access' }}
 Invoke-SyntheticPostgresCrash -ComposeArgs @('compose', '-p', '{project}')
 """
     result = subprocess.run(
@@ -122,3 +131,59 @@ Invoke-SyntheticPostgresCrash -ComposeArgs @('compose', '-p', '{project}')
     assert result.returncode != 0
     assert "Isolated verification project required" in result.stderr
     assert "Unexpected Docker access" not in result.stderr
+
+
+@pytest.mark.parametrize("scenario", ["success", "blocked", "failure"])
+def test_real_verification_process_deadline_and_redaction(scenario):
+    common = str(ROOT / "scripts/verification-postgres-crash.ps1").replace("'", "''")
+    executable = sys.executable.replace("'", "''")
+    child = {
+        "success": 'print("bounded-result")',
+        "blocked": 'import time; print("private-child-output", flush=True); time.sleep(5)',
+        "failure": 'import sys; print("private-child-output"); sys.exit(7)',
+    }[scenario]
+    timeout = 200 if scenario == "blocked" else 3000
+    code = f"""
+$ErrorActionPreference = 'Stop'
+. '{common}'
+$result = Invoke-VerificationProcess -FilePath '{executable}' -Arguments @('-c', '{child}') -TimeoutMilliseconds {timeout}
+Write-Output $result
+"""
+    result = subprocess.run(
+        ["pwsh", "-NoProfile", "-Command", code],
+        capture_output=True,
+        text=True,
+        timeout=10,
+        check=False,
+    )
+    if scenario == "success":
+        assert result.returncode == 0, result.stderr
+        assert result.stdout.strip() == "bounded-result"
+    else:
+        assert result.returncode != 0
+        expected = "timed out" if scenario == "blocked" else "command failed"
+        assert expected in result.stderr
+        assert "private-child-output" not in result.stdout + result.stderr
+
+
+def test_docker_wrapper_selects_one_application_when_resolution_has_multiple_matches():
+    common = str(ROOT / "scripts/verification-postgres-crash.ps1").replace("'", "''")
+    executable = sys.executable.replace("'", "''")
+    code = f"""
+$ErrorActionPreference = 'Stop'
+. '{common}'
+function Get-Command {{
+    [pscustomobject]@{{ Source='{executable}' }}
+    [pscustomobject]@{{ Source='nonexistent-secondary-application' }}
+}}
+Invoke-VerificationDocker -Arguments @('-c', 'print("first-application-result")') -TimeoutMilliseconds 3000
+"""
+    result = subprocess.run(
+        ["pwsh", "-NoProfile", "-Command", code],
+        capture_output=True,
+        text=True,
+        timeout=10,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == "first-application-result"

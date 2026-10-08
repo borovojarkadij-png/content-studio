@@ -18,12 +18,20 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
   boundaries (1 PASS/4 deselected/398.08s), packaged migration no-drift; separate
   channel-sync and media/semantic-admission restart families also completed exit
   0. No operational queues, keys or live publications touched. General OPENAI/
-  OPENROUTER recovery and expanded PostgreSQL/full backend gates still running.
+  OPENROUTER recovery families also completed exit 0; expanded strict Windows PG
+  217 PASS/235.80s includes real TRUNCATE refusal. Frontend 205/format/build and
+  actual packaged HTTP/health/dev-production config/unchanged CSS-JS hashes PASS.
   Exact ffe2caf CI 37804071273 now all-eight SUCCESS, actual PG 217 PASS/145.41s.
   Subsequent 9e33fba CI OpenRouter job failed a SIGKILL/exit-state race; preserved
-  and fixed by original-ID bounded crash barrier, 10 new/60 combined regressions
-  and three actual retained-fixture crash/reverify cycles PASS. Corrective CI
-  still pending. See WINDOWS_DOCKER_ACCEPTANCE_20261008.md; PHASE 1 not complete.
+  and corrected crash barrier; review edge cases independently RED/GREEN fixed.
+  Final native original-ID kill/remaining-budget process boundary/single executable/
+  no-trunc discovery: 15 new/65 combined regressions PASS, final independent static
+  review clear, three actual retained-fixture crash/reverify cycles and final
+  unattended down/up hook PASS (175 retained namespaces). Frozen-source full
+  26833/final corrective CI still pending; intermediate mixed run is not evidence.
+  C: ~5GB free, no cleanup/prune; completed synthetic OPENAI/OPENROUTER/sync
+  containers stopped with all storage retained. See WINDOWS_DOCKER_ACCEPTANCE_20261008.md;
+  PHASE 1 not complete, operational deployment/auth/provider qualification pending.
 - Windows Docker Engine availability restored 2026-10-08: existing signed Docker
   Desktop 4.91.0 failed on stale sailor-ingest runtime socket/error 1920. Only
   stopped this task's verified Docker processes and preserved two validated
@@ -1195,13 +1203,15 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: finish/preserve the running new Windows OPENAI/OPENROUTER families
-(20622/40927), expanded PostgreSQL gate (73622) and corrected-source full backend
-(96833); do not reseed fixtures. Inspect exact corrective crash-barrier CI before
-claiming success; 9e33fba OpenRouter failure remains recorded. Update the Windows
-acceptance report with actual results, then continue authenticated review/audit
-without a publication-hold release. New unattended/sync/admission Windows
-acceptance already passed; do not repeat their seed phases.
+NEXT_STEP: finish final frozen-source full backend 26833, preserve invalidated
+intermediate 39692 without promoting it; inspect final reviewed crash-barrier CI.
+42343a8 CI 37807341995 is intermediate source, not final reviewed helper proof;
+9e33fba/37805519893 OpenRouter failure remains recorded. All five Windows synthetic
+families and 217 strict PG tests passed; do not reseed/repeat completed seed phases.
+After final source gate, continue authenticated human illustration review/audit
+behind trusted server-side identity, without a publication-hold release.
+Preserve all current source/draft/editorial constraints, automations paused,
+original storage and ~5GB C: reserve; no additional large fixture allocation.
 Storage-only source is implemented and locally verified; do not duplicate it:
 IllustrationReviewRecordModel, c5e81b29a704 immutable-history migration and
 test_illustration_review_storage.py plus the strict PG CI inclusion. No application
