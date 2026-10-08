@@ -65,6 +65,12 @@ Hidden-link SQL tests use the migrated create-only mapping_store fixture, which
 selects a strict separately named PostgreSQL namespace only when the validated
 CI environment URL exists, otherwise isolated SQLite. GitHub PostgreSQL job now
 includes test_hidden_donor_links.py; actual new PG acceptance is still pending.
+Exact committed/pushed source checkpoint:
+`d871dd1d2ae26af6bb5a8c680a6ff7f223d53cd4`, `codex/dark-navy-ui`, correct
+origin `https://github.com/borovojarkadij-png/content-studio.git`. Preceding
+New CI 37786943304 running, no success claim. Preceding
+e8064d7 /37784840224 completed all-eight SUCCESS, actual gh inspection; this
+does not substitute for the new metadata/migration CI.
 No local PostgreSQL/Windows Docker success inferred from SQLite or Linux CI.
 
 ## Remaining limits

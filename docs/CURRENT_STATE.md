@@ -26,7 +26,10 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
   compile PASS; earlier 1370 snapshot precedes final null-button test.
   Fresh frontend 185 units/format/build/audit0 PASS after removing an older
   contradictory video-publication hint. No operational migration/live calls/flags.
-  See HIDDEN_SOURCE_LINKS_VERIFICATION.md; new commit/PG CI still pending.
+  See HIDDEN_SOURCE_LINKS_VERIFICATION.md. Committed/pushed exact checkpoint
+  d871dd1d2ae26af6bb5a8c680a6ff7f223d53cd4 to correct origin/branch; exact new
+  GitHub Actions 37786943304 including expanded create-only PG hidden tests
+  running at inspection; not accepted as PASS yet.
 - Donor video/manual-only and visible YouTube/invalid URL exclusions verified
   OFFLINE: discard by default, optional MANUAL_REVIEW retention, no classifier/
   fingerprint/candidate/RewriteJob, ordinary source-created audit retained.
@@ -1035,9 +1038,8 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: commit/push fully verified hidden-link metadata/guard/migration changes
-to the same branch, then inspect exact
-new CI, especially create-only migrated PostgreSQL hidden tests;
+NEXT_STEP: inspect exact d871dd1 GitHub Actions 37786943304, especially create-only migrated
+PostgreSQL hidden-link tests;
 do not call queued/running jobs PASS. Then add read-only moderation Inbox technical
 hold diagnostics for video manual-only, blocked links and legacy unknown/corrupt
 source-link metadata. Preserve historical editorial status while explaining
