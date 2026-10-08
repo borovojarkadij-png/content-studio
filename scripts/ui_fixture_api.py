@@ -27,7 +27,9 @@ def main() -> None:
         EditorialDecisionModel,
         IncomingPostModel,
         OutputChannel,
+        PlannedPublicationModel,
         PublicationCandidateModel,
+        PublicationJobModel,
         RewriteJobModel,
         TelegramAccount,
     )
@@ -190,6 +192,76 @@ def main() -> None:
         execution = DurableMediaRunner(sessionmaker(engine), media_root, provider=FixtureImages())
         execution.enqueue_candidate(3, now=datetime.now(UTC))
         assert execution.run_next(now=datetime.now(UTC)) == "SUCCEEDED"
+        # Synthetic committed history for READ-ONLY browser tests. No sender is
+        # instantiated and these rows are not proof of live Telegram delivery.
+        with Session(engine) as session:
+            history_output = TelegramConfigurationService(session).create_output(
+                1, -1006666666666, "Изолированная история доставки API"
+            )
+            PublicationPlanningService(session).configure_plan(
+                history_output["id"], "MANUAL", 2, (0, 5), "UTC"
+            )
+            for number, state in ((4, "NEEDS_RECONCILIATION"), (5, "SUCCEEDED")):
+                key = f"ui-history:@history_donor:{number}:revision:1"
+                source = IncomingPostModel(
+                    telegram_account_id="ui-history",
+                    donor_channel_id="@history_donor",
+                    telegram_message_id=number,
+                    state="RECEIVED",
+                )
+                session.add(source)
+                session.flush()
+                session.add(
+                    ContentRevisionModel(
+                        incoming_post_id=source.id,
+                        revision_number=1,
+                        source_text=f"Synthetic history {number}",
+                    )
+                )
+                session.add(
+                    EditorialDecisionModel(
+                        content_key=key,
+                        status="REJECT" if number == 4 else "PASS",
+                        rewrite_allowed=number != 4,
+                        sentiment="neutral",
+                        framing="neutral",
+                    )
+                )
+                candidate = PublicationCandidateModel(
+                    output_channel_id=history_output["id"],
+                    content_key=key,
+                    priority=10,
+                    state="SCHEDULED" if number == 4 else "PUBLISHED",
+                    media_policy="REUSE_SOURCE",
+                )
+                session.add(candidate)
+                session.flush()
+                item = PlannedPublicationModel(
+                    candidate_id=candidate.id,
+                    output_channel_id=history_output["id"],
+                    scheduled_for=datetime(2026, 10, 8, 0, 0 if number == 4 else 5, tzinfo=UTC),
+                    state="PLANNED" if number == 4 else "PUBLISHED",
+                )
+                session.add(item)
+                session.flush()
+                session.add(
+                    PublicationJobModel(
+                        planned_id=item.id,
+                        telegram_account_id=1,
+                        telegram_channel_id=-1006666666666,
+                        request_nonce=1000 + number,
+                        binding_sha256="a" * 64,
+                        state=state,
+                        attempts=1,
+                        available_at=item.scheduled_for,
+                        sent_message_id=502 if number == 5 else None,
+                        completed_at=datetime(2026, 10, 8, 0, 6, tzinfo=UTC)
+                        if number == 5
+                        else None,
+                        last_error_code="PUBLICATION_SEND_OUTCOME_UNKNOWN" if number == 4 else None,
+                    )
+                )
+            session.commit()
         engine.dispose()
         try:
             uvicorn.run(app, host="127.0.0.1", port=5181, log_level="warning")

@@ -2,6 +2,13 @@
 
 ## VERIFIED WORKING
 
+- Read-only publication delivery API/real Planner UI: 646 backend / 55 frontend
+  unit / 23 browser tests, lint/format/typecheck/build/compile/audit PASS.
+  Retained publication Windows Docker HTTP/status/API-worker-restart/PG drift PASS
+  (session 21927), stopped preserving volumes/history. See PUBLICATION_STATUS_VERIFICATION.md.
+  Latest operational deployment FAILED due to external disk-full/Docker read-only
+  filesystem (session 40773); its current deployment/health is NOT VERIFIED.
+
 - Publication local gate: fresh preflight, durable intents/nonce/leases, uncertain
   delivery quarantine, late exact receipt and published quota regressions PASS.
   Backend 642/CI lint/format/compile/isolated migration PASS; frontend 50 unit /
@@ -523,14 +530,31 @@
 
 ## NEXT STEP
 
-Finish committing the verified durable publication increment, then expose honest
-read-only delivery status and continue authenticated sender implementation.
+Preserve/commit the verified read-only publication status API/UI increment, then
+continue guarded authenticated sender implementation and offline tests using D:
+for isolated temporary data. Do not retry Docker deployment until host space and
+writable Docker storage are confirmed; do not delete/prune volumes or user data.
 Architecture is approved; do not repeat completed media/publication setup.
 
-Current committed HEAD: aa075af9f15cb346cec184a1e109e26c74bdf658,
+2026-10-08 recovery update: Docker version reports Desktop unable to start;
+8080 health timed out. New browser rerun failed 2 tests at context close with
+ENOSPC (21 passed), not application assertions; rerun outputs moved to D:.
+Plain Alembic validation mistakenly targeted backend/newsflow.db despite an
+environment URL; downgrade/re-upgrade executed there. Read-only post-inspection
+found all business tables empty, but no pre-snapshot proves previous contents.
+Docker PostgreSQL was not touched by that command. See ALEMBIC_TARGET_GUARD.md.
+Two CLI regression failures reproduced/fixed; 7 targeted migration tests PASS.
+Explicit-target guard and dedicated CI URL implemented. Fresh full gate 649 tests
+PASS (34879), lint/targeted format PASS; explicit D: migration upgrade/check/
+downgrade/base/re-upgrade/check PASS. Frontend 55/format/typecheck/build PASS;
+browser all 23 PASS after moving temporary/output files to D: (68626).
+Guarded text sender has 19 test-first RED cases in a separate new test file;
+implement next, then integrated durable-runner tests, without enabling live sends.
+
+Current committed HEAD: c3cc0190b3abb8acd7613ee13848c57d11fd453e,
 codex/dark-navy-ui, correct origin borovojarkadij-png/content-studio.
-CI 37707297625: completed all-four SUCCESS. Previous fdf8f06 CI 37706050198
-is also all-four SUCCESS.
+CI 37708938271: completed SUCCESS in all four jobs (actual gh inspection).
+Preceding aa075af CI 37707297625 and fdf8f06 CI 37706050198 all-four SUCCESS.
 
 1. PublicationPreflight, PublicationJobModel, durable_publication_runner and
    migration a6d315c8fa04 implemented and verified. Full backend 642 PASS,
@@ -543,9 +567,18 @@ is also all-four SUCCESS.
    another down-up/quota/verify PASS. Stopped retaining history/volumes; never reseed.
 3. Operational deployment 97908 PASS: rebuilt/migrated a6d315c8fa04, packaged
    PG drift/health/inbox200, five flags 0, stable secrets/business data unchanged.
-4. Commit/push current verified increment to correct origin and track exact CI.
-5. Implement read-only job/receipt/quarantine status in real Planner; no fake send
-   button or automatic retry of unknown outcome. Then guarded authenticated
+4. Durable publication checkpoint committed/pushed to correct origin; track exact
+   CI 37708938271. Never claim overall PASS before both Docker jobs finish.
+5. Read-only job/receipt/quarantine API + real Planner component verified.
+   Full backend 646 (session 83300), frontend 55 units/23 browser (26929),
+   lint/format/typecheck/build/compile/audit PASS. Screenshots desktop1440/mobile390
+   inspected; joined text and warning semantics fixed. Retained Docker HTTP status
+   probe/restart/PG drift session 21927 PASS without reseeding, fixture stopped.
+   Operational deployment 40773 FAILED containerd metadata read-only filesystem;
+   C: subsequently full, report write initially failed. Latest operational image/
+   health acceptance NOT VERIFIED / BLOCKED BY ENVIRONMENT. Pytest fixture archive
+   retained on D:; do not claim successful move/reclaimed space. No data/secret deletion.
+6. Then guarded authenticated
    transport, offline/fake tests and disabled-by-default worker/reconciliation.
    No real sends as test side effects. PublicationService is still only a domain
    prototype, not the durable/live transport.
@@ -585,6 +618,11 @@ Older f4124e8 CI 37704439283 failed an isolated synthetic identity collision,
 fixed by fdf8f06; do not relabel that older run as successful.
 
 Consolidated external/live-verification limitations:
+- C: disk-full / Docker containerd read-only filesystem prevents operational image
+  acceptance. Use D: for new isolated test temp files. Recover storage without
+  deleting operational volumes/databases/keys, then recheck daemon/health before
+  retrying latest read-only status deployment. Existing synthetic PASS remains
+  historical evidence, not proof that Docker currently works.
 - Current authorized Downloads/апи.txt contains no usable supported-format key;
   live OpenAI test remains pending. Never echo/store credentials in Git.
 - Telegram api_id/api_hash and live encrypted authorization require user setup;

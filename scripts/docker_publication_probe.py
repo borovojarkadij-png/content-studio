@@ -6,6 +6,8 @@ import sys
 from dataclasses import asdict
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from urllib.error import HTTPError
+from urllib.request import Request, urlopen
 
 from sqlalchemy import create_engine, select, text
 from sqlalchemy.engine import make_url
@@ -219,6 +221,27 @@ def main(mode):
                     session.get(PlannedPublicationModel, manifest["plans"][0]).state == "PUBLISHED"
                 )
             assert execution.run_next(now=datetime.now(UTC)) == "IDLE" and publisher.calls == []
+            for planned_id, expected in zip(
+                manifest["plans"], ("SUCCEEDED", "NEEDS_RECONCILIATION", "BLOCKED"), strict=True
+            ):
+                url = f"http://api:8000/api/telegram/planned-publications/{planned_id}/delivery-status"
+                with urlopen(url, timeout=15) as response:
+                    status = json.load(response)
+                    assert (
+                        response.status == 200 and response.headers["Cache-Control"] == "no-store"
+                    )
+                    assert status["planned_id"] == planned_id and status["state"] == expected
+                    assert status["live_publication_available"] is False
+                    assert (
+                        not {"request_nonce", "claim_token", "encrypted_session", "binding_sha256"}
+                        & status.keys()
+                    )
+                try:
+                    urlopen(Request(url, method="POST"), timeout=15)
+                except HTTPError as exc:
+                    assert exc.code == 405
+                else:
+                    raise AssertionError("Read-only delivery status allowed POST")
     engine.dispose()
     print(f"Synthetic publication {mode}: PASS; zero Telegram/AI network calls")
 

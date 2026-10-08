@@ -1,6 +1,7 @@
 # Implementation plan
 
 - [x] Repository, backend test harness, frontend build foundation
+- [x] Alembic explicit-target guard for CLI/programmatic use, isolated sentinel regressions and dedicated CI migration DB; local target incident documented in ALEMBIC_TARGET_GUARD.md
 - [x] Editorial/Rewrite/Publication domain hard-gate prototype with tests
 - [x] Compose persistence design and Windows command scripts
 - [x] Architecture, state, data-flow, requirements and research docs
@@ -29,6 +30,8 @@
 - [x] Real configuration/filter UI: account/output metadata create/rename, donor import/status, route delivery/media settings, effective technical filters, manual draft/partial success/stale response guards; 40 unit/21 browser gate and actual read-only operational Docker UI
 - [x] Fresh publication preflight: editorial/source/per-output review/fact anchors, mapping filters on source/draft/final attribution, original media rights, due/expiry and immutable request binding; offline regression gate
 - [x] Injected durable publication intents, nonce/leases/bounded retry/uncertain-outcome quarantine, atomic exact acknowledgement and published/unknown quota; 642 backend gate and actual Windows Docker/PostgreSQL crash/down-up/old-owner/zero-resend acceptance
+- [x] Read-only publication history API and real Planner receipt/quarantine UI; 646 backend / 55 unit / 23 browser gate and retained Windows Docker HTTP/restart acceptance, no send or retry action
+- [ ] Deploy latest read-only status operational images and verify health after host C: disk-full / Docker read-only-filesystem recovery; environment blocked, no data removal
 - [ ] Authenticated publication sender, opt-in worker and verified difference reconciliation; injected receipt is not live send proof
 - [x] Publication-execution technical-filter guard (local preflight only; live RPC acceptance pending)
 - [~] Durable mapping-scoped exact content fingerprint deduplication before EditorialGate

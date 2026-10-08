@@ -1,3 +1,5 @@
+from os import getenv
+
 from sqlalchemy import engine_from_config, pool
 
 from alembic import context
@@ -5,6 +7,15 @@ from newsflow.persistence.models import Base
 
 config = context.config
 target_metadata = Base.metadata
+
+# Both CLI and programmatic migrations must select a target explicitly. Older
+# copied ini files must not revive the working-directory SQLite fallback.
+configured_url = config.get_main_option("sqlalchemy.url", "").strip()
+if not configured_url or configured_url == "sqlite:///newsflow.db":
+    explicit_url = getenv("DATABASE_URL", "").strip()
+    if not explicit_url:
+        raise ValueError("An explicit DATABASE_URL is required; refusing a local SQLite fallback")
+    config.set_main_option("sqlalchemy.url", explicit_url.replace("%", "%%"))
 
 
 def run_migrations_offline() -> None:

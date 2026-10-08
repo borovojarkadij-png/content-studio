@@ -24,6 +24,7 @@ from newsflow.services.media_selection import (
     MediaUnavailable,
 )
 from newsflow.services.moderation_inbox import ModerationInboxReader
+from newsflow.services.publication_job_read import PublicationJobReader
 from newsflow.services.publication_planning import (
     CandidateBlocked,
     PlanValidationError,
@@ -522,6 +523,32 @@ def list_rewrite_outputs(
     service: RewriteOutputs, output_channel_id: Annotated[int | None, Query(gt=0)] = None
 ) -> dict[str, list[dict[str, object]]]:
     return {"items": service.list_outputs(output_channel_id)}
+
+
+def get_publication_job_reader():
+    for session in database_session():
+        if session is None:
+            raise HTTPException(503, "Durable database is not configured")
+        try:
+            yield PublicationJobReader(session)
+        except LookupError as exc:
+            raise HTTPException(404, str(exc)) from None
+        except (SQLAlchemyError, ValueError):
+            raise HTTPException(
+                503, "Publication history is unavailable or requires migrations"
+            ) from None
+
+
+@router.get("/planned-publications/{planned_id}/delivery-status")
+def get_delivery_status(
+    planned_id: int,
+    response: Response,
+    reader: Annotated[PublicationJobReader, Depends(get_publication_job_reader)],
+):
+    if planned_id <= 0:
+        raise HTTPException(422, "Publication identity must be positive")
+    response.headers["Cache-Control"] = "no-store"
+    return reader.get_status(planned_id)
 
 
 @router.post("/rewrite-outputs/{output_id}:approve")

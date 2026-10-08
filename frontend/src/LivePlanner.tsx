@@ -16,6 +16,7 @@ import {
 import { Notice, Panel, PanelTitle } from "./ui";
 import { RewriteStylePanel } from "./rewriteStyle";
 import { MediaPreparation } from "./MediaPreparation";
+import { PublicationDelivery } from "./PublicationDelivery";
 
 const errorText = (error: unknown) =>
   error instanceof Error ? error.message : "Ошибка запроса API";
@@ -391,6 +392,10 @@ function ChannelPlanner({
                 <MediaPreparation
                   key={`${item.candidate_id}:${item.content_key}`}
                   candidateId={item.candidate_id}
+                />
+                <PublicationDelivery
+                  key={`delivery:${item.id}`}
+                  plannedId={item.id}
                 />
               </li>
             ))}
