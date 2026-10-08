@@ -23,7 +23,7 @@ jobs:
       - name: Install backend dependencies
         run: python -m pip install -e ".[dev]"
       - name: Lint
-        run: python -m ruff check src tests alembic ../scripts/ui_fixture_api.py ../scripts/docker_persistence_probe.py ../scripts/docker_rewrite_recovery_probe.py ../scripts/docker_source_guard_probe.py ../scripts/docker_semantic_probe.py ../scripts/docker_media_probe.py ../scripts/docker_ingestion_probe.py ../scripts/docker_telegram_health_probe.py ../scripts/docker_telegram_peer_probe.py ../scripts/docker_mapping_filter_probe.py ../scripts/docker_donor_resolution_probe.py ../scripts/docker_source_photo_probe.py
+        run: python -m ruff check src tests alembic ../scripts/ui_fixture_api.py ../scripts/docker_persistence_probe.py ../scripts/docker_rewrite_recovery_probe.py ../scripts/docker_source_guard_probe.py ../scripts/docker_semantic_probe.py ../scripts/docker_media_probe.py ../scripts/docker_ingestion_probe.py ../scripts/docker_telegram_health_probe.py ../scripts/docker_telegram_peer_probe.py ../scripts/docker_mapping_filter_probe.py ../scripts/docker_donor_resolution_probe.py ../scripts/docker_source_photo_probe.py ../scripts/docker_publication_probe.py
       - name: Test
         run: python -m pytest -q
       - name: Compile
@@ -87,4 +87,4 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build, migrate and verify isolated restart/crash recovery
         shell: pwsh
-        run: ./scripts/verify-persistence.ps1 -Project newsflow-verification-ci -CrashRecovery -RewriteRecovery -SourceGuard -SemanticGuard -MediaGuard -IngestionGuard -PeerGuard -MappingGuard -ResolutionGuard -SourcePhotoGuard -RewriteProvider ${{ matrix.provider }}
+        run: ./scripts/verify-persistence.ps1 -Project newsflow-verification-ci -CrashRecovery -RewriteRecovery -SourceGuard -SemanticGuard -MediaGuard -IngestionGuard -PeerGuard -MappingGuard -ResolutionGuard -SourcePhotoGuard -PublicationGuard -RewriteProvider ${{ matrix.provider }}

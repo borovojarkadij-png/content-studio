@@ -405,6 +405,52 @@ class PlannedPublicationModel(Base):
     )
 
 
+class PublicationJobModel(Base):
+    """Durable send intent. Unknown remote outcomes cannot be automatically retried."""
+
+    __tablename__ = "publication_jobs"
+    __table_args__ = (
+        UniqueConstraint("planned_id", name="uq_publication_job_plan"),
+        UniqueConstraint("telegram_account_id", "request_nonce", name="uq_publication_job_nonce"),
+        CheckConstraint(
+            "state IN ('QUEUED', 'CLAIMED', 'SENDING', 'SUCCEEDED', 'BLOCKED', 'FAILED', 'NEEDS_RECONCILIATION')",
+            name="ck_publication_job_state",
+        ),
+        CheckConstraint("attempts BETWEEN 0 AND 2", name="ck_publication_job_attempts"),
+        CheckConstraint("length(binding_sha256) = 64", name="ck_publication_job_binding"),
+        CheckConstraint(
+            "request_nonce > 0 AND request_nonce <= 9223372036854775807 AND telegram_channel_id < -1000000000000",
+            name="ck_publication_job_identity",
+        ),
+        CheckConstraint(
+            "(state IN ('CLAIMED', 'SENDING') AND claim_token IS NOT NULL AND lease_expires_at IS NOT NULL AND attempts > 0) OR (state NOT IN ('CLAIMED', 'SENDING') AND claim_token IS NULL AND lease_expires_at IS NULL)",
+            name="ck_publication_job_lease",
+        ),
+        CheckConstraint(
+            "(state = 'SUCCEEDED' AND sent_message_id IS NOT NULL AND sent_message_id > 0 AND completed_at IS NOT NULL AND attempts > 0) OR (state <> 'SUCCEEDED' AND sent_message_id IS NULL AND completed_at IS NULL)",
+            name="ck_publication_job_receipt",
+        ),
+    )
+    id: Mapped[int] = mapped_column(primary_key=True)
+    planned_id: Mapped[int] = mapped_column(ForeignKey("planned_publications.id"), nullable=False)
+    telegram_account_id: Mapped[int] = mapped_column(
+        ForeignKey("telegram_accounts.id"), nullable=False
+    )
+    telegram_channel_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    request_nonce: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    binding_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    state: Mapped[str] = mapped_column(String(32), nullable=False)
+    attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
+    available_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    claim_token: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    lease_expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    sent_message_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_error_code: Mapped[str | None] = mapped_column(String(64), nullable=True)
+
+
 class OutboxEventModel(Base):
     __tablename__ = "outbox_events"
     id: Mapped[int] = mapped_column(primary_key=True)

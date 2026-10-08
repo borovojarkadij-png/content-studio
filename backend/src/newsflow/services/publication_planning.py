@@ -3,7 +3,7 @@
 from datetime import UTC, date, datetime, time
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -13,6 +13,7 @@ from newsflow.persistence.models import (
     OutputChannel,
     PlannedPublicationModel,
     PublicationCandidateModel,
+    PublicationJobModel,
     PublicationPlanModel,
     RewriteOutputModel,
 )
@@ -310,7 +311,17 @@ class PublicationPlanningService:
             )
             .where(
                 PlannedPublicationModel.output_channel_id == plan.output_channel_id,
-                PlannedPublicationModel.state == "PLANNED",
+                or_(
+                    PlannedPublicationModel.state.in_(("PLANNED", "PUBLISHED")),
+                    select(PublicationJobModel.id)
+                    .where(
+                        PublicationJobModel.planned_id == PlannedPublicationModel.id,
+                        PublicationJobModel.state.in_(
+                            ("SENDING", "NEEDS_RECONCILIATION", "SUCCEEDED")
+                        ),
+                    )
+                    .exists(),
+                ),
                 PlannedPublicationModel.scheduled_for >= starts_at,
                 PlannedPublicationModel.scheduled_for <= ends_at,
             )
@@ -338,6 +349,13 @@ class PublicationPlanningService:
             .with_for_update()
         )
         for item, candidate in rows:
+            remote_state = self._session.scalar(
+                select(PublicationJobModel.state).where(PublicationJobModel.planned_id == item.id)
+            )
+            if remote_state in {"SENDING", "NEEDS_RECONCILIATION", "SUCCEEDED"}:
+                # A cancelled/revoked reservation is not proof Telegram did not
+                # publish it. Hold quota until exact delivery reconciliation.
+                continue
             if not self._is_currently_editorial_pass(candidate.content_key):
                 item.state = "BLOCKED_EDITORIAL"
                 candidate.state = "BLOCKED_EDITORIAL"

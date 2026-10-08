@@ -27,7 +27,10 @@
 - [x] Persisted mapping-filter GET/PUT API and ingress integration, canonical blocked domains, mandatory advertising markers and fresh worker/review/calendar policy guards; 442-test local gate
 - [x] Mapping-filter Windows Docker down/up acceptance, persisted policy/stale-task zero-call guard, actual PostgreSQL drift and real filter API
 - [x] Real configuration/filter UI: account/output metadata create/rename, donor import/status, route delivery/media settings, effective technical filters, manual draft/partial success/stale response guards; 40 unit/21 browser gate and actual read-only operational Docker UI
-- [ ] Publication-execution technical-filter guard
+- [x] Fresh publication preflight: editorial/source/per-output review/fact anchors, mapping filters on source/draft/final attribution, original media rights, due/expiry and immutable request binding; offline regression gate
+- [x] Injected durable publication intents, nonce/leases/bounded retry/uncertain-outcome quarantine, atomic exact acknowledgement and published/unknown quota; 642 backend gate and actual Windows Docker/PostgreSQL crash/down-up/old-owner/zero-resend acceptance
+- [ ] Authenticated publication sender, opt-in worker and verified difference reconciliation; injected receipt is not live send proof
+- [x] Publication-execution technical-filter guard (local preflight only; live RPC acceptance pending)
 - [~] Durable mapping-scoped exact content fingerprint deduplication before EditorialGate
 - [~] OpenAI/OpenRouter: encrypted settings/models, drafts/review, catalog and fact anchors complete; strict adapters/encrypted factory, explicitly opt-in provider-selected worker, bounded free-only OpenRouter failover, known token usage and per-channel natural tabloid style complete offline; live provider verification, semantic guard, rate configuration/cache/dashboard pending
 - [~] Durable moderation-inbox API read model (state, latest revision and editorial decision); dark-navy Inbox consumes its supported read endpoint, while mutation APIs remain pending

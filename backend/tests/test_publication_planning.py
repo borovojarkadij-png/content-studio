@@ -12,6 +12,7 @@ from newsflow.persistence.models import (
     OutputChannel,
     PlannedPublicationModel,
     PublicationCandidateModel,
+    PublicationJobModel,
     TelegramAccount,
 )
 from newsflow.services.publication_planning import CandidateBlocked, PublicationPlanningService
@@ -84,6 +85,61 @@ def test_automatic_plan_selects_highest_priority_candidates_into_daily_slots(ses
     assert all(item["state"] == "PLANNED" for item in scheduled)
     assert service.plan_day(plan["id"], date(2026, 10, 5)) == scheduled
     assert database.scalar(select(func.count()).select_from(PlannedPublicationModel)) == 2
+
+
+def test_published_slots_still_consume_daily_quota_and_are_not_replaced(session):
+    database, output_id = session
+    approve(database, "content:first:1:revision:1")
+    approve(database, "content:second:1:revision:1")
+    service = PublicationPlanningService(database)
+    plan = service.configure_plan(output_id, "AUTOMATIC", 1, (540, 900))
+    service.register_candidate(output_id, "content:first:1:revision:1", priority=90)
+    service.register_candidate(output_id, "content:second:1:revision:1", priority=10)
+    service.plan_day(plan["id"], date(2026, 10, 5))
+    item = database.scalar(select(PlannedPublicationModel))
+    item.state = "PUBLISHED"
+    database.get(PublicationCandidateModel, item.candidate_id).state = "PUBLISHED"
+    database.commit()
+    result = service.plan_day(plan["id"], date(2026, 10, 5))
+    assert len(result) == 1 and result[0]["state"] == "PUBLISHED"
+    assert database.scalar(select(func.count()).select_from(PlannedPublicationModel)) == 1
+
+
+@pytest.mark.parametrize("cancelled", [False, True])
+def test_unknown_delivery_retains_quota_after_editorial_revocation_or_cancel(session, cancelled):
+    database, output_id = session
+    approve(database, "content:unknown:1:revision:1")
+    approve(database, "content:replacement:1:revision:1")
+    service = PublicationPlanningService(database)
+    plan = service.configure_plan(output_id, "AUTOMATIC", 1, (540, 900))
+    service.register_candidate(output_id, "content:unknown:1:revision:1", priority=90)
+    service.register_candidate(output_id, "content:replacement:1:revision:1", priority=10)
+    service.plan_day(plan["id"], date(2026, 10, 5))
+    item = database.scalar(select(PlannedPublicationModel))
+    database.add(
+        PublicationJobModel(
+            planned_id=item.id,
+            telegram_account_id=1,
+            telegram_channel_id=-1001234567890,
+            request_nonce=456,
+            binding_sha256="a" * 64,
+            state="NEEDS_RECONCILIATION",
+            attempts=1,
+            available_at=datetime(2026, 10, 5, tzinfo=UTC),
+        )
+    )
+    decision = database.scalar(
+        select(EditorialDecisionModel).where(
+            EditorialDecisionModel.content_key == "content:unknown:1:revision:1"
+        )
+    )
+    decision.status, decision.rewrite_allowed = "REJECT", False
+    if cancelled:
+        item.state = "CANCELLED"
+    database.commit()
+    result = service.plan_day(plan["id"], date(2026, 10, 5))
+    assert len(result) == 1 and result[0]["content_key"] == "content:unknown:1:revision:1"
+    assert database.scalar(select(func.count()).select_from(PlannedPublicationModel)) == 1
 
 
 def test_automatic_plan_respects_candidate_delayed_eligibility_without_wasting_slots(

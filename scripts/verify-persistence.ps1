@@ -13,6 +13,7 @@ param(
     [switch]$MappingGuard,
     [switch]$ResolutionGuard,
     [switch]$SourcePhotoGuard,
+    [switch]$PublicationGuard,
     [ValidateSet('OPENAI', 'OPENROUTER')]
     [string]$RewriteProvider = 'OPENAI'
 )
@@ -30,6 +31,11 @@ function Invoke-SourcePhotoProbe([string]$Mode) {
     Get-Content -LiteralPath (Join-Path $PSScriptRoot 'docker_source_photo_probe.py') -Raw |
         & docker @composeArgs exec -T worker python - $Mode
     if ($LASTEXITCODE -ne 0) { throw "Synthetic source photo probe failed: $Mode" }
+}
+function Invoke-PublicationProbe([string]$Mode) {
+    Get-Content -LiteralPath (Join-Path $PSScriptRoot 'docker_publication_probe.py') -Raw |
+        & docker @composeArgs exec -T worker python - $Mode
+    if ($LASTEXITCODE -ne 0) { throw "Synthetic publication probe failed: $Mode" }
 }
 function Invoke-IngestionProbe([string]$Mode) {
     Get-Content -LiteralPath (Join-Path $PSScriptRoot 'docker_ingestion_probe.py') -Raw |
@@ -263,6 +269,20 @@ if ($SourcePhotoGuard) {
     Invoke-VerificationCompose restart worker
     Invoke-SourcePhotoProbe 'verify'
     Invoke-SourcePhotoProbe 'blocked'
+}
+if ($PublicationGuard) {
+    Invoke-PublicationProbe 'seed'
+    Invoke-VerificationCompose down
+    Invoke-VerificationCompose up -d --wait --wait-timeout 180
+    Write-Output 'Waiting for the synthetic publication lease to expire.'
+    for ($tick = 0; $tick -lt 13; $tick++) { Start-Sleep -Seconds 5 }
+    Invoke-PublicationProbe 'recover'
+    Invoke-PublicationProbe 'quota'
+    Invoke-VerificationCompose restart worker
+    Invoke-PublicationProbe 'verify'
+    Invoke-VerificationCompose down
+    Invoke-VerificationCompose up -d --wait --wait-timeout 180
+    Invoke-PublicationProbe 'verify'
 }
 Write-Output "Synthetic persistence checks passed. Stack retained: $Project"
 Write-Output 'No real Telegram authorization, network AI calls or publications.'

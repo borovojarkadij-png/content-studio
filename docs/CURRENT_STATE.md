@@ -2,6 +2,17 @@
 
 ## VERIFIED WORKING
 
+- Publication local gate: fresh preflight, durable intents/nonce/leases, uncertain
+  delivery quarantine, late exact receipt and published quota regressions PASS.
+  Backend 642/CI lint/format/compile/isolated migration PASS; frontend 50 unit /
+  22 browser/format/typecheck/build/audit PASS. Actual Windows Docker publication
+  crash/down-up/lease/zero-resend/rejection recovery PASS; final packaged quota
+  regression/PG drift PASS before and after down/up. Isolated publication20261008
+  stopped retaining all history/volumes. Operational a6d315c8fa04 migration/images,
+  drift/health/inbox PASS, all five flags 0. Authenticated publication NOT verified.
+- Media UI aa075af9f15cb346cec184a1e109e26c74bdf658 CI 37707297625 completed
+  SUCCESS in all four jobs. This predates the publication increment.
+
 - Candidate media queue/progress and protected preview implemented in real
   Planner. Backend 587/lint/compile/isolated migration PASS; frontend 50 unit /
   22 browser/format/typecheck/build/audit PASS. See MEDIA_PLANNER_VERIFICATION.md.
@@ -512,8 +523,34 @@
 
 ## NEXT STEP
 
-Finish the current media UI verification checkpoint, then continue guarded
-publication execution. Architecture is approved; do not repeat completed setup.
+Finish committing the verified durable publication increment, then expose honest
+read-only delivery status and continue authenticated sender implementation.
+Architecture is approved; do not repeat completed media/publication setup.
+
+Current committed HEAD: aa075af9f15cb346cec184a1e109e26c74bdf658,
+codex/dark-navy-ui, correct origin borovojarkadij-png/content-studio.
+CI 37707297625: completed all-four SUCCESS. Previous fdf8f06 CI 37706050198
+is also all-four SUCCESS.
+
+1. PublicationPreflight, PublicationJobModel, durable_publication_runner and
+   migration a6d315c8fa04 implemented and verified. Full backend 642 PASS,
+   exact CI lint/format/compile/isolated migration PASS; frontend 50 units /
+   22 browser/format/typecheck/build/audit PASS. See PUBLICATION_INTENTS_VERIFICATION.md.
+2. Windows Docker session 26571 completed PASS: scripts/verify-persistence.ps1
+   -Project newsflow-verification-publication20261008 -ApiPort 18022 -WebPort 15195
+   -ProductionPort 18102 -CrashRecovery -PublicationGuard. Follow-up quota probe
+   RED on old image, then session 69524 corrected rebuild/quota/verify/PG drift /
+   another down-up/quota/verify PASS. Stopped retaining history/volumes; never reseed.
+3. Operational deployment 97908 PASS: rebuilt/migrated a6d315c8fa04, packaged
+   PG drift/health/inbox200, five flags 0, stable secrets/business data unchanged.
+4. Commit/push current verified increment to correct origin and track exact CI.
+5. Implement read-only job/receipt/quarantine status in real Planner; no fake send
+   button or automatic retry of unknown outcome. Then guarded authenticated
+   transport, offline/fake tests and disabled-by-default worker/reconciliation.
+   No real sends as test side effects. PublicationService is still only a domain
+   prototype, not the durable/live transport.
+
+## COMPLETED MEDIA CHECKPOINT (do not repeat)
 
 1. Windows Docker session 75313 completed PASS:
    scripts/verify-persistence.ps1 -Project newsflow-verification-mediaui20261008
@@ -526,10 +563,10 @@ publication execution. Architecture is approved; do not repeat completed setup.
 3. Operational deployment 99215 completed PASS: rebuilt production API/worker/
    frontend, packaged PG drift, health/proxied inbox 200; all five flags 0.
    Env/master key/sessions/data unchanged; do not repeat this deployment.
-4. Commit/push verified changes to origin
+4. Verified changes committed/pushed to origin
    https://github.com/borovojarkadij-png/content-studio.git on codex/dark-navy-ui,
-   track that exact new commit's CI. Current committed HEAD is
-   fdf8f06667bec6b42c4c59a4f3cdf41a559f9234; its CI 37706050198 is all-four SUCCESS.
+   aa075af9f15cb346cec184a1e109e26c74bdf658; CI 37707297625 all-four SUCCESS.
+   Preceding fdf8f06 CI 37706050198 is all-four SUCCESS.
 5. Continue strict fresh publication-execution preflight, durable idempotency /
    delivery acknowledgement and crash reconciliation, offline adversarial tests,
    disabled-by-default worker. Never send real posts as a testing side effect.
