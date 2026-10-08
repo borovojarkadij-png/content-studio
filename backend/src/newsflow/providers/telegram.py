@@ -288,7 +288,25 @@ class TelegramChannelDifference:
             validate_media_observation(message)
 
 
+@dataclass(frozen=True, slots=True)
+class TelegramChannelCheckpoint:
+    """Authenticated current pts, NOT proof that historical gaps were recovered."""
+
+    account_id: str
+    donor_identifier: str
+    user_id: int
+    pts: int
+
+    def __post_init__(self):
+        validate_difference_request(self.account_id, self.donor_identifier, self.pts, 10)
+        if type(self.user_id) is not int or not 0 < self.user_id < 2**63:
+            raise ValueError("Invalid checkpoint Telegram user identity")
+
+
 class TelegramProvider(Protocol):
+    def channel_checkpoint(
+        self, account_id: str, donor_identifier: str
+    ) -> TelegramChannelCheckpoint: ...
     def channel_difference(
         self, account_id: str, donor_identifier: str, *, pts: int, limit: int
     ) -> TelegramChannelDifference: ...
@@ -329,6 +347,7 @@ class FakeTelegramProvider:
         self._channels: dict[tuple[str, str], TelegramChannelResolution] = {}
         self._photos: dict[tuple[str, str, int], bytes] = {}
         self._differences: dict[tuple[str, str, int], TelegramChannelDifference] = {}
+        self._checkpoints: dict[tuple[str, str], TelegramChannelCheckpoint] = {}
 
     def seed_channel_difference(self, difference):
         if not isinstance(difference, TelegramChannelDifference):
@@ -336,6 +355,17 @@ class FakeTelegramProvider:
         self._differences[
             (difference.account_id, difference.donor_identifier, difference.start_pts)
         ] = difference
+
+    def seed_channel_checkpoint(self, checkpoint):
+        if not isinstance(checkpoint, TelegramChannelCheckpoint):
+            raise TypeError("Fake baseline requires a validated immutable checkpoint")
+        checkpoint.__post_init__()
+        self._checkpoints[(checkpoint.account_id, checkpoint.donor_identifier)] = checkpoint
+
+    def channel_checkpoint(self, account_id, donor_identifier):
+        validate_difference_request(account_id, donor_identifier, 1, 10)
+        self.verify_session(account_id)
+        return self._checkpoints[(account_id, donor_identifier)]
 
     def channel_difference(self, account_id, donor_identifier, *, pts, limit):
         validate_difference_request(account_id, donor_identifier, pts, limit)
@@ -652,6 +682,11 @@ class TelethonTelegramProvider:
         from newsflow.providers.telegram_difference import read_channel_difference
 
         return read_channel_difference(self, account_id, donor_identifier, pts=pts, limit=limit)
+
+    def channel_checkpoint(self, account_id, donor_identifier):
+        from newsflow.providers.telegram_checkpoint import read_channel_checkpoint
+
+        return read_channel_checkpoint(self, account_id, donor_identifier)
 
     def fetch_message(self, account_id, donor_identifier, message_id):
         channel = self._channel_id(donor_identifier)

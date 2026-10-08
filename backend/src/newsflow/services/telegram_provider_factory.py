@@ -210,6 +210,14 @@ class ConfiguredTelegramProvider:
             account_id, donor_identifier, pts=pts, limit=limit
         )
 
+    def channel_checkpoint(self, account_id, donor_identifier):
+        from newsflow.providers.telegram import validate_difference_request
+
+        validate_difference_request(account_id, donor_identifier, 1, 10)
+        return self._adapter(account_id, donor_identifier).channel_checkpoint(
+            account_id, donor_identifier
+        )
+
     def fetch_message(self, account_id, donor_identifier, message_id):
         return self._adapter(account_id, donor_identifier).fetch_message(
             account_id, donor_identifier, message_id

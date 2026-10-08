@@ -2,6 +2,16 @@
 
 ## VERIFIED WORKING
 
+- Authenticated read-only checkpoint and create-only new-donor baseline OFFLINE:
+  53 targeted / full backend 886 PASS (12463), exact CI Ruff/changed format/
+  compile/explicit isolated D: Alembic round-trip/drift PASS. SQL-reopen identity,
+  legacy-zero-RPC, concurrent winner/session/poll/source/mapping fencing, real
+  encrypted factory and durable health/outbox rollback verified. See
+  CHANNEL_BASELINE_VERIFICATION.md. No worker activation or live/Windows claim.
+- b6b4d98 CI 37715889965 completed SUCCESS in all four jobs (actual gh view).
+  Deletion 0efb0b6 CI 37714969203 and cursor add59c6 CI 37715433401 also
+  completed SUCCESS (actual gh list). Linux CI is not current Windows proof.
+
 - Retained source-deletion Inbox/API/UI OFFLINE: full backend 833 PASS (54870),
   frontend 62 units / final browser 25 PASS (41662), format/typecheck/build/audit,
   CI Ruff/compile/explicit D: drift PASS. Historical text/PASS/jobs retained;
@@ -628,17 +638,20 @@ its CI 37713732217 completed SUCCESS in all four jobs (Linux Docker included).
 Read-only difference contract committed/pushed 2d744c20bf5adcb2a5e770db505fb7e95459e3e7;
 its CI 37714319250 backend/frontend PASS, Docker variants in progress at inspection.
 Deletion checkpoint committed/pushed 0efb0b6ce311c1be452a31b124f3f93633c5b9b9;
-CI 37714969203 in progress at inspection, not an overall PASS yet.
+CI 37714969203 completed SUCCESS (actual subsequent gh inspection).
 Cursor checkpoint committed/pushed add59c6f7b860df6da86669e2d968ce77c04af5f;
-CI 37715433401 backend/frontend PASS, Docker variants in progress at inspection.
+CI 37715433401 completed SUCCESS (actual subsequent gh inspection).
 Retained deletion truth implemented in real read-only moderation inbox/API/UI,
-with full 833 backend / 62 frontend units / final 25 browser PASS. Commit/push UI
-checkpoint, then trusted bounded read-only baseline bootstrap: authenticate exact
-user/channel/current session, no network-held DB locks, initialize only a genuinely
-new donor with no existing source/poll progress. Legacy histories, active polling
-or unrecovered gaps must remain explicit; never silently skip deletion history.
-Test Fake/Telethon/encrypted factory plus concurrent session/poll/source changes;
-run relevant full gates, document and checkpoint. No operational activation.
+with full 833 backend / 62 frontend units / final 25 browser PASS; committed/pushed
+b6b4d98f6b6d59fcb091d9c3cf1aaa832fb2a0bc, CI 37715889965 all-four SUCCESS.
+Trusted read-only checkpoint/create-only baseline now verified OFFLINE with
+53 targeted / full 886 backend tests plus explicit D: round-trip/drift PASS.
+Checkpoint this increment, then implement shared fail-closed freshness for a
+persisted unresolved channel gap/foreign baseline before optional worker wiring.
+Test cached PASS/retry/API/manual scheduling/media/final publication and zero
+provider calls; preserve history and exact receipt recovery without resending.
+Then bounded fair opt-in deletion-first bootstrap/difference/history orchestration,
+before downstream planning/rewrite. Never activate operational flags as a test.
 Never initialize/reset legacy cursor from latest-message IDs or TooLong, never
 advance pts until all observations/mappings persist. No public cursor-reset or
 provider-send endpoint, no operational worker/flag activation.
