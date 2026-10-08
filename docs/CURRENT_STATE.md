@@ -13,6 +13,26 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
 
 ## VERIFIED WORKING
 
+- Fresh read-only canonical SQL illustration-binding resolver implemented OFFLINE:
+  clean-session refusal, current source/editorial/mapping/approved channel draft,
+  latest selected library job, explicit rights and canonical metadata, bounded
+  double photo decode with independent SQL revalidation. No write/API/provider
+  action or publication permission; existing library hold unchanged. Dedicated
+  migrated suite 47 PASS /31.61s; 178 combined PASS before four extra cases.
+  Independent read-only source/test/CI review has no actionable findings; default
+  configured SQL isolation assumed, no claim of final transport atomicity.
+  Final full backend 1559 PASS /192.84s (46215), actual isolated Telethon 1.45;
+  exact Ruff/changed format/D: compile and owned migration/no-drift PASS.
+  Frontend fresh 205 units/format/build PASS, no UI change/fresh screenshots.
+  Earlier full run 20088 failed one already-corrected UNIQUE-invalid fixture;
+  failure preserved in report, no schema weakening. Exact new PostgreSQL CI
+  pending checkpoint. Fresh Windows docker version still missing engine pipe:
+  NOT VERIFIED / BLOCKED BY ENVIRONMENT, no operational reset attempted.
+  See ILLUSTRATION_BINDING_VERIFICATION.md. No operational data/flags changed.
+- Previous exact 06cbd1e903408e818cc1b3465f7dc7af44d8834f CI 37795331144
+  completed all-eight SUCCESS, including corrected real Linux PowerShell refusal
+  regression (backend 113373178871) and PostgreSQL 113373178630. Previous startup
+  failure below remains historical evidence; Linux is not current Windows proof.
 - Bounded human illustration-review domain contract verified OFFLINE: exact
   immutable candidate/channel/mapping/source/text/draft/asset bytes/metadata
   binding; strict ID/hash/enum/time/acknowledgment/rationale, missing/rejected/
@@ -1122,23 +1142,24 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: inspect exact latest review-contract checkpoint CI by matching
+NEXT_STEP: inspect exact latest canonical illustration-binding checkpoint CI by matching
 `git rev-parse HEAD` to `gh run list --repo borovojarkadij-png/content-studio
 --branch codex/dark-navy-ui --limit 3 --json databaseId,headSha,status,conclusion`;
-all final local gates completed, no repeated implementation/test seed needed.
+Do not repeat completed canonical resolver, Inbox/library diagnostics or the
+human review domain contract. Finish any explicitly pending verification first.
 Diagnose actual failures without disabling checks/reseeding. Pending is not PASS.
 ec4e560 CI 37791084343 and docs 008eef6 CI 37792828642 all-eight
 SUCCESS; d29d6f0 CI 37792513344 backend startup timeout is preserved as FAILED.
 Do not repeat completed Inbox/library diagnostics or the human domain contract.
-Then create a read-only guarded canonical SQL illustration-binding resolver:
-clean/fresh session; exact current candidate/mapping/source/approved per-channel
-draft; current editorial/technical/rights gates; successful selected library
-acquisition; decoded current bytes and canonical metadata hashes. Revalidate
-after reads; regression-test stale/contradictory/dirty/deleted/reject/no-provider
-paths on owned migrated fixtures. Caller hashes/keywords are never authoritative.
-Human review is separate from factual/model qualification and any eventual
-benchmarked visual-semantic verifier. Durable authenticated/audited review
-storage/workflow and fresh publication integration follow as separate increments.
+Previous review-contract 06cbd1e exact CI 37795331144 all-eight SUCCESS.
+Then implement bounded immutable durable human illustration review history:
+exact canonical binding from the resolver, explicit human verdict/illustration
+acknowledgment/rationale and trusted reviewer provenance; revoke rather than
+overwrite, transactional audit and migrated reopen/crash/unsafe regressions.
+Do not accept reviewer identity or approval from unauthenticated client fields.
+Authenticated workflow and fresh preflight/transport integration follow as
+separate increments. Human review does not qualify a model or prove event-photo
+truth; keyword/topic matches and caller-supplied hashes are never authoritative.
 Keep actual library publication preflight blocked until a complete durable
 review boundary and relevant verification exist; no auto-approval, network
 call, public bypass/override, operational flags or real publication.
