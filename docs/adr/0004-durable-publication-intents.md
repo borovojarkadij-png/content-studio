@@ -85,3 +85,9 @@ quota. The Docker probe uses PostgreSQL/restarts and a synthetic injected sender
 not Telegram/AI network calls. Authenticated sender, opt-in publication worker,
 RPC permission checks, difference reconciliation and real authorization remain
 pending; neither fixture sessions nor this ADR qualify them as live working.
+
+2026-10-08 follow-up: encrypted text-only authenticated transport contract exists
+and passed offline real-runner regressions. It is explicitly injected, not wired
+to a live worker/API. Exact response mapping is required; uncertainty still never
+authorizes resend. See TELEGRAM_TEXT_TRANSPORT_VERIFICATION.md. Photos, live
+authorization, opt-in worker and difference reconciliation remain pending.

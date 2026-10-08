@@ -2,6 +2,12 @@
 
 ## VERIFIED WORKING
 
+- Guarded encrypted text-only transport OFFLINE: 35 targeted transport/factory
+  regressions, full backend 684 / Ruff / compile PASS. No worker/send API enabled.
+  Exact nonce/channel/text receipt, final post-auth reject/source/session/review
+  fencing, delayed FloodWait and timeout zero-resend proven with synthetic RPCs.
+  See TELEGRAM_TEXT_TRANSPORT_VERIFICATION.md. Live/packaged NOT VERIFIED.
+
 - Read-only publication delivery API/real Planner UI: 646 backend / 55 frontend
   unit / 23 browser tests, lint/format/typecheck/build/compile/audit PASS.
   Retained publication Windows Docker HTTP/status/API-worker-restart/PG drift PASS
@@ -530,10 +536,14 @@
 
 ## NEXT STEP
 
-Preserve/commit the verified read-only publication status API/UI increment, then
-continue guarded authenticated sender implementation and offline tests using D:
-for isolated temporary data. Do not retry Docker deployment until host space and
-writable Docker storage are confirmed; do not delete/prune volumes or user data.
+Read-only status + explicit Alembic target guard committed/pushed as
+e14bdf47dbe383b17ad18ab22d6ba93d20ae7cad to correct origin.
+Text-only transport/factory implemented and full 684-test/lint/compile gate PASS
+(session 57958). Preserve/commit this text checkpoint, then implement guarded
+original-photo preparation/upload/send with offline tests. Use D: for temporary
+data. Opt-in publication tick and difference reconciliation follow; no live sends
+as tests. Do not retry Docker deployment until host space and writable storage
+are confirmed; do not delete/prune volumes or user data.
 Architecture is approved; do not repeat completed media/publication setup.
 
 2026-10-08 recovery update: Docker version reports Desktop unable to start;
@@ -548,11 +558,13 @@ Explicit-target guard and dedicated CI URL implemented. Fresh full gate 649 test
 PASS (34879), lint/targeted format PASS; explicit D: migration upgrade/check/
 downgrade/base/re-upgrade/check PASS. Frontend 55/format/typecheck/build PASS;
 browser all 23 PASS after moving temporary/output files to D: (68626).
-Guarded text sender has 19 test-first RED cases in a separate new test file;
-implement next, then integrated durable-runner tests, without enabling live sends.
+Guarded text sender initial 19/factory 4 test-first RED cases now GREEN; 35 final
+targeted / 684 full backend PASS. No live send flag, HTTP endpoint or worker added.
 
-Current committed HEAD: c3cc0190b3abb8acd7613ee13848c57d11fd453e,
+Last committed HEAD before this text increment: e14bdf47dbe383b17ad18ab22d6ba93d20ae7cad,
 codex/dark-navy-ui, correct origin borovojarkadij-png/content-studio.
+CI 37710524239 for e14bdf4: backend/frontend SUCCESS, both Docker jobs in progress
+at last inspection; do not claim overall success yet.
 CI 37708938271: completed SUCCESS in all four jobs (actual gh inspection).
 Preceding aa075af CI 37707297625 and fdf8f06 CI 37706050198 all-four SUCCESS.
 

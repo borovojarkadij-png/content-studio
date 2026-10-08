@@ -33,6 +33,8 @@
 - [x] Read-only publication history API and real Planner receipt/quarantine UI; 646 backend / 55 unit / 23 browser gate and retained Windows Docker HTTP/restart acceptance, no send or retry action
 - [ ] Deploy latest read-only status operational images and verify health after host C: disk-full / Docker read-only-filesystem recovery; environment blocked, no data removal
 - [ ] Authenticated publication sender, opt-in worker and verified difference reconciliation; injected receipt is not live send proof
+- [x] Explicit encrypted text-only Telethon transport contract, final post-auth guard, exact nonce/channel/text acknowledgement, no paid sending and real durable-runner offline regressions; 684 backend gate, live/Docker blocked
+- [ ] Guarded original-photo sending/upload and opt-in publication tick; text-only transport does not satisfy photo publication
 - [x] Publication-execution technical-filter guard (local preflight only; live RPC acceptance pending)
 - [~] Durable mapping-scoped exact content fingerprint deduplication before EditorialGate
 - [~] OpenAI/OpenRouter: encrypted settings/models, drafts/review, catalog and fact anchors complete; strict adapters/encrypted factory, explicitly opt-in provider-selected worker, bounded free-only OpenRouter failover, known token usage and per-channel natural tabloid style complete offline; live provider verification, semantic guard, rate configuration/cache/dashboard pending
