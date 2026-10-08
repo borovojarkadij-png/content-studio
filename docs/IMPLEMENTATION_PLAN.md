@@ -91,6 +91,7 @@
 - [ ] Run the new version-2 observed-ack PostgreSQL/Docker procedure on Windows Docker Desktop; current Windows environment blocked, Linux CI is not Windows proof
 - [x] Publication-execution technical-filter guard (local preflight only; live RPC acceptance pending)
 - [~] Durable mapping-scoped exact content fingerprint deduplication before EditorialGate
+- [x] Shared atomic exact fingerprint reservation for retained-source fan-out; both duplicate orderings, rollback/retry, actual unrelated integrity and independent-connection arbitration, per-channel separate injected rewrite/PENDING drafts; 32 targeted / final full 1230 backend PASS, exact new PostgreSQL CI pending
 - [~] OpenAI/OpenRouter: encrypted settings/models, drafts/review, catalog and fact anchors complete; strict adapters/encrypted factory, explicitly opt-in provider-selected worker, bounded free-only OpenRouter failover, known token usage and per-channel natural tabloid style complete offline; live provider verification, semantic guard, rate configuration/cache/dashboard pending
 - [~] Durable moderation-inbox API read model (state, latest revision and editorial decision); dark-navy Inbox consumes its supported read endpoint, while mutation APIs remain pending
 - [x] Requested dark-navy frontend increment: all eight reference-based section compositions, explicit in-memory DEMO interactions, original/draft protection, responsive layouts and honest unavailable live actions

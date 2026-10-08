@@ -2,6 +2,23 @@
 
 ## VERIFIED WORKING
 
+- Shared mapping exact dedup on retained-source fan-out implemented OFFLINE:
+  four migrated behavior RED; corrected missing reservation then actual SQLite
+  first-savepoint rollback RED; targeted atomic PG/SQLite conflict insert GREEN.
+  Earlier competing reservation blocks new work, retries preserve history,
+  unrelated actual integrity failure stays visible, independent connections
+  create one reservation/editorial/job/outbox. Two outputs still execute their
+  own injected rewrites once and retain separate PENDING drafts. 32 combined
+  PASS (45068); final full backend 1230 PASS / 133.53s (1325). Exact lint/format/D:
+  compile/YAML/explicit isolated migration round-trip/drift PASS. Read-only
+  independent skill review: no actionable findings, no reviewer test execution.
+  Dedicated actual PostgreSQL acceptance pending new CI. See
+  MAPPING_FANOUT_DEDUP_VERIFICATION.md.
+- Album UI 7471132f3c46a3f0771467d3fbecc8e5e3c7118d committed/pushed to
+  correct origin; exact CI 37777065559 completed all-eight SUCCESS, including
+  backend/frontend/PG/sync/admission/full-stack and both legacy variants.
+  Completed migrated PG job 113310490678 has 51 PASS / 22.96s, including new
+  grouped Inbox historical-PASS refusal. No overall/current Windows proof.
 - 8038585ad830fe7b29b7bbc909b9a64e0987503a / CI 37774826743 completed
   all-eight SUCCESS (actual gh inspection). Expanded migrated PostgreSQL job
   113302940590: 50 PASS / 29.82s, including 27 retained album tests and independent
@@ -967,12 +984,14 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: commit/push verified read-only Inbox album context to correct origin.
-Track exact new eight-job CI, including
-expanded PostgreSQL album/inbox regression; do not call it successful while
-pending. Then close remaining durable mapping-scoped exact dedup fan-out
-regressions using migrated SQL/reopen and zero-provider tests before proceeding
-to bounded album/video/media workflow. No architecture replanning or redesign.
+NEXT_STEP: checkpoint atomic mapping fan-out dedup (final full backend 1230
+PASS / 133.53s, 1325), commit/push verified increment to correct origin and
+inspect exact new PostgreSQL concurrency/rollback job and eight-job CI.
+UI 7471132 / 37777065559 completed all-eight SUCCESS (actual gh inspection).
+Then
+continue bounded album/video provider contracts and guarded media workflow,
+without declaring observed membership complete or enabling network flags.
+No architecture replanning, redesign, operational data/key change or live sends.
 8038585 / 37774826743 completed all-eight SUCCESS, actual PG 50 PASS;
 ed0beac / 37774362437 PG/frontend failures remain failures, not accepted proof.
 Full 1220 backend PASS (75576), frontend 184 units/build/format/audit0 PASS.

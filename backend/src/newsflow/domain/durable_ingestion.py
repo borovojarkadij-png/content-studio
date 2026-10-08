@@ -10,6 +10,8 @@ from datetime import UTC, datetime, timedelta
 from hashlib import sha256
 
 from sqlalchemy import select
+from sqlalchemy.dialects.postgresql import insert as postgres_insert
+from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -175,29 +177,10 @@ class DurableIngestionWorkflow:
                 )
                 return IngestionResult(False, source_key, status)
 
-            fingerprint = sha256(event.text.strip().casefold().encode("utf-8")).hexdigest()
-            existing_fingerprint = self._session.scalar(
-                select(MappingContentFingerprintModel.id).where(
-                    MappingContentFingerprintModel.mapping_id == self._technical_filter.mapping_id,
-                    MappingContentFingerprintModel.fingerprint == fingerprint,
-                )
-            )
-            if existing_fingerprint is not None:
+            if not self._reserve_exact_content(event):
                 if observed_edit:
                     repository.set_state(event, "REJECTED_DUPLICATE")
                 return IngestionResult(False, source_key, "REJECTED_DUPLICATE")
-            try:
-                with self._session.begin_nested():
-                    self._session.add(
-                        MappingContentFingerprintModel(
-                            mapping_id=self._technical_filter.mapping_id,
-                            fingerprint=fingerprint,
-                        )
-                    )
-                    self._session.flush()
-            except IntegrityError:
-                return IngestionResult(False, source_key, "REJECTED_DUPLICATE")
-
             editorial = DurableEditorialService(self._session, self._editorial_gate)
             decision = editorial.get_or_evaluate(
                 content_key,
@@ -248,6 +231,8 @@ class DurableIngestionWorkflow:
             return IngestionResult(False, source_key, self._blocked_status(decision))
         if self._technical_filter.output_channel_id is None:
             return IngestionResult(False, source_key, "REJECTED_DUPLICATE")
+        if not self._reserve_exact_content(event):
+            return IngestionResult(False, source_key, "REJECTED_DUPLICATE")
         editorial = DurableEditorialService(self._session, self._editorial_gate)
         job = editorial.create_rewrite_job(
             decision, output_channel_id=self._technical_filter.output_channel_id
@@ -258,6 +243,31 @@ class DurableIngestionWorkflow:
         self._ensure_rewrite_outbox(job)
         status = "REWRITE_QUEUED" if candidate_created else "REJECTED_DUPLICATE"
         return IngestionResult(candidate_created, source_key, status)
+
+    def _reserve_exact_content(self, event: TelegramMessage) -> bool:
+        """The same transactional cheap reservation gates both ingress and fan-out."""
+        fingerprint = sha256(event.text.strip().casefold().encode("utf-8")).hexdigest()
+        query = select(MappingContentFingerprintModel.id).where(
+            MappingContentFingerprintModel.mapping_id == self._technical_filter.mapping_id,
+            MappingContentFingerprintModel.fingerprint == fingerprint,
+        )
+        if self._session.scalar(query) is not None:
+            return False
+        # A first SQLite SAVEPOINT can commit independently in legacy driver
+        # mode. Use a single targeted INSERT instead: it joins the outer DML
+        # transaction, reserves atomically in PostgreSQL, and never hides an
+        # unrelated storage/constraint failure as a duplicate.
+        dialect = self._session.get_bind().dialect.name
+        if dialect not in {"postgresql", "sqlite"}:
+            raise ValueError("Exact dedup requires PostgreSQL or isolated SQLite storage")
+        insert = postgres_insert if dialect == "postgresql" else sqlite_insert
+        statement = (
+            insert(MappingContentFingerprintModel)
+            .values(mapping_id=self._technical_filter.mapping_id, fingerprint=fingerprint)
+            .on_conflict_do_nothing(index_elements=["mapping_id", "fingerprint"])
+            .returning(MappingContentFingerprintModel.id)
+        )
+        return self._session.scalar(statement) is not None
 
     @staticmethod
     def _blocked_status(decision: EditorialDecisionModel) -> str:
