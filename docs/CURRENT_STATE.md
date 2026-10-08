@@ -13,6 +13,11 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
 
 ## VERIFIED WORKING
 
+- Canonical resolver source checkpoint committed/pushed
+  44fb130ab0dda51e9910f05e08d106e3d96077a8 to the correct origin/branch.
+  Exact CI 37798052676 is IN_PROGRESS at inspection, all eight jobs running;
+  new migrated PostgreSQL job 113382585290 is not yet proof of PASS. Inspect
+  exact source run and any later docs checkpoint before the next increment.
 - Fresh read-only canonical SQL illustration-binding resolver implemented OFFLINE:
   clean-session refusal, current source/editorial/mapping/approved channel draft,
   latest selected library job, explicit rights and canonical metadata, bounded

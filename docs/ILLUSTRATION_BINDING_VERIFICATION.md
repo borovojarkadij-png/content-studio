@@ -74,6 +74,14 @@ before transport. No operational source/profile rights or authorization changed.
   PostgreSQL execution remains pending its exact checkpoint, not inferred from
   local SQLite. Existing namespace/role/target restrictions are unchanged.
 
+Verified source committed/pushed as
+`44fb130ab0dda51e9910f05e08d106e3d96077a8` to
+`borovojarkadij-png/content-studio`, branch `codex/dark-navy-ui`.
+Exact CI **37798052676** is IN_PROGRESS at first actual inspection; all eight
+jobs running, including expanded PostgreSQL **113382585290**. No new CI PASS
+claim or Windows acceptance inference. The next run must inspect its conclusion
+and any subsequent documentation checkpoint before proceeding.
+
 ## Prior checkpoint CI and limitations
 
 Previous review-contract source `06cbd1e903408e818cc1b3465f7dc7af44d8834f`, exact
