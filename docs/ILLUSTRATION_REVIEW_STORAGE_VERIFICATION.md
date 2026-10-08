@@ -64,18 +64,24 @@ visual relevance, event-photo truth or real-model benchmark qualification.
   full run **85602** started before the final reviewer-type fix and does not prove
   the final candidate: **1609 PASS /1 SKIP /280.89s**, exit 0.
 - Strict create-only PostgreSQL CI now includes `test_illustration_review_storage.py`.
-  Actual new-source PostgreSQL/Compose evidence remains pending commit/push and
-  its exact CI. Existing target/namespace/role restrictions and checks unchanged.
+  Source `ffe2caf0d160cf7666f179eb71c9264d8cc752fb` is committed/pushed.
+  Exact CI `37804071273` PostgreSQL job `113403606230` completed SUCCESS at
+  actual inspection. Backend/frontend/channel-sync/admission also SUCCESS;
+  three Compose jobs still running, whole workflow NOT yet PASS. Existing
+  target/namespace/role restrictions and checks unchanged.
 
 ## Previous checkpoint and external acceptance
 
 Resolver source `44fb130ab0dda51e9910f05e08d106e3d96077a8`, exact CI
 `37798052676`, all eight jobs SUCCESS at fresh inspection. This is preceding
-source proof, not new uncommitted storage acceptance. Fresh Windows Docker read
-still reports the absent `dockerDesktopLinuxEngine` pipe. Current Windows
-acceptance remains NOT VERIFIED / BLOCKED BY ENVIRONMENT, not an implementation
-failure. Required live Telegram authorization and real-model qualification remain
-independent pending gates. PHASE 1 is not complete.
+source proof, not new storage acceptance. At the original storage checkpoint,
+Windows Docker had an absent `dockerDesktopLinuxEngine` pipe. Subsequent
+user-authorized recovery restored real Linux Engine 29.8.0 and a network-none/
+no-volume container probe; see DOCKER_STARTUP_RECOVERY_20261008.md. The daemon
+blocker is historical. Fresh full current-source Windows acceptance remains
+NOT VERIFIED, not inferred from that engine probe or Linux CI. Required live
+Telegram authorization and real-model qualification remain independent pending
+gates. PHASE 1 is not complete.
 
 ## Next boundary
 

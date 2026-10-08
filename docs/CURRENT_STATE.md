@@ -13,6 +13,17 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
 
 ## VERIFIED WORKING
 
+- Windows Docker Engine availability restored 2026-10-08: existing signed Docker
+  Desktop 4.91.0 failed on stale sailor-ingest runtime socket/error 1920. Only
+  stopped this task's verified Docker processes and preserved two validated
+  zero-byte runtime-socket directories under `.recovery-20261008-942db362`.
+  No volumes/VHDX/configuration/credentials/WSL distribution deleted or reset.
+  Fresh launch serves real Linux Engine 29.8.0; WSL docker-desktop Running;
+  network-none/read-only/no-volume cached Redis version probe exited 0.
+  Operational containers are exited; fresh current-source Windows stack build/
+  migrations/health/restart/recovery remain NOT VERIFIED. Previous missing-pipe
+  blocker is historical; see DOCKER_STARTUP_RECOVERY_20261008.md. No permanent
+  socket-fix claim, operational queue change or live send.
 - Immutable illustration review/revocation storage verified OFFLINE: guarded
   c5e81b29a704 migration and exact canonical eleven-field history, strict row
   shape/reference/type checks, SQLite replacement and PostgreSQL TRUNCATE fences,
@@ -21,8 +32,11 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
   PG-only SKIP; corrected full 45505: 1612 PASS/1 SKIP /294.32s, exit 0.
   Exact CI-context Ruff/changed format/D: compile, owned isolated full migration
   no-drift and frontend 205/format/build PASS. No writer/authenticated API,
-  permission consumer or publication hold release; actual PG/new-source CI
-  pending. See ILLUSTRATION_REVIEW_STORAGE_VERIFICATION.md. PHASE 1 not complete.
+  permission consumer or publication hold release. Source checkpoint
+  ffe2caf0d160cf7666f179eb71c9264d8cc752fb committed/pushed; exact 37804071273
+  real PostgreSQL 113403606230 SUCCESS, backend/frontend/channel-sync/admission
+  SUCCESS; three Compose jobs still pending at inspection. No full workflow or
+  fresh Windows acceptance inference. See storage report. PHASE 1 not complete.
 - Accepted existing UI restored in the local preview, not redesigned (2026-10-08).
   The user selected `.artifacts/ui-dark-navy/1440x900/01_overview.png` as the
   existing target. Before reload the browser DOM still showed the old symbolic
@@ -1170,8 +1184,11 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: inspect the committed storage checkpoint's exact GitHub CI, especially
-the expanded PostgreSQL suite, then continue the authenticated review boundary.
+NEXT_STEP: inspect remaining exact source CI 37804071273 (ffe2caf), preserve any
+failures, and run existing create-only isolated current-source Windows Docker
+quality/persistence procedures now that the daemon is available. Do not use old
+fixture projects or operational queues; read and retain the target guards.
+Then continue authenticated review/audit, without a publication-hold release.
 Storage-only source is implemented and locally verified; do not duplicate it:
 IllustrationReviewRecordModel, c5e81b29a704 immutable-history migration and
 test_illustration_review_storage.py plus the strict PG CI inclusion. No application
