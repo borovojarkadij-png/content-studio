@@ -82,6 +82,12 @@ def test_wait_probe_verifies_real_api_pending_review_without_fake_publication(
     try:
         manifest = probe.seed(sessions, tmp_path, now=now)
         with TestClient(app) as client:
+            overview = client.get("/api/studio/overview")
+            assert overview.status_code == 200
+            assert overview.headers["Cache-Control"] == "no-store"
+            probe.verify_overview(overview.json())
+            with pytest.raises(AssertionError):
+                probe.verify_overview({**overview.json(), "billing_complete": True})
             probe.verify_api(
                 client.get("/api/telegram/incoming-posts").json(),
                 client.get("/api/telegram/rewrite-outputs").json(),

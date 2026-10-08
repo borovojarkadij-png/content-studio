@@ -32,6 +32,7 @@ def main() -> None:
         PublicationCandidateModel,
         PublicationJobModel,
         RewriteJobModel,
+        RewriteUsageModel,
         TelegramAccount,
     )
     from newsflow.providers.commons_images import ImageSearchResult
@@ -153,6 +154,23 @@ def main() -> None:
                 draft = review.record_succeeded_output(
                     job.id, f"Изолированный вариант API {number}"
                 )
+                if number == 1:
+                    # Synthetic observed usage + unobserved reserved attempt, not live spend.
+                    job.attempts = 2
+                    session.add(
+                        RewriteUsageModel(
+                            rewrite_job_id=job.id,
+                            attempt=1,
+                            provider="OPENAI",
+                            model="synthetic-ui-usage",
+                            style="NEUTRAL",
+                            input_tokens=100,
+                            cached_tokens=40,
+                            output_tokens=20,
+                            estimated_cost_usd=None,
+                        )
+                    )
+                    session.commit()
                 if number == 3:
                     review.approve(draft["id"], activate_candidate=True)
                 if number == 2:

@@ -52,6 +52,65 @@ const navigate = async (page: Page, name: string) => {
     .click();
 };
 
+test("real overview shows retained aggregates and unknown AI charges without fabricated charts", async ({
+  page,
+}, testInfo) => {
+  const methods: string[] = [];
+  page.on("request", (request) => {
+    if (request.url().endsWith("/api/studio/overview"))
+      methods.push(request.method());
+  });
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/");
+    await navigate(page, "Обзор");
+    await expect(
+      page.getByText("История источников", { exact: true }),
+    ).toBeVisible();
+    const usage = page.getByRole("region", { name: "Usage рерайта" });
+    await expect(usage).toContainText(
+      "Наблюдений usage: 1; без известной стоимости: 1",
+    );
+    await expect(usage).toContainText(
+      "Сохранённых попыток: 2; без наблюдения usage: 1",
+    );
+    await expect(page.getByText(/Нет live-проверки Telegram/)).toBeVisible();
+    const summaryBox = await page
+      .locator(".workspace-view > .panel")
+      .first()
+      .boundingBox();
+    const metricsBox = await page.locator(".metric-row").boundingBox();
+    expect(summaryBox).not.toBeNull();
+    expect(metricsBox!.y).toBeGreaterThan(summaryBox!.y + summaryBox!.height);
+    await expect(
+      page.getByText(/Стоимость части обращений неизвестна/),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("img", { name: /поток материалов/ }),
+    ).toHaveCount(0);
+    await page.getByRole("button", { name: "Обновить обзор" }).click();
+    await expect(usage).toContainText("Наблюдений usage: 1");
+    await page.reload();
+    await navigate(page, "Обзор");
+    await expect(usage).toContainText("без известной стоимости: 1");
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    expect(
+      (await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze())
+        .violations,
+    ).toEqual([]);
+    await page.screenshot({
+      path: testInfo.outputPath(`overview-live-${width}.png`),
+      fullPage: true,
+    });
+  }
+  expect(methods.length).toBeGreaterThanOrEqual(6);
+  expect(methods.every((method) => method === "GET")).toBe(true);
+});
+
 test("real persisted donor diagnostics survive reload and never authorize live actions", async ({
   page,
 }, testInfo) => {

@@ -136,7 +136,13 @@ describe("Content Studio UI contracts", () => {
     vi.stubGlobal("fetch", fetch);
     render(<App />);
     expect(screen.getByText("Рабочий режим")).toBeTruthy();
+    expect(fetch).toHaveBeenCalledOnce();
+    expect(fetch).toHaveBeenCalledWith(
+      "/api/studio/overview",
+      expect.objectContaining({ method: "GET" }),
+    );
     fireEvent.click(screen.getByRole("switch", { name: "DEMO" }));
+    fetch.mockClear();
     navigate("Входящие");
     navigate("Аккаунты");
     expect(screen.getByText("Демо-данные — без публикации")).toBeTruthy();
@@ -177,10 +183,15 @@ describe("Content Studio UI contracts", () => {
     ).toBe(true);
   });
   it("retains failed API state and retries without injecting demo fixtures", async () => {
-    const fetch = vi
-      .fn()
-      .mockResolvedValueOnce({ ok: false, status: 503 })
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ items: [] }) });
+    let inboxReads = 0;
+    const fetch = vi.fn(async (path: string) => {
+      if (path.endsWith("/overview")) return { ok: false, status: 503 };
+      if (!path.endsWith("/incoming-posts"))
+        throw new Error(`Unexpected ${path}`);
+      return inboxReads++ === 0
+        ? { ok: false, status: 503 }
+        : { ok: true, json: async () => ({ items: [] }) };
+    });
     vi.stubGlobal("fetch", fetch);
     render(<App />);
     navigate("Входящие");
@@ -190,7 +201,9 @@ describe("Content Studio UI contracts", () => {
     ).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Повторить" }));
     expect(await screen.findByText("Очередь входящих пуста.")).toBeTruthy();
-    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(
+      fetch.mock.calls.filter(([path]) => path.endsWith("/incoming-posts")),
+    ).toHaveLength(2);
   });
   it("uses the existing inbox API contract and disables live mutations", async () => {
     vi.stubGlobal(
@@ -237,22 +250,27 @@ describe("Content Studio UI contracts", () => {
     ).toBeTruthy();
   });
   it("saves a replacement OpenAI key only through the live settings API", async () => {
-    const fetch = vi
-      .fn()
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ items: [] }) })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          provider: "OPENAI",
-          configured: true,
-          primary_model: "gpt-test-rewrite",
-          fallback_models: [],
-        }),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ items: ["gpt-test-rewrite", "gpt-another"] }),
-      });
+    const fetch = vi.fn(async (path: string, init?: RequestInit) => {
+      if (path.endsWith("/overview")) return { ok: false, status: 503 };
+      if (path.endsWith("/rewrite-providers"))
+        return { ok: true, json: async () => ({ items: [] }) };
+      if (path.endsWith("/openai") && init?.method === "PUT")
+        return {
+          ok: true,
+          json: async () => ({
+            provider: "OPENAI",
+            configured: true,
+            primary_model: "gpt-test-rewrite",
+            fallback_models: [],
+          }),
+        };
+      if (path.endsWith("/openai/models"))
+        return {
+          ok: true,
+          json: async () => ({ items: ["gpt-test-rewrite", "gpt-another"] }),
+        };
+      throw new Error(`Unexpected ${path}`);
+    });
     vi.stubGlobal("fetch", fetch);
     render(<App />);
     navigate("Настройки");

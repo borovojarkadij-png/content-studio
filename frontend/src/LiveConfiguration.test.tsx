@@ -156,7 +156,9 @@ it("persists source permission explicitly, preserves failed drafts and never pre
     await screen.findByText("Права сохранены в базе данных."),
   ).toBeTruthy();
   expect(
-    fetch.mock.calls.filter(([, init]) => init?.method).map(([path]) => path),
+    fetch.mock.calls
+      .filter(([, init]) => init?.method && init.method !== "GET")
+      .map(([path]) => path),
   ).toEqual([
     "/api/telegram/mappings/3/source-media-rights",
     "/api/telegram/mappings/3/source-media-rights",
@@ -173,7 +175,12 @@ it("loads real account health without claiming authorization or creating demo ro
   navigate("Аккаунты");
   expect(await screen.findByText(account.name)).toBeTruthy();
   expect(screen.getByText("Сессия не подключена")).toBeTruthy();
-  expect(fetch.mock.calls.every(([, init]) => !init?.method)).toBe(true);
+  expect(
+    fetch.mock.calls.every(
+      ([, init]) =>
+        (init?.method ?? "GET") === "GET" && init?.body === undefined,
+    ),
+  ).toBe(true);
   expect(screen.queryByText("Наука и факты")).toBeNull();
 });
 it("bulk imports into durable pending resolution and never claims Telegram connection", async () => {
@@ -362,7 +369,12 @@ it("rejects unsafe numeric output identity locally and never submits a rounded T
     screen.getByRole("button", { name: "Создать запись канала" }),
   );
   expect(await screen.findByText(/точный безопасный Telegram ID/)).toBeTruthy();
-  expect(fetch.mock.calls.every(([, init]) => !init?.method)).toBe(true);
+  expect(
+    fetch.mock.calls.every(
+      ([, init]) =>
+        (init?.method ?? "GET") === "GET" && init?.body === undefined,
+    ),
+  ).toBe(true);
 });
 it("reports committed import separately when the follow-up queue read fails", async () => {
   let committed = false;

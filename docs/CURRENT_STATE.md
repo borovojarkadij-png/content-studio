@@ -2,6 +2,18 @@
 
 ## VERIFIED WORKING
 
+- Real read-only Overview/known AI usage OFFLINE: 5 dedicated / 30 combined /
+  fresh full backend 1011 PASS (74185); frontend 97 units / 28 browser PASS (38350),
+  exact CI Ruff/format/compile/explicit D: drift/build/typecheck/audit0 PASS. Precise
+  all-retained historical counts, NULL/unobserved usage and exact estimate subtotal,
+  never complete invoice/live health/DEMO fallback; real migrated API GET/reload/
+  WCAG/narrow/screenshots and visual margin RED/GREEN verified. Dedicated PG probe
+  extended; new actual PostgreSQL execution pending exact CI. See
+  STUDIO_OVERVIEW_VERIFICATION.md.
+- Donor status checkpoint 6d931311d56d702f2516739e7faccdbf210e134e committed/pushed
+  to correct origin; CI 37753560333 completed SUCCESS in all five jobs (actual gh
+  view). Linux proof does not repair current Windows environment.
+
 - Read-only persisted donor sync API + existing Donors UI OFFLINE: 18 dedicated /
   46 combined / fresh full backend 1006 PASS (8285); frontend 82 units / 27 browser
   PASS (44315), exact CI Ruff/changed format/compile/explicit D: migration drift,
@@ -767,11 +779,12 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: checkpoint donor sync diagnostics and inspect its exact CI, fix ordinary
-failures without weakening guards. Continue read-only real Overview/known AI usage
-aggregation from retained SQL records, with precise historical count definitions,
-unknown charges never zero/complete invoice, no invented live health/topic/chart
-metrics or DEMO fallback. Test-first API/React/browser and relevant full gates.
+NEXT_STEP: checkpoint Overview and inspect its exact dedicated PG/quality CI,
+fix ordinary failures without weakening guards. Continue bounded fair automatic
+media admission: first-N rejected/stale pending candidates must not starve later
+eligible candidates. Preserve fresh gates/source-rights/idempotency and terminal
+history, keep network flags disabled. Test-first real SQL/reopen, then guarded
+worker/main-loop fairness integration and full gates. No real download/send tests.
 Never expose tokens/session/key or call live providers for a dashboard. Never reseed old
 fixtures, revive SUPERSEDED history or invent legacy continuity. Keep all operational
 flags unchanged and Windows Docker NOT VERIFIED / BLOCKED BY ENVIRONMENT.

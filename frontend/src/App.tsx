@@ -7,6 +7,7 @@ import {
 } from "react";
 import { loadInbox } from "./api";
 import { LivePlanner } from "./LivePlanner";
+import { LiveOverview } from "./LiveOverview";
 import { LiveConnections, LiveDirectory } from "./LiveConfiguration";
 import { Accounts, Connections, Planner, Settings } from "./workspaces";
 import {
@@ -20,7 +21,6 @@ import {
   Search,
   Status,
   Toggle,
-  Unavailable,
 } from "./ui";
 import {
   canProcess,
@@ -247,7 +247,7 @@ function Overview({
   demo,
   onNavigate,
 }: WorkspaceProps & { demo: boolean; onNavigate: (page: Page) => void }) {
-  if (!demo) return <Unavailable title="Метрики пока недоступны" />;
+  if (!demo) return <LiveOverview />;
   const pending = data.posts.filter((item) =>
     ["Новый", "На проверке"].includes(item.state),
   );

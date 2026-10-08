@@ -689,6 +689,9 @@ svg {
   background: #43595c;
 }
 
+.overview-live-summary {
+  margin-bottom: 16px;
+}
 .metric-row {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

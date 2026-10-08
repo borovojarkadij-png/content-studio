@@ -259,6 +259,19 @@ def recover(sessions, manifest, *, now):
     verify(sessions, manifest, completed=True)
 
 
+def verify_overview(report):
+    assert report["scope"] == "ALL_RETAINED_HISTORY"
+    assert report["network_checked"] is False and report["billing_complete"] is False
+    assert report["history"]["rewrite_jobs"] >= 4
+    assert report["history"]["source_posts"] >= 4
+    assert [item["operation"] for item in report["usage"]] == ["REWRITE", "SEMANTIC_VERIFICATION"]
+    for item in report["usage"]:
+        assert 0 <= item["cached_tokens"] <= item["input_tokens"]
+        assert 0 <= item["unknown_cost_records"] <= item["records"]
+        assert 0 <= item["unobserved_attempts"] <= item["durable_attempts"]
+        assert isinstance(item["known_estimated_cost_usd"], str)
+
+
 def verify_api(inbox, outputs, manifest, *, completed):
     _validate(manifest)
     rows = {row["source_key"]: row for row in inbox["items"]}
@@ -320,6 +333,10 @@ def main(mode):
                     assert response.status == 200
                     outputs = json.load(response)
                 verify_api(inbox, outputs, manifest, completed=mode == "verify")
+                with urlopen("http://api:8000/api/studio/overview", timeout=15) as response:
+                    assert response.status == 200
+                    assert response.headers["Cache-Control"] == "no-store"
+                    verify_overview(json.load(response))
     finally:
         engine.dispose()
     print(f"Synthetic rewrite wait {mode}: PASS; zero real Telegram/AI/send calls")
