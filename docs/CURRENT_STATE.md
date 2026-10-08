@@ -2,6 +2,13 @@
 
 ## VERIFIED WORKING
 
+- Versioned create-only publication probe logic OFFLINE: 751 backend /
+  exact CI Ruff/targeted format/compile and PowerShell parser PASS.
+  Independent SQL reopen verifies encrypted original requests/observed ack,
+  zero-resend completion, legacy-manifest refusal and no reseeding. New actual
+  PostgreSQL/Docker procedure NOT VERIFIED yet; Windows environment blocked.
+  See PUBLICATION_PROBE_OBSERVATIONS_VERIFICATION.md.
+
 - Exact direct-response publication observations/no-resend recovery OFFLINE:
   full backend 750 / exact CI lint/targeted format/compile/explicit D: migration
   round-trip/drift PASS. Real SQL insert failures/crash, historical reject/edit,
@@ -581,12 +588,14 @@ Main-loop checkpoint committed/pushed 6aaaefabc5df9636ee794e2edab630311798f5c8.
 Encrypted snapshot checkpoint committed/pushed eda7574c64910cb59471f91d27d3f12db7ad1977.
 Direct-response observation/no-resend recovery implemented and gate verified
 (750 backend, 58 frontend, final browser 24 PASS in 17486).
-Commit/push this observation checkpoint, then extend the
-create-only synthetic PostgreSQL/Docker publication probe to exercise immutable
-encrypted requests and crash-after-observed-ack down/up recovery. Test probe
-logic locally with isolated SQL/synthetic transport; actual current Windows
-Docker stays blocked, inspect GitHub CI separately. Then continue approved
-independent PHASE 1 tasks; full update-difference/deletion recovery is still pending.
+Observation checkpoint committed/pushed 33757e6c873d108b6db1fcdce2eb28f1732a3c2a.
+Create-only synthetic PostgreSQL/Docker publication probe extended and OFFLINE
+consumer/full 751 backend gate PASS. Commit/push this probe checkpoint and inspect
+its own GitHub CI (do not confuse prior runs with this procedure). Then implement
+the bounded read-only Telegram channel update-difference provider contract and
+deletion observations with synthetic Telethon responses. Full durable gap/
+deletion application and live verification are pending. Windows Docker stays
+blocked; no deletion/prune/volume reset or live provider-send workaround.
 Do not guess message identity by text/time. Use D: for
 temporary data. Difference reconciliation follows; no live sends
 as tests. Do not retry Docker deployment until host space and writable storage
@@ -608,7 +617,7 @@ browser all 23 PASS after moving temporary/output files to D: (68626).
 Guarded text sender initial 19/factory 4 test-first RED cases now GREEN; 35 final
 targeted / 684 full backend PASS. No live send flag, HTTP endpoint or worker added.
 
-Last committed HEAD before this observation increment: eda7574c64910cb59471f91d27d3f12db7ad1977,
+Last committed HEAD before this probe increment: 33757e6c873d108b6db1fcdce2eb28f1732a3c2a,
 codex/dark-navy-ui, correct origin borovojarkadij-png/content-studio.
 CI 37710524239 for e14bdf4 completed SUCCESS in all four jobs (gh inspection).
 CI 37710873887 for f9a4075: completed SUCCESS in all four jobs (actual gh run list).
@@ -616,8 +625,9 @@ Actual current Windows packaging remains independently blocked.
 CI 37711279784 for de51ad6, 37711738606 for 69fa0f1 and 37712004387 for 6aaaefa:
 completed SUCCESS in all four jobs (actual gh run list/view). This does not
 resolve current Windows Docker environment failure.
-CI 37712575263 for eda7574: backend/frontend SUCCESS, both Docker jobs in progress
-at last actual inspection; do not mark it all-four SUCCESS yet.
+CI 37712575263 for eda7574: completed SUCCESS in all four jobs (actual gh view).
+CI 37713401088 for 33757e6: backend/frontend SUCCESS, both Docker jobs in progress
+at last inspection; this predates the extended version-2 publication probe.
 CI 37708938271: completed SUCCESS in all four jobs (actual gh inspection).
 Preceding aa075af CI 37707297625 and fdf8f06 CI 37706050198 all-four SUCCESS.
 

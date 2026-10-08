@@ -18,6 +18,7 @@ from newsflow.persistence.models import (
     EditorialDecisionModel,
     PlannedPublicationModel,
     PublicationCandidateModel,
+    PublicationDeliveryObservationModel,
     PublicationJobModel,
     RewriteJobModel,
     TelegramAccount,
@@ -30,12 +31,15 @@ from newsflow.services.durable_publication_runner import (
     PublicationClaim,
     PublicationReceipt,
 )
+from newsflow.services.publication_observations import PublicationObservations
 from newsflow.services.publication_planning import PublicationPlanningService
+from newsflow.services.publication_request_snapshot import PublicationRequestSnapshots
 from newsflow.services.rewrite_outputs import RewriteOutputService
 from newsflow.services.telegram_configuration import TelegramConfigurationService
 
 NAME = "synthetic-publication-intent"
 CHANNEL = -1001777665000
+SYNTHETIC_KEY = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
 
 
 class SyntheticPublisher:
@@ -71,7 +75,7 @@ def seed(sessions, root, execution):
         mapping = config.create_mapping(donor["id"], output["id"], 100, 100)
     with sessions.begin() as session:
         row = session.get(TelegramAccount, account["id"])
-        cipher = SessionCipher("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=")
+        cipher = SessionCipher(SYNTHETIC_KEY)
         row.encrypted_session, row.health_status = (
             cipher.encrypt("synthetic publication session"),
             "CONNECTED",
@@ -135,12 +139,79 @@ def seed(sessions, root, execution):
     with sessions.begin() as session:
         session.get(PublicationJobModel, second.job_id).state = "SENDING"
     manifest = {
+        "version": 2,
         "plans": planned,
         "jobs": jobs,
         "old_claim": asdict(first),
         "sending_claim": asdict(second),
     }
     (root / "synthetic-publication-intents.json").write_text(json.dumps(manifest), encoding="utf-8")
+
+
+def recover(sessions, execution, publisher, manifest):
+    old = PublicationClaim(**manifest["old_claim"])
+    current = execution.claim_next(now=datetime.now(UTC))
+    assert current.job_id == old.job_id and current.attempt == 2 and current.token != old.token
+    assert execution.execute(old) == "LOST_LEASE" and publisher.calls == []
+    assert execution.execute(PublicationClaim(**manifest["sending_claim"])) == "LOST_LEASE"
+    complete = execution._complete
+
+    def synthetic_crash(*_args):
+        raise SystemExit("synthetic observed-ack status-commit crash")
+
+    # Only the probe interrupts the post-receipt DB completion; no production
+    # transport/guard/ledger method is replaced and no real sender is imported.
+    execution._complete = synthetic_crash
+    try:
+        execution.execute(current)
+    except SystemExit as exc:
+        assert str(exc) == "synthetic observed-ack status-commit crash"
+    else:
+        raise AssertionError("Expected crash after committed receipt observation")
+    finally:
+        execution._complete = complete
+    assert len(publisher.calls) == 1
+    with sessions.begin() as session:
+        assert session.get(PublicationJobModel, current.job_id).state == "SENDING"
+        assert session.get(PublicationDeliveryObservationModel, current.job_id) is not None
+        item = session.get(PlannedPublicationModel, manifest["plans"][2])
+        candidate = session.get(PublicationCandidateModel, item.candidate_id)
+        decision = session.scalars(
+            select(EditorialDecisionModel).where(
+                EditorialDecisionModel.content_key == candidate.content_key
+            )
+        ).one()
+        decision.status, decision.rewrite_allowed = "REJECT", False
+    assert execution.run_next(now=datetime.now(UTC)) == "BLOCKED" and len(publisher.calls) == 1
+
+
+def verify_persisted(sessions, execution, publisher, manifest, *, reconcile):
+    if manifest.get("version") != 2:
+        raise RuntimeError(
+            "Legacy fixture has no observed-ack contract; retain it and use a fresh verification project"
+        )
+    cipher = SessionCipher(SYNTHETIC_KEY)
+    snapshots = PublicationRequestSnapshots(sessions, cipher=cipher)
+    restored = [snapshots.read(job_id) for job_id in manifest["jobs"]]
+    assert [value.envelope.planned_id for value in restored] == manifest["plans"]
+    original, observed = PublicationObservations(sessions, cipher=cipher).read(manifest["jobs"][0])
+    assert original == restored[0] and observed.receipt.message_id == 901 and observed.attempt == 2
+    if reconcile:
+        # Advance only the synthetic recovery scan past its persisted lease;
+        # no extra real 65-second wait is needed after container down/up.
+        outcome = execution.run_next(now=datetime.now(UTC) + timedelta(seconds=61))
+        assert outcome in {"RECONCILED", "IDLE"} and publisher.calls == []
+    expected = ("SUCCEEDED" if reconcile else "SENDING", "NEEDS_RECONCILIATION", "BLOCKED")
+    with sessions() as session:
+        rows = [session.get(PublicationJobModel, identity) for identity in manifest["jobs"]]
+        assert tuple(row.state for row in rows) == expected
+        assert rows[0].attempts == 2 and rows[0].request_nonce == restored[0].request_nonce
+        assert rows[0].sent_message_id == (901 if reconcile else None)
+        assert session.get(PlannedPublicationModel, manifest["plans"][0]).state == (
+            "PUBLISHED" if reconcile else "PLANNED"
+        )
+    if reconcile:
+        assert execution.run_next(now=datetime.now(UTC)) == "IDLE" and publisher.calls == []
 
 
 def main(mode):
@@ -150,41 +221,27 @@ def main(mode):
         or make_url(url).database != "newsflow_verification"
     ):
         raise RuntimeError("Publication probe requires isolated verification database")
-    if mode not in {"seed", "recover", "verify", "quota"}:
+    if mode not in {"seed", "recover", "verify", "verify-pending", "quota"}:
         raise ValueError("Unsupported publication probe mode")
     engine = create_engine(url)
     sessions = sessionmaker(engine)
     root = Path(os.environ["NEWSFLOW_MEDIA_ROOT"])
     publisher = SyntheticPublisher(sessions)
-    execution = DurablePublicationRunner(sessions, root, publisher=publisher)
+    execution = DurablePublicationRunner(
+        sessions, root, publisher=publisher, cipher=SessionCipher(SYNTHETIC_KEY)
+    )
     if mode == "seed":
         seed(sessions, root, execution)
     else:
         manifest = json.loads(
             (root / "synthetic-publication-intents.json").read_text(encoding="utf-8")
         )
-        jobs = manifest["jobs"]
+        if manifest.get("version") != 2:
+            raise RuntimeError(
+                "Retain legacy history and use a fresh observed-ack verification project"
+            )
         if mode == "recover":
-            old = PublicationClaim(**manifest["old_claim"])
-            current = execution.claim_next(now=datetime.now(UTC))
-            assert (
-                current.job_id == old.job_id and current.attempt == 2 and current.token != old.token
-            )
-            assert execution.execute(old) == "LOST_LEASE" and publisher.calls == []
-            assert execution.execute(PublicationClaim(**manifest["sending_claim"])) == "LOST_LEASE"
-            assert execution.execute(current) == "SUCCEEDED" and len(publisher.calls) == 1
-            with sessions.begin() as session:
-                item = session.get(PlannedPublicationModel, manifest["plans"][2])
-                candidate = session.get(PublicationCandidateModel, item.candidate_id)
-                decision = session.scalars(
-                    select(EditorialDecisionModel).where(
-                        EditorialDecisionModel.content_key == candidate.content_key
-                    )
-                ).one()
-                decision.status, decision.rewrite_allowed = "REJECT", False
-            assert (
-                execution.run_next(now=datetime.now(UTC)) == "BLOCKED" and len(publisher.calls) == 1
-            )
+            recover(sessions, execution, publisher, manifest)
         elif mode == "quota":
             with sessions.begin() as session:
                 item = session.get(PlannedPublicationModel, manifest["plans"][1])
@@ -202,27 +259,15 @@ def main(mode):
                 plan = service.configure_plan(output_id, "AUTOMATIC", 2, (0, 60))
                 reservations = service.plan_day(plan["id"], day)
                 assert {row["id"] for row in reservations} == set(manifest["plans"][:2])
-                assert len(reservations) == 2  # Published + unknown cancelled retain quota.
+                assert len(reservations) == 2  # Observed SENDING + unknown cancelled retain quota.
             assert publisher.calls == []
         else:
-            with sessions() as session:
-                rows = [session.get(PublicationJobModel, identity) for identity in jobs]
-                assert [row.state for row in rows] == [
-                    "SUCCEEDED",
-                    "NEEDS_RECONCILIATION",
-                    "BLOCKED",
-                ]
-                assert (
-                    rows[0].attempts == 2
-                    and rows[0].sent_message_id == 901
-                    and rows[0].request_nonce > 0
-                )
-                assert (
-                    session.get(PlannedPublicationModel, manifest["plans"][0]).state == "PUBLISHED"
-                )
-            assert execution.run_next(now=datetime.now(UTC)) == "IDLE" and publisher.calls == []
+            reconcile = mode == "verify"
+            verify_persisted(sessions, execution, publisher, manifest, reconcile=reconcile)
             for planned_id, expected in zip(
-                manifest["plans"], ("SUCCEEDED", "NEEDS_RECONCILIATION", "BLOCKED"), strict=True
+                manifest["plans"],
+                ("SUCCEEDED" if reconcile else "SENDING", "NEEDS_RECONCILIATION", "BLOCKED"),
+                strict=True,
             ):
                 url = f"http://api:8000/api/telegram/planned-publications/{planned_id}/delivery-status"
                 with urlopen(url, timeout=15) as response:

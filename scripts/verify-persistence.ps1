@@ -279,9 +279,11 @@ if ($PublicationGuard) {
     Invoke-PublicationProbe 'recover'
     Invoke-PublicationProbe 'quota'
     Invoke-VerificationCompose restart worker
-    Invoke-PublicationProbe 'verify'
+    Invoke-PublicationProbe 'verify-pending'
     Invoke-VerificationCompose down
     Invoke-VerificationCompose up -d --wait --wait-timeout 180
+    Invoke-PublicationProbe 'verify'
+    Invoke-VerificationCompose restart worker
     Invoke-PublicationProbe 'verify'
 }
 Write-Output "Synthetic persistence checks passed. Stack retained: $Project"
