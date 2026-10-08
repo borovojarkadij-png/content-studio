@@ -23,6 +23,7 @@ def main() -> None:
     from newsflow.app import app
     from newsflow.persistence.database import reset_database_session_factory
     from newsflow.persistence.models import (
+        AutomaticApprovalPolicyModel,
         ChannelDifferenceCursorModel,
         ContentRevisionModel,
         EditorialDecisionModel,
@@ -33,6 +34,7 @@ def main() -> None:
         PublicationJobModel,
         RewriteJobModel,
         RewriteUsageModel,
+        SemanticVerifierReleaseModel,
         TelegramAccount,
     )
     from newsflow.providers.commons_images import ImageSearchResult
@@ -350,6 +352,28 @@ def main() -> None:
                     pts=10,
                     available_at=datetime.now(UTC),
                     last_error_code="GAP_UNRESOLVED",
+                )
+            )
+            session.commit()
+        # Inactive synthetic history exercises UI recovery; this fixture never
+        # qualifies an operational model or enables any provider/worker.
+        with Session(engine) as session:
+            revoked_output = TelegramConfigurationService(session).create_output(
+                1, -1007777777777, "Изолированный канал с отозванным release API"
+            )
+            release = SemanticVerifierReleaseModel(
+                provider="OPENAI",
+                model="synthetic-inactive-only",
+                prompt_version="semantic-facts-v1",
+                benchmark_version="semantic-facts-v1",
+                report_sha256="a" * 64,
+                active=False,
+            )
+            session.add(release)
+            session.flush()
+            session.add(
+                AutomaticApprovalPolicyModel(
+                    output_channel_id=revoked_output["id"], mode="VERIFIED", release_id=release.id
                 )
             )
             session.commit()

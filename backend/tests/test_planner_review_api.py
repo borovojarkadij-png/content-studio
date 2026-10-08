@@ -120,6 +120,7 @@ def test_automatic_approval_policy_defaults_manual_and_cannot_accept_client_verd
     path = f"/api/telegram/output-channels/{channel_id}/approval-policy"
     response = client.get(path)
     assert response.status_code == 200
+    assert response.headers["Cache-Control"] == "no-store"
     assert response.json()["mode"] == "MANUAL"
     assert client.put(path, json={"mode": "VERIFIED", "release_id": 123}).status_code == 409
     assert client.put(path, json={"mode": "MANUAL", "verdict": "PRESERVED"}).status_code == 422

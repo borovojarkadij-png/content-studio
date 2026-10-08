@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { SemanticVerificationStatus } from "./SemanticVerificationStatus";
+import { ApprovalPolicyPanel } from "./ApprovalPolicyPanel";
 import type { WorkspaceProps } from "./App";
 import {
   loadOutputChannels,
@@ -164,6 +165,8 @@ function ChannelPlanner({
   const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState(false);
   const [refresh, setRefresh] = useState(0);
+  const [approvalDirty, setApprovalDirty] = useState(false);
+  const [approvalBusy, setApprovalBusy] = useState(false);
   const mutations = useRef(new AbortController());
   const planId = saved?.id;
   const dirty =
@@ -172,11 +175,11 @@ function ChannelPlanner({
     zone !== (saved?.timezone ?? "Europe/Minsk") ||
     slots !== formatSlots(saved?.slot_minutes ?? [540]);
   useEffect(() => {
-    onDirty(dirty);
-  }, [dirty, onDirty]);
+    onDirty(dirty || approvalDirty);
+  }, [dirty, approvalDirty, onDirty]);
   useEffect(() => {
-    onBusy(busy);
-  }, [busy, onBusy]);
+    onBusy(busy || approvalBusy);
+  }, [busy, approvalBusy, onBusy]);
   useEffect(() => {
     const controller = new AbortController();
     mutations.current = controller;
@@ -268,6 +271,12 @@ function ChannelPlanner({
   return (
     <>
       <RewriteStylePanel key={channelId} channelId={channelId} />
+      <ApprovalPolicyPanel
+        channelId={channelId}
+        onDirty={setApprovalDirty}
+        onBusy={setApprovalBusy}
+        onSaved={() => setRefresh((value) => value + 1)}
+      />
       <Panel>
         <PanelTitle title="Правила подбора" icon="settings" />
         <fieldset disabled={busy} className="live-planner-fields">

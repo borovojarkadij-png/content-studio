@@ -154,9 +154,11 @@ class AutomaticApprovalPolicyService:
         self._session = session
 
     def get_policy(self, channel_id: int) -> dict[str, object]:
-        if self._session.get(OutputChannel, channel_id) is None:
+        if type(channel_id) is not int or channel_id <= 0:
+            raise ValueError("Canonical positive channel identity required")
+        if self._session.get(OutputChannel, channel_id, populate_existing=True) is None:
             raise LookupError("Output channel was not found")
-        policy = self._session.get(AutomaticApprovalPolicyModel, channel_id)
+        policy = self._session.get(AutomaticApprovalPolicyModel, channel_id, populate_existing=True)
         return {
             "output_channel_id": channel_id,
             "mode": policy.mode if policy else "MANUAL",
@@ -170,7 +172,9 @@ class AutomaticApprovalPolicyService:
                     "benchmark_version": release.benchmark_version,
                 }
                 for release in self._session.scalars(
-                    select(SemanticVerifierReleaseModel).order_by(SemanticVerifierReleaseModel.id)
+                    select(SemanticVerifierReleaseModel)
+                    .order_by(SemanticVerifierReleaseModel.id)
+                    .execution_options(populate_existing=True)
                 )
                 if release_is_qualified(release)
             ],

@@ -11,10 +11,10 @@
 | R-010 | Exact dedup before editorial | 1 | PARTIAL | mapping-scoped durable fingerprint and retry regression tests |
 | R-011 | Moderation inbox API read model | 1 | PARTIAL | DATABASE_URL session wiring; latest revision/editorial integration tests |
 | R-006 | Compose persistence | 1 | PARTIAL / CURRENT WINDOWS BLOCKED | historical synthetic Windows recovery recorded; latest Windows disk/storage deployment NOT VERIFIED / BLOCKED BY ENVIRONMENT; Linux admission/sync restart CI successful, not Windows proof; live authorization pending |
-| R-012 | Automatic channel planning | 1 | PARTIAL | durable timer/slots/quota/delays/priorities, guarded pinned-release semantic approval and publication workers implemented offline; fair media/semantic admission + original queued jobs PostgreSQL restart CI; operational unattended workflow pending |
+| R-012 | Automatic channel planning | 1 | PARTIAL | durable timer/slots/quota/delays/priorities, real per-channel qualified-release approval form, guarded semantic/media/publication workers and PostgreSQL queued restart CI; synthetic full unattended integration and operational workflow pending |
 | R-013 | Rewrite factual preservation | 1 | PARTIAL | 25 synthetic anchor/hard-policy regressions; semantic equivalence deliberately not claimed |
 | R-014 | Durable rewrite recovery | 1 | PARTIAL | opt-in encrypted provider worker, committed attempts/leases/fencing, bounded retry and temporary-sync wait, PENDING outbox, stale/reject zero calls and synthetic recovery; operational provider acceptance pending |
-| R-007 | Russian dashboard | 1 | PARTIAL | eight dark-navy sections; real configuration/filter/rights/plan/review APIs, Overview and donor/media/publication/semantic diagnostics; 120 frontend unit/29 browser gate; strict DEMO separation; operational runtime pending |
+| R-007 | Russian dashboard | 1 | PARTIAL | eight dark-navy sections; real configuration/filter/rights/plan/review/approval-policy APIs, Overview and donor/media/publication/semantic diagnostics; 139 frontend unit/30 browser gate; strict DEMO separation; operational runtime pending |
 | UI-001 | Reference-based eight-section UI increment | UI | VERIFIED LOCALLY | 40 screenshots; manual PNG comparison; UI_DARK_NAVY_VERIFICATION.md |
 | UI-002 | Preserve source/manual drafts | UI | VERIFIED LOCALLY | navigation/overwrite-confirm/reject read-only regressions |
 | UI-003 | Honest DEMO/API boundaries | UI | VERIFIED LOCALLY | actual isolated API, HTTP retry, malformed response and no DEMO API traffic tests |

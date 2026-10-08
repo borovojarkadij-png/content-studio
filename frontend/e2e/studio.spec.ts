@@ -52,6 +52,114 @@ const navigate = async (page: Page, name: string) => {
     .click();
 };
 
+test("real approval settings persist manual recovery without qualifying a model or losing plan edits", async ({
+  page,
+}, testInfo) => {
+  const writes: string[] = [];
+  page.on("request", (request) => {
+    if (request.url().includes("/api/") && request.method() !== "GET")
+      writes.push(`${request.method()} ${new URL(request.url()).pathname}`);
+  });
+  await page.goto("/");
+  await navigate(page, "Планировщик");
+  const mode = page.getByRole("combobox", {
+    name: "Одобрение рерайтов",
+    exact: true,
+  });
+  await expect(mode).toHaveValue("MANUAL");
+  await expect(mode.locator('option[value="VERIFIED"]')).toHaveJSProperty(
+    "disabled",
+    true,
+  );
+  await expect(page.getByText(/Нет квалифицированных моделей/)).toBeVisible();
+  await page
+    .getByLabel("Канал плана")
+    .selectOption({ label: "Изолированный канал с отозванным release API" });
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await expect(mode).toHaveValue("VERIFIED");
+    await expect(page.getByRole("alert")).toContainText(
+      "Сохранённый release недоступен",
+    );
+    await page.getByLabel("Постов в день").fill("5");
+    await mode.selectOption("MANUAL");
+    await expect(page.getByLabel("Канал плана")).toBeDisabled();
+    await page
+      .getByRole("button", { name: "Отменить правки одобрения" })
+      .click();
+    await expect(mode).toHaveValue("VERIFIED");
+    await expect(page.getByLabel("Постов в день")).toHaveValue("5");
+    await expect(page.getByLabel("Канал плана")).toBeDisabled();
+    await page.getByRole("button", { name: "Отменить правки плана" }).click();
+    await expect(page.getByLabel("Канал плана")).toBeEnabled();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    expect(
+      (
+        await new AxeBuilder({ page })
+          .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
+          .analyze()
+      ).violations,
+    ).toEqual([]);
+    await page.screenshot({
+      path: testInfo.outputPath(`approval-policy-revoked-${width}.png`),
+      fullPage: true,
+    });
+  }
+  await page.route("**/output-channels/*/approval-policy", (route) =>
+    route.request().method() === "PUT"
+      ? route.fulfill({
+          status: 409,
+          contentType: "application/json",
+          body: '{"detail":"private-test-error"}',
+        })
+      : route.continue(),
+  );
+  await mode.selectOption("MANUAL");
+  await page.getByRole("button", { name: "Сохранить одобрение" }).click();
+  await expect(page.getByRole("alert")).toContainText("HTTP 409");
+  await expect(mode).toHaveValue("MANUAL");
+  await expect(page.getByLabel("Канал плана")).toBeDisabled();
+  await expect(page.getByText(/Настройка одобрения сохранена/)).toHaveCount(0);
+  await expect(page.getByText("private-test-error")).toHaveCount(0);
+  await page.unroute("**/output-channels/*/approval-policy");
+  await page.getByRole("button", { name: "Сохранить одобрение" }).click();
+  await expect(page.getByText(/Настройка одобрения сохранена/)).toBeVisible();
+  await expect(page.getByLabel("Канал плана")).toBeEnabled();
+  await page.reload();
+  await navigate(page, "Планировщик");
+  await page
+    .getByLabel("Канал плана")
+    .selectOption({ label: "Изолированный канал с отозванным release API" });
+  await expect(mode).toHaveValue("MANUAL");
+  await expect(mode.locator('option[value="VERIFIED"]')).toHaveJSProperty(
+    "disabled",
+    true,
+  );
+  await page.screenshot({
+    path: testInfo.outputPath("approval-policy-saved-390.png"),
+    fullPage: true,
+  });
+  const beforeDemo = writes.length;
+  await page.goto("/?demo=1");
+  await navigate(page, "Планировщик");
+  await expect(
+    page.getByRole("combobox", { name: "Одобрение рерайтов", exact: true }),
+  ).toHaveCount(0);
+  expect(writes.length).toBe(beforeDemo);
+  expect(writes).toHaveLength(2);
+  expect(
+    writes.every((request) =>
+      /^PUT \/api\/telegram\/output-channels\/\d+\/approval-policy$/.test(
+        request,
+      ),
+    ),
+  ).toBe(true);
+});
+
 test("real planner fact diagnostics are read-only, on demand and separated from DEMO", async ({
   page,
 }, testInfo) => {

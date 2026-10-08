@@ -2,6 +2,18 @@
 
 ## VERIFIED WORKING
 
+- Real per-channel approval-policy Planner form OFFLINE: manual default, only
+  registry-qualified fixed release selection, honest revoked recovery and no
+  qualification/AI/send/worker flag side effects. Cached policy/release read
+  RED -> fresh SQL GREEN; no-store HTTP, strict client, independent dirty drafts,
+  refused/mismatched saves, bounded duplicate/abort/DEMO guards verified.
+  57 combined / full 1094 backend PASS (70662); 139 frontend / 30 browser PASS
+  (90537), exact lint/format/D: compile/explicit D: drift/build/audit PASS.
+  Desktop/mobile screenshots visually inspected; see APPROVAL_POLICY_UI_VERIFICATION.md.
+- Semantic status 157ed68e07cac857eab37159accdf785fca3342f committed/pushed
+  correct origin; CI 37761899546 backend/frontend/dedicated admission API/restart/
+  sync SUCCESS, two legacy Docker variants still running at inspection.
+
 - Read-only per-draft semantic status API and existing real Planner diagnostics:
   18 dedicated / 80 combined backend regressions, 120 frontend units / 29 browser
   PASS. Fresh cached SQL/current gates/retained budget/history, strict private DTO,
@@ -827,12 +839,14 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: checkpoint/push semantic status API/Planner diagnostics and inspect its exact six-job CI, especially
-new HTTP assertions in dedicated PostgreSQL admission restart acceptance. Correct
-ordinary failures without weakening checks. Then real per-channel approval-policy
-UI via the existing API: manual default, qualified fixed-release selection only,
-save/cancel/fresh refusal/unsaved draft/reload/cancellation/DEMO separation. No public
-qualification endpoint, implicit model qualification or operational worker enablement.
+NEXT_STEP: checkpoint/push verified per-channel approval-policy UI and inspect its
+exact six-job CI plus 157ed68 CI 37761899546 overall completion. Correct ordinary
+failures without weakening tests. Next, isolated synthetic unattended vertical-slice
+integration: current ingestion -> per-output durable rewrite -> pinned verification
+-> original/library media -> timer-driven plan -> durable publication; restart SQL
+between steps, protected reject zero provider/new RewriteJob, stale/retry/double
+tick zero duplicates. Reuse existing services and trusted synthetic test-only releases;
+never qualify operational models, enable operational worker flags or send real posts.
 No live provider call, operational approval or download/send test side effects;
 preserve pinned qualification and all operational flags 0.
 Never expose tokens/session/key or call live providers for a dashboard. Never reseed old

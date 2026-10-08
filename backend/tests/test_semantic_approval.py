@@ -22,6 +22,65 @@ DRAFT = "Открыты 3 линии на заводе."
 KEY = "synthetic:@semantic:1:revision:1"
 
 
+def test_approval_policy_read_refreshes_revoked_cached_release_and_policy(semantic_store):
+    from newsflow.persistence.models import AutomaticApprovalPolicyModel
+
+    with semantic_store() as cached:
+        old_policy = cached.get(AutomaticApprovalPolicyModel, 1)
+        old_release = cached.get(SemanticVerifierReleaseModel, 1)
+        service = AutomaticApprovalPolicyService(cached)
+        assert service.get_policy(1)["mode"] == "VERIFIED"
+        with semantic_store.begin() as writer:
+            writer.get(SemanticVerifierReleaseModel, 1).active = False
+            policy = writer.get(AutomaticApprovalPolicyModel, 1)
+            policy.mode, policy.release_id = "MANUAL", None
+        report = service.get_policy(1)
+        assert (report["mode"], report["release_id"]) == ("MANUAL", None)
+        assert report["qualified_releases"] == []
+        assert old_policy.mode == "MANUAL" and old_release.active is False
+        assert not cached.new and not cached.dirty
+
+
+@pytest.mark.parametrize("channel_id", [True, 0, -1, "1"])
+def test_approval_policy_invalid_identity_refused_before_sql(channel_id):
+    with pytest.raises(ValueError):
+        AutomaticApprovalPolicyService(None).get_policy(channel_id)
+
+
+def test_approval_policy_http_configures_only_existing_release_without_jobs(
+    semantic_store, monkeypatch
+):
+    from fastapi.testclient import TestClient
+
+    from newsflow.app import app
+    from newsflow.persistence.models import SemanticVerificationJobModel
+
+    monkeypatch.setenv("DATABASE_URL", str(semantic_store.kw["bind"].url))
+    path = "/api/telegram/output-channels/1/approval-policy"
+    with TestClient(app) as client:
+        initial = client.get(path)
+        assert initial.headers["Cache-Control"] == "no-store"
+        assert initial.json()["qualified_releases"][0]["model"] == "synthetic-model"
+        assert (
+            client.put(path, json={"mode": "MANUAL", "release_id": None}).json()["mode"] == "MANUAL"
+        )
+        assert (
+            client.put(path, json={"mode": "VERIFIED", "release_id": 1}).json()["mode"]
+            == "VERIFIED"
+        )
+        with semantic_store.begin() as session:
+            session.get(SemanticVerifierReleaseModel, 1).active = False
+        refused = client.put(path, json={"mode": "VERIFIED", "release_id": 1})
+        assert refused.status_code == 409
+        assert client.get(path).json()["qualified_releases"] == []
+        assert (
+            client.put(path, json={"mode": "MANUAL", "release_id": None}).json()["mode"] == "MANUAL"
+        )
+    with semantic_store() as session:
+        assert session.scalar(select(SemanticVerificationJobModel)) is None
+        assert session.scalar(select(SemanticEvidenceModel)) is None
+
+
 class SyntheticVerifier:
     provider = "OPENAI"
     model = "synthetic-model"

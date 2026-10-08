@@ -147,7 +147,10 @@ class ApprovalPolicyRequest(BaseModel):
 
 
 @router.get("/output-channels/{channel_id}/approval-policy")
-def get_approval_policy(channel_id: int, service: ApprovalPolicies) -> dict[str, object]:
+def get_approval_policy(
+    channel_id: int, response: Response, service: ApprovalPolicies
+) -> dict[str, object]:
+    response.headers["Cache-Control"] = "no-store"
     return service.get_policy(channel_id)
 
 
