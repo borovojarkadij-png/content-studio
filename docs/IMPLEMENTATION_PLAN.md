@@ -22,6 +22,8 @@
 - [x] Read-only username/broadcast-channel/full-hash resolution, durable import jobs/leases/session fencing, alias idempotency/manual title preservation and atomic resolved outbox; 462-test local gate
 - [x] Actual synthetic donor-import Windows Docker recovery, stale owner/alias/outbox/encrypted peer persistence, packaged PostgreSQL drift and resolved import/donor API
 - [ ] Full Telegram update-difference/deletion recovery, album batching/download and live encrypted authorization restart acceptance
+- [x] Bounded read-only channel difference provider/Fake/encrypted factory contract: exact channel-pts/new/edit/deletion observations, TooLong/unknown/foreign fail-closed, strict user binding and 779 backend gate; no durable gap application or new worker enabled
+- [ ] Durable source-deletion tombstones, shared freshness/ingestion fencing and leased channel-pts recovery; deletion-first fan-out, atomic/idempotent persistence, no implicit TooLong reset
 - [x] Bounded sparse album observation in provider/factory/fake, explicit incomplete-membership contract and ingress/stale-worker/manual-review/planner fail-closed gate; 500-test backend verification
 - [~] Filters, semantic dedup, events, hype, media, routing and scheduler; durable per-channel plan/timer, mapping-aware candidates, immediate/delayed/priority/media snapshots and gated activation complete; semantic dedup/events/hype, media acquisition and publication execution remain pending
 - [~] Mapping-level deterministic filters for media, advertising markers and forbidden links

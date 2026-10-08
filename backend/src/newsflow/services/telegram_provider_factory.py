@@ -202,6 +202,14 @@ class ConfiguredTelegramProvider:
             account_id, donor_identifier, after_id=after_id, limit=limit
         )
 
+    def channel_difference(self, account_id, donor_identifier, *, pts, limit):
+        from newsflow.providers.telegram import validate_difference_request
+
+        validate_difference_request(account_id, donor_identifier, pts, limit)
+        return self._adapter(account_id, donor_identifier).channel_difference(
+            account_id, donor_identifier, pts=pts, limit=limit
+        )
+
     def fetch_message(self, account_id, donor_identifier, message_id):
         return self._adapter(account_id, donor_identifier).fetch_message(
             account_id, donor_identifier, message_id

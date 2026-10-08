@@ -2,6 +2,13 @@
 
 ## VERIFIED WORKING
 
+- Bounded read-only channel difference contract OFFLINE: full backend 779 /
+  exact CI Ruff/targeted format/compile/explicit D: migration drift PASS.
+  New/edited/deleted identities, pts/bounds/final, TooLong/unknown/foreign
+  fail-closed, encrypted factory and bool/unbound user regressions verified.
+  No durable cursor/deletion application or worker enabled yet; see
+  TELEGRAM_CHANNEL_DIFFERENCE_VERIFICATION.md. Live/Windows Docker NOT VERIFIED.
+
 - Versioned create-only publication probe logic OFFLINE: 751 backend /
   exact CI Ruff/targeted format/compile and PowerShell parser PASS.
   Independent SQL reopen verifies encrypted original requests/observed ack,
@@ -589,12 +596,16 @@ Encrypted snapshot checkpoint committed/pushed eda7574c64910cb59471f91d27d3f12db
 Direct-response observation/no-resend recovery implemented and gate verified
 (750 backend, 58 frontend, final browser 24 PASS in 17486).
 Observation checkpoint committed/pushed 33757e6c873d108b6db1fcdce2eb28f1732a3c2a.
-Create-only synthetic PostgreSQL/Docker publication probe extended and OFFLINE
-consumer/full 751 backend gate PASS. Commit/push this probe checkpoint and inspect
-its own GitHub CI (do not confuse prior runs with this procedure). Then implement
-the bounded read-only Telegram channel update-difference provider contract and
-deletion observations with synthetic Telethon responses. Full durable gap/
-deletion application and live verification are pending. Windows Docker stays
+Probe checkpoint committed/pushed 6266b5a0689409bc7af89b7e3dadec5ab7f2f206;
+its CI 37713732217 backend/frontend PASS, both Docker jobs in progress at inspection.
+Read-only channel difference provider/Fake/encrypted factory contract implemented;
+full 779 backend gate PASS. Commit/push this contract checkpoint, then implement
+durable source-deletion tombstones and shared freshness/ingestion guards with
+history-preserving migration and adversarial tests. Record deletions before message
+fan-out; do not resurrect sources through replay/new mapping/worker/retry/manual
+review or scheduling. Follow with leased channel-pts processing; never advance
+pts until all observations/mappings persist, never treat TooLong as full recovery.
+Full durable gap/deletion application and live verification are pending. Windows Docker stays
 blocked; no deletion/prune/volume reset or live provider-send workaround.
 Do not guess message identity by text/time. Use D: for
 temporary data. Difference reconciliation follows; no live sends
@@ -617,7 +628,7 @@ browser all 23 PASS after moving temporary/output files to D: (68626).
 Guarded text sender initial 19/factory 4 test-first RED cases now GREEN; 35 final
 targeted / 684 full backend PASS. No live send flag, HTTP endpoint or worker added.
 
-Last committed HEAD before this probe increment: 33757e6c873d108b6db1fcdce2eb28f1732a3c2a,
+Last committed HEAD before this difference increment: 6266b5a0689409bc7af89b7e3dadec5ab7f2f206,
 codex/dark-navy-ui, correct origin borovojarkadij-png/content-studio.
 CI 37710524239 for e14bdf4 completed SUCCESS in all four jobs (gh inspection).
 CI 37710873887 for f9a4075: completed SUCCESS in all four jobs (actual gh run list).

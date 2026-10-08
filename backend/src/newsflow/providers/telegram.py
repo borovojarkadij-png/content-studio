@@ -213,7 +213,85 @@ def _album_bounds(anchor_id: int) -> tuple[int, int]:
     return max(1, anchor_id - 49), min(2**31 - 1, anchor_id + 50)
 
 
+def validate_difference_request(account_id, donor_identifier, pts, limit):
+    if (
+        not isinstance(account_id, str)
+        or not account_id
+        or type(pts) is not int
+        or not 1 <= pts <= 2**31 - 1
+        or type(limit) is not int
+        or not 10 <= limit <= 100
+    ):
+        raise ValueError("Invalid bounded channel difference request")
+    if (
+        not isinstance(donor_identifier, str)
+        or re.fullmatch(r"-[1-9][0-9]{12,18}", donor_identifier) is None
+        or not -(2**63) <= int(donor_identifier) < -1000000000000
+    ):
+        raise ValueError("Difference requires canonical numeric channel identity")
+
+
+@dataclass(frozen=True, slots=True)
+class TelegramChannelDifference:
+    """One bounded channel-pts chunk, never a delivery acknowledgement.
+
+    Future consumers must apply all observations atomically before advancing pts.
+    Non-final chunks require continuation; TooLong never creates this value.
+    """
+
+    account_id: str
+    donor_identifier: str
+    start_pts: int
+    next_pts: int
+    final: bool
+    retry_after_seconds: int
+    messages: tuple[TelegramMessage, ...]
+    deleted_message_ids: tuple[int, ...]
+
+    def __post_init__(self):
+        validate_difference_request(self.account_id, self.donor_identifier, self.start_pts, 100)
+        if (
+            type(self.next_pts) is not int
+            or not self.start_pts <= self.next_pts <= 2**31 - 1
+            or type(self.final) is not bool
+            or (not self.final and self.next_pts == self.start_pts)
+            or type(self.retry_after_seconds) is not int
+            or not 0 <= self.retry_after_seconds <= 2**31 - 1
+            or type(self.messages) is not tuple
+            or type(self.deleted_message_ids) is not tuple
+            or len(self.messages) + len(self.deleted_message_ids) > 100
+        ):
+            raise ValueError("Malformed or non-progressing channel difference")
+        if len(set(self.deleted_message_ids)) != len(self.deleted_message_ids) or any(
+            type(value) is not int or not 1 <= value <= 2**31 - 1
+            for value in self.deleted_message_ids
+        ):
+            raise ValueError("Invalid channel deletion identities")
+        if self.next_pts == self.start_pts and (self.messages or self.deleted_message_ids):
+            raise ValueError("Content updates require channel pts progress")
+        for message in self.messages:
+            if (
+                not isinstance(message, TelegramMessage)
+                or message.account_id != self.account_id
+                or message.donor_identifier != self.donor_identifier
+                or type(message.message_id) is not int
+                or not 1 <= message.message_id <= 2**31 - 1
+                or type(message.is_edit) is not bool
+                or not isinstance(message.text, str)
+                or len(message.text.encode("utf-16-le")) // 2 > 4096
+                or message.media_type not in {"text", "photo", "video", "unsupported"}
+                or not isinstance(message.source_updated_at, datetime)
+                or message.source_updated_at.tzinfo is None
+                or message.source_updated_at.utcoffset() is None
+            ):
+                raise ValueError("Malformed or foreign difference message")
+            validate_media_observation(message)
+
+
 class TelegramProvider(Protocol):
+    def channel_difference(
+        self, account_id: str, donor_identifier: str, *, pts: int, limit: int
+    ) -> TelegramChannelDifference: ...
     def download_photo(
         self, account_id: str, donor_identifier: str, message_id: int
     ) -> TelegramPhotoDownload: ...
@@ -250,6 +328,22 @@ class FakeTelegramProvider:
         self._session_probes: dict[str, int] = {}
         self._channels: dict[tuple[str, str], TelegramChannelResolution] = {}
         self._photos: dict[tuple[str, str, int], bytes] = {}
+        self._differences: dict[tuple[str, str, int], TelegramChannelDifference] = {}
+
+    def seed_channel_difference(self, difference):
+        if not isinstance(difference, TelegramChannelDifference):
+            raise TypeError("Fake difference requires a validated immutable chunk")
+        self._differences[
+            (difference.account_id, difference.donor_identifier, difference.start_pts)
+        ] = difference
+
+    def channel_difference(self, account_id, donor_identifier, *, pts, limit):
+        validate_difference_request(account_id, donor_identifier, pts, limit)
+        self.verify_session(account_id)
+        result = self._differences[(account_id, donor_identifier, pts)]
+        if len(result.messages) + len(result.deleted_message_ids) > limit:
+            raise ValueError("Fake difference exceeds requested observation bound")
+        return result
 
     def seed_channel(self, account_id, identifier, channel_id, title):
         self._channels[(account_id, identifier)] = TelegramChannelResolution(
@@ -489,7 +583,7 @@ class TelethonTelegramProvider:
                     raise SessionUnavailable("Telegram session requires manual authorization")
                 if self._expected_user_id is not None:
                     me = await client.get_me()
-                    if getattr(me, "id", None) != self._expected_user_id:
+                    if type(getattr(me, "id", None)) is not int or me.id != self._expected_user_id:
                         raise SessionUnavailable("Telegram session account identity mismatch")
                 self._save_session(account_id, client)
                 result = await operation(client)
@@ -553,6 +647,11 @@ class TelethonTelegramProvider:
             return tuple(result)
 
         return self._run(account_id, read)
+
+    def channel_difference(self, account_id, donor_identifier, *, pts, limit):
+        from newsflow.providers.telegram_difference import read_channel_difference
+
+        return read_channel_difference(self, account_id, donor_identifier, pts=pts, limit=limit)
 
     def fetch_message(self, account_id, donor_identifier, message_id):
         channel = self._channel_id(donor_identifier)
