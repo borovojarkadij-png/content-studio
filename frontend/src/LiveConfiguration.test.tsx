@@ -1,5 +1,6 @@
 import { StrictMode } from "react";
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -226,6 +227,7 @@ it("persists mapping delivery settings only from authoritative API response", as
   render(<App initialDemo={false} />);
   navigate("Связи");
   const mode = await screen.findByLabelText("Допуск к планированию");
+  await waitFor(() => expect(mode.matches(":disabled")).toBe(false));
   fireEvent.change(mode, { target: { value: "DELAYED" } });
   fireEvent.change(screen.getByLabelText("Задержка, минут"), {
     target: { value: "45" },
@@ -243,6 +245,40 @@ it("persists mapping delivery settings only from authoritative API response", as
     priority: 2,
     media_policy: "REUSE_SOURCE",
   });
+});
+it("mapping form remains unavailable until its technical filters finish loading", async () => {
+  let finishFilters: (value: unknown) => void = () => {};
+  const delayed = new Promise((resolve) => {
+    finishFilters = resolve;
+  });
+  const fetch = fixture((path, init) =>
+    path.endsWith("technical-filters")
+      ? delayed
+      : path.endsWith("mappings/3") && init?.method === "PATCH"
+        ? json({ ...route, ...JSON.parse(String(init.body)) })
+        : undefined,
+  );
+  vi.stubGlobal("fetch", fetch);
+  render(<App initialDemo={false} />);
+  navigate("Связи");
+  const mode = await screen.findByLabelText("Допуск к планированию");
+  expect(mode.matches(":disabled")).toBe(true);
+  const save = screen.getByRole("button", { name: "Сохранить маршрут" });
+  expect(save.matches(":disabled")).toBe(true);
+  expect(fetch.mock.calls.some(([, init]) => init?.method === "PATCH")).toBe(
+    false,
+  );
+  await act(async () => finishFilters(json(filter)));
+  await waitFor(() => expect(mode.matches(":disabled")).toBe(false));
+  fireEvent.change(mode, { target: { value: "DELAYED" } });
+  fireEvent.change(screen.getByLabelText("Задержка, минут"), {
+    target: { value: "45" },
+  });
+  await waitFor(() => expect(save.matches(":disabled")).toBe(false));
+  fireEvent.click(save);
+  expect(
+    await screen.findByText("Маршрут сохранён в базе данных."),
+  ).toBeTruthy();
 });
 it("keeps failed filter edits and manual dirty state across section navigation", async () => {
   const fetch = fixture((path, init) =>

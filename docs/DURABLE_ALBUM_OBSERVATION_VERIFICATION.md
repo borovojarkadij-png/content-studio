@@ -63,3 +63,20 @@ No operational database, session, key, permission, network flag or channel
 setting changed. Current Windows Docker remains NOT VERIFIED / BLOCKED BY
 ENVIRONMENT. PHASE 1 not complete; full immutable group manifests, trusted
 membership evidence, media acquisition and guarded grouped publication pending.
+
+## Exact PostgreSQL CI fixture correction
+
+ed0beac / CI 37774362437 / PG job 113301402293 FAILED with **49 PASS / 1 FAIL**:
+invalid synthetic `media_id` was 21 chars, exceeding PostgreSQL varchar(20), so
+the fixture INSERT/UPDATE failed before the intended API corruption check.
+SQLite does not enforce that declared character limit. Use a 15-char still
+noncanonical marker; keep both the database length and runtime identity guards,
+never skip the case or loosen the production model. Corrected local 27 PASS.
+
+Same run frontend job 113301401799 failed the existing mapping-save test: it
+found a form control before the technical-filter read finished and clicked
+while its ancestor fieldset was disabled. Await `matches(':disabled')=false`
+(own button.disabled alone misses the fieldset); controlled deferred-filter
+regression confirms disabled/no PATCH before read and real save afterward.
+14 targeted tests PASS. No production UI/loading guard changed. Corrective
+actual PG/full CI pending; original failures remain failures.

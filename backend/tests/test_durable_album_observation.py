@@ -338,7 +338,7 @@ def test_anchor_change_between_reads_is_not_projected_as_current_album(album_sto
         {"album_id": "private-corrupt-value"},
         {"media_type": "text"},
         {"media_type": "executable"},
-        {"media_id": "private-corrupt-value"},
+        {"media_id": "private-corrupt"},
     ],
 )
 def test_corrupt_persisted_observations_are_not_normalized_or_exposed_as_valid(album_store, change):
@@ -357,7 +357,7 @@ def test_corrupt_persisted_observations_are_not_normalized_or_exposed_as_valid(a
         response = TestClient(app).get("/api/telegram/source-albums", params={"content_key": KEY})
         assert response.status_code == 409
         assert response.json() == {"detail": "ALBUM_OBSERVATION_INVALID"}
-        assert "private-corrupt-value" not in response.text
+        assert "private-corrupt" not in response.text
     finally:
         reset_database_session_factory()
 

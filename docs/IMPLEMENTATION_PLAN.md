@@ -67,6 +67,7 @@
 - [x] Bounded sparse album observation in provider/factory/fake, explicit incomplete-membership contract and ingress/stale-worker/manual-review/planner fail-closed gate; 500-test backend verification
 - [x] Bounded retained album observation read API using exact immutable SQL ownership/latest revisions/deletion flags; no inferred completeness or action permission, dirty-session refusal RED/GREEN, 27 new / 75 combined / full 1219 backend PASS OFFLINE; expanded actual PostgreSQL CI pending
 - [ ] Actual PostgreSQL retained album observation acceptance and existing Inbox read-only context wiring, no redesign or inferred membership completeness
+- [~] Correct ed0beac / 37774362437 PostgreSQL overlength invalid fixture and mapping test readiness race without altering schema/guards; 27 backend / 14 frontend targeted PASS; exact corrective CI pending
 - [~] Filters, semantic dedup, events, hype, media, routing and scheduler; durable per-channel plan/timer, mapping-aware candidates, immediate/delayed/priority/media snapshots and gated activation complete; semantic dedup/events/hype, media acquisition and publication execution remain pending
 - [~] Mapping-level deterministic filters for media, advertising markers and forbidden links
 - [x] Persisted mapping-filter GET/PUT API and ingress integration, canonical blocked domains, mandatory advertising markers and fresh worker/review/calendar policy guards; 442-test local gate

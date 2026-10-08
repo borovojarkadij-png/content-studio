@@ -2,6 +2,13 @@
 
 ## VERIFIED WORKING
 
+- ed0beac / CI 37774362437 expanded PG job 113301402293 FAILED: 49 PASS,
+  one malformed-media fixture used 21 chars in varchar(20), rejected by PostgreSQL
+  before API. Changed only synthetic invalid value to 15 chars, still noncanonical;
+  no production constraint relaxed. 27 local tests/Ruff PASS. Frontend job
+  113301401799 FAILED existing mapping test clicked while filters/fieldset still
+  loading; await actual enabled control, controlled deferred-read regression,
+  14 targeted PASS. New corrective CI pending; old failures retained.
 - Bounded retained album read API implemented OFFLINE: exact immutable SQL
   ownership/latest revisions/sparse photo-video captions/deletion flags, 11th
   member refusal, opaque-key ambiguity/corruption/concurrent-anchor guard,
@@ -941,8 +948,10 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: commit/push verified bounded album observation API to correct origin
-and inspect exact new eight-job CI including expanded PostgreSQL album tests.
+NEXT_STEP: commit/push corrected bounded malformed-media fixture and settled
+mapping-form test to correct origin, inspect exact new eight-job CI including
+expanded PostgreSQL album tests; ed0beac / 37774362437 PG/frontend FAILED ordinary
+test harness issues, not accepted overall proof. No production guard/schema changed.
 Full 1219 backend PASS (59333), no UI/schema/permission changes. After actual
 PG proof, wire read-only observed album context into existing Inbox components
 without redesign, preserving strict real/DEMO separation and no action permission.
