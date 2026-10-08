@@ -2,6 +2,12 @@
 
 ## VERIFIED WORKING
 
+- Separate create-only channel-sync recovery probe OFFLINE: 9 dedicated /
+  44 combined / full backend 962 PASS (24877), exact CI lint/changed format/
+  compile/explicit D: round-trip/drift and PowerShell parser/runtime refusal PASS.
+  SQL-reopen retains session/pts/deletions/obligations; real Inbox and bounded
+  legacy zero-provider recovery verified. Dedicated Linux Docker job added,
+  actual new Docker acceptance NOT VERIFIED yet. See CHANNEL_SYNC_PROBE_VERIFICATION.md.
 - Durable shared synchronization enforcement and strict default-disabled main-loop
   opt-in OFFLINE: 81 targeted / fresh full backend 953 PASS (21080), exact CI
   Ruff/changed format/compile/explicit D: migration round-trip/drift PASS.
@@ -693,14 +699,20 @@ explicit isolated D: round-trip/drift PASS. Missing/foreign/error/incomplete/act
 baselines fence shared API/worker/publication guards, including unscanned donors.
 Flag-off cannot waive quarantine. All operational flags remain unchanged.
 
-NEXT_STEP: checkpoint enforcement, then add a SEPARATE create-only synthetic
-channel-sync restart probe with Linux PostgreSQL/Docker CI acceptance. Do not
-enable global enforcement inside existing legacy probe suites or erase it to
-make fixtures pass. Verify encrypted session/pts/tombstones/exact replay across
-independent reopen/down-up, incomplete chunk/crash recovery, zero AI/send effects.
-No automatic legacy baseline reset/resync or real sends. Keep current Windows
-Docker NOT VERIFIED / BLOCKED BY ENVIRONMENT. Then assess concurrent replay
-source/binding lock order with PostgreSQL evidence; SQLite is not concurrency proof.
+Enforcement committed/pushed 72685a33c528aa084f465a21f5711376d7fee2f4;
+CI 37747730266 backend/frontend SUCCESS, Docker variants in progress at inspection.
+Separate create-only channel-sync restart probe implemented and verified OFFLINE:
+9 dedicated / 44 combined / full 962 backend PASS (24877), exact CI lint/format/
+compile/explicit D: round-trip/drift and PowerShell parser/runtime refusal PASS.
+Dedicated Linux PostgreSQL Docker job added; actual new Docker acceptance pending.
+
+NEXT_STEP: checkpoint sync probe and inspect exact GitHub job. Then harden replay's
+source snapshot AFTER acquiring current donor/cursor/account/mapping locks:
+concurrently committed source edits must not be classified from an older max-read.
+Add test-first interleaving regression, fresh gates and PostgreSQL concurrency
+evidence; SQLite is not lock proof. Keep separate fixture global enforcement and
+all operational flags unchanged. No automatic legacy baseline reset/resync or
+real sends. Current Windows Docker NOT VERIFIED / BLOCKED BY ENVIRONMENT.
 Never activate operational flags as a test.
 Never initialize/reset legacy cursor from latest-message IDs or TooLong, never
 advance pts until all observations/mappings persist. No public cursor-reset or

@@ -14,11 +14,22 @@ param(
     [switch]$ResolutionGuard,
     [switch]$SourcePhotoGuard,
     [switch]$PublicationGuard,
+    [switch]$ChannelSyncGuard,
     [ValidateSet('OPENAI', 'OPENROUTER')]
     [string]$RewriteProvider = 'OPENAI'
 )
 
 $ErrorActionPreference = 'Stop'
+if ($ChannelSyncGuard -and ($RewriteRecovery -or $SourceGuard -or $SemanticGuard -or
+    $MediaGuard -or $IngestionGuard -or $PeerGuard -or $MappingGuard -or
+    $ResolutionGuard -or $SourcePhotoGuard -or $PublicationGuard)) {
+    throw 'ChannelSyncGuard requires a separate fresh fixture; durable global enforcement cannot be undone.'
+}
+function Invoke-ChannelSyncProbe([string]$Mode) {
+    Get-Content -LiteralPath (Join-Path $PSScriptRoot 'docker_channel_sync_probe.py') -Raw |
+        & docker @composeArgs exec -T worker python - $Mode
+    if ($LASTEXITCODE -ne 0) { throw "Synthetic channel sync probe failed: $Mode" }
+}
 if ($MediaGuard -and -not $SemanticGuard) {
     throw 'MediaGuard requires a fresh synthetic SemanticGuard run.'
 }
@@ -101,6 +112,13 @@ NEWSFLOW_WEB_PORT=$WebPort
 NEWSFLOW_PROD_WEB_PORT=$ProductionPort
 NEWSFLOW_VERIFICATION_PROBE=1
 NEWSFLOW_VERIFICATION_REWRITE_PROVIDER=$RewriteProvider
+NEWSFLOW_TELEGRAM_CHANNEL_SYNC_ENABLED=0
+NEWSFLOW_TELEGRAM_INGESTION_ENABLED=0
+NEWSFLOW_REWRITE_ENABLED=0
+NEWSFLOW_SEMANTIC_VERIFICATION_ENABLED=0
+NEWSFLOW_INTERNET_MEDIA_ENABLED=0
+NEWSFLOW_SOURCE_PHOTO_ENABLED=0
+NEWSFLOW_PUBLICATION_ENABLED=0
 "@
 [IO.File]::WriteAllText($envPath, $envText, [Text.UTF8Encoding]::new($false))
 $networkPath = Join-Path $fixtureDirectory 'network.yaml'
@@ -285,6 +303,25 @@ if ($PublicationGuard) {
     Invoke-PublicationProbe 'verify'
     Invoke-VerificationCompose restart worker
     Invoke-PublicationProbe 'verify'
+}
+if ($ChannelSyncGuard) {
+    Invoke-ChannelSyncProbe 'seed'
+    Invoke-VerificationCompose down
+    Invoke-VerificationCompose up -d --wait --wait-timeout 180
+    Invoke-ChannelSyncProbe 'verify-pending'
+    Write-Output 'Waiting for the retained synthetic channel difference lease to expire.'
+    for ($tick = 0; $tick -lt 13; $tick++) { Start-Sleep -Seconds 5 }
+    Invoke-ChannelSyncProbe 'recover'
+    Invoke-VerificationCompose restart redis worker
+    Invoke-ChannelSyncProbe 'verify'
+    Invoke-VerificationCompose down
+    Invoke-VerificationCompose up -d --wait --wait-timeout 180
+    Invoke-ChannelSyncProbe 'verify'
+    if ($CrashRecovery) {
+        Invoke-VerificationCompose kill -s SIGKILL postgres
+        Invoke-VerificationCompose up -d --wait --wait-timeout 180
+        Invoke-ChannelSyncProbe 'verify'
+    }
 }
 Write-Output "Synthetic persistence checks passed. Stack retained: $Project"
 Write-Output 'No real Telegram authorization, network AI calls or publications.'
