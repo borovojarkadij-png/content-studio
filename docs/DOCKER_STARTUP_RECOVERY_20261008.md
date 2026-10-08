@@ -40,15 +40,19 @@ volume/configuration/credential modification. Old runtime entries remain preserv
   (255); this is not application health/deployment proof. No operational compose
   up/down, migration, queue, session or publication action during this recovery.
 
-Engine availability is verified. **Fresh current-source Windows stack build,
-health, migrations, persistence/recovery acceptance are NOT VERIFIED.** Previous
-missing-pipe blocker is now historical; higher gates are not promoted from daemon
-readiness. This workaround may be needed again after Desktop shutdown.
+At this startup-only checkpoint, engine availability was verified but fresh
+Windows stack build/health/migrations/persistence were NOT VERIFIED. Subsequent
+create-only Windows acceptance completed all five synthetic recovery families
+and 217 strict PostgreSQL tests; see WINDOWS_DOCKER_ACCEPTANCE_20261008.md for
+their actual evidence and candidate boundaries. Those results are not inferred
+from daemon readiness. Operational deployment and live authorization remain
+pending. This workaround may be needed again after Desktop shutdown.
 
 ## Next step
 
-Run existing create-only isolated Windows verification procedures with retained
-target/configuration guards. Do not reuse/reseed old fixtures or operational
-queues. Live Telegram/AI authorization remains separate; the user will provide
+The create-only isolated Windows verification procedures have now run with
+retained target/configuration guards; do not reseed those fixtures or operational
+queues. Follow CURRENT_STATE.md for the next independent implementation task.
+Live Telegram/AI authorization remains separate; the user will provide
 credentials and explicitly designated test-channel destinations. No live send
 performed or destination inferred from donor links.

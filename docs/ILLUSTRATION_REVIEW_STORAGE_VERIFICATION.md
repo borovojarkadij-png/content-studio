@@ -67,8 +67,11 @@ visual relevance, event-photo truth or real-model benchmark qualification.
   Source `ffe2caf0d160cf7666f179eb71c9264d8cc752fb` is committed/pushed.
   Exact CI `37804071273` PostgreSQL job `113403606230` completed SUCCESS at
   actual inspection. Backend/frontend/channel-sync/admission also SUCCESS;
-  three Compose jobs still running, whole workflow NOT yet PASS. Existing
-  target/namespace/role restrictions and checks unchanged.
+  three Compose jobs were still running at that inspection. Subsequent fresh
+  inspection confirmed all eight jobs SUCCESS, actual PostgreSQL job 217 PASS
+  /145.41s. Fresh strict Windows PostgreSQL gate also passed all 217 cases
+  /235.80s, including TRUNCATE refusal. Existing target/namespace/role
+  restrictions and checks unchanged.
 
 ## Previous checkpoint and external acceptance
 
@@ -78,16 +81,16 @@ source proof, not new storage acceptance. At the original storage checkpoint,
 Windows Docker had an absent `dockerDesktopLinuxEngine` pipe. Subsequent
 user-authorized recovery restored real Linux Engine 29.8.0 and a network-none/
 no-volume container probe; see DOCKER_STARTUP_RECOVERY_20261008.md. The daemon
-blocker is historical. Fresh full current-source Windows acceptance remains
-NOT VERIFIED, not inferred from that engine probe or Linux CI. Required live
+blocker is historical. Subsequent actual Windows acceptance completed all five
+synthetic recovery families; see WINDOWS_DOCKER_ACCEPTANCE_20261008.md. This is
+direct runtime proof, not inferred from the engine probe or Linux CI. Required live
 Telegram authorization and real-model qualification remain independent pending
 gates. PHASE 1 is not complete.
 
 ## Next boundary
 
-Local corrected-source full gates are complete. Inspect the exact new-source
-PostgreSQL CI before promoting storage beyond offline verification. Then implement
-transactional canonical review/revocation and
+Storage now has actual strict PostgreSQL and synthetic Windows recovery proof,
+not only offline acceptance. Implement transactional canonical review/revocation and
 audit only behind trusted server-side reviewer authentication; never accept a
 reviewer ID/provenance/client hashes as authority. Preserve clean-session rules,
 idempotency, stale-decision fences and all existing holds until the authenticated

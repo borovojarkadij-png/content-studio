@@ -8,6 +8,9 @@ filters/editorial/dedup, per-output rewrites, original/selected media,
 automatic channel planning and guarded Telegram publication in the existing
 repository. Do not implement, schedule or include YouTube in progress estimates.
 Earlier YouTube references are historical scope, superseded by this instruction.
+The current Windows acceptance at the top supersedes earlier chronological
+Docker-missing-pipe/pending-synthetic-gate checkpoints below; it does not promote
+operational deployment, live authorization or real-model qualification.
 The goal tool was inspected: no separate active goal is currently configured;
 do not invent a new goal. NEXT_STEP below remains Telegram-only.
 
@@ -28,8 +31,14 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
   no-trunc discovery: 15 new/65 combined regressions PASS, final independent static
   review clear, three actual retained-fixture crash/reverify cycles and final
   unattended down/up hook PASS (175 retained namespaces). Frozen-source full
-  26833/final corrective CI still pending; intermediate mixed run is not evidence.
-  C: ~5GB free, no cleanup/prune; completed synthetic OPENAI/OPENROUTER/sync
+  26833: 1627 PASS/1 PG-only SKIP/386.99s, exit 0. Final source 7cc4b61 CI
+  37809146965 backend failed the cold-runner one-second ordering test (1 failed/
+  1626 passed/1 skip). Controlled cold-inspect RED reproduced; test-only budget
+  separation fixed; reviewer-found early-timeout false-PASS fenced by actual
+  post-kill response markers, two RED then 16 dedicated PASS/13.00s, review clear.
+  Full 15501 precedes final marker assertions; exact final corrective CI pending.
+  Production helper/limits unchanged; mixed 39692 failed and is not final proof.
+  C: ~7.5GB free at final inspection, no cleanup/prune; completed synthetic OPENAI/OPENROUTER/sync
   containers stopped with all storage retained. See WINDOWS_DOCKER_ACCEPTANCE_20261008.md;
   PHASE 1 not complete, operational deployment/auth/provider qualification pending.
 - Windows Docker Engine availability restored 2026-10-08: existing signed Docker
@@ -39,11 +48,13 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
   No volumes/VHDX/configuration/credentials/WSL distribution deleted or reset.
   Fresh launch serves real Linux Engine 29.8.0; WSL docker-desktop Running;
   network-none/read-only/no-volume cached Redis version probe exited 0.
-  Operational containers are exited; fresh current-source Windows stack build/
-  migrations/health/restart/recovery remain NOT VERIFIED. Previous missing-pipe
-  blocker is historical; see DOCKER_STARTUP_RECOVERY_20261008.md. No permanent
+  Operational containers are exited. Fresh synthetic Windows build/migrations/
+  health/restart/recovery were pending at this startup checkpoint and subsequently
+  passed as recorded above. Operational deployment remains unverified. Previous
+  missing-pipe blocker is historical; see DOCKER_STARTUP_RECOVERY_20261008.md. No permanent
   socket-fix claim, operational queue change or live send.
-- Immutable illustration review/revocation storage verified OFFLINE: guarded
+- Immutable illustration review/revocation storage verified in migrated SQLite
+  and actual isolated PostgreSQL: guarded
   c5e81b29a704 migration and exact canonical eleven-field history, strict row
   shape/reference/type checks, SQLite replacement and PostgreSQL TRUNCATE fences,
   protected populated/concurrent downgrade. All reviewer defects reproduced RED
@@ -54,8 +65,10 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
   permission consumer or publication hold release. Source checkpoint
   ffe2caf0d160cf7666f179eb71c9264d8cc752fb committed/pushed; exact 37804071273
   real PostgreSQL 113403606230 SUCCESS, backend/frontend/channel-sync/admission
-  SUCCESS; three Compose jobs still pending at inspection. No full workflow or
-  fresh Windows acceptance inference. See storage report. PHASE 1 not complete.
+  SUCCESS; three Compose jobs were still pending at that checkpoint. Subsequent
+  fresh inspection confirmed all-eight SUCCESS, PG 217 PASS/145.41s; Windows PG
+  217 PASS/235.80s and all five synthetic recovery families passed. See storage
+  report. PHASE 1 not complete; no authenticated writer or live permission inferred.
 - Accepted existing UI restored in the local preview, not redesigned (2026-10-08).
   The user selected `.artifacts/ui-dark-navy/1440x900/01_overview.png` as the
   existing target. Before reload the browser DOM still showed the old symbolic
@@ -1203,16 +1216,24 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: finish final frozen-source full backend 26833, preserve invalidated
-intermediate 39692 without promoting it; inspect final reviewed crash-barrier CI.
+NEXT_STEP: inspect preceding full backend 15501 and exact corrective CI for test-only
+cold-runner regression. Preserve 7cc4b61 CI 37809146965 backend failure (1 failed/
+1626 passed/1 skipped/288.38s), never promote it; inspect its remaining runtime
+jobs independently. Final 16-case target includes completed post-kill timing
+markers (PASS/13.00s, review clear); 15501 started before that final assertion
+correction and cannot prove the final test source. Production helper unchanged.
+Preceding full 26833 completed 1627 PASS/1
+PG-only SKIP/386.99s. Preserve invalidated mixed run 39692 (7 failed/1619 passed/1
+skipped/341.19s); do not promote it or rerun completed Windows seed phases.
 42343a8 CI 37807341995 is intermediate source, not final reviewed helper proof;
 9e33fba/37805519893 OpenRouter failure remains recorded. All five Windows synthetic
 families and 217 strict PG tests passed; do not reseed/repeat completed seed phases.
-After final source gate, continue authenticated human illustration review/audit
+After final source CI, continue authenticated human illustration review/audit
 behind trusted server-side identity, without a publication-hold release.
 Preserve all current source/draft/editorial constraints, automations paused,
-original storage and ~5GB C: reserve; no additional large fixture allocation.
-Storage-only source is implemented and locally verified; do not duplicate it:
+original storage and ~7.5GB C: reserve; no additional large fixture allocation.
+Storage-only source is implemented and verified locally plus actual PostgreSQL;
+the paragraphs below preserve its earlier checkpoint history. Do not duplicate it:
 IllustrationReviewRecordModel, c5e81b29a704 immutable-history migration and
 test_illustration_review_storage.py plus the strict PG CI inclusion. No application
 writer, authenticated API, permission consumer or publication hold release exists.
@@ -1234,8 +1255,9 @@ upgrade/check/downgrade/base/upgrade/check and frontend 205/format/build PASS.
 Prior full 85602: 1609 PASS/1 SKIP /280.89s, but it started before final fix;
 it does NOT prove the corrected candidate. Full corrected 45505 completed
 1612 PASS/1 PG-only SKIP /294.32s, exit 0. See storage verification report.
-PostgreSQL TRUNCATE needs actual strict CI, never infer from
-local SQLite. Preserve current source/draft/media/editorial/library holds.
+At that local checkpoint PostgreSQL TRUNCATE required strict CI, never inferred
+from SQLite. It subsequently passed in actual CI and Windows PG 217-case gates
+as recorded above. Preserve current source/draft/media/editorial/library holds.
 Resolver source 44fb130 CI 37798052676 PG job 113382585290 actually passed
 163 tests /75.86s; all eight jobs now actually SUCCESS at fresh inspection.
 This is not new storage or Windows proof.
@@ -1402,11 +1424,12 @@ Older f4124e8 CI 37704439283 failed an isolated synthetic identity collision,
 fixed by fdf8f06; do not relabel that older run as successful.
 
 Consolidated external/live-verification limitations:
-- C: disk-full / Docker containerd read-only filesystem prevents operational image
-  acceptance. Use D: for new isolated test temp files. Recover storage without
-  deleting operational volumes/databases/keys, then recheck daemon/health before
-  retrying latest read-only status deployment. Existing synthetic PASS remains
-  historical evidence, not proof that Docker currently works.
+- Historical C: disk-full / containerd read-only failure and later missing engine
+  pipe prevented operational image acceptance. Engine is now running and fresh
+  synthetic Windows recovery gates passed as recorded above. Operational images
+  remain exited/unverified, not implicitly deployed. C: ~7.5GB free; use D: for
+  new isolated test files, no volume/key cleanup or large fixtures. Recheck safe
+  storage capacity and daemon health before any later operational deployment.
 - Current authorized Downloads/апи.txt contains no usable supported-format key;
   live OpenAI test remains pending. Never echo/store credentials in Git.
 - Telegram api_id/api_hash and live encrypted authorization require user setup;

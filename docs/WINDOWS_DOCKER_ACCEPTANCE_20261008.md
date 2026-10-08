@@ -4,6 +4,9 @@
 
 Application source: `9e33fbaede4e00ee76a1ced0f21ffcc9c76f4107`
 (storage implementation `ffe2caf0d160cf7666f179eb71c9264d8cc752fb`).
+Reviewed verification-helper implementation source:
+`7cc4b612190b81a818cd8f520a2be73b9c952ceb`; backend business logic and frontend
+source were unchanged in the helper corrections.
 Branch `codex/dark-navy-ui`, origin
 `https://github.com/borovojarkadij-png/content-studio.git`.
 Windows Docker Desktop 4.91.0 / Linux Engine 29.8.0 / WSL2.
@@ -53,14 +56,31 @@ credentials, authorization, AI calls or Telegram publications were used.
   new Windows screenshot claim.
 - Intermediate full backend 96833 **1622 PASS/1 PG-only SKIP /368.82s** is
   preceding barrier source, not the final reviewed correction. Run 39692 was
-  invalidated by further script corrections during execution; never use a mixed
-  candidate as final acceptance. Final frozen-source gate 26833 is in progress.
+  invalidated by further script corrections during execution: **7 failed /1619
+  passed /1 skipped /341.19s**, old collected fake CLI routes against corrected
+  on-disk helper. Failure retained; never use a mixed candidate as acceptance.
+  Final frozen-source gate **26833: 1627 PASS /1 PostgreSQL-only SKIP /386.99s**,
+  exit 0. The skipped PostgreSQL-only boundary is separately verified in the
+  strict actual PostgreSQL gate above; it is not inferred from SQLite.
+  A subsequent test-only cold-runner correction is described below; this full
+  run precedes that added regression and does not prove the later test source.
 
 Fixture paths are `.artifacts/docker-verification/<exact project>/`.
 PowerShell transcripts are retained in
 `D:/Codex-Recovery/content-studio-20261008/windows-{openai,openrouter,sync,admission}-20261008a.log`.
 No fixture volumes have been removed. Synthetic markers are not Telegram login
 proof or operational model qualification.
+
+Actual shipped combined-fixture image IDs (not registry tags):
+
+- API: `sha256:045c17ee2e59f2d53d1560552a2c0fce1c3405666df83323a6be3b786ded1def`.
+- Worker: `sha256:b3879f3e1f0ee7c533e0bb3ca452e093a9ab42349f3615d8de006d1b211eafd5`.
+- Production web: `sha256:549d1c68a55ed08ca8f49b1447c58aac2a861021f90e0a0732c1fa187d63cf8f`.
+- PostgreSQL: `sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea`.
+- Redis: `sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499`.
+
+Packaged SQLAlchemy 2.1.4 / Alembic 1.20.0 / Telethon 1.45.0 / Pillow 12.3.0,
+migration head `c5e81b29a704`. Source equality is not operational deployment proof.
 
 ## CI crash race and correction
 
@@ -105,16 +125,36 @@ direct-ID PG crash/health on the original retained stack (49095), exit 0; all
 No seed/replacement/volume removal or real provider execution. Earlier three
 cycles (90936) prove only the initial correction, not this final helper.
 
+Exact 7cc4b61 CI `37809146965` backend job `113421162710` failed:
+**1 failed /1626 passed /1 skipped /288.38s**. The delayed-exit ordering test
+used a one-second total deadline, including cold Linux PowerShell cmdlet/JSON
+initialization. That is not a product latency requirement. A controlled 1200ms
+initial-inspect regression reproduced RED on Windows. State-order/error tests
+now use the unchanged production 30-second default; timeout and late-result
+tests still use one second, and native-child blocking still uses 200ms. No
+production helper/limits/checks were changed. Review also found a possible false
+PASS if timeout occurred before the delayed post-kill observation. Two marker
+assertions reproduced RED; timing tests now require the kill and actual completed
+post-kill response before accepting timeout. Cmdlet/JSON initialization alone is
+primed outside their measured invocation, no Docker observation/authority granted.
+Final independent static review: no actionable findings. Dedicated corrected
+**16 PASS /13.00s**, Ruff/format PASS. Full run 15501 started before those final
+marker assertions and remains preceding test-source proof only. Fresh exact
+corrective CI must verify the final test source;
+do not relabel the failed workflow or infer Linux proof from Windows success.
+
 Only the three completed new OPENAI/OPENROUTER/sync stacks were stopped to reduce
 idle resources; their containers and volumes are retained. Unattended/admission
-fixtures remain available. C: has about 5 GB free after Docker VHDX growth; no
+fixtures remain available. C: has about 7.5 GB free at the final local inspection; no
 prune, deletion, compaction or original volume cleanup was performed. Further
 large builds require storage capacity, not destructive automatic cleanup.
 
 ## Remaining gates
 
-Windows synthetic application gates above are complete. Finish frozen-source
-full backend and inspect final corrective CI before declaring it green. Keep authenticated
+Windows synthetic application gates above are complete. Final implementation
+source CI `37809146965` has a failed backend test and remaining runtime jobs
+pending at this checkpoint. Re-verify the cold-runner test correction locally and
+on exact new CI before calling its gate green. Keep authenticated
 human illustration review/audit and final transport integration pending. Library
 illustration publication hold remains in effect. Real Telegram login/restart,
 explicit test-channel transport and reviewed fixed-model semantic benchmark

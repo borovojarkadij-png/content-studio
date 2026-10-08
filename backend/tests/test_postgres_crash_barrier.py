@@ -16,6 +16,7 @@ CONTAINER = "a" * 64
     "scenario",
     [
         "delayed_exit",
+        "cold_delayed_exit",
         "foreign",
         "missing",
         "kill_failed",
@@ -30,6 +31,11 @@ def test_actual_crash_barrier_waits_for_original_exit_and_refuses_invalid_target
 ):
     # Removing the fresh post-kill reads must fail delayed_exit: Compose must not
     # resume while Docker still reports running. No real container/daemon is used.
+    # Ordering is not a one-second cold PowerShell/JIT performance requirement.
+    # Keep the real default budget for state cases, and one second ONLY for the
+    # timeout/late-success regressions. Slow initial inspection exercises this
+    # distinction without weakening the actual helper or skipping a boundary.
+    timeout_seconds = 1 if scenario in {"timeout", "late_inspect"} else 30
     observations = tmp_path / "observations.json"
     observations.write_text(
         json.dumps(
@@ -54,13 +60,15 @@ $ErrorActionPreference = 'Stop'
 . '{common}'
 $script:reads = 0
 $script:killed = $false
+$script:completedObservation = ''
 function Invoke-VerificationDocker {{
     param([string[]]$Arguments, [int]$TimeoutMilliseconds)
-    if ($TimeoutMilliseconds -lt 1 -or $TimeoutMilliseconds -gt 1000) {{ throw 'Invalid command deadline' }}
+    if ($TimeoutMilliseconds -lt 1 -or $TimeoutMilliseconds -gt {timeout_seconds * 1000}) {{ throw 'Invalid command deadline' }}
     $operation = $Arguments -join ' '
     if ($operation -eq 'ps -aq --no-trunc --filter label=com.docker.compose.project={PROJECT} --filter label=com.docker.compose.service=postgres') {{
         if ('{scenario}' -ne 'missing') {{ Write-Output '{CONTAINER}' }}
     }} elseif ($operation -eq 'inspect {CONTAINER}') {{
+        if ('{scenario}' -eq 'cold_delayed_exit') {{ Start-Sleep -Milliseconds 1200 }}
         Get-Content -LiteralPath '{observed}' -Raw
     }} elseif ($operation -eq 'kill -s SIGKILL {CONTAINER}') {{
         if ('{scenario}' -eq 'foreign') {{ throw 'Foreign target mutated' }}
@@ -71,11 +79,13 @@ function Invoke-VerificationDocker {{
         $script:reads++
         if ('{scenario}' -eq 'late_inspect') {{
             Start-Sleep -Milliseconds 1200
+            $script:completedObservation = 'LATE_EXIT_OBSERVATION_COMPLETED'
             Write-Output '{{"Status":"exited","Running":false,"ExitCode":137}}'
             return
         }}
         if ('{scenario}' -eq 'inspect_failed') {{ throw 'Controlled inspect failure' }}
         if ($script:reads -lt 3 -or '{scenario}' -eq 'timeout') {{
+            $script:completedObservation = 'RUNNING_EXIT_OBSERVATION_COMPLETED'
             Write-Output '{{"Status":"running","Running":true,"ExitCode":0}}'
         }} else {{
             $exitCode = if ('{scenario}' -eq 'wrong_exit') {{ 0 }} else {{ 137 }}
@@ -83,7 +93,20 @@ function Invoke-VerificationDocker {{
         }}
     }} else {{ throw 'Unexpected Docker operation' }}
 }}
-Invoke-SyntheticPostgresCrash -ComposeArgs @('compose', '-p', '{PROJECT}') -TimeoutSeconds 1
+if ('{scenario}' -in @('timeout', 'late_inspect')) {{
+    # Prime only cmdlet/JSON initialization outside the targeted timing budget.
+    # This is not a Docker observation and grants no state/permission.
+    $null = Get-Content -LiteralPath '{observed}' -Raw | ConvertFrom-Json
+}}
+try {{
+    Invoke-SyntheticPostgresCrash -ComposeArgs @('compose', '-p', '{PROJECT}') -TimeoutSeconds {timeout_seconds}
+}} catch {{
+    # A pre-kill timeout must NOT satisfy a post-kill late-result/loop regression.
+    if ($script:killed -and $script:reads -gt 0 -and $script:completedObservation) {{
+        Write-Output $script:completedObservation
+    }}
+    throw
+}}
 if ($script:reads -ne 3 -or -not $script:killed) {{ throw 'Crash barrier returned before exit' }}
 Write-Output 'ORIGINAL_EXIT_VERIFIED'
 """
@@ -91,10 +114,10 @@ Write-Output 'ORIGINAL_EXIT_VERIFIED'
         ["pwsh", "-NoProfile", "-Command", code],
         capture_output=True,
         text=True,
-        timeout=30,
+        timeout=45,
         check=False,
     )
-    if scenario == "delayed_exit":
+    if scenario in {"delayed_exit", "cold_delayed_exit"}:
         assert result.returncode == 0, result.stdout + result.stderr
         assert result.stdout.strip() == "ORIGINAL_EXIT_VERIFIED"
     else:
@@ -110,6 +133,10 @@ Write-Output 'ORIGINAL_EXIT_VERIFIED'
             "late_inspect": "Synthetic PostgreSQL exit barrier timed out",
         }[scenario]
         assert expected in result.stderr
+        if scenario == "late_inspect":
+            assert result.stdout.strip() == "LATE_EXIT_OBSERVATION_COMPLETED"
+        elif scenario == "timeout":
+            assert result.stdout.strip() == "RUNNING_EXIT_OBSERVATION_COMPLETED"
 
 
 @pytest.mark.parametrize("project", ["newsflow", "", "newsflow-verification-x; whoami"])
