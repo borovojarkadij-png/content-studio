@@ -174,6 +174,9 @@ class SourcePhotoAcquisition:
             media_id=source.media_id,
             media_protected=False,
             source_updated_at=_utc(source.source_updated_at),
+            link_destinations=tuple(source.link_destinations)
+            if isinstance(source.link_destinations, list)
+            else None,
         )
         return (
             candidate.content_key,
@@ -198,6 +201,7 @@ class SourcePhotoAcquisition:
                 "media_protected",
                 "album_id",
                 "source_updated_at",
+                "link_destinations",
             )
         )
 

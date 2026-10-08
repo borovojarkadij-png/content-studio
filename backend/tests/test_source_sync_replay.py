@@ -15,6 +15,44 @@ from newsflow.services.source_sync_replay import SourceSyncReplayService
 source_store = _source_store
 
 
+def test_corrupt_hidden_link_metadata_never_gets_replaced_by_unknown_revision(source_store):
+    factory, _ = source_store
+    mark_gap(factory)
+    key = quarantine(factory)
+    marker_id = marker(factory, key)
+    recovered(factory)
+    with factory.begin() as session:
+        revision = session.scalar(
+            select(models.ContentRevisionModel).where(
+                models.ContentRevisionModel.source_text == "Unclassified source 99"
+            )
+        )
+        revision.link_destinations = {"bad": "https://youtu.be/abc"}
+        original_id = revision.id
+        post_id = revision.incoming_post_id
+    assert runtime(factory).replay(marker_id) == "INVALID_OBLIGATION"
+    with factory() as session:
+        assert session.get(models.ContentRevisionModel, original_id).link_destinations == {
+            "bad": "https://youtu.be/abc"
+        }
+        assert [
+            row.id
+            for row in session.scalars(
+                select(models.ContentRevisionModel).where(
+                    models.ContentRevisionModel.incoming_post_id == post_id
+                )
+            )
+        ] == [original_id]
+        assert (
+            session.scalar(
+                select(models.EditorialDecisionModel).where(
+                    models.EditorialDecisionModel.content_key == key
+                )
+            )
+            is None
+        )
+
+
 def quarantine(factory, message_id=99):
     event = TelegramMessage(
         "1", CHANNEL, message_id, f"Unclassified source {message_id}", source_updated_at=NOW

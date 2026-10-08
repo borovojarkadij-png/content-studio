@@ -176,6 +176,10 @@ class SourceSyncReplayService:
             binding,
             sha256(account.encrypted_session.encode()).hexdigest(),
         )
+        if revision.link_destinations is not None and not isinstance(
+            revision.link_destinations, list
+        ):
+            return "INVALID_OBLIGATION", None, None
         event = TelegramMessage(
             post.telegram_account_id,
             post.donor_channel_id,
@@ -185,6 +189,9 @@ class SourceSyncReplayService:
             album_id=revision.album_id,
             media_id=revision.media_id,
             media_protected=revision.media_protected,
+            link_destinations=tuple(revision.link_destinations)
+            if isinstance(revision.link_destinations, list)
+            else None,
             source_updated_at=_utc(revision.source_updated_at)
             if revision.source_updated_at
             else None,

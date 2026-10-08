@@ -2,7 +2,7 @@
 
 from datetime import UTC, datetime
 
-from sqlalchemy import select
+from sqlalchemy import null, select
 from sqlalchemy.orm import Session
 
 from newsflow.domain.ingestion import IngestionResult
@@ -157,6 +157,8 @@ class SqlAlchemyIngestionRepository:
             and revision.album_id == event.album_id
             and revision.media_id == event.media_id
             and revision.media_protected == event.media_protected
+            and revision.link_destinations
+            == (list(event.link_destinations) if event.link_destinations is not None else None)
             and cls._utc(revision.source_updated_at) == cls._utc(event.source_updated_at)
         )
 
@@ -164,6 +166,9 @@ class SqlAlchemyIngestionRepository:
     def _observation(cls, event):
         return {
             "source_text": event.text,
+            "link_destinations": list(event.link_destinations)
+            if event.link_destinations is not None
+            else null(),
             "media_type": event.media_type,
             "album_id": event.album_id,
             "media_id": event.media_id,

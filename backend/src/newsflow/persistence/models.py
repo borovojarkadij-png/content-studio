@@ -584,6 +584,9 @@ class ContentRevisionModel(Base):
     )
     revision_number: Mapped[int] = mapped_column(Integer, nullable=False)
     source_text: Mapped[str] = mapped_column(String, nullable=False)
+    link_destinations: Mapped[list[str] | None] = mapped_column(
+        JSON(none_as_null=True), nullable=True, default=list
+    )
     media_type: Mapped[str] = mapped_column(
         String(32), nullable=False, default="text", server_default="unknown"
     )

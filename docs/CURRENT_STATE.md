@@ -13,6 +13,20 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
 
 ## VERIFIED WORKING
 
+- Hidden-link increment verified OFFLINE: provider captures bounded actual
+  TextUrl/inline-button destinations without rewriting caption; immutable JSON
+  metadata survives SQL reopen/edits and sync replay/photo comparisons. Unknown/
+  corrupt metadata fails closed; legacy migration preserves SQL NULL, never []
+  backfill. Actual ORM-default/JSON-null/backslash/corrupt replay/null-button RED
+  corrected; 62 relevant PASS /7.14s. Guarded a8d310f62c94 migration, isolated D:
+  round-trip/drift/YAML PASS. Final isolated migrated API/browser 32 PASS /47.8s
+  (33867), Connections GET-only/WCAG/1440-390 captures under
+  `.artifacts/ui-dark-navy/hidden-links-20261008/`; final narrow capture inspected.
+  Final exact full backend 1371 PASS /122.69s (83080), Ruff/changed format/D:
+  compile PASS; earlier 1370 snapshot precedes final null-button test.
+  Fresh frontend 185 units/format/build/audit0 PASS after removing an older
+  contradictory video-publication hint. No operational migration/live calls/flags.
+  See HIDDEN_SOURCE_LINKS_VERIFICATION.md; new commit/PG CI still pending.
 - Donor video/manual-only and visible YouTube/invalid URL exclusions verified
   OFFLINE: discard by default, optional MANUAL_REVIEW retention, no classifier/
   fingerprint/candidate/RewriteJob, ordinary source-created audit retained.
@@ -28,8 +42,10 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
   Bounded raw-video provider/Fake/encrypted factory has 71 offline cases, actual
   SDK iterator chunk-limit and primary-error cleanup regressions; DTO deliberately
   denies validated-media/publication authority, no automated video workflow.
-  Hidden text-URL/button destinations still pending; no live call/flags changed.
-  See DONOR_AUTOMATION_EXCLUSIONS_VERIFICATION.md. New commit/CI pending.
+  Hidden destinations added by subsequent increment above; no live call/flags changed.
+  See DONOR_AUTOMATION_EXCLUSIONS_VERIFICATION.md. Checkpoint committed/pushed
+  e8064d7a83876c79117ff9e07ba378b1c856bc99; CI 37784840224 completed all-eight
+  SUCCESS (actual fresh gh inspection). No current Windows runtime proof.
 - Scope-only 3f0b35f751afd5332a5531c48e9d8d4d13a9aed7 / CI 37781138083
   completed all-eight SUCCESS (fresh inspection). No current Windows proof.
 - Fan-out dedup checkpoint 34df8727f8a6bec2da5c2f0d1be45863b19b8987 committed/pushed
@@ -1019,14 +1035,14 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: checkpoint the fully verified donor-video/visible-YouTube increment
-and bounded read-only video foundation, then inspect exact GitHub CI. Implement
-hidden Telegram text-URL entities and inline-button destination capture in the
-provider-neutral immutable observation, durable ContentRevision and sync replay.
-Use bounded metadata (not appended rewrite prose), cheap and latest-source
-technical guards, SQL reopen/edit/stale/manual/planner/publication regressions;
-unknown/corrupt metadata must not become an empty accepted default. Add and
-verify a safe versioned migration if needed; no historical source/job deletion.
+NEXT_STEP: commit/push fully verified hidden-link metadata/guard/migration changes
+to the same branch, then inspect exact
+new CI, especially create-only migrated PostgreSQL hidden tests;
+do not call queued/running jobs PASS. Then add read-only moderation Inbox technical
+hold diagnostics for video manual-only, blocked links and legacy unknown/corrupt
+source-link metadata. Preserve historical editorial status while explaining
+why automation is unavailable; no override, AI, source download or publish action.
+Add regression and API/UI/narrow browser tests, document and continue independently.
 Video remains manual-only/discard; do NOT implement automatic video rewrite,
 download/upload or publication as a follow-on task. Ordinary hidden-link work
 does not require live login/paid AI/Docker. Keep Telegram-only scope.

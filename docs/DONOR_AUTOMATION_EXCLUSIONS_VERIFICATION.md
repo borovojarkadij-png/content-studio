@@ -79,10 +79,11 @@ Synthetic arbitrary bytes are not claimed playable or semantically verified.
 
 ## Remaining boundaries
 
-Hidden Telegram text-URL entities/inline button destinations are NOT yet captured
-in immutable source revisions. They are the exact next independent increment;
-do not claim every hidden YouTube link is excluded. No redirect/network lookup
-is performed. Full album membership remains unknown and blocks automation.
+Hidden Telegram text-URL entities/inline button destinations were outside this
+checkpoint; the subsequent increment captures them in immutable revisions and
+fails closed on unknown/corrupt metadata. See HIDDEN_SOURCE_LINKS_VERIFICATION.md
+for its separate actual evidence. No redirect/network lookup is performed.
+Full album membership remains unknown and blocks automation.
 
 Manual-only video here means human inspection/retention, not a new one-click
 video publishing feature. Windows Docker daemon remains unavailable (named pipe

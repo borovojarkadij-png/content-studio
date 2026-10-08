@@ -64,6 +64,51 @@ class TelegramMessage:
     source_updated_at: datetime | None = None
     media_id: str | None = None
     media_protected: bool | None = None
+    link_destinations: tuple[str, ...] | None = ()
+
+
+def _hidden_link_destinations(raw_message):
+    """Bound entity/button URLs; unknown/malformed metadata is not empty."""
+    from telethon.tl.types import MessageEntityTextUrl, ReplyInlineMarkup
+
+    links = []
+    entities = getattr(raw_message, "entities", None)
+    if entities is not None:
+        if not isinstance(entities, (list, tuple)) or len(entities) > 100:
+            return None
+        for entity in entities:
+            if isinstance(entity, MessageEntityTextUrl):
+                links.append(entity.url)
+            elif not type(entity).__name__.startswith("MessageEntity"):
+                return None
+    markup = getattr(raw_message, "reply_markup", None)
+    if markup is not None:
+        if not isinstance(markup, ReplyInlineMarkup):
+            return None
+        if not isinstance(markup.rows, (list, tuple)) or len(markup.rows) > 20:
+            return None
+        count = 0
+        for row in markup.rows:
+            buttons = getattr(row, "buttons", None)
+            if not isinstance(buttons, (list, tuple)):
+                return None
+            count += len(buttons)
+            if count > 100:
+                return None
+            for button in buttons:
+                if not type(button).__name__.startswith("KeyboardButton"):
+                    return None
+                if hasattr(button, "url"):
+                    links.append(button.url)
+    if len(links) > 100 or any(
+        not isinstance(url, str)
+        or not url
+        or len(url) > 2048
+        or any(ord(char) < 32 for char in url)
+        for url in links
+    ):
+        return None
+    return tuple(dict.fromkeys(links))
 
 
 def validate_media_observation(message: TelegramMessage) -> None:
@@ -1017,4 +1062,5 @@ class TelethonTelegramProvider:
             or getattr(raw_message, "date", None),
             media_id=str(media_id) if media_id is not None else None,
             media_protected=bool(getattr(raw_message, "noforwards", False)),
+            link_destinations=_hidden_link_destinations(raw_message),
         )

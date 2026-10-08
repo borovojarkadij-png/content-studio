@@ -56,6 +56,9 @@ it("explains video manual-only intake and mandatory YouTube exclusion without en
   await screen.findByLabelText("Запрещённые домены");
   expect(screen.getByText(/Видео: только ручная проверка/)).toBeTruthy();
   expect(screen.getByText(/Ссылки YouTube исключаются до AI/)).toBeTruthy();
+  expect(
+    screen.queryByText(/видео требует реализованной безопасной/),
+  ).toBeNull();
   const video = screen.getByRole("checkbox", { name: "Видео" });
   expect((video as HTMLInputElement).checked).toBe(false);
   await waitFor(() => expect(video.matches(":disabled")).toBe(false));

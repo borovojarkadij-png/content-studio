@@ -20,6 +20,8 @@ _LINK_CANDIDATES = re.compile(
 def visible_link_exclusion_reason(text: str) -> str | None:
     """Canonical visible hosts only; malformed destinations fail closed, no RPC."""
     for value in _LINK_CANDIDATES.findall(text):
+        if "\\" in value:
+            return "INVALID_LINK"
         value = value.rstrip(".,;:!?…\"'»”")
         try:
             host = urlparse(
@@ -33,6 +35,36 @@ def visible_link_exclusion_reason(text: str) -> str | None:
         if any(host == domain or host.endswith("." + domain) for domain in _YOUTUBE_DOMAINS):
             return "YOUTUBE_LINK"
     return None
+
+
+def source_link_exclusion_reason(text, destinations):
+    if destinations is None:
+        return "SOURCE_LINKS_UNKNOWN"
+    if (
+        not isinstance(destinations, tuple)
+        or len(destinations) > 100
+        or any(
+            not isinstance(value, str)
+            or not value
+            or len(value) > 2048
+            or any(ord(char) < 32 for char in value)
+            for value in destinations
+        )
+    ):
+        return "SOURCE_LINKS_INVALID"
+    return visible_link_exclusion_reason(text) or next(
+        (reason for value in destinations if (reason := visible_link_exclusion_reason(value))),
+        None,
+    )
+
+
+def stored_source_link_exclusion_reason(revision):
+    values = revision.link_destinations
+    if values is not None and not isinstance(values, list):
+        return "SOURCE_LINKS_INVALID"
+    return source_link_exclusion_reason(
+        revision.source_text, tuple(values) if values is not None else None
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -69,10 +101,14 @@ class MappingTechnicalFilter:
         normalized_text = text.casefold()
         if any(marker.casefold() in normalized_text for marker in self.ad_markers):
             return TechnicalFilterDecision(False, "ADVERTISING")
-        link_reason = visible_link_exclusion_reason(text)
+        link_reason = source_link_exclusion_reason(text, message.link_destinations)
         if link_reason is not None:
             return TechnicalFilterDecision(False, link_reason)
-        if any(self._is_blocked_host(urlparse(url).hostname) for url in _URL.findall(text)):
+        destinations = " ".join(message.link_destinations)
+        if any(
+            self._is_blocked_host(urlparse(url).hostname)
+            for url in _URL.findall(text + " " + destinations)
+        ):
             return TechnicalFilterDecision(False, "FORBIDDEN_LINK")
         if message.album_id is not None:
             # A single caption is not proof that every album member passed the
