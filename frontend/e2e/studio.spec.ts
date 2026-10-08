@@ -52,6 +52,69 @@ const navigate = async (page: Page, name: string) => {
     .click();
 };
 
+test("real persisted donor diagnostics survive reload and never authorize live actions", async ({
+  page,
+}, testInfo) => {
+  const methods: string[] = [];
+  page.on("request", (request) => {
+    if (request.url().endsWith("/sync-status")) methods.push(request.method());
+  });
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/");
+    await navigate(page, "Доноры");
+    const diagnostics = page.getByRole("region", {
+      name: "Синхронизация источника",
+    });
+    await expect(diagnostics).toContainText("Разрыв истории не устранён");
+    await expect(diagnostics).toContainText(
+      "Обработка источника заблокирована",
+    );
+    await expect(diagnostics).toContainText(
+      "live-проверка Telegram не выполнялась",
+    );
+    await page
+      .getByLabel("Название", { exact: true })
+      .fill("Несохранённое ручное название");
+    await diagnostics
+      .getByRole("button", { name: "Обновить синхронизацию" })
+      .click();
+    await expect(diagnostics).toContainText("Разрыв истории не устранён");
+    await expect(page.getByLabel("Название", { exact: true })).toHaveValue(
+      "Несохранённое ручное название",
+    );
+    await page
+      .getByRole("button", { name: "Отменить правки названия" })
+      .click();
+    await page
+      .getByRole("button", { name: /Другой изолированный донор API/ })
+      .click();
+    await expect(diagnostics).toContainText(
+      "Контроль синхронизации не включён",
+    );
+    await expect(diagnostics).not.toContainText("Разрыв истории не устранён");
+    await page.reload();
+    await navigate(page, "Доноры");
+    await expect(diagnostics).toContainText("Разрыв истории не устранён");
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    await expect(diagnostics.getByRole("button")).toHaveCount(1);
+    const accessibility = await new AxeBuilder({ page })
+      .withTags(["wcag2a", "wcag2aa"])
+      .analyze();
+    expect(accessibility.violations).toEqual([]);
+    await page.screenshot({
+      path: testInfo.outputPath(`donor-sync-${width}.png`),
+      fullPage: true,
+    });
+  }
+  expect(methods.length).toBeGreaterThanOrEqual(6);
+  expect(methods.every((method) => method === "GET")).toBe(true);
+});
+
 test("real deleted-source inbox keeps historical copy and forbids processing after reload", async ({
   page,
 }) => {

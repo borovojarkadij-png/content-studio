@@ -2,6 +2,18 @@
 
 ## VERIFIED WORKING
 
+- Read-only persisted donor sync API + existing Donors UI OFFLINE: 18 dedicated /
+  46 combined / fresh full backend 1006 PASS (8285); frontend 82 units / 27 browser
+  PASS (44315), exact CI Ruff/changed format/compile/explicit D: migration drift,
+  typecheck/build/audit 0 PASS. Actual migrated API, GET-only, stale/cancellation/
+  refresh/manual-draft/reload/WCAG/390px guards, desktop/mobile screenshots visually
+  inspected. No live-connectivity certificate or permission override. See
+  DONOR_SYNC_STATUS_VERIFICATION.md.
+- Exact wait probe 08cf9c9 CI 37751511536 completed SUCCESS in all five jobs,
+  including dedicated PostgreSQL sync/wait/down-up recovery (actual gh view).
+  Wait implementation 3adf692 CI 37750506085 completed SUCCESS (actual gh list).
+  Linux evidence does not resolve current Windows Docker environment blocker.
+
 - Create-only rewrite-sync-wait recovery probe OFFLINE: 7 dedicated / 33 combined /
   full backend 988 PASS (77961), exact CI lint/changed format/compile/PowerShell
   parse/explicit D: round-trip/drift PASS. Original jobs/budget survive reopen,
@@ -755,13 +767,12 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: checkpoint wait probe and inspect its exact dedicated PostgreSQL CI job,
-fix any failure without weakening guards. Then implement read-only donor sync
-health/status API from persisted policy/baseline/lease/error/account health:
-new baseline missing, legacy resync, active/recovery due, retry, gap and ready
-must be distinct; never expose tokens/session/key or fabricate live connectivity.
-Wire truthful status into existing Donors UI without redesign/DEMO-live mixing,
-test-first API/React/browser regression and relevant gates. Never reseed old
+NEXT_STEP: checkpoint donor sync diagnostics and inspect its exact CI, fix ordinary
+failures without weakening guards. Continue read-only real Overview/known AI usage
+aggregation from retained SQL records, with precise historical count definitions,
+unknown charges never zero/complete invoice, no invented live health/topic/chart
+metrics or DEMO fallback. Test-first API/React/browser and relevant full gates.
+Never expose tokens/session/key or call live providers for a dashboard. Never reseed old
 fixtures, revive SUPERSEDED history or invent legacy continuity. Keep all operational
 flags unchanged and Windows Docker NOT VERIFIED / BLOCKED BY ENVIRONMENT.
 Never activate operational flags as a test.

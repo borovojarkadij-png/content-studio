@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { WorkspaceProps } from "./App";
 import { Icon, Notice, Panel, PanelTitle } from "./ui";
+import { DonorSynchronization } from "./DonorSynchronization";
 import {
   bulkImportDonors,
   createConfiguration,
@@ -317,6 +318,9 @@ export function LiveDirectory({
               </button>
             </div>
           </>
+        )}
+        {section === "donors" && selected && (
+          <DonorSynchronization donorId={selected.id} refreshKey={reload} />
         )}
         {section === "donors" && (
           <section className="detail-section">

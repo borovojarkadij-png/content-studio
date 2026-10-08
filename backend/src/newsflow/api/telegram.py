@@ -15,6 +15,7 @@ from newsflow.services.automatic_approval import (
     AutomaticApprovalBlocked,
     AutomaticApprovalPolicyService,
 )
+from newsflow.services.donor_sync_status import DonorSyncStatusReader
 from newsflow.services.durable_media_runner import DurableMediaRunner
 from newsflow.services.durable_source_photo_runner import DurableSourcePhotoRunner
 from newsflow.services.media_job_read import MediaJobReader
@@ -62,6 +63,33 @@ def get_configuration_service() -> Iterator[TelegramConfigurationService]:
 
 
 Configuration = Annotated[TelegramConfigurationService, Depends(get_configuration_service)]
+
+
+def get_donor_sync_status_reader() -> Iterator[DonorSyncStatusReader]:
+    for session in database_session():
+        if session is None:
+            raise HTTPException(503, "Durable database is not configured")
+        try:
+            yield DonorSyncStatusReader(session)
+        except LookupError:
+            raise HTTPException(404, "Donor not found") from None
+        except ValueError:
+            raise HTTPException(422, "Invalid synchronization status request") from None
+        except SQLAlchemyError:
+            raise HTTPException(
+                503, "Durable database is unavailable or requires migrations"
+            ) from None
+
+
+DonorSyncStatus = Annotated[DonorSyncStatusReader, Depends(get_donor_sync_status_reader)]
+
+
+@router.get("/donors/{donor_id}/sync-status")
+def get_donor_sync_status(
+    donor_id: int, response: Response, service: DonorSyncStatus
+) -> dict[str, object]:
+    response.headers["Cache-Control"] = "no-store"
+    return service.read(donor_id, now=datetime.now(UTC))
 
 
 def get_approval_policy_service() -> Iterator[AutomaticApprovalPolicyService]:

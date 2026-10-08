@@ -70,9 +70,51 @@ function fixture(handler?: (path: string, init?: RequestInit) => unknown) {
     if (path.endsWith("output-channels")) return json({ items: [output] });
     if (path.endsWith("mappings")) return json({ items: [route] });
     if (path.endsWith("donor-imports")) return json({ items: [] });
+    if (path.endsWith("sync-status"))
+      return json({
+        donor_id: 1,
+        state: "NOT_ENFORCED",
+        enforcement_enabled: false,
+        source_processing_blocked: false,
+        network_checked: false,
+        pts: null,
+        retry_at: null,
+      });
     throw new Error(`Unexpected ${path}`);
   });
 }
+it("reads selected donor sync diagnostics without discarding a manual name draft", async () => {
+  vi.stubGlobal(
+    "fetch",
+    fixture((path) => {
+      if (path.endsWith("sync-status"))
+        return json({
+          donor_id: 1,
+          state: "GAP_UNRESOLVED",
+          enforcement_enabled: false,
+          source_processing_blocked: true,
+          network_checked: false,
+          pts: 10,
+          retry_at: null,
+        });
+    }),
+  );
+  render(
+    <StrictMode>
+      <App initialDemo={false} />
+    </StrictMode>,
+  );
+  navigate("Доноры");
+  expect(await screen.findByText("Разрыв истории не устранён")).toBeTruthy();
+  const input = screen.getByLabelText("Название") as HTMLInputElement;
+  fireEvent.change(input, { target: { value: "Мой несохранённый draft" } });
+  fireEvent.click(
+    screen.getByRole("button", { name: "Обновить синхронизацию" }),
+  );
+  await screen.findByText("Разрыв истории не устранён");
+  expect(input.value).toBe("Мой несохранённый draft");
+  expect(screen.queryByText("Название сохранено в базе данных.")).toBeNull();
+});
 it("persists source permission explicitly, preserves failed drafts and never pretends download or send", async () => {
   let fail = true;
   const fetch = fixture((path, init) => {

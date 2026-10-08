@@ -47,6 +47,11 @@ rewrite-output APIs verify denied sources and PENDING review after recovery.
 
 ## Runtime evidence
 
+Follow-up actual inspection: exact probe **08cf9c9e3d9a49ade2b1535726d85ed19f68612e**
+CI **37751511536 completed SUCCESS in all five jobs**, including the dedicated
+PostgreSQL sync/wait recovery job. Prior 3adf692 CI **37750506085** completed
+SUCCESS. This supersedes the pending observations below, not Windows/live limits.
+
 Prior baseline/replay/concurrency checkpoints ab13403 CI **37748969125** and
 60596f5 CI **37749741849** completed SUCCESS in all five jobs (actual gh list).
 Prior wait implementation 3adf692 CI **37750506085** backend/frontend/dedicated sync
