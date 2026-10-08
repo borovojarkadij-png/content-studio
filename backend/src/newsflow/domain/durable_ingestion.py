@@ -119,9 +119,48 @@ class DurableIngestionWorkflow:
                 # Retain observed history, but do not classify, consume its exact
                 # fingerprint or create work from an unresolved channel gap.
                 persisted = repository.ingest(event, observed_at)
+                retained_number = repository.current_revision_number(event)
+                if retained_number is None:
+                    raise RuntimeError("Retained sync observation has no exact revision")
+                retained_key = f"{source_key}:revision:{retained_number}"
+                marker_key = f"source.sync_quarantined:{retained_key}"
+                if (
+                    self._session.scalar(
+                        select(OutboxEventModel.id).where(
+                            OutboxEventModel.idempotency_key == marker_key
+                        )
+                    )
+                    is None
+                ):
+                    self._session.add(
+                        OutboxEventModel(
+                            event_type="source.sync_quarantined",
+                            aggregate_key=retained_key,
+                            idempotency_key=marker_key,
+                            created_at=observed_at,
+                        )
+                    )
                 return IngestionResult(persisted.created, source_key, "SOURCE_SYNC_REQUIRED")
             if revision_number is None:
-                return self._route_existing_source(repository, event, source_key, observed_at)
+                retained_number = repository.current_revision_number(event)
+                retained_key = f"{source_key}:revision:{retained_number}"
+                quarantined = self._session.scalar(
+                    select(OutboxEventModel.id).where(
+                        OutboxEventModel.idempotency_key
+                        == f"source.sync_quarantined:{retained_key}"
+                    )
+                )
+                decided = self._session.scalar(
+                    select(EditorialDecisionModel.id).where(
+                        EditorialDecisionModel.content_key == retained_key
+                    )
+                )
+                if retained_number is not None and quarantined is not None and decided is None:
+                    # Replay exact retained content through the ordinary cheap
+                    # dedup/filter/editorial path; unknown is never invented PASS.
+                    revision_number = retained_number
+                else:
+                    return self._route_existing_source(repository, event, source_key, observed_at)
             content_key = f"{source_key}:revision:{revision_number}"
             existing_decision = self._session.scalar(
                 select(EditorialDecisionModel).where(

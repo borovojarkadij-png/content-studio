@@ -2,6 +2,12 @@
 
 ## VERIFIED WORKING
 
+- Durable exact quarantined-revision replay OFFLINE: 12 dedicated / 61 combined /
+  full backend 918 PASS (41004), exact CI Ruff/changed format/compile/explicit
+  isolated D: drift PASS. Atomic obligations, partial mapping crash/SQL reopen,
+  real obligation/completion insert faults, bound current idle sync/session/filter
+  fencing, fair bounded scan, unknown MANUAL_REVIEW and protected REJECT zero-job/
+  zero-usage verified. See SOURCE_SYNC_REPLAY_VERIFICATION.md. Worker wiring pending.
 - Known channel gap/foreign-baseline shared source quarantine OFFLINE: final
   full backend 906 PASS (21914), 70 targeted, exact CI Ruff/changed format/compile/
   explicit isolated D: drift PASS; 65 frontend units / 26 browser PASS (91631),
@@ -657,11 +663,19 @@ Baseline committed/pushed 9c4dcf12c07e289298f3c3c0aae1c4d1232cd23a;
 CI 37742573673 backend/frontend SUCCESS, both Docker jobs in progress at inspection.
 Shared unresolved-gap/foreign-baseline freshness now verified OFFLINE with full
 906 backend / 65 frontend units / 26 browser gate PASS. Checkpoint this increment,
-then add durable bounded replay obligations for exact stored revisions retained
-without classification during a gap. Test crash after partial mapping fan-out,
-SQL reopen, current source/session/cursor/mapping fencing, unknown classification
-remaining MANUAL_REVIEW, stale/rejected/deleted zero-AI and no fake PASS.
-Then bounded fair opt-in deletion-first bootstrap/difference/history orchestration,
+gap checkpoint committed/pushed 697fdd11572ce26f4dc1626ff0e5fd677f5aa6c0;
+CI 37744183380 backend/frontend SUCCESS, Docker jobs still in progress at inspection.
+Baseline CI 37742573673 subsequently completed SUCCESS (actual gh list).
+Durable bounded retained-revision replay now verified OFFLINE with full backend
+918 PASS plus exact CI lint/format/compile/isolated D: drift. Checkpoint replay,
+then implement a bounded, fair, default-disabled channel-sync worker seam that
+orders new-only bootstrap → deletion-first difference → history → exact replay.
+Do not fall back to history for legacy/foreign/gap/non-final/failed synchronization.
+Test disabled-no-DB, missing credentials/cipher, Fake/encrypted provider pipeline,
+new donor vs legacy, TooLong/non-final/failures, tombstoned history zero-classifier,
+unknown MANUAL_REVIEW/zero-rewrite, fairness and restart with retained cursors.
+Main-loop/operational activation requires the explicit legacy quarantine policy;
+do not enable merely because the isolated seam passes.
 before downstream planning/rewrite. Never activate operational flags as a test.
 Never initialize/reset legacy cursor from latest-message IDs or TooLong, never
 advance pts until all observations/mappings persist. No public cursor-reset or
