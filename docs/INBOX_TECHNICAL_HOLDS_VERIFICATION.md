@@ -1,5 +1,9 @@
 # Read-only Inbox technical holds — 2026-10-08
 
+Subsequent actual GitHub inspection: exact source ec4e560 CI 37791084343
+completed all-eight SUCCESS, including expanded PostgreSQL job 113358327396
+116 PASS /54.26s. This is isolated Linux acceptance, not current Windows proof.
+
 ## Implemented
 
 The existing Telegram Inbox GET now returns additive `technical_reason_codes`

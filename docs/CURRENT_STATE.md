@@ -13,9 +13,33 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
 
 ## VERIFIED WORKING
 
+- Bounded human illustration-review domain contract verified OFFLINE: exact
+  immutable candidate/channel/mapping/source/text/draft/asset bytes/metadata
+  binding; strict ID/hash/enum/time/acknowledgment/rationale, missing/rejected/
+  uncertain/revoked/stale/non-human evidence never grants use. No authenticated
+  API, model qualification, SQL writer or publication override. Existing library
+  preflight hold remains unchanged. Initial 107 cases; review found one actual
+  DST fold defect, reproduced RED and corrected by canonical UTC instants; final
+  combined 146 PASS /6.11s. Reviewer confirms correction, no remaining actionable
+  issues in scope, no reviewer tests/live calls. Final isolated Telethon 1.45
+  backend 1512 PASS /172.51s (19438), exact CI Ruff/changed format/D: compile
+  and explicit isolated upgrade/check/downgrade/base/upgrade/check no-drift PASS.
+  Frontend fresh 205 units/format/TypeScript-Vite build PASS, no frontend changes.
+  Previous 33 browser PASS is historical UI proof, not a fresh run this increment.
+  See ILLUSTRATION_REVIEW_CONTRACT_VERIFICATION.md.
+- ec4e560 exact CI 37791084343 completed all-eight SUCCESS. Library source
+  d29d6f0 exact CI 37792513344 completed FAILED: backend 113363336650 has
+  1 failed/1402 passed, no-output pwsh startup timeout20; other seven jobs PASS.
+  Identical source at docs 008eef6 /37792828642 completed all-eight SUCCESS.
+  Timing hypothesis supported, not proof of guard/Docker defect. Isolated actual
+  PowerShell refusal harness now traps Docker and checks exact mixed-family
+  refusal/no artifact writes with noninteractive telemetry-opt-out/hard60
+  startup bound. No retry/skip/ignored assertion; 11 actual local PASS, corrected
+  Linux CI pending new checkpoint. Historical failure is preserved.
 - Library diagnostics committed/pushed source checkpoint
   d29d6f0b51382c32e2d825f4fac66d2294d76d80, correct origin/codex/dark-navy-ui.
-  Exact CI 37792513344 started; all jobs running at inspection, not PASS.
+  Exact CI 37792513344 final failed backend startup test recorded above; other
+  seven jobs SUCCESS. Docs 008eef6 all-eight SUCCESS, not current Windows proof.
   Fresh Windows daemon read still fails missing dockerDesktopLinuxEngine pipe.
   C: has 22,557,417,472 bytes free and D: 168,557,903,872 at inspection;
   recovered space is not daemon/deployment acceptance. No restart/reset/storage
@@ -36,8 +60,8 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
 - Inbox checkpoint committed/pushed ec4e5600a2fee44c41496caefd1f0a0de8d5b4f9
   to correct origin/branch. Exact CI 37791084343 / expanded PG job 113358327396
   SUCCESS: 116 PASS /54.26s, including 31 new actual migrated SQL/HTTP cases.
-  Backend/frontend/admission/sync SUCCESS; other restart jobs still running
-  at inspection. No overall/current Windows success inference.
+  All eight jobs subsequently completed SUCCESS at fresh inspection.
+  No current Windows success inference.
 - Read-only Inbox technical-hold diagnostics implemented/verified OFFLINE:
   latest SQL fixed codes for video manual-only, YouTube/malformed/unknown/corrupt
   source links, album/protection; preserved editorial/source/job history,
@@ -1098,16 +1122,23 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: inspect remaining ec4e560 CI 37791084343 (expanded PG already
-116 PASS) and exact library d29d6f0 CI 37792513344, plus latest docs-only CI
-if applicable. Source checkpoints already committed/pushed, do not repeat.
-Diagnose/fix
-genuine failures without disabling checks/reseeding; queued/running is not PASS.
-Then continue approved library-photo relevance work OFFLINE: read existing
-media selection, immutable source/draft/asset and review/rights contracts; add
-a bounded fail-closed explicit illustration-relevance review domain contract
-with regression tests. Unknown/rejected/stale evidence must never grant use;
-human source/draft/asset binding is distinct from factual/model qualification.
+NEXT_STEP: inspect exact latest review-contract checkpoint CI by matching
+`git rev-parse HEAD` to `gh run list --repo borovojarkadij-png/content-studio
+--branch codex/dark-navy-ui --limit 3 --json databaseId,headSha,status,conclusion`;
+all final local gates completed, no repeated implementation/test seed needed.
+Diagnose actual failures without disabling checks/reseeding. Pending is not PASS.
+ec4e560 CI 37791084343 and docs 008eef6 CI 37792828642 all-eight
+SUCCESS; d29d6f0 CI 37792513344 backend startup timeout is preserved as FAILED.
+Do not repeat completed Inbox/library diagnostics or the human domain contract.
+Then create a read-only guarded canonical SQL illustration-binding resolver:
+clean/fresh session; exact current candidate/mapping/source/approved per-channel
+draft; current editorial/technical/rights gates; successful selected library
+acquisition; decoded current bytes and canonical metadata hashes. Revalidate
+after reads; regression-test stale/contradictory/dirty/deleted/reject/no-provider
+paths on owned migrated fixtures. Caller hashes/keywords are never authoritative.
+Human review is separate from factual/model qualification and any eventual
+benchmarked visual-semantic verifier. Durable authenticated/audited review
+storage/workflow and fresh publication integration follow as separate increments.
 Keep actual library publication preflight blocked until a complete durable
 review boundary and relevant verification exist; no auto-approval, network
 call, public bypass/override, operational flags or real publication.
@@ -1116,6 +1147,9 @@ them or pretend a keyword/topic match proves an actual event photograph.
 Video remains manual-only/discard; do NOT implement automatic video rewrite,
 download/upload or publication as a follow-on task. Ordinary hidden-link work
 does not require live login/paid AI/Docker. Keep Telegram-only scope.
+
+### Historical continuation evidence (superseded by NEXT_STEP above)
+
 Atomic fan-out dedup checkpoint 34df872 has final full backend 1230 PASS
 / 133.53s (1325) and fresh 32 combined confirmation PASS.
 UI 7471132 / 37777065559 completed all-eight SUCCESS (actual gh inspection).

@@ -125,23 +125,54 @@ def test_probe_main_refuses_network_enabled_fixture_before_connection(monkeypatc
         probe.main("seed")
 
 
-def test_powershell_refuses_combined_channel_sync_and_legacy_suite_before_docker():
+@pytest.mark.parametrize(
+    "guards", ["-ChannelSyncGuard -PublicationGuard", "-AdmissionGuard -ChannelSyncGuard"]
+)
+def test_powershell_refuses_combined_channel_sync_and_legacy_suite_before_docker(tmp_path, guards):
+    import os
     import shutil
     import subprocess
 
     executable = shutil.which("pwsh")
     if executable is None:
         pytest.skip("PowerShell runtime unavailable; parser/runtime evidence pending")
-    script = Path(__file__).resolve().parents[2] / "scripts" / "verify-persistence.ps1"
+    original = Path(__file__).resolve().parents[2] / "scripts" / "verify-persistence.ps1"
+    directory = tmp_path / "scripts"
+    directory.mkdir()
+    script = directory / original.name
+    shutil.copy2(original, script)
+    marker = tmp_path / "docker-must-not-run"
+    environment = {
+        **os.environ,
+        "NEWSFLOW_TEST_VERIFY_SCRIPT": str(script),
+        "NEWSFLOW_TEST_DOCKER_MARKER": str(marker),
+        "POWERSHELL_TELEMETRY_OPTOUT": "1",
+    }
+    # Trap the command in PowerShell itself on both platforms. Even a broken
+    # refusal cannot reach the real daemon; all incidental fixture writes stay
+    # in this invocation's temporary directory, never operational storage.
+    command = (
+        "function global:docker { "
+        "[IO.File]::WriteAllText($env:NEWSFLOW_TEST_DOCKER_MARKER, 'called'); "
+        "throw 'TEST_DOCKER_FORBIDDEN' }; "
+        f"& $env:NEWSFLOW_TEST_VERIFY_SCRIPT {guards}"
+    )
     completed = subprocess.run(
-        [executable, "-NoProfile", "-File", str(script), "-ChannelSyncGuard", "-PublicationGuard"],
+        [executable, "-NoProfile", "-NonInteractive", "-Command", command],
         capture_output=True,
         text=True,
-        timeout=20,
+        # Includes cold .NET/PowerShell startup on hosted Linux. CI recorded
+        # no output before the old 20s deadline, not a failed refusal verdict.
+        # A timeout still fails; never retry, skip or accept an arbitrary error.
+        timeout=60,
+        cwd=tmp_path,
+        env=environment,
         check=False,
     )
     assert completed.returncode != 0
     assert "requires a separate fresh fixture" in completed.stderr
+    assert not marker.exists()
+    assert not (tmp_path / ".artifacts").exists()
 
 
 def test_probe_main_requires_persistent_synthetic_secret_before_database(monkeypatch, tmp_path):

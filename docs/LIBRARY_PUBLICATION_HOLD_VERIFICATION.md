@@ -73,3 +73,10 @@ Exact new CI **37792513344** started; all jobs still running at first inspection
 Do not call that runtime acceptance PASS or merge main. Fresh Windows daemon
 inspection still reports missing `dockerDesktopLinuxEngine` pipe, despite
 confirmed recovered C: space. No resets, volumes deletion or live calls attempted.
+
+Later actual inspection: original source CI 37792513344 completed FAILED only
+on backend pwsh startup timeout20 (no stdout/stderr before deadline, 1402 other
+tests PASS); remaining seven jobs succeeded. Unchanged source at docs HEAD
+008eef6 /37792828642 completed all-eight SUCCESS. Original failure is preserved,
+not relabeled. See ILLUSTRATION_REVIEW_CONTRACT_VERIFICATION.md for isolated
+Docker-trapped refusal harness correction and subsequent offline domain work.
