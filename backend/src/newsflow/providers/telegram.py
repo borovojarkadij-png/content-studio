@@ -101,6 +101,53 @@ class TelegramPhotoDownload:
 
 
 @dataclass(frozen=True, slots=True)
+class TelegramVideoDownload:
+    """Bounded original bytes, NOT decoded media or authority to publish."""
+
+    message: TelegramMessage = field(repr=False)
+    content: bytes = field(repr=False)
+
+    def __post_init__(self):
+        _validate_video_message(self.message)
+        if not isinstance(self.content, bytes) or not 0 < len(self.content) <= 16 * 1024 * 1024:
+            raise ValueError("Invalid bounded single-source Telegram video")
+
+    @property
+    def media_validated(self) -> bool:
+        return False
+
+    @property
+    def publication_allowed(self) -> bool:
+        return False
+
+
+def validate_video_request(account_id, donor_identifier, message_id):
+    validate_difference_request(account_id, donor_identifier, 1, 10)
+    if type(message_id) is not int or not 1 <= message_id <= 2**31 - 1:
+        raise ValueError("Invalid Telegram video identity")
+
+
+def _validate_video_message(message):
+    if not isinstance(message, TelegramMessage):
+        raise TypeError("Invalid Telegram video source")
+    validate_video_request(message.account_id, message.donor_identifier, message.message_id)
+    validate_media_observation(message)
+    if (
+        message.media_type != "video"
+        or message.album_id is not None
+        or message.media_id is None
+        or message.media_protected is not False
+        or type(message.is_edit) is not bool
+        or not isinstance(message.text, str)
+        or len(message.text.encode("utf-16-le")) // 2 > 4096
+        or not isinstance(message.source_updated_at, datetime)
+        or message.source_updated_at.tzinfo is None
+        or message.source_updated_at.utcoffset() is None
+    ):
+        raise ValueError("Invalid single-source Telegram video observation")
+
+
+@dataclass(frozen=True, slots=True)
 class TelegramAlbumObservation:
     """Observed members, not proof of a complete album or permission to rewrite.
 
@@ -313,6 +360,9 @@ class TelegramProvider(Protocol):
     def download_photo(
         self, account_id: str, donor_identifier: str, message_id: int
     ) -> TelegramPhotoDownload: ...
+    def download_video(
+        self, account_id: str, donor_identifier: str, message_id: int
+    ) -> TelegramVideoDownload: ...
 
     def album_window(
         self, account_id: str, donor_identifier: str, *, anchor_id: int
@@ -346,6 +396,7 @@ class FakeTelegramProvider:
         self._session_probes: dict[str, int] = {}
         self._channels: dict[tuple[str, str], TelegramChannelResolution] = {}
         self._photos: dict[tuple[str, str, int], bytes] = {}
+        self._videos: dict[tuple[str, str, int], bytes] = {}
         self._differences: dict[tuple[str, str, int], TelegramChannelDifference] = {}
         self._checkpoints: dict[tuple[str, str], TelegramChannelCheckpoint] = {}
 
@@ -439,6 +490,19 @@ class FakeTelegramProvider:
         message = self.fetch_message(account_id, donor_identifier, message_id)
         return TelegramPhotoDownload(
             message, self._photos[(account_id, donor_identifier, message_id)]
+        )
+
+    def download_video(self, account_id, donor_identifier, message_id):
+        validate_video_request(account_id, donor_identifier, message_id)
+        message = self.fetch_message(account_id, donor_identifier, message_id)
+        if (
+            message.account_id != account_id
+            or message.donor_identifier != donor_identifier
+            or message.message_id != message_id
+        ):
+            raise ValueError("Telegram video source identity mismatch")
+        return TelegramVideoDownload(
+            message, self._videos[(account_id, donor_identifier, message_id)]
         )
 
     def iter_events(self, account_id: str) -> Iterator[TelegramMessage]:
@@ -783,6 +847,92 @@ class TelethonTelegramProvider:
             return TelegramPhotoDownload(message, bytes(data))
 
         return self._run(account_id, download)
+
+    def download_video(self, account_id, donor_identifier, message_id):
+        validate_video_request(account_id, donor_identifier, message_id)
+        channel = self._channel_id(donor_identifier)
+
+        async def download(client):
+            peer = await self._input_channel(client, account_id, channel)
+            raw = await client.get_messages(peer, ids=message_id)
+            message, declared = self._video_source(account_id, donor_identifier, message_id, raw)
+            # An explicit surplus chunk asks Telethon for an empty EOF response
+            # at exact 64KiB boundaries. Stop at the declared number of chunks.
+            chunk_limit = (declared[1] + 64 * 1024 - 1) // (64 * 1024)
+            stream = client.iter_download(raw.media, request_size=64 * 1024, limit=chunk_limit)
+            data = bytearray()
+            chunks = 0
+            stream_failed = True
+            try:
+                async for chunk in stream:
+                    chunks += 1
+                    if not isinstance(chunk, (bytes, memoryview)):
+                        raise TypeError("Invalid Telegram video chunk")
+                    if isinstance(chunk, memoryview) and (chunk.ndim != 1 or chunk.itemsize != 1):
+                        raise TypeError("Invalid Telegram video chunk")
+                    if (
+                        chunks > 257
+                        or not 0 < len(chunk) <= 64 * 1024
+                        or len(data) + len(chunk) > declared[1]
+                    ):
+                        raise ValueError("Telegram video exceeded its download bounds")
+                    data.extend(chunk)
+                stream_failed = False
+            finally:
+                try:
+                    await asyncio.wait_for(stream.close(), timeout=2)
+                except Exception:
+                    # SDK cross-DC initialization can fail before its close()
+                    # state exists. Preserve FloodWait/cancellation/primary
+                    # stream failure; cleanup failure after success is fatal.
+                    if not stream_failed:
+                        raise
+            if len(data) != declared[1]:
+                raise ValueError("Telegram video download is incomplete")
+            current = await client.get_messages(peer, ids=message_id)
+            current_message, current_declared = self._video_source(
+                account_id, donor_identifier, message_id, current
+            )
+            if current_message != message or current_declared != declared:
+                raise ValueError("Telegram video source changed during download")
+            return TelegramVideoDownload(message, bytes(data))
+
+        return self._run(account_id, download)
+
+    @classmethod
+    def _video_source(cls, account_id, donor_identifier, message_id, raw):
+        if raw is None:
+            raise LookupError("Telegram video source no longer exists")
+        if (
+            type(getattr(raw, "chat_id", None)) is not int
+            or raw.chat_id != cls._channel_id(donor_identifier)
+            or type(getattr(raw, "id", None)) is not int
+            or raw.id != message_id
+        ):
+            raise ValueError("Telegram video source identity mismatch")
+        protection = getattr(raw, "noforwards", None)
+        if protection is True:
+            raise PermissionError("Protected Telegram media must not be downloaded")
+        if protection is not None and protection is not False:
+            raise ValueError("Telegram video protection cannot be verified")
+        message = cls.normalize_message(account_id, donor_identifier, raw)
+        _validate_video_message(message)
+        document = getattr(raw, "document", None)
+        if (
+            message.media_type != "video"
+            or message.album_id is not None
+            or message.media_id is None
+            or document is None
+            or getattr(raw, "video", None) is not document
+            or getattr(raw, "media", None) is None
+            or getattr(raw, "video_note", None) is not None
+            or getattr(raw, "gif", None) is not None
+            or type(getattr(document, "size", None)) is not int
+            or not 0 < document.size <= 16 * 1024 * 1024
+            or getattr(document, "mime_type", None) != "video/mp4"
+        ):
+            raise ValueError("Download requires a bounded single non-album MP4 video")
+        return message, (message.media_id, document.size, document.mime_type)
 
     def recent(self, account_id, donor_identifier, *, limit):
         if isinstance(limit, bool) or not isinstance(limit, int) or not 1 <= limit <= 100:

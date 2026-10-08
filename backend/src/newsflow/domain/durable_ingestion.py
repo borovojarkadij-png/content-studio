@@ -105,15 +105,15 @@ class DurableIngestionWorkflow:
                 repository.set_state(event, "RECEIVED")
             technical = self._technical_filter.evaluate(event)
             if not technical.accepted:
-                if event.album_id is not None:
+                manual_video = technical.reason_code == "VIDEO_MANUAL_REVIEW_REQUIRED"
+                if event.album_id is not None or manual_video:
                     # Preserve captionless/video members too; never manufacture
                     # a complete group from just the first publishable caption.
                     repository.ingest(event, observed_at)
-                if observed_edit or event.album_id is not None:
-                    repository.set_state(event, "REJECTED_TECHNICAL")
-                return IngestionResult(
-                    False, source_key, "REJECTED_TECHNICAL", technical.reason_code
-                )
+                status = "MANUAL_REVIEW" if manual_video else "REJECTED_TECHNICAL"
+                if observed_edit or event.album_id is not None or manual_video:
+                    repository.set_state(event, status)
+                return IngestionResult(False, source_key, status, technical.reason_code)
 
             if source_identity_sync_blocked(
                 self._session, event.account_id, event.donor_identifier

@@ -237,3 +237,11 @@ class ConfiguredTelegramProvider:
         return self._adapter(account_id, donor_identifier).download_photo(
             account_id, donor_identifier, message_id
         )
+
+    def download_video(self, account_id, donor_identifier, message_id):
+        from newsflow.providers.telegram import validate_video_request
+
+        validate_video_request(account_id, donor_identifier, message_id)
+        return self._adapter(account_id, donor_identifier).download_video(
+            account_id, donor_identifier, message_id
+        )

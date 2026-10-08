@@ -73,8 +73,11 @@ uncommitted dedup patch.
 Independent `requesting-code-review` source/history-only review found no
 actionable findings in this patch and the committed album UI. Reviewer ran no
 tests and made no changes; main-agent execution is the verification evidence.
-No merge. Dedicated strict create-only PostgreSQL CI now includes these new
-tests; actual new PG concurrency/rollback acceptance remains pending exact CI.
+No merge. Exact committed 34df8727f8a6bec2da5c2f0d1be45863b19b8987 /
+CI 37779474808 completed all-eight SUCCESS (fresh gh inspection). Dedicated
+strict create-only PostgreSQL job 113318630963: 61 PASS /31.35s, including all ten
+new rollback/concurrency/per-output cases. This is actual PostgreSQL acceptance,
+not current Windows proof. Scope-only 3f0b35f /37781138083 also all-eight SUCCESS.
 
 No operational secrets/session/DB/channel/configuration/permissions changed.
 No real provider call, source download/upload or publication. Windows Docker

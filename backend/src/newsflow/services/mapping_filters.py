@@ -5,7 +5,7 @@ import re
 
 from sqlalchemy import select
 
-from newsflow.domain.technical_filters import MappingTechnicalFilter
+from newsflow.domain.technical_filters import MappingTechnicalFilter, visible_link_exclusion_reason
 from newsflow.persistence.models import (
     ChannelMappingModel,
     IncomingPostModel,
@@ -92,7 +92,12 @@ def mapping_filter(session, mapping, *, intake=True):
 
 def candidate_technical_allowed(session, candidate):
     revision = source_revision(session, candidate.content_key)
-    if revision is not None and (revision.album_id is not None or revision.media_protected is True):
+    if revision is not None and (
+        revision.album_id is not None
+        or revision.media_protected is True
+        or revision.media_type == "video"
+        or visible_link_exclusion_reason(revision.source_text) is not None
+    ):
         return False
     # Keep the isolated legacy no-mapping domain prototype distinct from actual
     # mapped ingestion. No HTTP endpoint can clear a candidate's mapping.
@@ -128,7 +133,12 @@ def candidate_technical_allowed(session, candidate):
 
 def output_technical_allowed(session, content_key, output_channel_id):
     revision = source_revision(session, content_key)
-    if revision is not None and (revision.album_id is not None or revision.media_protected is True):
+    if revision is not None and (
+        revision.album_id is not None
+        or revision.media_protected is True
+        or revision.media_type == "video"
+        or visible_link_exclusion_reason(revision.source_text) is not None
+    ):
         return False
     candidate = session.scalar(
         select(PublicationCandidateModel)

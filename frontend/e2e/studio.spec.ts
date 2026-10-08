@@ -52,6 +52,44 @@ const navigate = async (page: Page, name: string) => {
     .click();
 };
 
+test("real Connections explains manual-only video and mandatory YouTube exclusion without writes", async ({
+  page,
+}, testInfo) => {
+  const writes: string[] = [];
+  page.on("request", (request) => {
+    if (request.url().includes("/api/") && request.method() !== "GET")
+      writes.push(request.method());
+  });
+  await page.goto("/");
+  await navigate(page, "Связи");
+  const hint = page.getByText(/Видео: только ручная проверка/);
+  await expect(hint).toBeVisible();
+  await expect(hint).toContainText("без автоматического рерайта");
+  await expect(hint).toContainText("Ссылки YouTube исключаются до AI");
+  await expect(page.getByLabel("Видео", { exact: true })).not.toBeChecked();
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await expect(hint).toBeVisible();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    expect(
+      (
+        await new AxeBuilder({ page })
+          .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
+          .analyze()
+      ).violations,
+    ).toEqual([]);
+    await page.screenshot({
+      path: testInfo.outputPath(`donor-exclusions-${width}.png`),
+      fullPage: true,
+    });
+  }
+  expect(writes).toEqual([]);
+});
+
 test("real Inbox reads sparse retained album observations without enabling rewrite or publication", async ({
   page,
 }, testInfo) => {

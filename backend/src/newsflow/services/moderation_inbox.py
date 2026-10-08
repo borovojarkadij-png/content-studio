@@ -5,6 +5,7 @@ from dataclasses import asdict, dataclass
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from newsflow.domain.technical_filters import visible_link_exclusion_reason
 from newsflow.persistence.models import (
     ContentRevisionModel,
     EditorialDecisionModel,
@@ -83,7 +84,11 @@ class ModerationInboxReader:
                     source_text=revision.source_text,
                     editorial_status=decision.status if decision else None,
                     rewrite_allowed=False
-                    if deleted or sync_blocked or revision.album_id is not None
+                    if deleted
+                    or sync_blocked
+                    or revision.album_id is not None
+                    or revision.media_type == "video"
+                    or visible_link_exclusion_reason(revision.source_text) is not None
                     else decision.rewrite_allowed
                     if decision
                     else None,

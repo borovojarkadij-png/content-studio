@@ -3,12 +3,36 @@
 import re
 from dataclasses import dataclass, field
 from hashlib import sha256
-from urllib.parse import urlparse
+from urllib.parse import unquote, urlparse
 
 from newsflow.providers.telegram import TelegramMessage
 
 _URL = re.compile(r"https?://[^\s<>()]+", re.IGNORECASE)
 _AD_MARKERS = ("#реклама", "#ad", "рекламная публикация")
+_YOUTUBE_DOMAINS = frozenset({"youtube.com", "youtu.be", "youtube-nocookie.com"})
+_LINK_CANDIDATES = re.compile(
+    r"(?:https?://|(?<!\S)//)[^\s<>()]+|"
+    r"(?<![\w/@.-])(?:[a-z0-9-]+\.)*(?:youtube\.com|youtu\.be|youtube-nocookie\.com)[^\s<>()]*",
+    re.IGNORECASE,
+)
+
+
+def visible_link_exclusion_reason(text: str) -> str | None:
+    """Canonical visible hosts only; malformed destinations fail closed, no RPC."""
+    for value in _LINK_CANDIDATES.findall(text):
+        value = value.rstrip(".,;:!?…\"'»”")
+        try:
+            host = urlparse(
+                value if value.startswith("//") or "://" in value else "https://" + value
+            ).hostname
+            if host is None:
+                return "INVALID_LINK"
+            host = unquote(host).rstrip(".").encode("idna").decode("ascii").casefold().rstrip(".")
+        except (ValueError, UnicodeError):
+            return "INVALID_LINK"
+        if any(host == domain or host.endswith("." + domain) for domain in _YOUTUBE_DOMAINS):
+            return "YOUTUBE_LINK"
+    return None
 
 
 @dataclass(frozen=True, slots=True)
@@ -40,11 +64,14 @@ class MappingTechnicalFilter:
         if message.media_protected is True:
             return TechnicalFilterDecision(False, "PROTECTED_CONTENT")
         text = message.text.strip()
-        if not text:
+        if not text and message.media_type != "video":
             return TechnicalFilterDecision(False, "EMPTY_CONTENT")
         normalized_text = text.casefold()
         if any(marker.casefold() in normalized_text for marker in self.ad_markers):
             return TechnicalFilterDecision(False, "ADVERTISING")
+        link_reason = visible_link_exclusion_reason(text)
+        if link_reason is not None:
+            return TechnicalFilterDecision(False, link_reason)
         if any(self._is_blocked_host(urlparse(url).hostname) for url in _URL.findall(text)):
             return TechnicalFilterDecision(False, "FORBIDDEN_LINK")
         if message.album_id is not None:
@@ -52,6 +79,8 @@ class MappingTechnicalFilter:
             # media/advertising/link policy. Until a durable complete manifest
             # is validated, neither ingress nor a stale/manual task may rewrite it.
             return TechnicalFilterDecision(False, "ALBUM_NORMALIZATION_REQUIRED")
+        if message.media_type == "video":
+            return TechnicalFilterDecision(False, "VIDEO_MANUAL_REVIEW_REQUIRED")
         return TechnicalFilterDecision(True)
 
     def _is_blocked_host(self, host: str | None) -> bool:

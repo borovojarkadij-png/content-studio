@@ -47,6 +47,26 @@ const filter = {
   ad_markers: [],
   effective_ad_markers: ["реклама"],
 };
+
+it("explains video manual-only intake and mandatory YouTube exclusion without enabling AI", async () => {
+  const fetch = fixture();
+  vi.stubGlobal("fetch", fetch);
+  render(<App initialDemo={false} />);
+  navigate("Связи");
+  await screen.findByLabelText("Запрещённые домены");
+  expect(screen.getByText(/Видео: только ручная проверка/)).toBeTruthy();
+  expect(screen.getByText(/Ссылки YouTube исключаются до AI/)).toBeTruthy();
+  const video = screen.getByRole("checkbox", { name: "Видео" });
+  expect((video as HTMLInputElement).checked).toBe(false);
+  await waitFor(() => expect(video.matches(":disabled")).toBe(false));
+  fireEvent.click(video);
+  expect((video as HTMLInputElement).checked).toBe(true);
+  expect(
+    fetch.mock.calls.every(
+      ([, init]) => !init?.method || init.method === "GET",
+    ),
+  ).toBe(true);
+});
 const json = (value: unknown) => ({ ok: true, json: async () => value });
 const navigate = (name: string) =>
   fireEvent.click(

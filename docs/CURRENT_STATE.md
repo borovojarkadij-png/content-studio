@@ -13,11 +13,30 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
 
 ## VERIFIED WORKING
 
+- Donor video/manual-only and visible YouTube/invalid URL exclusions verified
+  OFFLINE: discard by default, optional MANUAL_REVIEW retention, no classifier/
+  fingerprint/candidate/RewriteJob, ordinary source-created audit retained.
+  Latest-source mapped/legacy/missing task guards block provider construction;
+  Inbox false permission preserves historical PASS. Review-reproduced punctuation,
+  malformed URLs and Unicode root-dot bypasses corrected with regression RED/GREEN.
+  Final 135 combined PASS /5.80s; full backend 1345 PASS /127.92s (45182),
+  source/tests/Alembic/scripts Ruff, 8 changed format/D: compile PASS; explicit
+  isolated D: migration round-trip/drift PASS. Frontend 185 units/format/build/
+  audit0 PASS; actual isolated API/browser 32 PASS /49.7s (95851), GET-only
+  Connections hint, WCAG/no overflow 1440/390. Both captures visually inspected
+  under `.artifacts/ui-dark-navy/donor-exclusions-20261008/`.
+  Bounded raw-video provider/Fake/encrypted factory has 71 offline cases, actual
+  SDK iterator chunk-limit and primary-error cleanup regressions; DTO deliberately
+  denies validated-media/publication authority, no automated video workflow.
+  Hidden text-URL/button destinations still pending; no live call/flags changed.
+  See DONOR_AUTOMATION_EXCLUSIONS_VERIFICATION.md. New commit/CI pending.
+- Scope-only 3f0b35f751afd5332a5531c48e9d8d4d13a9aed7 / CI 37781138083
+  completed all-eight SUCCESS (fresh inspection). No current Windows proof.
 - Fan-out dedup checkpoint 34df8727f8a6bec2da5c2f0d1be45863b19b8987 committed/pushed
   to correct origin. Fresh 32 combined tests / lint / changed format PASS.
   Exact CI 37779474808 PostgreSQL job 113318630963 completed SUCCESS with
   61 PASS / 31.35s, including all ten new rollback/concurrency/per-output cases.
-  Remaining jobs not yet accepted as completed. No operational flags changed.
+  Whole workflow all-eight SUCCESS now actually inspected. No operational flags changed.
 - Shared mapping exact dedup on retained-source fan-out implemented OFFLINE:
   four migrated behavior RED; corrected missing reservation then actual SQLite
   first-savepoint rollback RED; targeted atomic PG/SQLite conflict insert GREEN.
@@ -28,7 +47,7 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
   PASS (45068); final full backend 1230 PASS / 133.53s (1325). Exact lint/format/D:
   compile/YAML/explicit isolated migration round-trip/drift PASS. Read-only
   independent skill review: no actionable findings, no reviewer test execution.
-  Dedicated actual PostgreSQL acceptance pending new CI. See
+  Dedicated actual PostgreSQL acceptance now confirmed above. See
   MAPPING_FANOUT_DEDUP_VERIFICATION.md.
 - Album UI 7471132f3c46a3f0771467d3fbecc8e5e3c7118d committed/pushed to
   correct origin; exact CI 37777065559 completed all-eight SUCCESS, including
@@ -1000,20 +1019,22 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: finish bounded single-source raw video provider contract regression
-cycle in test_telegram_video_download.py and providers/telegram.py; initial
-three missing-method RED -> three GREEN plus 15 existing photo PASS. Expanded
-guard cases currently RED (request/DTO source validation, ambiguous media and
-missing encrypted factory forwarding); correct fixture parameter IDs to avoid
-oversized pytest node IDs, then fix production guards and re-test. This work
-is UNCOMMITTED / NOT VERIFIED, not playable-media or publication support.
-Inspect remaining exact dedup CI 37779474808 (PG job 113318630963: 61 PASS),
-then relevant/full gates, docs, commit/push only verified changes.
+NEXT_STEP: checkpoint the fully verified donor-video/visible-YouTube increment
+and bounded read-only video foundation, then inspect exact GitHub CI. Implement
+hidden Telegram text-URL entities and inline-button destination capture in the
+provider-neutral immutable observation, durable ContentRevision and sync replay.
+Use bounded metadata (not appended rewrite prose), cheap and latest-source
+technical guards, SQL reopen/edit/stale/manual/planner/publication regressions;
+unknown/corrupt metadata must not become an empty accepted default. Add and
+verify a safe versioned migration if needed; no historical source/job deletion.
+Video remains manual-only/discard; do NOT implement automatic video rewrite,
+download/upload or publication as a follow-on task. Ordinary hidden-link work
+does not require live login/paid AI/Docker. Keep Telegram-only scope.
 Atomic fan-out dedup checkpoint 34df872 has final full backend 1230 PASS
 / 133.53s (1325) and fresh 32 combined confirmation PASS.
 UI 7471132 / 37777065559 completed all-eight SUCCESS (actual gh inspection).
 Then
-continue bounded album/video provider contracts and guarded media workflow,
+continue bounded album observations and guarded original-photo media workflow,
 without declaring observed membership complete or enabling network flags.
 No architecture replanning, redesign, operational data/key change or live sends.
 8038585 / 37774826743 completed all-eight SUCCESS, actual PG 50 PASS;
@@ -1030,7 +1051,7 @@ retest ordinary configuration/SQL/runtime failures without disabling assertions,
 reusing/reseeding fixtures or touching current Windows daemon/storage. All prior
 dd78455/1cedac8/567e263 workflows completed SUCCESS. After actual new combined
 acceptance, continue remaining independent IMPLEMENTATION_PLAN tasks (bounded
-album/video contract and guarded media workflow), preserving manual qualification
+album observation/hidden-link contracts and guarded photo workflow), preserving manual qualification
 and no live provider-send/operational flag activation;
 no existing fixture reseed. Library illustration publication remains blocked pending
 visual-semantic relevance approval, not a successful unattended mode. Preserve original
