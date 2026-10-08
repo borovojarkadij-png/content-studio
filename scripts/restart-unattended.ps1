@@ -5,6 +5,7 @@ try {
     $context = Get-UnattendedContext $Project
     $stage = 'OWNERSHIP'
     $owner = Assert-UnattendedOwnership $context
+    . (Join-Path $PSScriptRoot 'verification-postgres-crash.ps1')
     # Only retained owned synthetic storage. Never down --volumes, prune, reset or reseed.
     $stage = 'DOWN'
     Invoke-UnattendedCompose $context @('down')
@@ -14,7 +15,7 @@ try {
     Invoke-UnattendedCompose $context @('restart', 'redis', 'worker')
     if ($CrashRecovery) {
         $stage = 'POSTGRES_CRASH'
-        Invoke-UnattendedCompose $context @('kill', '-s', 'SIGKILL', 'postgres')
+        Invoke-SyntheticPostgresCrash -ComposeArgs $context.ComposeArgs
         $stage = 'POSTGRES_RECOVERY'
         Invoke-UnattendedCompose $context @('up', '-d', '--wait', '--wait-timeout', '180')
     }

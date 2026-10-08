@@ -101,6 +101,7 @@ foreach ($port in @($ApiPort, $WebPort, $ProductionPort)) {
 if ((@($ApiPort, $WebPort, $ProductionPort) | Select-Object -Unique).Count -ne 3) {
     throw 'Verification ports must be different.'
 }
+. (Join-Path $PSScriptRoot 'verification-postgres-crash.ps1')
 $root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $fixtureDirectory = Join-Path $root ".artifacts/docker-verification/$Project"
 New-Item -ItemType Directory -Force -Path $fixtureDirectory | Out-Null
@@ -212,7 +213,7 @@ if ($LASTEXITCODE -ne 0 -or $marker.Trim() -ne 'retained') {
 }
 if ($CrashRecovery) {
     # Only the explicitly named synthetic stack is affected. Never run on real data.
-    Invoke-VerificationCompose kill -s SIGKILL postgres
+    Invoke-SyntheticPostgresCrash -ComposeArgs $composeArgs
     Invoke-VerificationCompose up -d --wait --wait-timeout 180
     Invoke-Probe 'verify'
     Invoke-VerificationCompose exec -T redis redis-cli FLUSHDB
@@ -334,7 +335,7 @@ if ($ChannelSyncGuard) {
     Invoke-VerificationCompose up -d --wait --wait-timeout 180
     Invoke-ChannelSyncProbe 'verify'
     if ($CrashRecovery) {
-        Invoke-VerificationCompose kill -s SIGKILL postgres
+        Invoke-SyntheticPostgresCrash -ComposeArgs $composeArgs
         Invoke-VerificationCompose up -d --wait --wait-timeout 180
         Invoke-ChannelSyncProbe 'verify'
     }
@@ -364,7 +365,7 @@ if ($AdmissionGuard) {
     Invoke-VerificationCompose up -d --wait --wait-timeout 180
     Invoke-AdmissionProbe 'verify'
     if ($CrashRecovery) {
-        Invoke-VerificationCompose kill -s SIGKILL postgres
+        Invoke-SyntheticPostgresCrash -ComposeArgs $composeArgs
         Invoke-VerificationCompose up -d --wait --wait-timeout 180
         Invoke-AdmissionProbe 'verify'
     }

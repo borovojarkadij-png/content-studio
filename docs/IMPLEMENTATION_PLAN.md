@@ -7,6 +7,8 @@ YouTube sections without changing the approved Telegram architecture or gates.
 
 - [x] Repository, backend test harness, frontend build foundation
 - [x] Restore Windows Docker Desktop engine startup without persistent-data deletion: validated runtime sockets preserved, real Engine 29.8.0/WSL and network-none/no-volume container execution verified; fresh current-source full Windows stack/recovery acceptance still pending
+- [~] Fresh current-source Windows acceptance: new unattended nine-stage down/up/Redis-worker/PG crash (1 PASS/398.08s), separate channel-sync and admission families PASS; general OPENAI/OPENROUTER and expanded PG/full source gates in progress, no live sends
+- [x] Diagnose actual 9e33fba OpenRouter CI crash race; exact-ID bounded exited/137 barrier, foreign/missing/error/timeout refusal, 10 new/60 combined PowerShell regressions and three retained synthetic Windows crash/reverify cycles PASS; corrective CI pending
 - [x] Alembic explicit-target guard for CLI/programmatic use, isolated sentinel regressions and dedicated CI migration DB; local target incident documented in ALEMBIC_TARGET_GUARD.md
 - [x] Editorial/Rewrite/Publication domain hard-gate prototype with tests
 - [x] Compose persistence design and Windows command scripts
