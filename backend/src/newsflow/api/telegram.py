@@ -11,6 +11,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.exc import SQLAlchemyError
 
 from newsflow.persistence.database import configured_session_factory, database_session
+from newsflow.services.album_observation import AlbumObservationBlocked, AlbumObservationReader
 from newsflow.services.automatic_approval import (
     AutomaticApprovalBlocked,
     AutomaticApprovalPolicyService,
@@ -43,6 +44,34 @@ from newsflow.services.telegram_configuration import (
 )
 
 router = APIRouter(prefix="/api/telegram", tags=["telegram"])
+
+
+def get_album_observation_reader() -> Iterator[AlbumObservationReader]:
+    for session in database_session():
+        if session is None:
+            raise HTTPException(503, "Durable database is not configured")
+        try:
+            yield AlbumObservationReader(session)
+        except AlbumObservationBlocked as error:
+            raise HTTPException(409, str(error)) from None
+        except LookupError:
+            raise HTTPException(404, "Source revision not found") from None
+        except ValueError:
+            raise HTTPException(422, "Invalid source revision request") from None
+        except SQLAlchemyError:
+            raise HTTPException(
+                503, "Durable database unavailable or requires migrations"
+            ) from None
+
+
+@router.get("/source-albums")
+def read_source_album(
+    response: Response,
+    content_key: Annotated[str, Query(min_length=1, max_length=255)],
+    reader: Annotated[AlbumObservationReader, Depends(get_album_observation_reader)],
+) -> dict[str, object]:
+    response.headers["Cache-Control"] = "no-store"
+    return reader.read(content_key)
 
 
 def get_semantic_status_reader() -> Iterator[SemanticJobReader]:

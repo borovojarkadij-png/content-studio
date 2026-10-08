@@ -1,5 +1,19 @@
 # Combined unattended full-stack restart acceptance
 
+## Actual corrective acceptance
+
+Exact HEAD `e2225d0cefd3fb4c233a63a5d2578e7877b125c7`, GitHub CI
+[37771372421](https://github.com/borovojarkadij-png/content-studio/actions/runs/37771372421),
+completed job `113291510363` **SUCCESS**. Actual completed log: exactly **nine**
+restart/crash boundary messages, **1 passed / 353.22s**, four deliberately
+unselected separate scenarios, packaged Alembic **no new upgrade operations**.
+This verifies the same synthetic original-photo/FloodWait flow and persisted
+ciphertext/config/media/jobs/receipts through full-stack down/up, Redis/worker
+restart and PostgreSQL crash. Protected rejection still produces no rewrite
+job/provider calls; publication provider remains synthetic, no actual send.
+Whole eight-job workflow completed SUCCESS (actual gh inspection). Prior failed runs
+remain failures. Current Windows Docker still separately environment blocked.
+
 2026-10-08; branch `codex/dark-navy-ui`; correct origin
 `https://github.com/borovojarkadij-png/content-studio.git`.
 
@@ -84,6 +98,17 @@ junction/symlink refusal and unchanged original marker verified. 62 combined
 PASS (45092), Ruff/format PASS. Earlier fresh full backend 1190 PASS (3984),
 frontend 139/build/audit0 PASS. Final corrective full-stack CI still pending;
 no successful restart claim until actual nine boundaries complete.
+
+Corrective e2225d0 final local gate: **1192 backend PASS**, 112.94s (77656),
+`D:/Codex-Recovery/content-studio-20261008/hidden-context-full-1447`; exact CI
+Ruff/changed format/D: compile and fresh explicit migration round-trip/drift
+PASS (`restart-diagnostics-migration-1452.db`). Frontend 139 units/build/audit0
+PASS; relevant real migrated API browser PASS (46444c), desktop/mobile evidence
+`D:/Codex-Recovery/content-studio-20261008/hidden-context-browser-1451`.
+First browser selector matched no tests (not PASS), corrected actual selector
+ran one relevant integration test PASS. CI 37771372421 backend/frontend/PG/
+admission/channel-sync jobs SUCCESS; combined and legacy variants still pending
+at inspection. No overall CI or current Windows runtime claim.
 
 Prior dd78455 / 37766880597 and 1cedac8 / 37767782693 completed SUCCESS in all
 seven jobs; 567e263 / 37766368319 completed all-six SUCCESS (actual gh inspection).

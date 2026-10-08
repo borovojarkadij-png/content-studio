@@ -2,6 +2,29 @@
 
 ## VERIFIED WORKING
 
+- Bounded retained album read API implemented OFFLINE: exact immutable SQL
+  ownership/latest revisions/sparse photo-video captions/deletion flags, 11th
+  member refusal, opaque-key ambiguity/corruption/concurrent-anchor guard,
+  strict false completeness/rewrite/publication and no DEMO fallback. Caller
+  new/dirty/deleted autoflush bug RED -> clean-session refusal GREEN, no caller
+  mutation. 27 new / 75 combined / full 1219 backend PASS, 118.23s (59333),
+  exact lint/format/D: compile PASS. Expanded real PostgreSQL CI pending.
+  No UI/schema/network flags or operational data changed. See
+  DURABLE_ALBUM_OBSERVATION_VERIFICATION.md.
+- Actual combined Linux full-stack acceptance e2225d0cefd3fb4c233a63a5d2578e7877b125c7
+  / CI 37771372421 / job 113291510363 SUCCESS: completed log has exactly nine
+  down/up/Redis-worker/PG crash boundaries, 1 PASS / 353.22s, packaged Alembic
+  no drift. Original FloodWait pipeline/session/config/media/jobs/nonce receipts
+  and protected reject zero-job/zero-rewrite verified after actual restarts.
+  Whole eight-job workflow completed SUCCESS (actual gh inspection). Linux
+  acceptance does not repair/verify current Windows Docker. PHASE 1 NOT complete.
+- Corrective e2225d0 local final gate: 1192 backend PASS, 112.94s (77656),
+  exact CI Ruff/changed format/D: compile and explicit D: migration
+  upgrade/check/downgrade/upgrade/check PASS; frontend 139/build/audit0 PASS,
+  actual API approval form browser PASS (46444c), screenshots on D:.
+  Exact corrective CI 37771372421 backend/frontend/PG/admission/sync SUCCESS;
+  combined full-stack and two legacy variants still running at inspection.
+  No overall CI or current Windows Docker success claimed.
 - Root cause confirmed by 69e42cc CI 37770953130 safe CONTEXT:10 marker and
   actual local hidden-artifact reproduction RED: Get-Item without -Force
   cannot read retained hidden .artifacts after first startup (natural on Linux).
@@ -918,10 +941,16 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: push minimal hidden-artifact explicit-path read fix and regressions,
-inspect exact corrective full-stack CI for all nine original-state restart/crash
-boundaries; diagnose/reproduce/fix any further ordinary failure. Run final full
-local gate after root fix and update evidence. Prior
+NEXT_STEP: commit/push verified bounded album observation API to correct origin
+and inspect exact new eight-job CI including expanded PostgreSQL album tests.
+Full 1219 backend PASS (59333), no UI/schema/permission changes. After actual
+PG proof, wire read-only observed album context into existing Inbox components
+without redesign, preserving strict real/DEMO separation and no action permission.
+Combined
+Linux e2225d0 / 37771372421 is all-eight SUCCESS (nine actual restart boundaries).
+Never infer complete membership from a history window/quiet delay or allow
+album rewrite/publication. No caller pending-work flush/overwrite, no provider/
+editorial/rewrite/job mutation from read. Prior
 a9fbb90 run 37769576690 failed first hook after healthy startup; preserve this
 failure record, do not claim runtime success. Diagnose/fix/
 retest ordinary configuration/SQL/runtime failures without disabling assertions,

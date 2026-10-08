@@ -140,7 +140,7 @@ jobs:
       - name: Migrated PostgreSQL vertical slice with original SQL reopen at every stage
         env:
           NEWSFLOW_UNATTENDED_POSTGRES_URL: postgresql+psycopg://newsflow_fixture:synthetic-unattended-ci-only@127.0.0.1:5432/newsflow_unattended_ci
-        run: python -m pytest tests/test_unattended_vertical_slice.py tests/test_unattended_postgres_target.py -q
+        run: python -m pytest tests/test_unattended_vertical_slice.py tests/test_unattended_postgres_target.py tests/test_durable_album_observation.py -q
 
   unattended-compose:
     name: Synthetic unattended full-stack restart
