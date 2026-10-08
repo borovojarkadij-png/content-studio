@@ -2,6 +2,12 @@
 
 ## VERIFIED WORKING
 
+- Bounded default-disabled deletion-first worker seam OFFLINE: 17 dedicated /
+  29 tick+replay / full backend 935 PASS (23980), exact CI Ruff/changed format/
+  compile/explicit isolated D: drift PASS. Real encrypted factory/TL read/history,
+  no legacy/non-final/failure fallback, deletion-before-history, durable retry/
+  SQL-reopen and seven-donor fair scan verified; implicit account join bug fixed
+  by explicit donor join. See CHANNEL_SYNC_TICK_VERIFICATION.md. Main loop inactive.
 - Durable exact quarantined-revision replay OFFLINE: 12 dedicated / 61 combined /
   full backend 918 PASS (41004), exact CI Ruff/changed format/compile/explicit
   isolated D: drift PASS. Atomic obligations, partial mapping crash/SQL reopen,
@@ -667,15 +673,19 @@ gap checkpoint committed/pushed 697fdd11572ce26f4dc1626ff0e5fd677f5aa6c0;
 CI 37744183380 backend/frontend SUCCESS, Docker jobs still in progress at inspection.
 Baseline CI 37742573673 subsequently completed SUCCESS (actual gh list).
 Durable bounded retained-revision replay now verified OFFLINE with full backend
-918 PASS plus exact CI lint/format/compile/isolated D: drift. Checkpoint replay,
-then implement a bounded, fair, default-disabled channel-sync worker seam that
-orders new-only bootstrap → deletion-first difference → history → exact replay.
-Do not fall back to history for legacy/foreign/gap/non-final/failed synchronization.
-Test disabled-no-DB, missing credentials/cipher, Fake/encrypted provider pipeline,
-new donor vs legacy, TooLong/non-final/failures, tombstoned history zero-classifier,
-unknown MANUAL_REVIEW/zero-rewrite, fairness and restart with retained cursors.
-Main-loop/operational activation requires the explicit legacy quarantine policy;
-do not enable merely because the isolated seam passes.
+918 PASS plus exact CI lint/format/compile/isolated D: drift; committed/pushed
+7215570b932e9000d485be5beb249930e0c1ad87, CI 37745127358 in progress at inspection.
+Gap checkpoint CI 37744183380 subsequently completed SUCCESS (actual gh list).
+Bounded default-disabled new-only bootstrap → difference → history → exact replay
+worker facade now verified OFFLINE: 17 targeted / full 935 backend plus isolated
+lint/format/compile/drift PASS. Checkpoint it, then implement durable opt-in sync
+enforcement/legacy quarantine BEFORE connecting main loop. Missing/foreign/error/
+incomplete baselines under enforcement must fence all API/worker/publication paths
+through shared persisted state, including donors outside the current bounded scan.
+Turning a runtime flag off must not erase persisted quarantine or manufacture
+legacy continuity. No automatic legacy baseline reset/resync or real sends.
+Then main-loop/config wiring with all operational flags remaining 0; verify
+disabled/no-DB, restart, stale/API/worker zero-provider and ordering adversarial tests.
 before downstream planning/rewrite. Never activate operational flags as a test.
 Never initialize/reset legacy cursor from latest-message IDs or TooLong, never
 advance pts until all observations/mappings persist. No public cursor-reset or

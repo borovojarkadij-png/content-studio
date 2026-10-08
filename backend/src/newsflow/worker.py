@@ -26,6 +26,7 @@ from newsflow.persistence.models import (
 )
 from newsflow.security.master_key import load_runtime_master_key
 from newsflow.security.session_cipher import SessionCipher
+from newsflow.services.channel_sync_tick import run_channel_sync_tick as _channel_sync_tick
 from newsflow.services.donor_import_resolution import DonorImportResolutionRunner
 from newsflow.services.donor_ingestion_runner import DonorIngestionRunner
 from newsflow.services.durable_media_runner import DurableMediaRunner
@@ -43,6 +44,11 @@ from newsflow.services.telegram_provider_factory import (
 from newsflow.services.telegram_publication_factory import ConfiguredTelegramPublisher
 
 logger = structlog.get_logger()
+
+
+def run_channel_sync_tick(session_factory, **options):
+    """Guarded synchronization seam; not yet activated by the main loop."""
+    return _channel_sync_tick(session_factory, **options)
 
 
 @dataclass(frozen=True, slots=True)
