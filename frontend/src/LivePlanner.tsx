@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { SemanticVerificationStatus } from "./SemanticVerificationStatus";
 import type { WorkspaceProps } from "./App";
 import {
   loadOutputChannels,
@@ -432,6 +433,11 @@ function ChannelPlanner({
                 {draft.editorial_status ?? "нет решения"}
               </small>
               <p className="live-rewrite-text">{draft.rewritten_text}</p>
+              <SemanticVerificationStatus
+                outputId={draft.id}
+                channelId={channelId}
+                refreshKey={refresh}
+              />
               <div className="action-row">
                 <button
                   aria-label={`Одобрить рерайт ${draft.id}`}

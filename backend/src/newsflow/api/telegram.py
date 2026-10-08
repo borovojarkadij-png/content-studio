@@ -36,12 +36,39 @@ from newsflow.services.rewrite_outputs import (
     RewriteOutputConflict,
     RewriteOutputService,
 )
+from newsflow.services.semantic_job_read import SemanticJobReader
 from newsflow.services.telegram_configuration import (
     ConfigurationConflict,
     TelegramConfigurationService,
 )
 
 router = APIRouter(prefix="/api/telegram", tags=["telegram"])
+
+
+def get_semantic_status_reader() -> Iterator[SemanticJobReader]:
+    for session in database_session():
+        if session is None:
+            raise HTTPException(503, "Durable database is not configured")
+        try:
+            yield SemanticJobReader(session)
+        except LookupError:
+            raise HTTPException(404, "Draft not found") from None
+        except ValueError:
+            raise HTTPException(422, "Invalid verification status request") from None
+        except SQLAlchemyError:
+            raise HTTPException(
+                503, "Durable database unavailable or requires migrations"
+            ) from None
+
+
+@router.get("/rewrite-outputs/{output_id}/semantic-status")
+def semantic_status(
+    output_id: int,
+    response: Response,
+    service: Annotated[SemanticJobReader, Depends(get_semantic_status_reader)],
+) -> dict[str, object]:
+    response.headers["Cache-Control"] = "no-store"
+    return service.read(output_id, now=datetime.now(UTC))
 
 
 def get_configuration_service() -> Iterator[TelegramConfigurationService]:

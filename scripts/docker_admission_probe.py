@@ -6,6 +6,7 @@ import sys
 from datetime import UTC, datetime
 from hashlib import sha256
 from pathlib import Path
+from urllib.request import urlopen
 
 from sqlalchemy import create_engine, select
 from sqlalchemy.engine import make_url
@@ -325,6 +326,39 @@ def admit(sessions, root, manifest, *, now):
     return job_ids
 
 
+def _http_status(output_id):
+    with urlopen(
+        f"http://api:8000/api/telegram/rewrite-outputs/{output_id}/semantic-status", timeout=15
+    ) as response:
+        assert response.headers["Cache-Control"] == "no-store"
+        return json.load(response)
+
+
+def verify_status_http(manifest, *, admitted, job_ids=(), fetch=_http_status):
+    validate(manifest)
+    ready = fetch(manifest["semantic"][-1])
+    assert ready["rewrite_output_id"] == manifest["semantic"][-1]
+    assert ready["output_channel_id"] == manifest["channels"][0]
+    assert ready["current_gate"] == "READY_SNAPSHOT" and ready["approval_state"] == "PENDING"
+    assert ready["qualified_release"] is True
+    assert ready["configured_release_id"] == manifest["release"]
+    assert ready["execution_authorized"] is False and ready["network_checked"] is False
+    assert ready["worker_enabled"] is None
+    if admitted:
+        job = ready["latest_job"]
+        assert job["id"] == job_ids[0] and job["state"] == "QUEUED"
+        assert type(job["attempts"]) is int and job["attempts"] == 0
+        assert job["max_attempts"] == 2 and job["binding_current"] is True
+        assert job["lease_expires_at"] is None and job["lease_expired"] is False
+    else:
+        assert ready["latest_job"] is None
+    rejected = fetch(manifest["semantic"][0])
+    assert rejected["current_gate"] == "BLOCKED"
+    assert rejected["reason_code"] == "EDITORIAL_HARD_CONSTRAINT_BLOCKED"
+    assert rejected["latest_job"] is None and rejected["execution_authorized"] is False
+    assert "claim_token" not in str(ready) and "source_sha256" not in str(ready)
+
+
 def main(mode):
     url = os.environ["DATABASE_URL"]
     target = make_url(url)
@@ -353,11 +387,13 @@ def main(mode):
                     json.dump({"version": 1, "jobs": jobs}, stream)
             elif mode == "verify-pending":
                 verify(sessions, manifest, admitted=False)
+                verify_status_http(manifest, admitted=False)
             else:
                 retained = json.loads((root / JOBS_FILE).read_text(encoding="utf-8"))
                 if type(retained.get("version")) is not int or retained["version"] != 1:
                     raise RuntimeError("Invalid retained admission job manifest")
                 verify(sessions, manifest, admitted=True, job_ids=retained["jobs"])
+                verify_status_http(manifest, admitted=True, job_ids=retained["jobs"])
     finally:
         engine.dispose()
     print(f"Synthetic admission {mode}: PASS; no provider execution or publications")

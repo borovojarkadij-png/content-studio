@@ -3,12 +3,40 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
+from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 
 from newsflow.persistence import models
 
 NOW = datetime(2030, 1, 1, tzinfo=UTC)
+
+
+@pytest.mark.parametrize("admitted", [False, True])
+def test_admission_status_http_retains_original_guarded_queue(tmp_path, monkeypatch, admitted):
+    from newsflow.app import app
+
+    probe = probe_module()
+    url = f"sqlite:///{tmp_path / 'http-admission.db'}"
+    engine = create_engine(url)
+    models.Base.metadata.create_all(engine)
+    sessions = sessionmaker(engine)
+    try:
+        manifest = probe.seed(sessions, tmp_path, now=NOW)
+        jobs = probe.admit(sessions, tmp_path, manifest, now=NOW) if admitted else ()
+        monkeypatch.setenv("DATABASE_URL", url)
+        with TestClient(app) as client:
+
+            def fetch(output_id):
+                response = client.get(f"/api/telegram/rewrite-outputs/{output_id}/semantic-status")
+                assert response.status_code == 200
+                assert response.headers["Cache-Control"] == "no-store"
+                return response.json()
+
+            probe.verify_status_http(manifest, admitted=admitted, job_ids=jobs, fetch=fetch)
+        probe.verify(sessions, manifest, admitted=admitted, job_ids=jobs)
+    finally:
+        engine.dispose()
 
 
 def probe_module():

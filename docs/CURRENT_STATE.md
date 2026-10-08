@@ -2,6 +2,17 @@
 
 ## VERIFIED WORKING
 
+- Read-only per-draft semantic status API and existing real Planner diagnostics:
+  18 dedicated / 80 combined backend regressions, 120 frontend units / 29 browser
+  PASS. Fresh cached SQL/current gates/retained budget/history, strict private DTO,
+  abort/rebind/refresh/dirty plan/DEMO separation and WCAG/390px tested. Exact
+  lint/format/D: compile/explicit isolated migration drift/build/audit PASS.
+  Full backend 1088 PASS (81213). See SEMANTIC_STATUS_VERIFICATION.md.
+  No execution permission, queue/AI/approval/send action or operational flags changed.
+- Admission f009949 CI 37759675552 completed SUCCESS in all six jobs, including
+  dedicated PostgreSQL guarded admission restart. Semantic bdb66a9 CI 37758555880
+  completed SUCCESS in all five jobs (actual gh inspection). Linux != Windows proof.
+
 - Separate create-only admission restart probe OFFLINE: 11 dedicated / 56
   combined / full backend 1068 PASS (82526), expanded CI lint/format/D: compile/
   explicit D: round-trip/drift PASS; PowerShell parse + actual unsafe family/
@@ -816,13 +827,12 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: checkpoint the verified create-only admission probe and inspect its
-exact six-job CI, especially new dedicated PostgreSQL down/up/crash acceptance.
-Also inspect bdb66a9 CI 37758555880 overall completion. Correct ordinary failures
-without weakening checks. Then read-only per-draft semantic verification status
-API + existing real Planner diagnostics: manual/qualification/job/budget/current
-guard state, never permission to classify/approve/retry/publish. Strict fresh DTO,
-no secrets/RPC, refresh/cancellation/DEMO separation, real SQL/browser verification.
+NEXT_STEP: checkpoint/push semantic status API/Planner diagnostics and inspect its exact six-job CI, especially
+new HTTP assertions in dedicated PostgreSQL admission restart acceptance. Correct
+ordinary failures without weakening checks. Then real per-channel approval-policy
+UI via the existing API: manual default, qualified fixed-release selection only,
+save/cancel/fresh refusal/unsaved draft/reload/cancellation/DEMO separation. No public
+qualification endpoint, implicit model qualification or operational worker enablement.
 No live provider call, operational approval or download/send test side effects;
 preserve pinned qualification and all operational flags 0.
 Never expose tokens/session/key or call live providers for a dashboard. Never reseed old

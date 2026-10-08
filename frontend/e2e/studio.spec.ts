@@ -52,6 +52,100 @@ const navigate = async (page: Page, name: string) => {
     .click();
 };
 
+test("real planner fact diagnostics are read-only, on demand and separated from DEMO", async ({
+  page,
+}, testInfo) => {
+  const reads: string[] = [];
+  const writes: string[] = [];
+  page.on("request", (request) => {
+    if (request.url().includes("/semantic-status"))
+      reads.push(request.method());
+    if (request.url().includes("/api/") && request.method() !== "GET")
+      writes.push(request.url());
+  });
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/");
+    await navigate(page, "Планировщик");
+    const toggle = page.getByRole("button", {
+      name: "Проверка фактов: статус рерайта 1",
+    });
+    await expect(toggle).toHaveAttribute("aria-expanded", "false");
+    const before = reads.length;
+    await page.getByLabel("Постов в день").fill("3");
+    expect(reads.length).toBe(before);
+    await toggle.click();
+    const status = page.getByRole("region", {
+      name: "Состояние проверки фактов 1",
+    });
+    await expect(status).toContainText("Настроено ручное одобрение");
+    await expect(status).toContainText("Состояние сетевого worker неизвестно");
+    await expect(status).toContainText("Задача проверки ещё не создана");
+    await expect(page.getByLabel("Постов в день")).toHaveValue("3");
+    await status
+      .getByRole("button", { name: "Обновить статус проверки фактов 1" })
+      .click();
+    await expect(status).toContainText("Настроено ручное одобрение");
+    // React development StrictMode can abort and repeat the initial GET.
+    expect(reads.length).toBeGreaterThanOrEqual(before + 2);
+    await page
+      .getByRole("button", { name: "Проверка фактов: статус рерайта 2" })
+      .click();
+    const rejected = page.getByRole("region", {
+      name: "Состояние проверки фактов 2",
+    });
+    await expect(rejected).toContainText(
+      "Актуальные ограничения блокируют проверку",
+    );
+    await expect(rejected).toContainText(
+      "EditorialGate не разрешает обработку",
+    );
+    await expect(
+      page.getByRole("button", { name: "Одобрить рерайт 2" }),
+    ).toBeDisabled();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    expect(
+      (
+        await new AxeBuilder({ page })
+          .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
+          .analyze()
+      ).violations,
+    ).toEqual([]);
+    await page.screenshot({
+      path: testInfo.outputPath(`semantic-status-live-${width}.png`),
+      fullPage: true,
+    });
+    await page.getByLabel("Постов в день").fill("1");
+    await page
+      .getByLabel("Канал плана")
+      .selectOption({ label: "Изолированный канал фото API" });
+    await page
+      .getByRole("button", { name: "Проверка фактов: статус рерайта 3" })
+      .click();
+    await expect(
+      page.getByRole("region", { name: "Состояние проверки фактов 3" }),
+    ).toContainText("Вариант не ожидает автоматической проверки");
+    await page.reload();
+    await navigate(page, "Планировщик");
+    await expect(toggle).toHaveAttribute("aria-expanded", "false");
+    await toggle.click();
+    await expect(status).toContainText("Настроено ручное одобрение");
+  }
+  const beforeDemo = reads.length;
+  await page.goto("/?demo=1");
+  await navigate(page, "Планировщик");
+  await expect(
+    page.getByRole("button", { name: /Проверка фактов: статус/ }),
+  ).toHaveCount(0);
+  expect(reads.length).toBe(beforeDemo);
+  expect(reads.every((method) => method === "GET")).toBe(true);
+  expect(writes).toEqual([]);
+});
+
 test("real overview shows retained aggregates and unknown AI charges without fabricated charts", async ({
   page,
 }, testInfo) => {
