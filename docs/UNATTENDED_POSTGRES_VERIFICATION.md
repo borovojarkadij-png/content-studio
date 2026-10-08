@@ -41,11 +41,17 @@ FloodWait recovery use exactly the same scenarios.
   explicit D: Alembic upgrade/check/downgrade/upgrade/check: PASS.
 - Prior full frontend unchanged: 139 units / 30 browser PASS (57315), two subsequent
   relevant real migrated-API/browser checks PASS. New CI reruns the full frontend.
-- Actual new PostgreSQL job: **PENDING exact push and CI inspection**. Local target
-  validation and SQLite PASS are not evidence of PostgreSQL execution.
+- Exact dd78455ad3509dbcc0e772db058314fc789a0966 CI 37766880597 actual PostgreSQL
+  job 113276597192: **SUCCESS**, 23 PASS in 14.97s (completed job log inspected).
+  All five migrated PostgreSQL vertical scenarios and 18 isolation cases ran;
+  no skip or SQLite fallback. Whole seven-job workflow still in progress at
+  inspection; backend/frontend/admission also SUCCESS, other three jobs running.
 - Previous 58df443 CI 37765616929 backend/frontend/admission/sync jobs SUCCESS;
   567e263 CI 37766368319 backend/frontend/admission SUCCESS. Other jobs running at
   latest inspection; neither is yet recorded as overall success here.
+
+Subsequent inspection: 58df443 CI 37765616929 completed SUCCESS overall in all
+six jobs. 567e263 CI 37766368319 still in progress. Linux != current Windows.
 
 ## Remaining acceptance
 

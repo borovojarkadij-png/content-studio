@@ -2,6 +2,14 @@
 
 ## VERIFIED WORKING
 
+- Actual isolated PostgreSQL vertical CI dd78455ad3509dbcc0e772db058314fc789a0966
+  run 37766880597, job 113276597192 SUCCESS: 23 PASS / 14.97s in completed job
+  log, all five migrated real PostgreSQL scenarios plus 18 target guards.
+  Backend/frontend/admission also SUCCESS; other three jobs still running.
+  Previous 58df443 CI 37765616929 completed all-six SUCCESS (actual gh inspection).
+  This proves PostgreSQL SQL-reopen integration, not new combined Compose down/up
+  or current Windows Docker. Operational flags/qualification unchanged.
+
 - Separate create-only PostgreSQL vertical-slice CI harness implemented; strict
   named local synthetic target/role/query/schema guard and same five real durable
   SQL-reopen scenarios, no reset/drop/operational target or provider side effect.
@@ -879,12 +887,13 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: checkpoint/push verified isolated PostgreSQL vertical CI harness and
-inspect its exact new seven-job run, especially actual migrated PostgreSQL scenarios;
-diagnose/fix/retest ordinary SQL/migration failures without weakening assertions.
-Inspect overall prior 58df443/567e263 runs too. Then separate create-only combined
-Compose restart acceptance using new fixture and synthetic external boundaries,
-no operational DB/schema reset or reused fixture;
+NEXT_STEP: record/push exact PostgreSQL CI success; implement separate create-only
+combined Compose restart acceptance using the existing vertical scenario controlled
+from host pytest, new isolated full stack/named PostgreSQL volume/persistent media
+bind, exact public fixture key and all operational network flags 0. Restart between
+original SQL stages; no provider test sends, existing fixture reuse/reseed, operational
+DB/schema reset or volume deletion. Verify in dedicated Linux CI, keep Windows blocked.
+Inspect overall dd78455/567e263 CI without assuming pending jobs succeeded;
 no existing fixture reseed. Library illustration publication remains blocked pending
 visual-semantic relevance approval, not a successful unattended mode. Preserve original
 job/history/attempt budgets, protected reject zero new RewriteJob/zero rewrite calls,
