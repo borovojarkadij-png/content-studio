@@ -263,6 +263,17 @@ test("live planner persists approval and per-channel daily plan through the migr
     .getByRole("button", { name: "Подобрать публикации на день" })
     .click();
   await expect(page.getByText("Слот #1", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Подготовить медиа 1" }),
+  ).toBeEnabled();
+  await page.getByRole("button", { name: "Подготовить медиа 1" }).click();
+  await expect(page.getByText("В очереди · попыток: 0/2")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Подготовить медиа 1" }),
+  ).toBeDisabled();
+  await expect(
+    page.getByRole("img", { name: /Выбранная иллюстрация/ }),
+  ).toHaveCount(0);
   await page.reload();
   await navigate(page, "Планировщик");
   await expect(page.getByLabel("Постов в день")).toHaveValue("2");
@@ -275,6 +286,7 @@ test("live planner persists approval and per-channel daily plan through the migr
   await expect(page.getByLabel("Слоты публикаций")).toHaveValue("09:00, 15:00");
   await page.getByLabel("Дата плана").fill("2030-01-02");
   await expect(page.getByText("Слот #1", { exact: true })).toBeVisible();
+  await expect(page.getByText("В очереди · попыток: 0/2")).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Одобрить рерайт 1" }),
   ).toBeDisabled();
@@ -309,6 +321,59 @@ test("live planner persists approval and per-channel daily plan through the migr
     fullPage: true,
   });
   expect(unsafeCalls).toEqual([]);
+});
+
+test("guarded real media preview renders exact fixture bytes and releases it on refresh", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await navigate(page, "Планировщик");
+  await page
+    .getByLabel("Канал плана")
+    .selectOption({ label: "Изолированный канал фото API" });
+  await page.getByLabel("Режим планирования").selectOption("AUTOMATIC");
+  await page
+    .getByRole("button", { name: "Сохранить план", exact: true })
+    .click();
+  await expect(page.getByText("План сохранён в базе данных.")).toBeVisible();
+  await page.getByLabel("Дата плана").fill("2030-01-03");
+  await page
+    .getByRole("button", { name: "Подобрать публикации на день" })
+    .click();
+  const preview = page.getByRole("button", { name: "Предпросмотр медиа 3" });
+  await expect(preview).toBeVisible();
+  await preview.click();
+  const image = page.getByRole("img", {
+    name: "Выбранная иллюстрация: соответствие событию не подтверждено",
+  });
+  await expect(image).toBeVisible();
+  expect(
+    await image.evaluate((element: HTMLImageElement) => element.naturalWidth),
+  ).toBe(64);
+  await page.evaluate(() => {
+    (document.activeElement as HTMLElement)?.blur();
+    window.scrollTo(0, 0);
+  });
+  await page.screenshot({
+    path: path.resolve(
+      "../.artifacts/ui-dark-navy/live-media-preview-1440.png",
+    ),
+    fullPage: true,
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+  ).toBe(true);
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.screenshot({
+    path: path.resolve("../.artifacts/ui-dark-navy/live-media-preview-390.png"),
+    fullPage: true,
+  });
+  await page.getByRole("button", { name: "Обновить медиа 3" }).click();
+  await expect(image).toHaveCount(0);
+  await expect(preview).toBeVisible();
 });
 
 test("inbox repeated scheduling keeps saved date and time", async ({

@@ -1291,6 +1291,25 @@ svg {
 .live-review-list small {
   color: #bbd0ef;
 }
+.media-preparation {
+  min-width: 0;
+  padding: 14px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow-wrap: anywhere;
+}
+.media-preparation p {
+  margin: 8px 0;
+}
+.media-preview {
+  display: block;
+  max-width: 100%;
+  max-height: 360px;
+  margin-top: 12px;
+  border-radius: 8px;
+  object-fit: contain;
+}
 .live-rewrite-text {
   white-space: pre-wrap;
 }

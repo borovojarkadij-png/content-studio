@@ -15,6 +15,7 @@ import {
 } from "./plannerApi";
 import { Notice, Panel, PanelTitle } from "./ui";
 import { RewriteStylePanel } from "./rewriteStyle";
+import { MediaPreparation } from "./MediaPreparation";
 
 const errorText = (error: unknown) =>
   error instanceof Error ? error.message : "Ошибка запроса API";
@@ -387,6 +388,10 @@ function ChannelPlanner({
                     ? item.state
                     : "Заблокирован EditorialGate"}
                 </span>
+                <MediaPreparation
+                  key={`${item.candidate_id}:${item.content_key}`}
+                  candidateId={item.candidate_id}
+                />
               </li>
             ))}
           </ul>

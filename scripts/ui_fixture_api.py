@@ -2,13 +2,16 @@
 
 import os
 import sys
+from datetime import UTC, datetime
+from io import BytesIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
 import uvicorn
 from alembic.config import Config
+from PIL import Image
 from sqlalchemy import create_engine
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, sessionmaker
 
 from alembic import command
 
@@ -28,6 +31,8 @@ def main() -> None:
         RewriteJobModel,
         TelegramAccount,
     )
+    from newsflow.providers.commons_images import ImageSearchResult
+    from newsflow.services.durable_media_runner import DurableMediaRunner
     from newsflow.services.publication_planning import PublicationPlanningService
     from newsflow.services.rewrite_outputs import RewriteOutputService
     from newsflow.services.telegram_configuration import TelegramConfigurationService
@@ -35,6 +40,9 @@ def main() -> None:
     with TemporaryDirectory(prefix="content-studio-ui-test-") as directory:
         database_url = f"sqlite:///{Path(directory, 'fixture.db').as_posix()}"
         os.environ["DATABASE_URL"] = database_url
+        media_root = Path(directory, "media")
+        media_root.mkdir()
+        os.environ["NEWSFLOW_MEDIA_ROOT"] = str(media_root)
         config = Config(str(ROOT / "backend" / "alembic.ini"))
         config.set_main_option("script_location", str(ROOT / "backend" / "alembic"))
         config.set_main_option("sqlalchemy.url", database_url)
@@ -88,7 +96,11 @@ def main() -> None:
             )
             configuration.create_donor(account.id, -1003333333333, "Другой изолированный донор API")
             configuration.create_mapping(donor["id"], output_id, 100, 50)
-            for number in (1, 2):
+            photo_output = configuration.create_output(
+                account.id, -1005555555555, "Изолированный канал фото API"
+            )
+            for number in (1, 2, 3):
+                target_output_id = photo_output["id"] if number == 3 else output_id
                 key = f"ui-planner:@planner_donor:{number}:revision:1"
                 source = IncomingPostModel(
                     telegram_account_id="ui-planner",
@@ -114,7 +126,7 @@ def main() -> None:
                 )
                 job = RewriteJobModel(
                     content_key=key,
-                    output_channel_id=output_id,
+                    output_channel_id=target_output_id,
                     idempotency_key=f"ui-rewrite-{number}",
                     state="SUCCEEDED",
                 )
@@ -123,17 +135,21 @@ def main() -> None:
                         decision,
                         job,
                         PublicationCandidateModel(
-                            output_channel_id=output_id,
+                            output_channel_id=target_output_id,
                             content_key=key,
                             priority=10,
                             state="AWAITING_REWRITE",
+                            media_policy="LICENSED_LIBRARY",
                         ),
                     ]
                 )
                 session.commit()
-                RewriteOutputService(session).record_succeeded_output(
+                review = RewriteOutputService(session)
+                draft = review.record_succeeded_output(
                     job.id, f"Изолированный вариант API {number}"
                 )
+                if number == 3:
+                    review.approve(draft["id"], activate_candidate=True)
                 if number == 2:
                     # Simulate editorial policy changing after a previous successful rewrite.
                     decision.status, decision.rewrite_allowed = "REJECT", False
@@ -141,6 +157,39 @@ def main() -> None:
             PublicationPlanningService(session).configure_plan(
                 output_id, "MANUAL", 1, (540,), "UTC"
             )
+            PublicationPlanningService(session).configure_plan(
+                photo_output["id"], "MANUAL", 1, (540,), "UTC"
+            )
+        buffer = BytesIO()
+        Image.new("RGB", (64, 32), "navy").save(buffer, format="PNG")
+        photo_bytes = buffer.getvalue()
+
+        class FixtureImages:
+            """Synthetic byte source only; no real Commons search/download."""
+
+            def search(self, text, *, limit=5):
+                return [
+                    ImageSearchResult(
+                        1,
+                        "Synthetic UI photo",
+                        "https://upload.wikimedia.org/wikipedia/commons/test.png",
+                        "https://commons.wikimedia.org/wiki/File:test.png",
+                        "CC0",
+                        "Synthetic isolated UI illustration; not a real event photo",
+                        "image/png",
+                        len(photo_bytes),
+                        64,
+                        32,
+                        ("isolated",),
+                    )
+                ]
+
+            def download(self, result):
+                return photo_bytes
+
+        execution = DurableMediaRunner(sessionmaker(engine), media_root, provider=FixtureImages())
+        execution.enqueue_candidate(3, now=datetime.now(UTC))
+        assert execution.run_next(now=datetime.now(UTC)) == "SUCCEEDED"
         engine.dispose()
         try:
             uvicorn.run(app, host="127.0.0.1", port=5181, log_level="warning")

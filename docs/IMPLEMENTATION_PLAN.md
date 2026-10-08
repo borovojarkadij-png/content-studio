@@ -41,7 +41,9 @@
 - [x] Actual bounded single-frame PNG/JPEG decoding and fresh pre/post-selection editorial/source/review/technical bindings; 472-test regression gate and synthetic Windows Docker media/API/revocation restart recovery
 - [x] Immutable signed source-media identity/protection, guarded history-preserving migration, bounded read-only exact-photo download and explicit-rights acquisition seam; 548 backend tests and actual synthetic Windows Docker source-photo/rights/down-up/zero-provider-reject acceptance
 - [x] Durable source-photo jobs with explicit versioned mapping rights, committed attempts/leases/fencing/FloodWait recovery, exact source API/status and real Connections rights form; 581 backend/42 frontend/21 browser gate and actual isolated Windows source-job recovery
-- [ ] Candidate media-progress/queue UI and live authorized source download verification; combined Docker/GitHub gate tracked separately
+- [x] Candidate media-progress/queue UI and exact protected preview: real persisted API, current-policy/duplicate/error/stale guards, 587 backend/50 frontend/22 browser gate
+- [x] Candidate media UI Windows Docker restart/crash gate: exact preview/idempotent queue/revocation/lease recovery with synthetic provider; no real sends
+- [ ] Live authorized source download/restart verification remains external-auth pending
 - [ ] Fully unattended channel automation: user-defined limits/delays/priorities/filters, timer-driven planning, configurable guarded automatic approval and durable publication worker; a manual click is not the final automatic-mode behavior
 - [x] Timer-driven durable automatic plan selection: per-channel local day/future slots, serialized quota, restart idempotency, stale editorial rejection and per-channel failure isolation; no transport side effects
 - [x] Packaged runtime Alembic upgrades before API/worker startup, Windows dev reload override, production static frontend/nginx API proxy and repeatable isolated PowerShell persistence procedure

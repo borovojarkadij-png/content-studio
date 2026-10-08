@@ -8,7 +8,7 @@ from datetime import UTC, datetime
 from hashlib import sha256
 from pathlib import Path
 from urllib.error import HTTPError
-from urllib.request import urlopen
+from urllib.request import Request, urlopen
 
 from PIL import Image
 from sqlalchemy import create_engine, select, text
@@ -170,6 +170,17 @@ def main(mode):
         assert result["status"] == "ACQUIRED" and not result["illustration"] and provider.calls == 1
         job_id = execution.enqueue_configured(candidate_id, now=datetime.now(UTC))
         assert execution.enqueue_configured(candidate_id, now=datetime.now(UTC)) == job_id
+        with urlopen(
+            Request(
+                f"http://api:8000/api/telegram/publication-candidates/{candidate_id}/media-acquisition",
+                method="POST",
+            ),
+            timeout=15,
+        ) as response:
+            queued = json.load(response)
+            assert response.status == 202 and queued["job_id"] == job_id
+            assert queued["state"] == "QUEUED" and queued["queue_allowed"] is False
+            assert queued["media_policy"] == "REUSE_SOURCE" and queued["selected_allowed"] is False
         old = execution.claim_next(now=datetime.now(UTC))
         assert old.job_id == job_id and old.attempt == 1
         with sessions() as session:
@@ -207,6 +218,18 @@ def main(mode):
         else:
             raise AssertionError("Rejected source photo reached acquisition")
         assert provider.calls == 0
+        for action, method in (("media-acquisition", "POST"), ("media-preview", "GET")):
+            try:
+                with urlopen(
+                    Request(
+                        f"http://api:8000/api/telegram/publication-candidates/{candidate_id}/{action}",
+                        method=method,
+                    ),
+                    timeout=15,
+                ):
+                    raise AssertionError("Rejected source reached media queue/preview API")
+            except HTTPError as error:
+                assert error.code == 409
         try:
             with urlopen(
                 f"http://api:8000/api/telegram/publication-candidates/{candidate_id}/media-selection?query=photo",
@@ -245,6 +268,13 @@ def main(mode):
             status = json.load(response)
             assert status["selected_allowed"] is True and status["illustration"] is False
             assert status["asset"]["origin"] == "SOURCE"
+        with urlopen(
+            f"http://api:8000/api/telegram/publication-candidates/{candidate_id}/media-preview",
+            timeout=15,
+        ) as response:
+            assert response.headers["Content-Type"] == "image/png"
+            assert response.headers["Cache-Control"] == "no-store"
+            assert response.read() == photo()
     if mode != "blocked":
         with sessions() as session:
             selected = LocalMediaSelectionService(session, root).select_for_candidate(

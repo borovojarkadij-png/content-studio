@@ -40,6 +40,41 @@ class DurableMediaRunner:
         self._factory, self._clock = session_factory, clock
         self._acquisition = InternetMediaAcquisition(session_factory, media_root, provider=provider)
 
+    def enqueue_candidate(self, candidate_id, *, now):
+        _aware(now)
+        if (
+            type(candidate_id) is not int
+            or candidate_id <= 0
+            or self.acquisition_mode != "LICENSED_LIBRARY"
+        ):
+            raise ValueError("Library media candidate identity/mode is invalid")
+        with self._factory() as session:
+            digest = _digest(self._acquisition._binding(session, candidate_id))
+            query = select(MediaAcquisitionJobModel).where(
+                MediaAcquisitionJobModel.candidate_id == candidate_id,
+                MediaAcquisitionJobModel.binding_sha256 == digest,
+                MediaAcquisitionJobModel.acquisition_mode == self.acquisition_mode,
+            )
+            job = session.scalar(query)
+            if job is not None:
+                return job.id
+            job = MediaAcquisitionJobModel(
+                candidate_id=candidate_id,
+                binding_sha256=digest,
+                state="QUEUED",
+                available_at=now,
+                acquisition_mode=self.acquisition_mode,
+            )
+            session.add(job)
+            try:
+                session.commit()
+            except IntegrityError:
+                session.rollback()
+                job = session.scalar(query)
+                if job is None:
+                    raise
+            return job.id
+
     def enqueue_pending(self, *, now, limit=100):
         _aware(now)
         if type(limit) is not int or not 1 <= limit <= 100:

@@ -6,7 +6,7 @@ from os import getenv
 from pathlib import Path
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -15,6 +15,7 @@ from newsflow.services.automatic_approval import (
     AutomaticApprovalBlocked,
     AutomaticApprovalPolicyService,
 )
+from newsflow.services.durable_media_runner import DurableMediaRunner
 from newsflow.services.durable_source_photo_runner import DurableSourcePhotoRunner
 from newsflow.services.media_job_read import MediaJobReader
 from newsflow.services.media_selection import (
@@ -193,6 +194,8 @@ def get_media_job_reader() -> Iterator[MediaJobReader]:
             yield MediaJobReader(session, Path(root) if root else None)
         except LookupError as exc:
             raise HTTPException(404, str(exc)) from None
+        except (MediaSelectionBlocked, MediaUnavailable) as exc:
+            raise HTTPException(409, str(exc)) from None
         except SQLAlchemyError:
             raise HTTPException(
                 503, "Durable database is unavailable or requires migrations"
@@ -226,6 +229,45 @@ def enqueue_source_photo(candidate_id: int) -> dict[str, object]:
         raise HTTPException(422, str(exc)) from None
     except SQLAlchemyError:
         raise HTTPException(503, "Durable database is unavailable or requires migrations") from None
+
+
+@router.post("/publication-candidates/{candidate_id}/media-acquisition", status_code=202)
+def enqueue_candidate_media(candidate_id: int) -> dict[str, object]:
+    factory = configured_session_factory()
+    root = getenv("NEWSFLOW_MEDIA_ROOT", "").strip()
+    if factory is None or not root:
+        raise HTTPException(503, "Durable database and persistent media root are required")
+    try:
+        with factory() as session:
+            status = MediaJobReader(session, Path(root)).get_status(candidate_id)
+        if status["media_policy"] == "REUSE_SOURCE":
+            return enqueue_source_photo(candidate_id)
+        if status["media_policy"] != "LICENSED_LIBRARY":
+            raise MediaSelectionBlocked("MEDIA_ACQUISITION_POLICY_UNSUPPORTED")
+        execution = DurableMediaRunner(factory, Path(root))
+        job_id = execution.enqueue_candidate(candidate_id, now=datetime.now(UTC))
+        with factory() as session:
+            return MediaJobReader(session, Path(root)).get_status(candidate_id, job_id=job_id)
+    except LookupError as exc:
+        raise HTTPException(404, str(exc)) from None
+    except (MediaSelectionBlocked, MediaUnavailable) as exc:
+        raise HTTPException(409, str(exc)) from None
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from None
+    except SQLAlchemyError:
+        raise HTTPException(503, "Durable database is unavailable or requires migrations") from None
+
+
+@router.get("/publication-candidates/{candidate_id}/media-preview")
+def preview_candidate_media(
+    candidate_id: int, reader: Annotated[MediaJobReader, Depends(get_media_job_reader)]
+) -> Response:
+    content, mime = reader.preview(candidate_id)
+    return Response(
+        content,
+        media_type=mime,
+        headers={"Cache-Control": "no-store", "X-Content-Type-Options": "nosniff"},
+    )
 
 
 def get_moderation_inbox_reader() -> Iterator[ModerationInboxReader | None]:

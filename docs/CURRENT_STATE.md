@@ -2,6 +2,17 @@
 
 ## VERIFIED WORKING
 
+- Candidate media queue/progress and protected preview implemented in real
+  Planner. Backend 587/lint/compile/isolated migration PASS; frontend 50 unit /
+  22 browser/format/typecheck/build/audit PASS. See MEDIA_PLANNER_VERIFICATION.md.
+  Windows Docker CrashRecovery/SourcePhotoGuard acceptance PASS in
+  newsflow-verification-mediaui20261008: generic queue/exact no-store preview,
+  stale-owner/rejected queue/preview guards PASS. Packaged PG drift PASS; stopped
+  retaining all volumes/history, never reseed.
+  Operational images rebuilt: migrations/PG drift/health/inbox PASS, five flags 0.
+- Source-job checkpoint fdf8f06667bec6b42c4c59a4f3cdf41a559f9234 CI 37706050198
+  completed SUCCESS in all four jobs. This predates the new media UI increment.
+
 - Durable source-photo runner, versioned explicit mapping rights, real queue/status
   API, default-disabled worker and real Connections rights form implemented.
   Backend 581 tests/lint/isolated migration round-trip PASS; frontend 42 unit /
@@ -501,78 +512,54 @@
 
 ## NEXT STEP
 
-The durable configuration, mapping-aware candidate source, publication-planning
-contracts, mapping delivery-policy configuration and secure live AI-provider
-settings and durable per-output rewrite approval state are complete locally.
-Review/approval APIs and live Planner wiring are now verified locally.
-Safe media selection/registry is implemented and verified offline.
-Timer-driven durable automatic plan selection and synthetic Docker storage
-acceptance are now implemented and verified (DOCKER_VERIFICATION.md).
-Fact-anchor guard and leased durable runner component are now implemented;
-see REWRITE_RECOVERY_VERIFICATION.md. Do not repeat the Docker repair/setup.
-OpenAI structured adapter/factory, known usage and explicitly opt-in worker are
-implemented; channel-specific natural tabloid style is wired to actual Planner API.
-Bounded free-only OpenRouter structured execution is implemented and passes the
-offline provider/factory/worker gate, including refusals/rate limits/fact changes
-and no paid fallback (OPENROUTER_REWRITE_VERIFICATION.md).
-Operational source-observation images rebuilt successfully; migrations/actual
-PostgreSQL drift, /healthz and /api/telegram/incoming-posts HTTP 200 PASS.
-All four network flags remain 0. Fresh backend gate: 414 tests and lint PASS.
-Source-observation checkpoint cd3eb558d0e17a18311f6c43375eec55233f2ada pushed to
-correct origin; CI 37697828168 completed SUCCESS in all four jobs. This predates
-peer/mapping-filter changes; their next CI remains separate.
-Operational peer/filter images rebuilt and migrations applied; actual PostgreSQL
-drift and proxied health/inbox HTTP 200 PASS. All four network flags remain 0.
-Peer/filter checkpoint d1fd02c3b6c0c5a88fba33479be5a1e62881d892 pushed to correct
-origin; CI 37699179678 backend/frontend PASS, Docker jobs still running at last
-inspection. This predates donor-import implementation; check overall CI later.
-Operational backend import rebuild completed; packaged PostgreSQL drift and
-proxied health/inbox HTTP 200 PASS. All four network enablement flags remain 0.
-Import checkpoint b20885e1acffa5bad6369b0f968ee31cf945639a committed/pushed to the
-correct origin. CI 37700522102 backend/frontend PASS; both Docker jobs still
-running at last inspection. Do not claim overall CI success until completed.
-Actual import Docker recovery completed PASS in isolated
-newsflow-verification-donorimports20261008 (18015/15188/18095; CrashRecovery +
-IngestionGuard + PeerGuard + MappingGuard + ResolutionGuard), including resolved
-API state and actual PostgreSQL drift; stopped retaining history/volumes.
-CI 37699179678 for d1fd02c completed SUCCESS in all four jobs.
-Exact NEXT_STEP: commit/push the verified source jobs/rights/Connections UI
-checkpoint, then track its own CI. Combined Windows Docker session 63404 completed
-PASS in newsflow-verification-sourcecombo20261008 (18020/15193/18100); packaged
-drift/stop retaining history being checked separately. Next increment already has
-three RED API tests in uncommitted test_media_acquisition_api.py: generic library
-queue returns 405 instead of 202, reject returns 405 instead of 409, preview missing.
-Implement generic guarded queue API and exact gated preview, then Planner media
-progress/queue UI, relevant regression/browser/API/Docker checks and documentation.
-Backend final gate 581 tests/lint/isolated migration PASS (session 13781 completed).
-Frontend 42 units/21 browser/format/typecheck/build/audit PASS (88317 completed).
-Operational deployment 34260 completed with PG drift/health/inbox PASS and all
-five network flags 0. Earlier f4124e8 CI failure was a reproduced fixture-ID
-collision, not an overall PASS. Then continue guarded publication-execution
-contracts/worker without actual sends. Full album manifests/deletion/batching
-remain pending and must not be inferred from the observation seam. Track media
-and subsequent album CI separately. Frontend 40 units / 21
-browser/format/typecheck/build/audit PASS. Do not reseed existing fixtures.
-Never rerun existing fixture seeds or enable actual sends as a side effect.
-f19af6d CI 37696430337 completed SUCCESS. Track next commit CI.
-Do not rerun either fixture seed; existing histories are intentionally retained.
-Live authorization is separate; no synthetic account may be promoted as real.
-Windows project newsflow-verification-media20261008 completed acceptance; it
-retains terminal revoked-release history, so never rerun its seed.
-Media jobs/fencing/worker/status API are now implemented; UI controls and
-visual-semantic/cross-language relevance still need separate verification.
-Topic search alone is not full semantic image matching. Never enable actual send
-as a side effect or qualify an operational model with synthetic fixtures.
-Durable semantic jobs/factory/opt-in worker are implemented and tested; no qualified
-operational release exists. Track CI for this increment after committing/pushing.
-Anchor equality alone never authorizes automatic approval. Live OpenAI smoke remains
-blocked by the current file's missing usable key; never expose/store keys in Git.
-User donor inputs are recorded in USER_CHANNELS.md, not fake runtime accounts.
-Keep free internet acquisition and source-photo reuse as distinct policy intents.
-Keep current editorial rechecks; never publish as a side effect of UI work.
+Finish the current media UI verification checkpoint, then continue guarded
+publication execution. Architecture is approved; do not repeat completed setup.
 
-PHASE 1 IS NOT COMPLETE. Docker foundation/storage checks are VERIFIED only for
-isolated synthetic fixtures. Live Telegram encrypted authorization restart and
-live-provider durable-job execution remain NOT VERIFIED / PENDING IMPLEMENTATION
-OR EXTERNAL AUTHORIZATION. Injected synthetic leased recovery is verified separately.
-Live provider secrets, Telegram authorization and Obsidian sync remain pending.
+1. Windows Docker session 75313 completed PASS:
+   scripts/verify-persistence.ps1 -Project newsflow-verification-mediaui20261008
+   -ApiPort 18021 -WebPort 15194 -ProductionPort 18101 -CrashRecovery
+   -SourcePhotoGuard. Do not reseed this fixture. Updated source
+   probe verifies real generic queue 202/idempotency, exact no-store preview,
+   restart recovery and rejected queue/preview 409.
+2. Packaged worker PostgreSQL drift PASS; mediaui20261008 stopped retaining
+   all history/volumes. MEDIA_PLANNER_VERIFICATION.md updated. Do not repeat seed.
+3. Operational deployment 99215 completed PASS: rebuilt production API/worker/
+   frontend, packaged PG drift, health/proxied inbox 200; all five flags 0.
+   Env/master key/sessions/data unchanged; do not repeat this deployment.
+4. Commit/push verified changes to origin
+   https://github.com/borovojarkadij-png/content-studio.git on codex/dark-navy-ui,
+   track that exact new commit's CI. Current committed HEAD is
+   fdf8f06667bec6b42c4c59a4f3cdf41a559f9234; its CI 37706050198 is all-four SUCCESS.
+5. Continue strict fresh publication-execution preflight, durable idempotency /
+   delivery acknowledgement and crash reconciliation, offline adversarial tests,
+   disabled-by-default worker. Never send real posts as a testing side effect.
+   Current PublicationService is only an in-memory domain prototype; it is not
+   a durable publisher and may not be presented as one.
+
+Fresh local media checkpoint: backend 587 tests/lint/compile/isolated migration
+PASS; frontend 50 unit/22 browser/format/typecheck/build/audit PASS. Exact original
+photo and illustration intents remain separate. Topic search is not semantic
+event-photo verification. Media preview itself does not authorize publication.
+
+All previously completed Docker fixtures retain histories/volumes; do not reseed
+or use down -v, prune, reset or rotate any secret. Combined source/mapping
+sourcecombo20261008 also completed PASS and packaged drift PASS; stopped.
+Older f4124e8 CI 37704439283 failed an isolated synthetic identity collision,
+fixed by fdf8f06; do not relabel that older run as successful.
+
+Consolidated external/live-verification limitations:
+- Current authorized Downloads/апи.txt contains no usable supported-format key;
+  live OpenAI test remains pending. Never echo/store credentials in Git.
+- Telegram api_id/api_hash and live encrypted authorization require user setup;
+  no synthetic account/session may be promoted as genuine authorization.
+- User donors @stranaua / @milinfolive are recorded in USER_CHANNELS.md, not fake
+  operational configuration. No authorized source download is claimed.
+- No real semantic model release is qualified; synthetic fixtures never qualify
+  unattended approval. Library illustrations still need relevance review.
+- Obsidian vault unavailable: pending integration, /docs remains source of truth.
+
+Full album manifests/deletion/difference/batching/video, semantic dedup/events/
+hype, rate/cost/cache dashboard and final unattended publication remain pending
+per IMPLEMENTATION_PLAN.md. Continue independent tasks without asking routine
+questions. PHASE 1 IS NOT COMPLETE; full live authorization/provider acceptance
+is NOT VERIFIED, separate from verified synthetic Windows Docker recovery.
