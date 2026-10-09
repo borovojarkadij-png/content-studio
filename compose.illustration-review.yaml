@@ -1,0 +1,12 @@
+# Explicit opt-in API-only persistent reviewer credential. Never auto-provisioned.
+services:
+  api:
+    environment:
+      NEWSFLOW_ILLUSTRATION_REVIEW_SECRET_FILE: /run/secrets/illustration_reviewer
+      NEWSFLOW_ILLUSTRATION_REVIEWER_ID: ${NEWSFLOW_ILLUSTRATION_REVIEWER_ID:?configure an explicit positive single-human reviewer identity}
+    secrets:
+      - illustration_reviewer
+
+secrets:
+  illustration_reviewer:
+    file: ${NEWSFLOW_ILLUSTRATION_REVIEW_SECRET_SOURCE:?provision a separate existing persistent reviewer secret outside Git}

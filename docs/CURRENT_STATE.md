@@ -1227,13 +1227,28 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: implement transactional canonical illustration review/revocation and
-audit behind trusted server-side human identity, starting with RED regressions;
-never accept client reviewer ID/provenance/hashes as authentication. Do not
-release the library publication hold or generate reviewer credentials. Keep
-source/draft/editorial/rights/stale/idempotency/clean-session fences, then relevant
-regression/migration/reopen checks and independent review. A missing real reviewer
-secret cannot justify an unauthenticated writer or block other offline work.
+NEXT_STEP: independently review the authenticated writer and verify its migrated
+PostgreSQL gate, then implement Task 2 fresh review evidence in library preflight,
+immutable publication snapshots and final transport guards. Keep all independent
+editorial/source/draft/fact/technical/rights/sync gates and the library publication
+hold until that consumer is separately verified. No live send or credential
+activation is implied.
+
+Task 1 implemented OFFLINE on 2026-10-09: separate bounded persistent bearer-file
+authentication and configured single-human identity, strict authenticated context/
+review/revocation routes, serialized clean-session immutable review plus atomic
+outbox audit reference, exact replay/conflict/current revocation reporting, fresh
+canonical binding and post-insert decoded-byte revalidation. Optional api-only
+read-only Compose secret override is default-disabled; real Compose CLI config
+verified without daemon. Auth configuration/rotation/security limits and endpoint
+contracts are in ILLUSTRATION_REVIEW_AUTH.md. New migrated synthetic API regressions
+join strict PostgreSQL CI; actual new PostgreSQL/live acceptance remains pending.
+Final Task 1 full backend: 1703 PASS/1 PostgreSQL-only SKIP/243.72s; combined
+domain/binding/storage/workflow/Compose 282 PASS/1 PG-only SKIP/76.34s before
+final inode-alias case, then final inode/file-insert races 2 PASS/1.40s. Ruff all
+source/tests, changed-file format, compile and diff whitespace checks PASS.
+No real secret generated/activated, operational database/volume touched, AI or
+Telegram call made, UI auth integration added, or library publication hold removed.
 Exact code/test fac5704 CI 37810532600 completed all-eight SUCCESS; source full
 1628 PASS/1 PG-only SKIP/318.68s, PG217/151.25s, frontend205/browser33 and all
 five runtime families PASS. Report-only follow-up CI is supporting evidence;

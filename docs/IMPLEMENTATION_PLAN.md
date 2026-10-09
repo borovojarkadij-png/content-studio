@@ -87,8 +87,16 @@ YouTube sections without changing the approved Telegram architecture or gates.
 - [x] Existing Planner read-only library illustration relevance/publication hold diagnostics: current policy/strict DTO/no-store, explicit missing review warning without approval/provider/download/send action; full 1403 backend/205 frontend/33 browser and narrow WCAG gates PASS; d29d6f0 CI backend cold-pwsh timeout failure preserved, unchanged source at docs 008eef6 all-eight SUCCESS
 - [x] Bounded strict immutable human library illustration review domain contract: exact candidate/channel/mapping/source/draft/asset/metadata binding, reject/unknown/revocation/acknowledgment/time guards including actual DST fold RED/GREEN; 108 offline cases/full 1512 backend/205 frontend format-build gate, no authenticated API or publication permission, hold unchanged
 - [x] Fresh read-only canonical SQL illustration-binding resolver with migrated editorial/source/draft/technical/selected-asset/decoded-byte/rights/stale-read regressions; 47 targeted/full 1559 backend/205 frontend gate PASS and independent source review, no API/approval/publication permission, exact new PG gate checkpoint pending; caller hashes are never authoritative
-- [ ] Durable audited authenticated human illustration review storage/workflow and fresh preflight/transport integration; no synthetic model qualification, event-photo assertion or public bypass
+- [x] Task 1 default-disabled separate persistent reviewer-file authentication, strict canonical context/review/revocation API and atomic serialized immutable review/outbox audit writer; exact replay/current revocation and all-field stale/gate/byte/clean-session rollback fences verified with migrated synthetic SQL; api-only opt-in Compose override config verified; full 1703 PASS/1 PG-only SKIP/243.72s, Ruff/format/compile PASS; no real credential activation or hold release; see ILLUSTRATION_REVIEW_AUTH.md
+- [ ] Task 2 fresh authenticated human review evidence in library preflight/immutable snapshots/final transport guards; independent source/draft/editorial/fact/technical/rights/sync gates remain and live acceptance is separate
 - [x] Immutable illustration review/revocation SQL storage, guarded c5e81b29a704 migration, append-only/replace/TRUNCATE/reference/type fences and downgrade protection; 208 PASS/1 local PG-only SKIP, full 1612 PASS/1 SKIP, owned migration/independent review; exact source CI all-eight SUCCESS/PG 217 PASS and actual Windows PG 217 PASS including TRUNCATE; no authenticated writer or hold release
+
+NEXT_STEP: independently review the authenticated writer and verify its migrated
+PostgreSQL gate, then implement Task 2 fresh review evidence in library preflight,
+immutable publication snapshots and final transport guards. Keep all independent
+editorial/source/draft/fact/technical/rights/sync gates and the library publication
+hold until that consumer is separately verified. No live send or credential
+activation is implied.
 - [x] Commercial DEV/integration/TEST/visual/RC/STABLE gate policy documented in QUALITY_GATES.md; policy itself is not release acceptance
 - [x] Bounded read-only single-source raw-video Fake/Telethon/encrypted factory contract; 71 offline cases including actual SDK iterator limit/cleanup regressions, false media/publication permission; NOT an automated video workflow
 - [x] Persisted mapping-filter GET/PUT API and ingress integration, canonical blocked domains, mandatory advertising markers and fresh worker/review/calendar policy guards; 442-test local gate
