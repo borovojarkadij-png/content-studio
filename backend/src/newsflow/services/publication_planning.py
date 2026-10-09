@@ -22,6 +22,8 @@ from newsflow.services.automatic_approval import approval_is_current
 from newsflow.services.mapping_filters import candidate_technical_allowed
 from newsflow.services.source_revisions import source_is_current
 
+_MAX_PLANNING_CANDIDATES = 1000
+
 
 class CandidateBlocked(PermissionError):
     """The current editorial decision cannot safely enter planning."""
@@ -82,6 +84,8 @@ class PublicationPlanningService:
 
     def __init__(self, session: Session) -> None:
         self._session = session
+        self._planning_batch = None
+        self._planning_editorial = None
 
     def list_plans(self) -> list[dict[str, object]]:
         return [
@@ -221,11 +225,13 @@ class PublicationPlanningService:
             plan = self._session.scalar(
                 select(PublicationPlanModel)
                 .where(PublicationPlanModel.id == plan_id)
+                .execution_options(populate_existing=True)
                 .with_for_update()
             )
             if plan is None:
                 raise LookupError("Publication plan was not found")
             zone = _zone(plan.timezone)
+            self._planning_batch = self._lock_planning_batch(plan, day, zone)
             self._reconcile_stale_reservations(plan, day, zone)
             existing = self._existing_for_day(plan, day, zone)
             if plan.mode == "MANUAL" or len(existing) >= plan.daily_limit:
@@ -252,7 +258,9 @@ class PublicationPlanningService:
                 .where(
                     PublicationCandidateModel.output_channel_id == plan.output_channel_id,
                     PublicationCandidateModel.state == "READY",
+                    PublicationCandidateModel.id.in_(self._planning_batch),
                 )
+                .execution_options(populate_existing=True)
                 .order_by(PublicationCandidateModel.priority.desc(), PublicationCandidateModel.id)
             ).all()
             scheduled: list[dict[str, object]] = []
@@ -301,6 +309,87 @@ class PublicationPlanningService:
         except Exception:
             self._session.rollback()
             raise
+        finally:
+            self._planning_batch = None
+            self._planning_editorial = None
+
+    def _lock_planning_batch(self, plan, day, zone):
+        """Acquire every upstream lock before either loop can hold shared policy.
+
+        A fixed snapshot spans reconciliation AND new selections. Arrivals and
+        changed identities wait for another tick, never add a late upstream lock.
+        Lock order across batches: reservations -> jobs -> editorials -> drafts;
+        only then may ordinary approval checks lock policy/release and candidate.
+        """
+        starts_at = datetime.combine(day, time.min, zone).astimezone(UTC)
+        ends_at = datetime.combine(day, time.max, zone).astimezone(UTC)
+        reservations = self._session.scalars(
+            select(PlannedPublicationModel)
+            .where(
+                PlannedPublicationModel.output_channel_id == plan.output_channel_id,
+                PlannedPublicationModel.state == "PLANNED",
+                PlannedPublicationModel.scheduled_for >= starts_at,
+                PlannedPublicationModel.scheduled_for <= ends_at,
+            )
+            .order_by(PlannedPublicationModel.id)
+            .limit(_MAX_PLANNING_CANDIDATES + 1)
+            .execution_options(populate_existing=True)
+            .with_for_update()
+        ).all()
+        hints = self._session.execute(
+            select(
+                PublicationCandidateModel.id,
+                PublicationCandidateModel.content_key,
+                PublicationCandidateModel.output_channel_id,
+                RewriteOutputModel.id,
+                RewriteOutputModel.rewrite_job_id,
+            )
+            .outerjoin(
+                RewriteOutputModel,
+                (RewriteOutputModel.content_key == PublicationCandidateModel.content_key)
+                & (
+                    RewriteOutputModel.output_channel_id
+                    == PublicationCandidateModel.output_channel_id
+                ),
+            )
+            .where(
+                PublicationCandidateModel.output_channel_id == plan.output_channel_id,
+                or_(
+                    PublicationCandidateModel.state == "READY"
+                    if plan.mode == "AUTOMATIC"
+                    else False,
+                    PublicationCandidateModel.id.in_(item.candidate_id for item in reservations),
+                ),
+            )
+            .order_by(PublicationCandidateModel.id)
+            .limit(_MAX_PLANNING_CANDIDATES + 1)
+        ).all()
+        if max(len(reservations), len(hints)) > _MAX_PLANNING_CANDIDATES:
+            raise PlanValidationError("Planning batch capacity exceeded; no partial plan committed")
+        batch = {row[0]: tuple(row[1:]) for row in hints}
+        self._session.scalars(
+            select(RewriteJobModel)
+            .where(RewriteJobModel.id.in_({row[4] for row in hints if row[4] is not None}))
+            .order_by(RewriteJobModel.id)
+            .execution_options(populate_existing=True)
+            .with_for_update()
+        ).all()
+        decisions = self._session.scalars(
+            select(EditorialDecisionModel)
+            .where(EditorialDecisionModel.content_key.in_({row[1] for row in hints}))
+            .order_by(EditorialDecisionModel.content_key)
+            .execution_options(populate_existing=True)
+            .with_for_update()
+        ).all()
+        self._planning_editorial = {row.content_key: row for row in decisions}
+        self._session.scalars(
+            select(RewriteOutputModel)
+            .where(RewriteOutputModel.id.in_({row[3] for row in hints if row[3] is not None}))
+            .order_by(RewriteOutputModel.id)
+            .execution_options(populate_existing=True)
+            .with_for_update()
+        ).all()
+        return batch
 
     def _existing_for_day(
         self, plan: PublicationPlanModel, day: date, zone: ZoneInfo
@@ -393,28 +482,33 @@ class PublicationPlanningService:
         self._session.flush()
 
     def _lock_candidate(self, candidate):
-        """Match acquisition/approval order, then reload the candidate hint."""
+        """Revalidate a batch member without acquiring any new upstream lock."""
         identity = (candidate.content_key, candidate.output_channel_id)
         key, channel_id = identity
-        job_id = self._session.scalar(
-            select(RewriteOutputModel.rewrite_job_id).where(
+        expected = self._planning_batch.get(candidate.id)
+        output_identity = self._session.execute(
+            select(RewriteOutputModel.id, RewriteOutputModel.rewrite_job_id).where(
                 RewriteOutputModel.content_key == key,
                 RewriteOutputModel.output_channel_id == channel_id,
             )
-        )
-        self._session.scalar(
+        ).one_or_none()
+        output_id, job_id = output_identity or (None, None)
+        if expected != (*identity, output_id, job_id):
+            return None
+        job = self._session.scalar(
             select(RewriteJobModel)
             .where(RewriteJobModel.id == job_id)
             .execution_options(populate_existing=True)
             .with_for_update()
         )
+        if output_id is not None and (
+            job is None or (job.content_key, job.output_channel_id) != identity
+        ):
+            return None
         self._is_currently_editorial_pass(key)
         self._session.scalar(
             select(RewriteOutputModel)
-            .where(
-                RewriteOutputModel.content_key == key,
-                RewriteOutputModel.output_channel_id == channel_id,
-            )
+            .where(RewriteOutputModel.id == output_id)
             .execution_options(populate_existing=True)
             .with_for_update()
         )
@@ -437,6 +531,16 @@ class PublicationPlanningService:
                 RewriteOutputModel.output_channel_id == candidate.output_channel_id,
             )
         )
+        if self._planning_batch is not None:
+            expected = self._planning_batch.get(candidate.id)
+            actual = (
+                candidate.content_key,
+                candidate.output_channel_id,
+                output.id if output else None,
+                output.rewrite_job_id if output else None,
+            )
+            if actual != expected:
+                return False
         # Preserve the no-rewrite domain prototype. Actual ingestion candidates
         # remain AWAITING_REWRITE until a draft has been explicitly approved.
         return output is None or approval_is_current(self._session, output)
@@ -446,6 +550,10 @@ class PublicationPlanningService:
             raise CandidateBlocked("EDITORIAL_HARD_CONSTRAINT_BLOCKED")
 
     def _is_currently_editorial_pass(self, content_key: str) -> bool:
+        if self._planning_editorial is not None:
+            # Includes absence: a decision appearing after the batch snapshot
+            # cannot introduce a new editorial lock after shared policy locks.
+            return editorial_allows_rewrite(self._planning_editorial.get(content_key))
         decision = self._session.scalar(
             select(EditorialDecisionModel)
             .where(EditorialDecisionModel.content_key == content_key)
