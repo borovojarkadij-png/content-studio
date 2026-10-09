@@ -103,3 +103,75 @@ for no/rejected/uncertain/revoked/stale/wrong-channel reviews, editorial reject,
 rights/credit/file mutations and crash/retry/duplicate delivery are required.
 No live send or operational activation; live acceptance stays pending credentials
 and explicitly designated test channels. Update docs after verification.
+
+## Task 3: Protected human review presentation and existing UI controls
+
+After Task 2 independent review is accepted, complete the human workflow in the
+existing MediaPreparation surface. This is not a redesign or a general auth system.
+Keep existing palette, navigation, component composition and DEMO isolation.
+Use small dedicated illustration presentation service, API client and React panel,
+with narrow integration into the existing component. Do not grow a monolithic form.
+
+The authenticated backend must return canonical source text, per-channel approved
+draft, exact eleven-field binding, current library license/credit and latest review
+with revocation status. Revalidate SQL/text digests/asset metadata against the binding
+before returning a bounded presentation. Never present a historical draft as current.
+Add an authenticated bounded photo preview bound to the displayed canonical context,
+not a remote image URL or public storage path. Require an explicit matching context
+validator (strong ETag/If-Match) for preview and refuse missing/stale validators.
+Revalidate current canonical context and exact decoded/hash bytes before and after
+reading, return no-store bytes and the matching validator. No transaction crosses
+network work. Existing unprotected media preview is not reviewer authentication.
+Provide a bounded authenticated latest-review read independent of current source
+eligibility so a known immutable review can still be revoked after editorial reject.
+Use existing writer review/revocation endpoints; no schema change or new identity.
+
+The React panel asks for the separately provisioned reviewer bearer, using a masked
+input with autocomplete disabled. Token stays in this panel's memory only; never
+URLs, logs, error text, local/session storage, analytics or default credentials.
+Clear token/context/object URL on disconnect, candidate change and unmount; abort
+inflight reads/writes and discard late responses. Explain missing server config,
+401,409,503 and network failure honestly, never imply authorization or saved success.
+
+Load canonical source, draft, channel identity, license/credit and exact photo before
+enabling a review. The client strictly validates response schemas, candidate identity,
+source/draft text digests and bounded photo MIME/hash against the binding. Render text
+as text, never HTML. Approval requires an explicit illustration-not-event-photo
+acknowledgment and a nonblank bounded note. Rejected/uncertain decisions do not grant
+permission. A dedicated revoke action works on the latest immutable review even
+when current presentation is unavailable. Viewing or selecting media never approves.
+Generate one safe unique operation key per action and retain that exact payload for
+explicit retry after ambiguous network failure; never automatically resubmit or
+reinterpret failure as success. Block double clicks, stale context, candidate/token
+switch races and concurrent actions. Abort cannot undo a committed server operation;
+explain uncertain outcomes and offer a fresh authenticated latest-review read.
+On verified success refresh authoritative review/media status; on stale conflict
+invalidate displayed context and require a fresh load. No publication/send action.
+DEMO never mounts the authenticated panel or fabricates persisted review success.
+
+TDD: actual failing behavioral tests for authenticated presentation/preview hash,
+missing/wrong auth, missing/stale validator, source/draft/rights/file mutation and
+stale revocation; strict client malformed/foreign/hash refusal; UI acknowledgment,
+bounded notes, actual request payloads, double submit, abort/late response, candidate
+and token changes, explicit idempotent retry, revoke after stale context and no token
+persistence. Use migrated synthetic SQL and existing fixture, no real credentials.
+Add isolated real API browser flow for approve/reject/revoke, truthful media hold,
+zero publication jobs/provider calls and narrow-screen keyboard/accessibility.
+Preserve old screenshot evidence before any output directory is overwritten.
+Run targeted checks during iteration, then one frozen full backend, frontend unit/
+format/typecheck-build and relevant browser gate. Record RED/GREEN and commands;
+update CURRENT_STATE/IMPLEMENTATION_PLAN with exact remaining restart acceptance.
+
+## Task 4: Owned illustration review/snapshot restart acceptance
+
+After Task 3 review, extend only isolated synthetic verification infrastructure
+with a create-only explicitly owned library review and immutable publication
+snapshot fixture. Reuse existing strict resource guards and persistent secret,
+PostgreSQL/media volumes; never operational project, queues or credentials.
+Prove canonical review, audit, encrypted snapshot and photo survive down/up; prove
+revocation/stale evidence prevents fake transport after restart and abandoned
+SENDING remains quarantined without resend. Execute actual Windows Docker build,
+migrations/no drift, health and restart boundaries. Keep resources/evidence
+recoverable; no down -v, prune, truncate, overwrite or live send. Add relevant
+regression tests/CI procedure without bypassing checks. Report actual PASS/FAIL/
+SKIP separately from credentials-dependent live acceptance and record NEXT_STEP.

@@ -91,10 +91,12 @@ YouTube sections without changing the approved Telegram architecture or gates.
 - [~] Task 2 fresh authenticated human review consumer implemented in library preflight/version-2 immutable snapshots/final photo guards; newest review only, complete illustration label/credit, strict historical v1 and unchanged original-source digest; independent source/draft/editorial/fact/technical/rights/sync gates remain. Frozen backend1746/1 PG-only SKIP/302.04s, frontend208/format/typecheck-build and focused browser1 PASS; task-2-report.md records RED/GREEN. Parent independent review/actual PG/packaged acceptance and live acceptance remain separate
 - [x] Immutable illustration review/revocation SQL storage, guarded c5e81b29a704 migration, append-only/replace/TRUNCATE/reference/type fences and downgrade protection; 208 PASS/1 local PG-only SKIP, full 1612 PASS/1 SKIP, owned migration/independent review; exact source CI all-eight SUCCESS/PG 217 PASS and actual Windows PG 217 PASS including TRUNCATE; no authenticated writer or hold release
 
-NEXT_STEP: independently review Task 2 and complete its parent-owned actual
-Windows PostgreSQL/packaged gate, then add protected reviewer controls to the
-existing MediaPreparation surface and an owned library-review/immutable-snapshot
-Docker restart acceptance probe. Preserve every independent publication gate.
+NEXT_STEP: implement Task 3 protected canonical source/draft/photo presentation
+and reviewer controls in existing MediaPreparation, then Task 4 owned library-
+review/immutable-snapshot Docker restart acceptance, per
+ILLUSTRATION_REVIEW_IMPLEMENTATION.md. Task2 independent review, actual Windows
+Docker PostgreSQL115PASS and packaged startup gate passed; preserve every
+independent publication gate.
 Live acceptance requires separately provisioned credentials and explicitly
 designated test destinations; no operational sends or activation is implied.
 - [x] Commercial DEV/integration/TEST/visual/RC/STABLE gate policy documented in QUALITY_GATES.md; policy itself is not release acceptance

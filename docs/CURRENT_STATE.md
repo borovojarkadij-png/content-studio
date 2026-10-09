@@ -16,6 +16,14 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
 
 ## VERIFIED WORKING
 
+- Parent Task 2 gate 2026-10-09: independent consumer review approved spec/quality,
+  actual isolated Windows Docker PostgreSQL library/review API 115 PASS/202.67s
+  (no SKIP), image build6b3ea49 and network-none/read-only/no-volume API health200,
+  missing reviewer config503 PASS. Owned startup probe stopped/storage retained;
+  no operational activation or sends. Task1 exactf2f2092 CI37912841383 all-eight
+  SUCCESS; this is not Task2 CI proof. New protected UI and owned illustration
+  snapshot down/up acceptance remain the next bounded tasks, not PHASE completion.
+
 - Task 2 library publication consumer locally verified 2026-10-09: newest exact
   authenticated human illustration review only, canonical decoded-byte/rights/
   revocation checks at preflight and final photo reader, labeled complete caption,
@@ -1238,10 +1246,10 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: independently review Task 2 and complete its parent-owned actual
-Windows PostgreSQL/packaged gate, then add protected reviewer controls to the
-existing MediaPreparation surface and an owned library-review/immutable-snapshot
-Docker restart acceptance probe. All editorial/source/draft/fact/technical/rights/
+NEXT_STEP: implement Task 3 protected canonical source/draft/photo presentation
+and reviewer controls in existing MediaPreparation, then Task 4 owned library-
+review/immutable-snapshot Docker restart acceptance, per
+ILLUSTRATION_REVIEW_IMPLEMENTATION.md. All editorial/source/draft/fact/technical/rights/
 sync/session gates remain. Live acceptance requires separately provisioned
 credentials and explicitly designated test destinations; operational sends and
 credential activation are not implied.
