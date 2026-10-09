@@ -96,7 +96,12 @@ Parent independently executed Task3 strict migrated Windows Docker PostgreSQL:
 presentation47/reviewAPI81/publication34/binding47, 209PASS/334.61s/no SKIP on
 frozen source59cfbab, separate from local full-suite evidence; no real providers.
 
-NEXT_STEP: independently review Task 3, then execute Task 4 owned library-
+Task3 independent review accepted: spec compliant / quality approved, no Critical
+or Important; parent packaged API default-disabled auth/startup and frontend
+static smoke verified. See ILLUSTRATION_PRESENTATION_PARENT_20261009.md. Existing
+test color/untouched full-format noise remains tracked for milestone triage.
+
+NEXT_STEP: execute Task 4 owned library-
 review/immutable-snapshot Docker restart acceptance, per
 ILLUSTRATION_REVIEW_IMPLEMENTATION.md. Task2 independent review, actual Windows
 Docker PostgreSQL115PASS and packaged startup gate passed; preserve every

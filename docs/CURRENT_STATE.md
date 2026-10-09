@@ -16,6 +16,13 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
 
 ## VERIFIED WORKING
 
+- Task3 independent review accepted: spec compliant / quality approved, no
+  Critical or Important findings. Parent actual Windows migrated PostgreSQL209
+  PASS/no SKIP plus packaged API health/default-auth and static frontend smoke
+  passed; exact source59cfbab retained. No new illustration restart claim yet.
+  See ILLUSTRATION_PRESENTATION_PARENT_20261009.md. Historical source-review
+  pending statements below are superseded only by this acceptance.
+
 - Task 3 protected illustration presentation/UI verified locally 2026-10-09:
   canonical source/current per-channel draft/eleven-field binding/rights/latest
   review, authenticated no-store decoded photo with explicit strong ETag/If-Match,
@@ -1264,7 +1271,7 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: independently review Task 3, then execute Task 4 owned library-
+NEXT_STEP: Task3 independent review is accepted; execute Task 4 owned library-
 review/immutable-snapshot Docker restart acceptance, per
 ILLUSTRATION_REVIEW_IMPLEMENTATION.md. All editorial/source/draft/fact/technical/rights/
 sync/session gates remain. Live acceptance requires separately provisioned

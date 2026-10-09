@@ -175,3 +175,33 @@ migrations/no drift, health and restart boundaries. Keep resources/evidence
 recoverable; no down -v, prune, truncate, overwrite or live send. Add relevant
 regression tests/CI procedure without bypassing checks. Report actual PASS/FAIL/
 SKIP separately from credentials-dependent live acceptance and record NEXT_STEP.
+
+Use a dedicated test-only launcher/probe rather than mixing retained global sync/
+admission fixtures. Prefer existing Compose files plus optional api-only reviewer
+override and reuse the validated exact-ID PostgreSQL crash helper. The launcher
+must validate the isolated project, distinct loopback ports, absent artifact path,
+containers, networks and both labeled/unlabeled exact named volumes before writing
+anything. Ownership/version/config/secret/worker-flag checks precede restart or
+crash; refused targets must cause no file/DB/Docker mutation. Support a read-only
+verify/reopen mode for the exact retained fixture; no reseed or regenerated secret.
+Use only public deterministic fixture master/reviewer values, different files,
+reviewer mounted api-only, all network workers disabled. Validate the complete
+synthetic database URL/role/password/host, not just a matching database name.
+
+Add focused production-boundary tests for unsafe/mixed/redirected targets and
+corrupt/boolean/foreign manifests, idempotent retained verification and zero calls.
+The fixture must use actual authenticated HTTP presentation/validator/photo/review/
+revoke endpoints and migrated PostgreSQL, not treat internal ReviewerPrincipal
+construction or TestClient-only checks as packaged authenticated workflow proof.
+Persist exact row IDs/hashes in create-only manifests; verify the original rows,
+review audit, encrypted snapshot and bounded photo after independent process
+reopen. Exercise configured photo transport with a synthetic injected Telethon
+client, never live client initialization. Distinguish approved exactly-once fake
+receipt, revoked/stale intent refusal and abandoned SENDING zero resend.
+Register a separate CI job and lint the new probe; no disabling existing checks.
+
+Parent Windows candidate resource identity (check absence again at execution):
+`newsflow-verification-illustration-win-20261009a`, API18237/dev15394/prod18337.
+Keep transcript and exact immutable image IDs. Previous unrelated acceptance
+must not substitute for this new fixture. If a failed partial fixture exists,
+preserve it and diagnose/reopen; never overwrite ownership or recover by reseeding.
