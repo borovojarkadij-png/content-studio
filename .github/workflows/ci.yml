@@ -123,6 +123,36 @@ jobs:
         shell: pwsh
         run: ./scripts/verify-persistence.ps1 -Project newsflow-verification-admission-ci -CrashRecovery -AdmissionGuard
 
+  illustration-restart:
+    name: Synthetic authenticated illustration restart
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install isolated fixture controller
+        run: python -m pip install -e "backend[dev]"
+      - name: Lint standalone probe and controller
+        run: python -m ruff check scripts/docker_illustration_probe.py scripts/illustration_restart_controller.py backend/tests/test_illustration_restart_probe.py backend/tests/test_illustration_restart_guards.py
+      - name: Refusal, manifest and authenticated loopback regressions
+        run: python -m pytest backend/tests/test_illustration_restart_guards.py backend/tests/test_illustration_restart_probe.py -q
+      - name: Packaged migrated PostgreSQL API, immutable snapshots and owned restarts
+        shell: pwsh
+        run: ./scripts/verify-illustration.ps1 -Project newsflow-verification-illustration-ci -ApiPort 18237 -WebPort 15394 -ProductionPort 18337
+      - name: Reopen original fixture read-only twice
+        shell: pwsh
+        run: ./scripts/verify-illustration.ps1 -Mode verify -Project newsflow-verification-illustration-ci
+      - name: Upload retained ownership and immutable image evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: illustration-restart-fixture
+          path: .artifacts/docker-verification/newsflow-verification-illustration-ci
+          include-hidden-files: true
+          retention-days: 14
+
   unattended-postgres:
     name: Synthetic unattended PostgreSQL vertical slice
     runs-on: ubuntu-latest
