@@ -101,9 +101,21 @@ or Important; parent packaged API default-disabled auth/startup and frontend
 static smoke verified. See ILLUSTRATION_PRESENTATION_PARENT_20261009.md. Existing
 test color/untouched full-format noise remains tracked for milestone triage.
 
-NEXT_STEP: execute Task 4 owned library-
-review/immutable-snapshot Docker restart acceptance, per
-ILLUSTRATION_REVIEW_IMPLEMENTATION.md. Task2 independent review, actual Windows
+- [x] Task4 owned authenticated illustration review/snapshot restart acceptance:
+  original review/audit/photo/encrypted jobs persist, revoked/stale zero-send and
+  abandoned SENDING quarantine/no resend. Actual Windows packaged HTTP/down-up/
+  PG crash/Redis-worker/final drift PASS, original manifests retained; primary
+  alias and parent logging failures preserved. Independent review corrections
+  at a6981f2 pin retained images/no build-pull and reject redirected inputs before
+  mutation; scoped152 PASS and actual pinned Windows restart/crash PASS, re-review
+  clear. Exact new full CI and whole-branch QA remain separate pending gates.
+
+NEXT_STEP: Task4 independent review accepted at `a6981f2`; commit parent evidence, push only authorized
+origin/codex/dark-navy-ui, then verify exact new nine-job CI. Actual corrected
+retained Windows illustration review/snapshot recovery is PASS as recorded in
+ILLUSTRATION_RESTART_PARENT_20261009.md; historical failures remain preserved.
+Cross-task whole-branch commercial review/QA follows before the next remaining
+Telegram increment. Do not reseed the retained fixture. Task2 independent review, actual Windows
 Docker PostgreSQL115PASS and packaged startup gate passed; preserve every
 independent publication gate.
 Task4 acceptance must use actual authenticated packaged HTTP presentation,

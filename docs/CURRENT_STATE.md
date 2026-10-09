@@ -16,6 +16,28 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
 
 ## VERIFIED WORKING
 
+- Latest Task4 checkpoint2026-10-09: source `bfba7ede98d775510abd5353f4182c68ceb60b18`
+  adds separate owned synthetic illustration review/snapshot acceptance. Frozen
+  backend1871 PASS/1 local PG-only SKIP/326.78s, focused94 PASS/21.40s. Actual
+  Windows build/migration/HTTP review and pending first down/up/PG crash passed;
+  second down/up exposed Docker Desktop bind-path spelling mismatch. Exact
+  regression fixed without weakening foreign mount checks or changing original
+  manifests. Corrected retained verification/full down-up/PG crash/Redis-worker
+  restart/final no-drift passed. Historical create and parent logging-wrapper
+  failures remain recorded, not relabeled successful. Real RPC0; one approved
+  fake receipt, revoked/stale blocked, abandoned SENDING quarantined/no resend.
+  Source independent review and new exact CI pending; no PHASE/live completion.
+  See ILLUSTRATION_RESTART_PARENT_20261009.md and task-4-report.md.
+
+- Subsequent Task4 acceptance: source `a6981f26d52130331ba5bd5b0fe9bcb9acd9f712`
+  closes both independent review findings with real redirected-path/tag RED tests;
+  covering152 PASS/27.79s, lint/format/compile PASS. Actual retained Windows
+  original-image precheck and pinned no-build/pull-never down/up + PostgreSQL
+  crash + repeated reopen passed, original manifest unchanged. Scoped independent
+  re-review confirms both findings addressed, no new Critical/Important. This
+  supersedes source-review-pending above, not historical failed runs. Full1871
+  baseline precedes the small controller fix; exact new full CI is still pending.
+
 - Task3 independent review accepted: spec compliant / quality approved, no
   Critical or Important findings. Parent actual Windows migrated PostgreSQL209
   PASS/no SKIP plus packaged API health/default-auth and static frontend smoke
@@ -1271,9 +1293,12 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: Task3 independent review is accepted; execute Task 4 owned library-
-review/immutable-snapshot Docker restart acceptance, per
-ILLUSTRATION_REVIEW_IMPLEMENTATION.md. All editorial/source/draft/fact/technical/rights/
+NEXT_STEP: Task4 independent review accepted at `a6981f2`; commit current parent
+evidence, push only authorized origin/codex/dark-navy-ui and verify the
+exact new nine-job CI including illustration-restart. After this bounded plan's
+acceptance, perform cross-task commercial whole-branch review/QA before continuing
+remaining Telegram-only tasks. Do not repeat seed or regenerate retained secrets.
+All editorial/source/draft/fact/technical/rights/
 sync/session gates remain. Live acceptance requires separately provisioned
 credentials and explicitly designated test destinations; operational sends and
 credential activation are not implied.

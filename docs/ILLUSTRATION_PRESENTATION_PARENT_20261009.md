@@ -69,11 +69,48 @@ retained, new form wraps without horizontal clipping; fixture blue photo only,
 not evidence that an illustration depicts the reported event. No redesign/CSS
 change or new whole-eight pixel-perfect assertion.
 
+Later parent inspection opened all eight current1440 DEMO section PNGs. Each
+SHA-256 is identical to the same section in the create-only pre-Task3 backup
+`D:/Codex-Recovery/content-studio-20261008/task3-captures-20261009-1323/.artifacts/ui-dark-navy/1440x900/`:
+Overview, Inbox, Donors, My channels, Connections, Planner, Accounts, Settings.
+Thus this increment leaves those accepted captures byte-identical. This is a
+comparison to the saved prior application captures, not a fresh pixel-distance
+comparison to the original external PNG reference package or the real-data pages.
+
 Captures: `.artifacts/illustration-review-ui/test-results/review-real-protected-illu-d7c61--preserve-publication-gates/`.
 Prior captures remain in create-only D: recovery copies documented in the task
 report; parent freshly confirmed all three trees exist with85/86/101PNG files.
 The exact pushed CI terminal status must be recorded separately. PHASE1 is not
 complete.
+
+## Exact remote CI checkpoint
+
+Pushed candidate `dae0e3057b6c3b6b5d6b174b944e2b0babb01c15`, workflow37919045027.
+Frontend job113782241745 SUCCESS, including243 units, format/typecheck-build, original33
+browser PASS/1.9m and new protected-flow1 PASS/11.4s. Its artifact upload executed.
+Admission job also SUCCESS; remaining jobs were still running, not a whole-workflow
+PASS at this checkpoint. Actions runtime Node20 fallback-to24 and ubuntu-latest26
+transition annotations, and artifact-action punycode/url.parse deprecations are
+visible and retained; no checks disabled or unrelated automatic upgrade applied.
+
+Later snapshot: strict PostgreSQL job113782242113, combined unattended restart
+job113782241987 and channel-sync job113782242018 also SUCCESS. Backend and both
+general Docker provider recovery families still in progress. New Task4 fixture
+has not executed; these established recovery families do not substitute for it.
+
+Next snapshot: backend job113782242073 also SUCCESS with the required lint,
+compile and migration validation steps. Only OPENAI/OPENROUTER general recovery
+jobs remained running, so whole-workflow success still not claimed.
+
+Its actual test log:1793 PASS/1 PostgreSQL-only SKIP/674.29s, Ruff checks PASS
+and migration check reports no new upgrade operations. Actual strict PostgreSQL
+CI332 PASS/350.55s and combined unattended1 PASS/354.85s/four deselected are
+distinct gate results, not a replacement for the parent Windows209 tests.
+
+Subsequent terminal inspection: exact `dae0e30` workflow37919045027 **SUCCESS
+in all eight jobs**, including both general OPENAI/OPENROUTER recovery families.
+No failed check was disabled. This is supporting Linux CI evidence for accepted
+Task3; Task4 source and its new Windows fixture are not yet covered by this run.
 
 NEXT_STEP: isolated owned Windows Docker
 HTTP/review/audit/encrypted-snapshot/photo restart and crash acceptance. Credentials-
