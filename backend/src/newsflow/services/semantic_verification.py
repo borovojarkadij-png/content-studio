@@ -27,6 +27,7 @@ from newsflow.services.automatic_approval import (
     release_is_qualified,
 )
 from newsflow.services.fact_guard import FactGuard
+from newsflow.services.mapping_filters import output_technical_allowed
 from newsflow.services.semantic_facts import SemanticReport, assess_semantic_facts, text_digest
 from newsflow.services.source_revisions import revision_is_latest, source_revision
 
@@ -189,6 +190,8 @@ class SemanticVerificationService:
         source = source_revision(session, output.content_key)
         if source is None or not revision_is_latest(session, source):
             raise AutomaticApprovalBlocked("SOURCE_REVISION_NOT_CURRENT_OR_MISSING")
+        if not output_technical_allowed(session, output.content_key, output.output_channel_id):
+            raise AutomaticApprovalBlocked("SEMANTIC_TECHNICAL_FILTER_BLOCKED")
         FactGuard().require_preserved(source.source_text, output.rewritten_text)
         policy = session.scalar(
             select(AutomaticApprovalPolicyModel)

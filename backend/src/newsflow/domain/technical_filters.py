@@ -7,37 +7,72 @@ from urllib.parse import unquote, urlparse
 
 from newsflow.providers.telegram import TelegramMessage
 
-_URL = re.compile(r"https?://[^\s<>()]+", re.IGNORECASE)
 _AD_MARKERS = ("#реклама", "#ad", "рекламная публикация")
 _YOUTUBE_DOMAINS = frozenset({"youtube.com", "youtu.be", "youtube-nocookie.com"})
 _LINK_CANDIDATES = re.compile(
-    r"(?:https?://|(?<!\S)//)[^\s<>()]+|"
+    r"(?:[a-z][a-z0-9+.-]*://|(?<![\w:])//)[^\s<>()]+|"
     r"(?<![\w/@.-])(?:[a-z0-9-]+\.)*(?:youtube\.com|youtu\.be|youtube-nocookie\.com)[^\s<>()]*",
     re.IGNORECASE,
 )
 
 
-def visible_link_exclusion_reason(text: str) -> str | None:
-    """Canonical visible hosts only; malformed destinations fail closed, no RPC."""
-    for value in _LINK_CANDIDATES.findall(text):
-        if "\\" in value:
-            return "INVALID_LINK"
-        value = value.rstrip(".,;:!?…\"'»”")
-        try:
-            host = urlparse(
-                value if value.startswith("//") or "://" in value else "https://" + value
-            ).hostname
-            if host is None:
-                return "INVALID_LINK"
-            host = unquote(host).rstrip(".").encode("idna").decode("ascii").casefold().rstrip(".")
-        except (ValueError, UnicodeError):
-            return "INVALID_LINK"
-        if any(host == domain or host.endswith("." + domain) for domain in _YOUTUBE_DOMAINS):
-            return "YOUTUBE_LINK"
+def _strict_host(value: str) -> str:
+    """One bounded destination identity; decode once, never repair ambiguity."""
+    if (
+        not value
+        or len(value) > 2048
+        or "\\" in value
+        or any(char.isspace() or ord(char) < 32 or ord(char) == 127 for char in value)
+        or re.search(r"%(?![0-9a-fA-F]{2})", value)
+    ):
+        raise ValueError("Invalid destination")
+    parsed = urlparse(value)
+    if parsed.scheme not in {"http", "https", ""} or not parsed.netloc:
+        raise ValueError("Unknown destination")
+    # Userinfo is not the destination: https://youtube.com@example.org goes
+    # to example.org. Only the parsed host participates in domain policy.
+    _ = parsed.port  # Invalid/non-numeric/out-of-range ports fail closed.
+    host = unquote(parsed.hostname or "", errors="strict")
+    if any(char in host for char in "%/\\:@?#") or any(char.isspace() for char in host):
+        raise ValueError("Encoded authority separator")
+    host = host.rstrip(".").encode("idna").decode("ascii").casefold().rstrip(".")
+    if len(host) > 253 or any(
+        re.fullmatch(r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?", label) is None
+        for label in host.split(".")
+    ):
+        raise ValueError("Invalid hostname")
+    return host
+
+
+def _destination_reason(value, blocked_domains=()):
+    try:
+        host = _strict_host(value)
+        blocked = {
+            _strict_host("https://" + domain).removeprefix("www.") for domain in blocked_domains
+        }
+    except (ValueError, UnicodeError):
+        return "INVALID_LINK"
+    for domains, reason in ((_YOUTUBE_DOMAINS, "YOUTUBE_LINK"), (blocked, "FORBIDDEN_LINK")):
+        if any(host == domain or host.endswith("." + domain) for domain in domains):
+            return reason
     return None
 
 
-def source_link_exclusion_reason(text, destinations):
+def visible_link_exclusion_reason(text: str, blocked_domains=()) -> str | None:
+    """Visible prose and hidden links share exactly the same host identity."""
+    values = _LINK_CANDIDATES.findall(text)
+    if len(values) > 100:
+        return "INVALID_LINK"
+    for value in values:
+        value = value.rstrip(".,;:!?…\"'»”")
+        if not value.startswith("//") and "://" not in value:
+            value = "https://" + value
+        if reason := _destination_reason(value, blocked_domains):
+            return reason
+    return None
+
+
+def source_link_exclusion_reason(text, destinations, blocked_domains=()):
     if destinations is None:
         return "SOURCE_LINKS_UNKNOWN"
     if (
@@ -52,8 +87,12 @@ def source_link_exclusion_reason(text, destinations):
         )
     ):
         return "SOURCE_LINKS_INVALID"
-    return visible_link_exclusion_reason(text) or next(
-        (reason for value in destinations if (reason := visible_link_exclusion_reason(value))),
+    return visible_link_exclusion_reason(text, blocked_domains) or next(
+        (
+            reason
+            for value in destinations
+            if (reason := _destination_reason(value, blocked_domains))
+        ),
         None,
     )
 
@@ -101,15 +140,11 @@ class MappingTechnicalFilter:
         normalized_text = text.casefold()
         if any(marker.casefold() in normalized_text for marker in self.ad_markers):
             return TechnicalFilterDecision(False, "ADVERTISING")
-        link_reason = source_link_exclusion_reason(text, message.link_destinations)
+        link_reason = source_link_exclusion_reason(
+            text, message.link_destinations, self.blocked_domains
+        )
         if link_reason is not None:
             return TechnicalFilterDecision(False, link_reason)
-        destinations = " ".join(message.link_destinations)
-        if any(
-            self._is_blocked_host(urlparse(url).hostname)
-            for url in _URL.findall(text + " " + destinations)
-        ):
-            return TechnicalFilterDecision(False, "FORBIDDEN_LINK")
         if message.album_id is not None:
             # A single caption is not proof that every album member passed the
             # media/advertising/link policy. Until a durable complete manifest
@@ -118,18 +153,3 @@ class MappingTechnicalFilter:
         if message.media_type == "video":
             return TechnicalFilterDecision(False, "VIDEO_MANUAL_REVIEW_REQUIRED")
         return TechnicalFilterDecision(True)
-
-    def _is_blocked_host(self, host: str | None) -> bool:
-        if host is None:
-            return False
-        normalized_host = (
-            host.rstrip(".").encode("idna").decode("ascii").casefold().removeprefix("www.")
-        )
-        return any(
-            normalized_host
-            == domain.rstrip(".").encode("idna").decode("ascii").casefold().removeprefix("www.")
-            or normalized_host.endswith(
-                f".{domain.rstrip('.').encode('idna').decode('ascii').casefold().removeprefix('www.')}"
-            )
-            for domain in self.blocked_domains
-        )

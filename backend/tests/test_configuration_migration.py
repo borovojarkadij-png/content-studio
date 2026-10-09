@@ -51,9 +51,7 @@ def test_configuration_schema_upgrade_creates_pending_import_storage(tmp_path) -
             "fallback_models",
             "updated_at",
         }
-        mapping_columns = {
-            column["name"] for column in inspector.get_columns("channel_mappings")
-        }
+        mapping_columns = {column["name"] for column in inspector.get_columns("channel_mappings")}
         assert {
             "eligibility_mode",
             "delay_minutes",
@@ -113,7 +111,22 @@ def test_rewrite_job_scope_migration_preserves_a_legacy_unmapped_job(tmp_path) -
     command.downgrade(config, "f51c8a04b2de")
 
 
-def test_rewrite_job_scope_migration_requeues_each_legacy_fanout_output(tmp_path) -> None:
+@pytest.mark.parametrize(
+    "decision,second_state,outputs",
+    [
+        (("PASS", True, "", "neutral", "neutral"), "AWAITING_REWRITE", [1, 2]),
+        (("REJECT", False, "", "neutral", "neutral"), "AWAITING_REWRITE", []),
+        (("MANUAL_REVIEW", False, "", "unknown", "unknown"), "AWAITING_REWRITE", []),
+        (None, "AWAITING_REWRITE", []),
+        (("PASS", True, "protected", "negative", "hostile"), "AWAITING_REWRITE", []),
+        (("PASS", True, "", "unknown", "neutral"), "AWAITING_REWRITE", []),
+        (("PASS", False, "", "neutral", "neutral"), "AWAITING_REWRITE", []),
+        (("PASS", True, "", "neutral", "neutral"), "BLOCKED_EDITORIAL", [1]),
+    ],
+)
+def test_rewrite_job_scope_migration_requeues_each_legacy_fanout_output(
+    tmp_path, decision, second_state, outputs
+) -> None:
     database_url = f"sqlite:///{tmp_path / 'rewrite-job-fanout.db'}"
     config = Config("alembic.ini")
     config.set_main_option("sqlalchemy.url", database_url)
@@ -141,9 +154,22 @@ def test_rewrite_job_scope_migration_requeues_each_legacy_fanout_output(tmp_path
                     text(
                         "INSERT INTO publication_candidates "
                         "(output_channel_id, content_key, priority, state) "
-                        "VALUES (:output_channel_id, 'legacy:fanout', 0, 'AWAITING_REWRITE')"
+                        "VALUES (:output_channel_id, 'legacy:fanout', 0, :state)"
                     ),
-                    {"output_channel_id": output_channel_id},
+                    {
+                        "output_channel_id": output_channel_id,
+                        "state": "AWAITING_REWRITE" if output_channel_id == 1 else second_state,
+                    },
+                )
+            if decision is not None:
+                connection.execute(
+                    text(
+                        "INSERT INTO editorial_decisions "
+                        "(content_key,status,rewrite_allowed,reason_codes,protected_entities,"
+                        "sentiment,framing) VALUES ('legacy:fanout',:status,:allowed,'',"
+                        ":entities,:sentiment,:framing)"
+                    ),
+                    dict(zip(("status", "allowed", "entities", "sentiment", "framing"), decision)),
                 )
             connection.execute(
                 text(
@@ -176,17 +202,20 @@ def test_rewrite_job_scope_migration_requeues_each_legacy_fanout_output(tmp_path
                     "WHERE aggregate_key = 'legacy:fanout' ORDER BY idempotency_key"
                 )
             ).all()
-        assert jobs == [(None, "SUPERSEDED"), (1, "DISPATCHED"), (2, "DISPATCHED")]
+        assert jobs == [(None, "SUPERSEDED"), *[(value, "DISPATCHED") for value in outputs]]
         assert events == [
             ("rewrite.superseded", "rewrite.requested:legacy:fanout"),
-            ("rewrite.requested", "rewrite.requested:legacy:fanout:1"),
-            ("rewrite.requested", "rewrite.requested:legacy:fanout:2"),
+            *[
+                ("rewrite.requested", f"rewrite.requested:legacy:fanout:{value}")
+                for value in outputs
+            ],
         ]
     finally:
         engine.dispose()
 
-    with pytest.raises(RuntimeError, match="Unsafe downgrade"):
-        command.downgrade(config, "f51c8a04b2de")
+    if outputs:
+        with pytest.raises(RuntimeError, match="Unsafe downgrade"):
+            command.downgrade(config, "f51c8a04b2de")
 
 
 def test_mapping_policy_migration_keeps_existing_percentage_constraints(tmp_path) -> None:

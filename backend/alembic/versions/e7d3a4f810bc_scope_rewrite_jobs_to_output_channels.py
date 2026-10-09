@@ -49,6 +49,43 @@ def _create_rewrite_jobs_table(name: str, *, scoped: bool) -> None:
     op.create_table(name, *columns)
 
 
+def _eligible_outputs(bind, content_key):
+    # Freeze the historical hard gate here: migrations must not import future
+    # mutable application policy. Unknown/corrupt classification fails closed.
+    decision = (
+        bind.execute(
+            sa.text("SELECT * FROM editorial_decisions WHERE content_key = :key"),
+            {"key": content_key},
+        )
+        .mappings()
+        .one_or_none()
+    )
+    if (
+        decision is None
+        or decision["status"] != "PASS"
+        or decision["rewrite_allowed"] not in (True, 1)
+        or not isinstance(decision["sentiment"], str)
+        or decision["sentiment"].lower() not in {"negative", "neutral", "positive"}
+        or not isinstance(decision["framing"], str)
+        or decision["framing"].lower() not in {"hostile", "neutral", "positive"}
+        or not isinstance(decision["protected_entities"], str)
+    ):
+        return set()
+    if any(value.strip() for value in decision["protected_entities"].split(",")) and (
+        decision["sentiment"].lower() == "negative" or decision["framing"].lower() == "hostile"
+    ):
+        return set()
+    return set(
+        bind.execute(
+            sa.text(
+                "SELECT output_channel_id FROM publication_candidates "
+                "WHERE content_key = :key AND state = 'AWAITING_REWRITE'"
+            ),
+            {"key": content_key},
+        ).scalars()
+    )
+
+
 def _scope_legacy_jobs(bind) -> None:
     """Make pending legacy fan-out explicit instead of cross-activating it.
 
@@ -110,7 +147,7 @@ def _scope_legacy_jobs(bind) -> None:
             ),
             {"legacy_key": f"rewrite.requested:{job['content_key']}"},
         )
-        for output_channel_id in output_ids:
+        for output_channel_id in sorted(_eligible_outputs(bind, job["content_key"])):
             idempotency_key = f"rewrite.requested:{job['content_key']}:{output_channel_id}"
             bind.execute(
                 sa.text(

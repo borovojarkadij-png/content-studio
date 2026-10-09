@@ -15,6 +15,7 @@ from newsflow.persistence.models import (
     PublicationCandidateModel,
     PublicationJobModel,
     PublicationPlanModel,
+    RewriteJobModel,
     RewriteOutputModel,
 )
 from newsflow.services.automatic_approval import approval_is_current
@@ -258,6 +259,9 @@ class PublicationPlanningService:
             for candidate in candidates:
                 if len(existing) + len(scheduled) >= plan.daily_limit:
                     break
+                candidate = self._lock_candidate(candidate)
+                if candidate is None or candidate.state != "READY":
+                    continue
                 if not self._is_currently_editorial_pass(candidate.content_key):
                     continue
                 if not source_is_current(self._session, candidate.content_key):
@@ -346,15 +350,33 @@ class PublicationPlanningService:
                 PlannedPublicationModel.scheduled_for >= starts_at,
                 PlannedPublicationModel.scheduled_for <= ends_at,
             )
-            .with_for_update()
-        )
+        ).all()
         for item, candidate in rows:
+            # Lock the reservation alone (also before candidate in delivery
+            # receipt recording). Never implicitly lock candidate via the join.
+            item = self._session.scalar(
+                select(PlannedPublicationModel)
+                .where(PlannedPublicationModel.id == item.id)
+                .execution_options(populate_existing=True)
+                .with_for_update()
+            )
+            if (
+                item is None
+                or item.state != "PLANNED"
+                or item.candidate_id != candidate.id
+                or item.output_channel_id != plan.output_channel_id
+                or not starts_at <= _utc(item.scheduled_for) <= ends_at
+            ):
+                continue
             remote_state = self._session.scalar(
                 select(PublicationJobModel.state).where(PublicationJobModel.planned_id == item.id)
             )
             if remote_state in {"SENDING", "NEEDS_RECONCILIATION", "SUCCEEDED"}:
                 # A cancelled/revoked reservation is not proof Telegram did not
                 # publish it. Hold quota until exact delivery reconciliation.
+                continue
+            candidate = self._lock_candidate(candidate)
+            if candidate is None:
                 continue
             if not self._is_currently_editorial_pass(candidate.content_key):
                 item.state = "BLOCKED_EDITORIAL"
@@ -369,6 +391,44 @@ class PublicationPlanningService:
                 item.state = "BLOCKED_REVIEW"
                 candidate.state = "BLOCKED_REVIEW"
         self._session.flush()
+
+    def _lock_candidate(self, candidate):
+        """Match acquisition/approval order, then reload the candidate hint."""
+        identity = (candidate.content_key, candidate.output_channel_id)
+        key, channel_id = identity
+        job_id = self._session.scalar(
+            select(RewriteOutputModel.rewrite_job_id).where(
+                RewriteOutputModel.content_key == key,
+                RewriteOutputModel.output_channel_id == channel_id,
+            )
+        )
+        self._session.scalar(
+            select(RewriteJobModel)
+            .where(RewriteJobModel.id == job_id)
+            .execution_options(populate_existing=True)
+            .with_for_update()
+        )
+        self._is_currently_editorial_pass(key)
+        self._session.scalar(
+            select(RewriteOutputModel)
+            .where(
+                RewriteOutputModel.content_key == key,
+                RewriteOutputModel.output_channel_id == channel_id,
+            )
+            .execution_options(populate_existing=True)
+            .with_for_update()
+        )
+        # Automatic approval may lock its policy/release; do so before candidate.
+        self._review_is_current(candidate)
+        candidate = self._session.scalar(
+            select(PublicationCandidateModel)
+            .where(PublicationCandidateModel.id == candidate.id)
+            .execution_options(populate_existing=True)
+            .with_for_update()
+        )
+        if candidate is None or (candidate.content_key, candidate.output_channel_id) != identity:
+            return None
+        return candidate
 
     def _review_is_current(self, candidate: PublicationCandidateModel) -> bool:
         output = self._session.scalar(
