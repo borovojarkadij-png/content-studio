@@ -90,9 +90,12 @@ revocation state; different principal/kind/binding/verdict/acknowledgment/note
 conflicts. Replay never undoes revocation or promotes a rejected/uncertain review.
 No new rewrite job/provider call/publication job is produced by these routes.
 
-NEXT_STEP: independently review the authenticated writer and verify its migrated
-PostgreSQL gate, then implement Task 2 fresh review evidence in library preflight,
-immutable publication snapshots and final transport guards. Keep all independent
-editorial/source/draft/fact/technical/rights/sync gates and the library publication
-hold until that consumer is separately verified. No live send or credential
-activation is implied.
+Task 2 implements the separate fresh publication consumer described in
+ILLUSTRATION_PUBLICATION_CONSUMER.md. It clears only the exact current human
+illustration-review gate and preserves every independent publication constraint.
+The review endpoints themselves create no publication job or network send.
+
+NEXT_STEP: parent independent review/actual Windows PostgreSQL and packaged
+verification of Task 2, then protected controls in existing MediaPreparation and
+an owned library-review/immutable-snapshot Docker restart probe. Credentials and
+designated live test destinations remain separate, unprovisioned boundaries.

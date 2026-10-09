@@ -4,7 +4,11 @@ Shares the current session/peer decryption and compare-and-swap persistence seam
 with the read-only provider. Never generates credentials or logs plaintext.
 """
 
+from datetime import UTC, datetime
+
+from newsflow.persistence.models import RewriteOutputModel
 from newsflow.providers.telegram_publication import TelethonPhotoPublisher, TelethonTextPublisher
+from newsflow.services.illustration_publication import require_current_illustration_review
 from newsflow.services.media_job_read import MediaJobReader
 from newsflow.services.publication import PublicationBlocked
 from newsflow.services.telegram_provider_factory import ConfiguredTelegramProvider
@@ -50,20 +54,56 @@ class ConfiguredTelegramPhotoPublisher(TelethonPhotoPublisher):
         # bounded decode/hash checks, including a second fresh read after bytes.
         # Return immutable bytes only after closing the database transaction.
         with self._sessions() as session:
+
+            def require_review():
+                current = require_current_illustration_review(
+                    session, self._root, envelope.candidate_id, now=datetime.now(UTC)
+                )
+                if (
+                    current.review_id != envelope.illustration_review_id
+                    or current.binding != envelope.illustration_binding
+                    or current.binding.media_asset_id != envelope.media_asset_id
+                    or current.binding.media_sha256 != envelope.media_sha256
+                    or current.binding.content_key != envelope.content_key
+                    or current.binding.output_channel_id != envelope.output_channel_id
+                    or current.binding.rewrite_output_id != envelope.rewrite_output_id
+                ):
+                    raise PublicationBlocked("CURRENT_BOUND_ILLUSTRATION_REQUIRED")
+                output = session.get(
+                    RewriteOutputModel, current.binding.rewrite_output_id, populate_existing=True
+                )
+                if output is None:
+                    raise PublicationBlocked("CURRENT_BOUND_ILLUSTRATION_CAPTION_REQUIRED")
+                caption = output.rewritten_text + "\n\nИллюстрация."
+                if asset["attribution"]:
+                    caption += "\n\n" + asset["attribution"]
+                if envelope.text != caption:
+                    raise PublicationBlocked("CURRENT_BOUND_ILLUSTRATION_CAPTION_REQUIRED")
+
             reader = MediaJobReader(session, self._root)
             status = reader.get_status(envelope.candidate_id)
             asset = status["asset"]
             if (
                 not status["selected_allowed"]
-                or status["illustration"]
                 or asset is None
                 or asset["id"] != envelope.media_asset_id
                 or asset["sha256"] != envelope.media_sha256
+            ):
+                raise PublicationBlocked("CURRENT_BOUND_SOURCE_PHOTO_REQUIRED")
+            if status["illustration"]:
+                require_review()
+                if asset["origin"] != "LICENSED_LIBRARY":
+                    raise PublicationBlocked("CURRENT_BOUND_ILLUSTRATION_REQUIRED")
+            elif (
+                envelope.illustration_review_id is not None
+                or envelope.illustration_binding is not None
                 or asset["origin"] != "SOURCE"
                 or asset["source_content_key"] != envelope.content_key
             ):
                 raise PublicationBlocked("CURRENT_BOUND_SOURCE_PHOTO_REQUIRED")
             content, _ = reader.preview(envelope.candidate_id)
+            if status["illustration"]:
+                require_review()
             return content
 
 

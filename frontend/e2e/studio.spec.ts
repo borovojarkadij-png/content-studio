@@ -1005,7 +1005,7 @@ test("guarded real media preview renders exact fixture bytes and releases it on 
   await expect(preview).toBeVisible();
   const hold = page.getByText(/Публикация иллюстраций заблокирована/);
   await expect(hold).toContainText(
-    "Подтверждение соответствия фото событию ещё не реализовано",
+    "Требуется актуальная проверка иллюстрации авторизованным редактором",
   );
   await preview.click();
   const image = page.getByRole("img", {

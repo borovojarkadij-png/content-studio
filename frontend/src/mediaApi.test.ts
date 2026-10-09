@@ -38,6 +38,43 @@ it.each([null, true, "APPROVED", "RELEVANCE_ACCEPTED"])(
   },
 );
 
+it.each([null, "HUMAN_ILLUSTRATION_REVIEW_REQUIRED"])(
+  "accepts narrow library review diagnostic %j without authorizing publication",
+  async (value) => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        response({
+          ...pendingMedia,
+          ...(value === null
+            ? {
+                job_id: 8,
+                state: "SUCCEEDED",
+                selected_allowed: true,
+                asset: {
+                  id: 1,
+                  storage_key: "library/test.png",
+                  sha256: "a".repeat(64),
+                  mime_type: "image/png",
+                  origin: "LICENSED_LIBRARY",
+                  source_content_key: null,
+                  license_code: "CC0",
+                  attribution: "Synthetic library",
+                  tags: [],
+                },
+              }
+            : {}),
+          publication_hold_reason_code: value,
+        }),
+      ),
+    );
+    expect(
+      (await mediaStatus(4, new AbortController().signal))
+        .publication_hold_reason_code,
+    ).toBe(value);
+  },
+);
+
 it("binds media status identity and rejects fabricated selection and attempts", async () => {
   for (const payload of [
     { ...pendingMedia, candidate_id: 5 },

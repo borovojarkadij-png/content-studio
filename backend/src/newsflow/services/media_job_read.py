@@ -1,5 +1,6 @@
 """Read-only media-job history and current selection eligibility; no network."""
 
+from datetime import UTC, datetime
 from hashlib import sha256
 
 from sqlalchemy import select
@@ -11,6 +12,7 @@ from newsflow.persistence.models import (
     PublicationCandidateModel,
 )
 from newsflow.services.durable_media_runner import _digest
+from newsflow.services.illustration_publication import require_current_illustration_review
 from newsflow.services.internet_media import InternetMediaAcquisition
 from newsflow.services.media_selection import (
     LocalMediaSelectionService,
@@ -24,7 +26,7 @@ from newsflow.services.source_photo import (
     validate_source_rights,
 )
 
-LIBRARY_PUBLICATION_HOLD_CODE = "ILLUSTRATION_RELEVANCE_APPROVAL_NOT_IMPLEMENTED"
+LIBRARY_PUBLICATION_HOLD_CODE = "HUMAN_ILLUSTRATION_REVIEW_REQUIRED"
 
 
 class MediaJobReader:
@@ -168,6 +170,14 @@ class MediaJobReader:
             result["reason_code"] = "CURRENT_MEDIA_GATE_BLOCKED"
             return result
         result["selected_allowed"], result["asset"] = True, _project(asset)
+        if candidate.media_policy == "LICENSED_LIBRARY":
+            try:
+                require_current_illustration_review(
+                    self._session, self._root, candidate.id, now=datetime.now(UTC)
+                )
+                result["publication_hold_reason_code"] = None
+            except (PermissionError, ValueError, TypeError):
+                pass
         return result
 
     def preview(self, candidate_id):

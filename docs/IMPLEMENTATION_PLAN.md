@@ -88,15 +88,15 @@ YouTube sections without changing the approved Telegram architecture or gates.
 - [x] Bounded strict immutable human library illustration review domain contract: exact candidate/channel/mapping/source/draft/asset/metadata binding, reject/unknown/revocation/acknowledgment/time guards including actual DST fold RED/GREEN; 108 offline cases/full 1512 backend/205 frontend format-build gate, no authenticated API or publication permission, hold unchanged
 - [x] Fresh read-only canonical SQL illustration-binding resolver with migrated editorial/source/draft/technical/selected-asset/decoded-byte/rights/stale-read regressions; 47 targeted/full 1559 backend/205 frontend gate PASS and independent source review, no API/approval/publication permission, exact new PG gate checkpoint pending; caller hashes are never authoritative
 - [x] Task 1 default-disabled separate persistent reviewer-file authentication, strict canonical context/review/revocation API and atomic serialized immutable review/outbox audit writer; exact replay/current revocation and all-field stale/gate/byte/clean-session rollback fences verified with migrated synthetic SQL; api-only opt-in Compose override config verified; full 1703 PASS/1 PG-only SKIP/243.72s, Ruff/format/compile PASS; no real credential activation or hold release; see ILLUSTRATION_REVIEW_AUTH.md
-- [ ] Task 2 fresh authenticated human review evidence in library preflight/immutable snapshots/final transport guards; independent source/draft/editorial/fact/technical/rights/sync gates remain and live acceptance is separate
+- [~] Task 2 fresh authenticated human review consumer implemented in library preflight/version-2 immutable snapshots/final photo guards; newest review only, complete illustration label/credit, strict historical v1 and unchanged original-source digest; independent source/draft/editorial/fact/technical/rights/sync gates remain. Frozen backend1746/1 PG-only SKIP/302.04s, frontend208/format/typecheck-build and focused browser1 PASS; task-2-report.md records RED/GREEN. Parent independent review/actual PG/packaged acceptance and live acceptance remain separate
 - [x] Immutable illustration review/revocation SQL storage, guarded c5e81b29a704 migration, append-only/replace/TRUNCATE/reference/type fences and downgrade protection; 208 PASS/1 local PG-only SKIP, full 1612 PASS/1 SKIP, owned migration/independent review; exact source CI all-eight SUCCESS/PG 217 PASS and actual Windows PG 217 PASS including TRUNCATE; no authenticated writer or hold release
 
-NEXT_STEP: independently review the authenticated writer and verify its migrated
-PostgreSQL gate, then implement Task 2 fresh review evidence in library preflight,
-immutable publication snapshots and final transport guards. Keep all independent
-editorial/source/draft/fact/technical/rights/sync gates and the library publication
-hold until that consumer is separately verified. No live send or credential
-activation is implied.
+NEXT_STEP: independently review Task 2 and complete its parent-owned actual
+Windows PostgreSQL/packaged gate, then add protected reviewer controls to the
+existing MediaPreparation surface and an owned library-review/immutable-snapshot
+Docker restart acceptance probe. Preserve every independent publication gate.
+Live acceptance requires separately provisioned credentials and explicitly
+designated test destinations; no operational sends or activation is implied.
 - [x] Commercial DEV/integration/TEST/visual/RC/STABLE gate policy documented in QUALITY_GATES.md; policy itself is not release acceptance
 - [x] Bounded read-only single-source raw-video Fake/Telethon/encrypted factory contract; 71 offline cases including actual SDK iterator limit/cleanup regressions, false media/publication permission; NOT an automated video workflow
 - [x] Persisted mapping-filter GET/PUT API and ingress integration, canonical blocked domains, mandatory advertising markers and fresh worker/review/calendar policy guards; 442-test local gate

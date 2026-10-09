@@ -17,6 +17,26 @@ from newsflow.services.publication_request_snapshot import PublicationRequestSna
 source_store = _source_store
 
 
+def test_original_v1_queued_source_request_remains_readable_and_executable(source_store):
+    seed_plan(source_store)
+    sender = Publisher()
+    runner = DurablePublicationRunner(
+        *source_store, publisher=sender, cipher=CIPHER, clock=lambda: NOW
+    )
+    job_id = runner.enqueue(1, now=NOW)
+    original = snapshot_reader(source_store[0]).read(job_id)
+    with source_store[0].begin() as session:
+        row = session.get(models.PublicationRequestSnapshotModel, job_id)
+        value = json.loads(CIPHER.decrypt(row.encrypted_envelope))
+        value["version"] = 1
+        assert value["envelope"].pop("illustration_review_id") is None
+        assert value["envelope"].pop("illustration_binding") is None
+        row.encrypted_envelope = CIPHER.encrypt(json.dumps(value))
+    assert snapshot_reader(source_store[0]).read(job_id) == original
+    assert runner.run_next(now=NOW) == "SUCCEEDED"
+    assert runner.run_next(now=NOW) == "IDLE" and len(sender.calls) == 1
+
+
 def snapshot_reader(factory, cipher=CIPHER):
     return PublicationRequestSnapshots(factory, cipher=cipher)
 

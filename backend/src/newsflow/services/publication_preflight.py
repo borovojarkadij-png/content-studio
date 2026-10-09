@@ -6,13 +6,14 @@ sending. Legacy unmapped planning prototypes never qualify for execution.
 """
 
 import json
-from dataclasses import dataclass, replace
+from dataclasses import asdict, dataclass, replace
 from datetime import datetime, timedelta
 from hashlib import sha256
 
 from sqlalchemy import select
 
 from newsflow.domain.editorial import editorial_allows_rewrite
+from newsflow.domain.illustration_relevance import IllustrationBinding
 from newsflow.persistence.models import (
     ChannelMappingModel,
     DonorChannel,
@@ -29,8 +30,9 @@ from newsflow.providers.telegram import TelegramMessage
 from newsflow.services.automatic_approval import approval_is_current
 from newsflow.services.durable_semantic_runner import _aware, _utc
 from newsflow.services.fact_guard import FactGuard, FactPreservationBlocked
+from newsflow.services.illustration_publication import require_current_illustration_review
 from newsflow.services.mapping_filters import candidate_technical_allowed, mapping_filter
-from newsflow.services.media_job_read import LIBRARY_PUBLICATION_HOLD_CODE, MediaJobReader
+from newsflow.services.media_job_read import MediaJobReader
 from newsflow.services.media_selection import MediaSelectionBlocked, MediaUnavailable
 from newsflow.services.publication import PublicationBlocked
 from newsflow.services.source_revisions import source_is_current, source_revision
@@ -52,6 +54,8 @@ class PublicationEnvelope:
     media_asset_id: int | None
     media_sha256: str | None
     binding_sha256: str
+    illustration_review_id: int | None = None
+    illustration_binding: IllustrationBinding | None = None
 
 
 def _hash(value):
@@ -186,25 +190,42 @@ class PublicationPreflight:
             or not peer.encrypted_peer
         ):
             raise PublicationBlocked("PROVISIONED_HEALTHY_OUTPUT_AND_PEER_REQUIRED")
-        if candidate.media_policy != "REUSE_SOURCE":
-            # Topic matching is not sufficient to approve an illustration's relevance.
-            raise PublicationBlocked(LIBRARY_PUBLICATION_HOLD_CODE)
+        review = None
+        if candidate.media_policy == "LICENSED_LIBRARY":
+            review = require_current_illustration_review(session, self._root, candidate.id, now=now)
+        elif candidate.media_policy != "REUSE_SOURCE":
+            raise PublicationBlocked("MEDIA_ACQUISITION_POLICY_UNSUPPORTED")
         asset = None
         media_job_id = None
         text = output.rewritten_text
-        if source.media_type == "photo":
+        if source.media_type == "photo" or review is not None:
             try:
                 status = MediaJobReader(session, self._root).get_status(candidate.id)
             except (MediaSelectionBlocked, MediaUnavailable, ValueError):
                 raise PublicationBlocked("CURRENT_SOURCE_MEDIA_REQUIRED") from None
-            if not status["selected_allowed"] or status["illustration"] or status["asset"] is None:
+            if (
+                not status["selected_allowed"]
+                or status["illustration"] != (review is not None)
+                or status["asset"] is None
+                or (
+                    review is not None
+                    and (
+                        status["asset"]["id"] != review.binding.media_asset_id
+                        or status["asset"]["sha256"] != review.binding.media_sha256
+                    )
+                )
+            ):
                 raise PublicationBlocked("CURRENT_SOURCE_MEDIA_REQUIRED")
             asset = status["asset"]
             media_job_id = status["job_id"]
+            if review is not None:
+                text += "\n\nИллюстрация."
             if asset["attribution"]:
                 text += "\n\n" + asset["attribution"]
         try:
-            if not filters.evaluate(replace(draft_event, text=text)).accepted:
+            if not filters.evaluate(
+                replace(draft_event, text=text, media_type="photo" if asset else "text")
+            ).accepted:
                 raise PublicationBlocked("FINAL_PUBLICATION_TECHNICAL_FILTER_BLOCKED")
         except (ValueError, TypeError):
             raise PublicationBlocked("CURRENT_TECHNICAL_FILTER_INVALID") from None
@@ -252,6 +273,8 @@ class PublicationPreflight:
             media_job_id,
             asset,
         )
+        if review is not None:
+            snapshot += (asdict(review), text, "photo")
         return PublicationEnvelope(
             item.id,
             candidate.id,
@@ -267,4 +290,6 @@ class PublicationPreflight:
             asset["id"] if asset else None,
             asset["sha256"] if asset else None,
             _hash(json.dumps(snapshot, ensure_ascii=False, sort_keys=True)),
+            review.review_id if review else None,
+            review.binding if review else None,
         )

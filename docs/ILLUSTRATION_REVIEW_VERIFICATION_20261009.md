@@ -51,6 +51,18 @@ runtime/persistence, live authorization or publication proof.
 
 ## Permission and remaining boundaries
 
+Task 2 local frozen-source consumer verification: full backend **1746 PASS/1
+PostgreSQL-only SKIP/302.04s**, Ruff all source/tests and changed-file format,
+compile and whitespace checks PASS. Frontend **208 PASS**, format/typecheck-build
+PASS, focused real synthetic media-preview browser **1 PASS/5.8s** with desktop/
+mobile captures and 100 prior artifacts preserved create-only on D:. Exact current
+human review now removes only its narrow library hold; immutable review ID/binding,
+complete label/credit, final photo filters, before/after byte and after-upload guards,
+strict version-2 snapshots and original v1 source compatibility are covered.
+Parent independent review/actual Windows PostgreSQL/packaged consumer acceptance
+is separate and pending at this checkpoint. See ILLUSTRATION_PUBLICATION_CONSUMER.md
+and `.superpowers/sdd/ILLUSTRATION_REVIEW_IMPLEMENTATION/task-2-report.md`.
+
 The user explicitly authorized implementation of publication capability on
 2026-10-09. It does not waive independent gates or permit testing operational
 channels. Task 1 retains the library hold; Task 2 integrates exact current

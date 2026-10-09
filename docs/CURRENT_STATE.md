@@ -16,6 +16,17 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
 
 ## VERIFIED WORKING
 
+- Task 2 library publication consumer locally verified 2026-10-09: newest exact
+  authenticated human illustration review only, canonical decoded-byte/rights/
+  revocation checks at preflight and final photo reader, labeled complete caption,
+  immutable review ID/binding in version-2 snapshot and library digest. Original
+  source digest and strict v1 history/restart remain compatible. Frozen full backend
+  1746 PASS/1 PG-only SKIP/302.04s; frontend208/format/typecheck-build PASS, focused
+  browser1/5.8s with old captures preserved. Parent independent review and actual
+  Windows PostgreSQL/packaged Task 2 gate remain pending; no reviewer activation,
+  live sends, new UI writer forms or redesign. See ILLUSTRATION_PUBLICATION_CONSUMER.md
+  and the bounded task-2-report.md. Earlier unconditional-hold checkpoints below
+  are historical and do not describe this new consumer.
 - Fresh Windows Docker acceptance 2026-10-08 on Engine 29.8.0: new isolated
   unattended fixture passed all nine full-stack down/up/Redis-worker/PG crash
   boundaries (1 PASS/4 deselected/398.08s), packaged migration no-drift; separate
@@ -1227,12 +1238,13 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: independently review the authenticated writer and verify its migrated
-PostgreSQL gate, then implement Task 2 fresh review evidence in library preflight,
-immutable publication snapshots and final transport guards. Keep all independent
-editorial/source/draft/fact/technical/rights/sync gates and the library publication
-hold until that consumer is separately verified. No live send or credential
-activation is implied.
+NEXT_STEP: independently review Task 2 and complete its parent-owned actual
+Windows PostgreSQL/packaged gate, then add protected reviewer controls to the
+existing MediaPreparation surface and an owned library-review/immutable-snapshot
+Docker restart acceptance probe. All editorial/source/draft/fact/technical/rights/
+sync/session gates remain. Live acceptance requires separately provisioned
+credentials and explicitly designated test destinations; operational sends and
+credential activation are not implied.
 
 Task 1 implemented OFFLINE on 2026-10-09: separate bounded persistent bearer-file
 authentication and configured single-human identity, strict authenticated context/

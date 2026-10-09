@@ -114,11 +114,19 @@ export function MediaPreparation({ candidateId }: { candidateId: number }) {
           )}
           {status.publication_hold_reason_code && (
             <Notice error>
-              Публикация иллюстраций заблокирована. Подтверждение соответствия
-              фото событию ещё не реализовано; просмотр или завершение задания
-              не снимает это ограничение.
+              Публикация иллюстраций заблокирована. Требуется актуальная
+              проверка иллюстрации авторизованным редактором; просмотр или
+              завершение задания не снимает это ограничение.
             </Notice>
           )}
+          {status.media_policy === "LICENSED_LIBRARY" &&
+            status.publication_hold_reason_code === null && (
+              <p className="help-copy">
+                Текущая проверка иллюстрации подтверждена. Перед отправкой
+                повторно проверяются все ограничения; это не фото события и не
+                подтверждение готовности к публикации.
+              </p>
+            )}
           {status.asset && (
             <p>
               Медиа #{status.asset.id} · {status.asset.license_code} ·{" "}

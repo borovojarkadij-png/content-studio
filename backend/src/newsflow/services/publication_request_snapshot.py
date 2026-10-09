@@ -5,6 +5,7 @@ import re
 from dataclasses import asdict, dataclass, fields
 from datetime import datetime, timedelta
 
+from newsflow.domain.illustration_relevance import IllustrationBinding
 from newsflow.persistence.models import PublicationJobModel, PublicationRequestSnapshotModel
 from newsflow.security.session_cipher import SessionDecryptionUnavailable
 from newsflow.services.durable_semantic_runner import _aware
@@ -37,7 +38,7 @@ def _decode(payload, job, row):
         type(value) is not dict
         or set(value) != {"version", "request_nonce", "envelope"}
         or type(value["version"]) is not int
-        or value["version"] != 1
+        or value["version"] not in {1, 2}
     ):
         raise ValueError("Invalid snapshot version")
     nonce, data = value["request_nonce"], value["envelope"]
@@ -45,9 +46,44 @@ def _decode(payload, job, row):
         type(nonce) is not int
         or not 0 < nonce < 2**63
         or type(data) is not dict
-        or set(data) != {field.name for field in fields(PublicationEnvelope)}
+        or set(data)
+        != (
+            {field.name for field in fields(PublicationEnvelope)}
+            - (
+                {"illustration_review_id", "illustration_binding"}
+                if value["version"] == 1
+                else set()
+            )
+        )
     ):
         raise ValueError("Invalid snapshot schema")
+    if value["version"] == 1:
+        data["illustration_review_id"] = data["illustration_binding"] = None
+    review_id, binding = data["illustration_review_id"], data["illustration_binding"]
+    if review_id is None:
+        if binding is not None:
+            raise ValueError("Unexpected illustration binding")
+    else:
+        if (
+            type(review_id) is not int
+            or not 0 < review_id <= 2**63 - 1
+            or type(binding) is not dict
+        ):
+            raise ValueError("Invalid illustration review identity")
+        binding = IllustrationBinding(**binding)
+        if any(
+            getattr(binding, key) != data[key]
+            for key in (
+                "candidate_id",
+                "output_channel_id",
+                "content_key",
+                "rewrite_output_id",
+                "media_asset_id",
+                "media_sha256",
+            )
+        ):
+            raise ValueError("Inconsistent illustration binding")
+        data["illustration_binding"] = binding
     for key in (
         "planned_id",
         "candidate_id",
@@ -116,7 +152,7 @@ class PublicationRequestSnapshots:
             _aware(data[key])
             data[key] = data[key].isoformat()
         payload = json.dumps(
-            {"version": 1, "request_nonce": job.request_nonce, "envelope": data},
+            {"version": 2, "request_nonce": job.request_nonce, "envelope": data},
             ensure_ascii=False,
             separators=(",", ":"),
         )

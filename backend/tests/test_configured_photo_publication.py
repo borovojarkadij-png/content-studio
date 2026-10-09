@@ -1,3 +1,4 @@
+import json
 from dataclasses import replace
 from datetime import timedelta
 from importlib import import_module
@@ -72,6 +73,32 @@ def test_real_photo_job_bytes_and_attribution_reach_exact_durable_receipt(source
     with source_store[0]() as session:
         assert session.get(models.PublicationJobModel, job_id).sent_message_id == 501
         assert session.get(models.PlannedPublicationModel, 1).state == "PUBLISHED"
+
+
+def test_preupgrade_v1_source_photo_snapshot_survives_restart_without_rebinding(source_store):
+    from newsflow.services.publication_request_snapshot import PublicationRequestSnapshots
+
+    client, _ = photo_setup(source_store)
+    sender = configured(source_store, client)
+    runner = DurablePublicationRunner(
+        *source_store, publisher=sender, cipher=CIPHER, clock=lambda: NOW
+    )
+    job_id = runner.enqueue(1, now=NOW)
+    original = PublicationRequestSnapshots(source_store[0], cipher=CIPHER).read(job_id)
+    with source_store[0].begin() as session:
+        row = session.get(models.PublicationRequestSnapshotModel, job_id)
+        payload = json.loads(CIPHER.decrypt(row.encrypted_envelope))
+        payload["version"] = 1
+        payload["envelope"].pop("illustration_review_id")
+        payload["envelope"].pop("illustration_binding")
+        row.encrypted_envelope = CIPHER.encrypt(json.dumps(payload))
+    restarted = DurablePublicationRunner(
+        *source_store, publisher=sender, cipher=CIPHER, clock=lambda: NOW
+    )
+    assert PublicationRequestSnapshots(source_store[0], cipher=CIPHER).read(job_id) == original
+    assert restarted.run_next(now=NOW) == "SUCCEEDED"
+    assert restarted.run_next(now=NOW) == "IDLE"
+    assert len(client.uploaded) == len(client.requests) == 1
 
 
 @pytest.mark.parametrize("mutation", ["reject", "rights", "file", "session"])

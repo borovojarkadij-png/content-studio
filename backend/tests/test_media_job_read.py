@@ -74,20 +74,14 @@ def test_library_publication_hold_survives_selection_and_current_policy_changes(
     with TestClient(app) as client:
         before = client.get("/api/telegram/publication-candidates/1/media-acquisition")
         assert before.headers["cache-control"] == "no-store"
-        assert (
-            before.json()["publication_hold_reason_code"]
-            == "ILLUSTRATION_RELEVANCE_APPROVAL_NOT_IMPLEMENTED"
-        )
+        assert before.json()["publication_hold_reason_code"] == "HUMAN_ILLUSTRATION_REVIEW_REQUIRED"
         assert images.calls == []
         now = datetime.now(UTC)
         runner.enqueue_pending(now=now)
         assert runner.run_next(now=now) == "SUCCEEDED"
         selected = client.get("/api/telegram/publication-candidates/1/media-acquisition").json()
         assert selected["selected_allowed"] is True
-        assert (
-            selected["publication_hold_reason_code"]
-            == "ILLUSTRATION_RELEVANCE_APPROVAL_NOT_IMPLEMENTED"
-        )
+        assert selected["publication_hold_reason_code"] == "HUMAN_ILLUSTRATION_REVIEW_REQUIRED"
         with semantic_store() as session:
             session.get(PublicationCandidateModel, 1).media_policy = "REUSE_SOURCE"
             session.commit()

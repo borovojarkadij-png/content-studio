@@ -36,8 +36,7 @@ it("explains library publication hold without implying a manual glance grants ap
   const fetch = vi.fn(async () =>
     json({
       ...pending,
-      publication_hold_reason_code:
-        "ILLUSTRATION_RELEVANCE_APPROVAL_NOT_IMPLEMENTED",
+      publication_hold_reason_code: "HUMAN_ILLUSTRATION_REVIEW_REQUIRED",
     }),
   );
   vi.stubGlobal("fetch", fetch);
@@ -47,7 +46,7 @@ it("explains library publication hold without implying a manual glance grants ap
   ).toBeTruthy();
   expect(
     screen.getByText(
-      /Подтверждение соответствия фото событию ещё не реализовано/,
+      /Требуется актуальная проверка иллюстрации авторизованным редактором/,
     ),
   ).toBeTruthy();
   expect(screen.queryByText(/Проверьте соответствие фото вручную/)).toBeNull();
@@ -82,6 +81,40 @@ it("queues once and shows durable queue state, never download or publication suc
   expect(writes).toBe(1);
   expect(screen.queryByRole("img")).toBeNull();
   expect(screen.getByText(/Worker включается отдельно/)).toBeTruthy();
+});
+
+it("cleared narrow review hold still explains independent publication checks", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async () =>
+      json({
+        ...pending,
+        job_id: 8,
+        state: "SUCCEEDED",
+        selected_allowed: true,
+        publication_hold_reason_code: null,
+        asset: {
+          id: 1,
+          storage_key: "library/test.png",
+          sha256: "a".repeat(64),
+          mime_type: "image/png",
+          origin: "LICENSED_LIBRARY",
+          source_content_key: null,
+          license_code: "CC0",
+          attribution: "Synthetic library",
+          tags: [],
+        },
+      }),
+    ),
+  );
+  render(<MediaPreparation candidateId={4} />);
+  expect(
+    await screen.findByText(/не подтверждение готовности к публикации/),
+  ).toBeTruthy();
+  expect(screen.queryByText(/Публикация иллюстраций заблокирована/)).toBeNull();
+  expect(
+    screen.queryByRole("button", { name: /Подтвердить|Отправить/ }),
+  ).toBeNull();
 });
 
 it("queue failure removes stale eligibility and refreshes before allowing another attempt", async () => {
