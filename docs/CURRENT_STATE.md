@@ -16,13 +16,28 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
 
 ## VERIFIED WORKING
 
+- Task 3 protected illustration presentation/UI verified locally 2026-10-09:
+  canonical source/current per-channel draft/eleven-field binding/rights/latest
+  review, authenticated no-store decoded photo with explicit strong ETag/If-Match,
+  and eligibility-independent latest-review read. Existing MediaPreparation now
+  owns a dedicated masked memory-only reviewer panel; approval requires exact
+  loaded photo, acknowledgment and bounded note. Explicit same-payload retry,
+  stale-source revocation, abort/late response/token/candidate/post-save refresh
+  races and DEMO isolation are covered without publication or provider activation.
+  Frozen full backend1793 PASS/1 PG-only SKIP/361.83s, frontend243/format/build,
+  entire prior browser33 and dedicated protected real API browser1 PASS. Existing
+  palette/navigation/CSS remain; old captures preserved on D: before overwrites.
+  Source review and owned Task4 review/snapshot Docker restart acceptance remain
+  separate; see task-3-report.md. CI now invokes and uploads the dedicated flow;
+  this local evidence does not claim that new remote CI has executed.
+
 - Parent Task 2 gate 2026-10-09: independent consumer review approved spec/quality,
   actual isolated Windows Docker PostgreSQL library/review API 115 PASS/202.67s
   (no SKIP), image build6b3ea49 and network-none/read-only/no-volume API health200,
   missing reviewer config503 PASS. Owned startup probe stopped/storage retained;
   no operational activation or sends. Task1 exactf2f2092 CI37912841383 all-eight
-  SUCCESS; this is not Task2 CI proof. New protected UI and owned illustration
-  snapshot down/up acceptance remain the next bounded tasks, not PHASE completion.
+  SUCCESS; this is not Task2 CI proof. Task3 protected UI is locally verified
+  above; independent review and owned snapshot down/up remain, not PHASE completion.
 
 - Task 2 library publication consumer locally verified 2026-10-09: newest exact
   authenticated human illustration review only, canonical decoded-byte/rights/
@@ -1246,13 +1261,18 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: implement Task 3 protected canonical source/draft/photo presentation
-and reviewer controls in existing MediaPreparation, then Task 4 owned library-
+NEXT_STEP: independently review Task 3, then execute Task 4 owned library-
 review/immutable-snapshot Docker restart acceptance, per
 ILLUSTRATION_REVIEW_IMPLEMENTATION.md. All editorial/source/draft/fact/technical/rights/
 sync/session gates remain. Live acceptance requires separately provisioned
 credentials and explicitly designated test destinations; operational sends and
 credential activation are not implied.
+Task4 must prove actual authenticated presentation/ETag/photo/review/revoke through
+packaged HTTP, original review/audit/encrypted snapshot/photo after down/up and
+independent reopen, stale/revoked fake-transport refusal and abandoned SENDING
+quarantine without resend. Use only create-only explicitly owned synthetic
+resources, retained secrets/volumes/manifests and disabled network workers; no
+operational queues, reseed, real credential generation or cleanup that removes data.
 
 Task 1 implemented OFFLINE on 2026-10-09: separate bounded persistent bearer-file
 authentication and configured single-human identity, strict authenticated context/

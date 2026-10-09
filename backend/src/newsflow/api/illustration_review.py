@@ -17,6 +17,7 @@ from newsflow.security.illustration_reviewer import (
     ReviewerUnavailable,
     authenticate_reviewer,
 )
+from newsflow.services.illustration_presentation import IllustrationPresentation
 from newsflow.services.illustration_review import IllustrationReviewWriter
 
 router = APIRouter(prefix="/api/illustration-review", tags=["illustration-review"])
@@ -89,6 +90,58 @@ class ReviewRequest(OperationRequest):
     displayed_binding: BindingRequest
     verdict: Literal["APPROVED_ILLUSTRATION", "REJECTED", "UNCERTAIN"]
     illustration_acknowledged: bool
+
+
+def presentation_service(principal: Principal) -> Iterator[IllustrationPresentation]:
+    # Latest review is intentionally independent of source and media eligibility.
+    root = Path(getenv("NEWSFLOW_MEDIA_ROOT", "").strip() or ".")
+    for session in database_session():
+        if session is None:
+            raise HTTPException(503, "Durable database is not configured")
+        try:
+            yield IllustrationPresentation(session, root)
+        except LookupError:
+            raise HTTPException(404, "Illustration record not found") from None
+        except (PermissionError, ValueError, TypeError, OSError):
+            raise HTTPException(
+                409, "Current illustration presentation unavailable; reload"
+            ) from None
+        except SQLAlchemyError:
+            raise HTTPException(503, "Durable illustration storage unavailable") from None
+
+
+Presentation = Annotated[IllustrationPresentation, Depends(presentation_service)]
+
+
+@router.get("/candidates/{candidate_id}/presentation")
+def presentation(candidate_id: int, response: Response, service: Presentation):
+    if not getenv("NEWSFLOW_MEDIA_ROOT", "").strip():
+        raise HTTPException(503, "Illustration media storage unavailable")
+    value, etag = service.presentation(candidate_id)
+    response.headers.update({"Cache-Control": "no-store", "ETag": etag})
+    return value
+
+
+@router.get("/candidates/{candidate_id}/photo")
+def photo(
+    candidate_id: int, service: Presentation, if_match: Annotated[str | None, Header()] = None
+):
+    if not getenv("NEWSFLOW_MEDIA_ROOT", "").strip():
+        raise HTTPException(503, "Illustration media storage unavailable")
+    if if_match is None:
+        raise HTTPException(409, "Matching presentation validator required")
+    content, mime, etag = service.photo(candidate_id, if_match)
+    return Response(
+        content,
+        media_type=mime,
+        headers={"Cache-Control": "no-store", "ETag": etag, "X-Content-Type-Options": "nosniff"},
+    )
+
+
+@router.get("/candidates/{candidate_id}/latest-review")
+def latest_review(candidate_id: int, response: Response, service: Presentation):
+    response.headers["Cache-Control"] = "no-store"
+    return {"latest_review": service.latest(candidate_id)}
 
 
 @router.get("/candidates/{candidate_id}")

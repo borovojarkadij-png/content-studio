@@ -8,8 +8,8 @@
     "build": "tsc --noEmit && vite build",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "format": "prettier --write src e2e *.ts package.json index.html",
-    "format:check": "prettier --check src e2e *.ts package.json index.html"
+    "format": "prettier --write src e2e e2e-illustration *.ts package.json index.html",
+    "format:check": "prettier --check src e2e e2e-illustration *.ts package.json index.html"
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",

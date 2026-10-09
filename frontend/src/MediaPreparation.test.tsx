@@ -7,10 +7,88 @@ import {
 } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { MediaPreparation } from "./MediaPreparation";
+// @ts-expect-error Vitest supplies real Node Web Crypto for the browser API contract.
+import { webcrypto } from "node:crypto";
+import {
+  presentationFixture,
+  photoBytes,
+  reviewFixture,
+} from "./illustrationReviewFixtures";
 
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
+});
+
+it("post-review media refresh cannot replace a changed candidate with a late old status", async () => {
+  vi.stubGlobal("crypto", webcrypto);
+  vi.spyOn(URL, "createObjectURL").mockReturnValue(
+    "blob:synthetic-parent-review",
+  );
+  vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
+  let reads = 0;
+  let finish!: (value: unknown) => void;
+  let oldSignal!: AbortSignal;
+  const etag = '"' + "a".repeat(64) + '"';
+  vi.stubGlobal("fetch", async (path: string, init: RequestInit) => {
+    if (path.includes("illustration-review")) {
+      if (path.endsWith("/photo"))
+        return new Response(photoBytes, {
+          headers: { ETag: etag, "Content-Type": "image/png" },
+        });
+      const value = path.endsWith("/presentation")
+        ? presentationFixture
+        : path.endsWith("/latest-review")
+          ? { latest_review: reviewFixture }
+          : reviewFixture;
+      return new Response(JSON.stringify(value), {
+        headers: { ETag: etag, "Content-Type": "application/json" },
+      });
+    }
+    if (path.includes("/5/"))
+      return json({
+        ...pending,
+        candidate_id: 5,
+        media_policy: "REUSE_SOURCE",
+        acquisition_mode: "REUSE_SOURCE",
+        illustration: false,
+      });
+    reads++;
+    if (reads === 2) {
+      oldSignal = init.signal as AbortSignal;
+      return new Promise((resolve) => {
+        finish = resolve;
+      });
+    }
+    return json(pending);
+  });
+  const view = render(<MediaPreparation candidateId={4} />);
+  fireEvent.change(await screen.findByLabelText("Токен редактора"), {
+    target: { value: "synthetic-test-only-review-token-0001" },
+  });
+  fireEvent.click(
+    screen.getByRole("button", { name: "Загрузить контекст проверки" }),
+  );
+  fireEvent.load(
+    await screen.findByRole("img", {
+      name: "Проверяемая иллюстрация, не фото события",
+    }),
+  );
+  fireEvent.change(screen.getByLabelText("Комментарий проверки"), {
+    target: { value: reviewFixture.review_note },
+  });
+  fireEvent.click(screen.getByRole("checkbox", { name: /Это иллюстрация/ }));
+  fireEvent.click(screen.getByRole("button", { name: "Одобрить иллюстрацию" }));
+  await waitFor(() => expect(finish).toBeTypeOf("function"));
+  view.rerender(<MediaPreparation candidateId={5} />);
+  expect(await screen.findByText("Исходное фото донора")).toBeTruthy();
+  expect(oldSignal.aborted).toBe(true);
+  finish(json(pending));
+  await waitFor(() =>
+    expect(screen.queryByLabelText("Токен редактора")).toBeNull(),
+  );
+  expect(screen.queryByText(/Проверка сохранена/)).toBeNull();
 });
 const pending = {
   candidate_id: 4,
@@ -51,6 +129,7 @@ it("explains library publication hold without implying a manual glance grants ap
   ).toBeTruthy();
   expect(screen.queryByText(/Проверьте соответствие фото вручную/)).toBeNull();
   expect(fetch.mock.calls).toHaveLength(1);
+  expect(screen.getByLabelText("Токен редактора")).toBeTruthy();
 });
 
 it("queues once and shows durable queue state, never download or publication success", async () => {

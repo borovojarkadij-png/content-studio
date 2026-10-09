@@ -59,6 +59,10 @@ class LocalMediaSelectionService:
             raise MediaUnavailable("Persistent media root is unavailable")
 
     def _read_photo(self, storage_key: str) -> tuple[str, str]:
+        _, digest, mime = self._photo_content(storage_key)
+        return digest, mime
+
+    def _photo_content(self, storage_key: str) -> tuple[bytes, str, str]:
         key = PurePosixPath(storage_key)
         if (
             not storage_key
@@ -110,7 +114,7 @@ class LocalMediaSelectionService:
             Image.DecompressionBombError,
         ):
             raise MediaUnavailable("Local photo decode constraints failed") from None
-        return sha256(content).hexdigest(), mime
+        return content, sha256(content).hexdigest(), mime
 
     def register_asset(
         self,

@@ -90,13 +90,19 @@ YouTube sections without changing the approved Telegram architecture or gates.
 - [x] Task 1 default-disabled separate persistent reviewer-file authentication, strict canonical context/review/revocation API and atomic serialized immutable review/outbox audit writer; exact replay/current revocation and all-field stale/gate/byte/clean-session rollback fences verified with migrated synthetic SQL; api-only opt-in Compose override config verified; full 1703 PASS/1 PG-only SKIP/243.72s, Ruff/format/compile PASS; no real credential activation or hold release; see ILLUSTRATION_REVIEW_AUTH.md
 - [~] Task 2 fresh authenticated human review consumer implemented in library preflight/version-2 immutable snapshots/final photo guards; newest review only, complete illustration label/credit, strict historical v1 and unchanged original-source digest; independent source/draft/editorial/fact/technical/rights/sync gates remain. Frozen backend1746/1 PG-only SKIP/302.04s, frontend208/format/typecheck-build and focused browser1 PASS; task-2-report.md records RED/GREEN. Parent independent review/actual PG/packaged acceptance and live acceptance remain separate
 - [x] Immutable illustration review/revocation SQL storage, guarded c5e81b29a704 migration, append-only/replace/TRUNCATE/reference/type fences and downgrade protection; 208 PASS/1 local PG-only SKIP, full 1612 PASS/1 SKIP, owned migration/independent review; exact source CI all-eight SUCCESS/PG 217 PASS and actual Windows PG 217 PASS including TRUNCATE; no authenticated writer or hold release
+- [x] Task 3 protected canonical source/current approved draft/rights/channel/binding/latest-review presentation, explicit strong ETag/If-Match decoded private photo and eligibility-independent latest read; dedicated memory-only masked reviewer panel in existing MediaPreparation, bounded note/acknowledgment, truthful negative decisions, exact explicit retry and abort/token/candidate/post-save refresh fencing. Frozen backend1793 PASS/1 local PG-only SKIP/361.83s, frontend243/format/typecheck-build, entire existing browser33 and dedicated real API approve/reject/stale-source-revoke browser1 PASS; zero publication jobs/providers beyond synthetic fixture setup, narrow keyboard/WCAG and DEMO isolation. CI wired for new flow/evidence; independent review and actual owned Task4 restart acceptance remain separate.
 
-NEXT_STEP: implement Task 3 protected canonical source/draft/photo presentation
-and reviewer controls in existing MediaPreparation, then Task 4 owned library-
+NEXT_STEP: independently review Task 3, then execute Task 4 owned library-
 review/immutable-snapshot Docker restart acceptance, per
 ILLUSTRATION_REVIEW_IMPLEMENTATION.md. Task2 independent review, actual Windows
 Docker PostgreSQL115PASS and packaged startup gate passed; preserve every
 independent publication gate.
+Task4 acceptance must use actual authenticated packaged HTTP presentation,
+matching-validator photo, review and revocation; preserve original review/audit,
+encrypted snapshot and photo across down/up and independent reopen. Prove revoked/
+stale fake-transport refusal and abandoned SENDING quarantine with zero resend,
+using create-only explicitly owned synthetic resources and retained secrets/media/
+PostgreSQL volumes, disabled network workers and no operational queues or reseed.
 Live acceptance requires separately provisioned credentials and explicitly
 designated test destinations; no operational sends or activation is implied.
 - [x] Commercial DEV/integration/TEST/visual/RC/STABLE gate policy documented in QUALITY_GATES.md; policy itself is not release acceptance

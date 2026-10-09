@@ -26,6 +26,8 @@ jobs:
         run: python -m ruff check src tests alembic ../scripts/ui_fixture_api.py ../scripts/docker_persistence_probe.py ../scripts/docker_rewrite_recovery_probe.py ../scripts/docker_source_guard_probe.py ../scripts/docker_semantic_probe.py ../scripts/docker_media_probe.py ../scripts/docker_ingestion_probe.py ../scripts/docker_telegram_health_probe.py ../scripts/docker_telegram_peer_probe.py ../scripts/docker_mapping_filter_probe.py ../scripts/docker_donor_resolution_probe.py ../scripts/docker_source_photo_probe.py ../scripts/docker_publication_probe.py ../scripts/docker_channel_sync_probe.py ../scripts/docker_rewrite_sync_wait_probe.py ../scripts/docker_admission_probe.py
       - name: Test
         run: python -m pytest -q
+      - name: Lint protected illustration browser fixture
+        run: python -m ruff check ../scripts/ui_illustration_fixture_api.py
       - name: Compile
         run: python -m compileall -q src tests
       - name: Validate migrations
@@ -67,6 +69,16 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Browser regressions and eight-section screenshots
         run: npm run test:e2e
+      - name: Protected illustration reviewer browser flow
+        run: npx playwright test --config=playwright.illustration.config.ts
+      - name: Upload illustration reviewer evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: illustration-review-ui
+          path: .artifacts/illustration-review-ui
+          include-hidden-files: true
+          retention-days: 14
       - name: Upload UI verification evidence
         if: always()
         uses: actions/upload-artifact@v4

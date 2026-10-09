@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { mediaStatus, mediaPreview, type MediaStatus } from "./mediaApi";
 import { Notice } from "./ui";
+import { IllustrationReviewPanel } from "./IllustrationReviewPanel";
 
 const labels: Record<MediaStatus["state"], string> = {
   NOT_QUEUED: "Не поставлено в очередь",
@@ -16,6 +17,7 @@ export function MediaPreparation({ candidateId }: { candidateId: number }) {
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState("");
   const [previewUrl, setPreviewUrl] = useState("");
+  const [libraryReview, setLibraryReview] = useState(false);
   const url = useRef("");
   const clearPreview = () => {
     if (url.current) URL.revokeObjectURL(url.current);
@@ -34,7 +36,10 @@ export function MediaPreparation({ candidateId }: { candidateId: number }) {
     setStatus(null);
     try {
       const value = await mediaStatus(candidateId, controller.signal, queue);
-      if (!controller.signal.aborted) setStatus(value);
+      if (!controller.signal.aborted) {
+        setStatus(value);
+        setLibraryReview(value.media_policy === "LICENSED_LIBRARY");
+      }
     } catch (cause: unknown) {
       if (!controller.signal.aborted)
         setError(cause instanceof Error ? cause.message : "Ошибка API медиа");
@@ -77,6 +82,7 @@ export function MediaPreparation({ candidateId }: { candidateId: number }) {
     }
   };
   useEffect(() => {
+    setLibraryReview(false);
     void load();
     return () => {
       request.current?.abort();
@@ -176,6 +182,13 @@ export function MediaPreparation({ candidateId }: { candidateId: number }) {
         />
       )}
       {error && <Notice>{error}</Notice>}
+      {libraryReview && (
+        <IllustrationReviewPanel
+          key={candidateId}
+          candidateId={candidateId}
+          onSaved={() => load()}
+        />
+      )}
     </section>
   );
 }
