@@ -136,3 +136,19 @@ no new Critical/Important/Minor. Task4 source and corrected retained synthetic
 Windows acceptance are accepted; exact new full nine-job CI and broader
 cross-task commercial QA remain pending. PHASE1 and live acceptance are not
 complete. Preserve the original fixture and every failed/historical log.
+
+## Exact nine-job baseline CI
+
+Source `7af4324cac284b8bd3085eecb80e14c166149ccc`, run37924345507: all nine
+jobs SUCCESS. Backend1929 PASS/1 PG-only SKIP/433.72s; strict migrated
+PostgreSQL332 PASS/323.18s; frontend243/format/build plus33 browser and1 real
+protected-review browser PASS; unattended full-stack1 PASS/4 deselected/354.31s.
+Illustration job113799583934:136 focused PASS/44.68s, packaged build/migrations/
+no-drift/HTTP health/seed/invalidate/pending first down-up/PG crash/fake execution/
+final down-up/create PASS and two final read-only reopens PASS. Synthetic
+ownership/image evidence artifact11613471511 contains six files, zip digest
+`d6fee2938b0a8abbf4497fae176169d2b6dea19a38ef71ee389a13a5cd24bbe0`.
+No real RPCs. All other recovery families passed. Runner deprecation warnings
+remain visible. Broad review subsequently found four Important cross-task
+defects; their new correction wave is not covered by this baseline CI. Neither
+PHASE1 nor operational/live release acceptance is complete.

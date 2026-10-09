@@ -110,12 +110,31 @@ test color/untouched full-format noise remains tracked for milestone triage.
   mutation; scoped152 PASS and actual pinned Windows restart/crash PASS, re-review
   clear. Exact new full CI and whole-branch QA remain separate pending gates.
 
-NEXT_STEP: Task4 independent review accepted at `a6981f2`; commit parent evidence, push only authorized
-origin/codex/dark-navy-ui, then verify exact new nine-job CI. Actual corrected
-retained Windows illustration review/snapshot recovery is PASS as recorded in
-ILLUSTRATION_RESTART_PARENT_20261009.md; historical failures remain preserved.
-Cross-task whole-branch commercial review/QA follows before the next remaining
-Telegram increment. Do not reseed the retained fixture. Task2 independent review, actual Windows
+- [x] Exact7af4324 nine-job GitHub Actions37924345507 all SUCCESS: backend1929/1
+  PG-only SKIP, strict PostgreSQL332, frontend243/browser33+1, authenticated
+  illustration restart and all earlier recovery families; no live qualification
+- [x] Whole-branch independent risk review be730b8..7af4324 with explicit coverage
+  limitations; four Important findings, no verified Critical
+- [ ] Single combined correction wave: eligible-only legacy fan-out, current
+  technical guards before semantic AI, strict decoded URL hosts and consistent
+  planner/media lock ordering; regressions, actual isolated PostgreSQL concurrency,
+  scoped independent re-review and exact new CI remain required
+
+- [x] Correction sourcef8aa00b: final frozen backend1984 PASS/3 PG-only SKIP,
+  lint/changed format/compile and isolated migration cycle/no-drift; actual
+  Windows PG controlled deadlock RED then2PASS, covering332PASS intermediate
+  pre-URL-compatibility-parser evidence. Original aborted/setup failures retained
+
+NEXT_STEP: single scoped re-review7af4324..f8aa00b, fresh owned Windows Docker
+illustration build/recovery on distinct retained project20261009b, exact new
+nine-job CI. These are pending; baseline all-nine CI does not verify new changes.
+Then continue source-bound
+pre-rewrite editorial classifier contract/offline qualification harness, without
+real-model qualification or activation. Actual corrected retained Windows
+illustration recovery is PASS in ILLUSTRATION_RESTART_PARENT_20261009.md;
+historical failures remain preserved. Do not reseed the retained fixture or
+repeat completed Task1-4. Only authorized origin/codex/dark-navy-ui.
+Task2 independent review, actual Windows
 Docker PostgreSQL115PASS and packaged startup gate passed; preserve every
 independent publication gate.
 Task4 acceptance must use actual authenticated packaged HTTP presentation,

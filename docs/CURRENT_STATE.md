@@ -16,6 +16,35 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
 
 ## VERIFIED WORKING
 
+- Correction source `f8aa00bbba59321f0a53c4bc206d8d76f08e83cc` is frozen:
+  final backend1984 PASS/3 explicit PG-only SKIP/397.90s, lint/changed-file
+  format/compile and isolated SQLite migration cycle/no-drift PASS. Actual
+  Windows controlled PostgreSQL concurrency2 PASS/3.00s on unchanged final
+  planner/harness follows reproduced SQLSTATE40P01 RED; separate migrated
+  PostgreSQL332 PASS/377.96s imported the pre-URL-compatibility parser and is
+  explicitly intermediate evidence. The initial full run was ABORTED after
+  a URL userinfo compatibility failure; corrected124 focused PASS precedes
+  the final complete full gate. All historical failures remain recorded.
+  One scoped independent re-review and fresh owned Windows Docker build/recovery
+  are in progress; exact new CI remains pending. No operational/live activation.
+
+- Exact source `7af4324cac284b8bd3085eecb80e14c166149ccc`: GitHub Actions
+  run37924345507 completed all nine jobs SUCCESS. Actual logs: backend1929
+  PASS/1 local PostgreSQL-only SKIP/433.72s, strict migrated PostgreSQL332
+  PASS/323.18s, frontend243 plus33 existing browser and1 protected-review browser
+  PASS, unattended full-stack restart1 PASS/4 deselected/354.31s. The separate
+  authenticated illustration job passed136 focused regressions and actual Linux
+  packaged HTTP/migration/pending down-up/PG crash/fake execution/final down-up/
+  double reopen acceptance. All other recovery families passed. This verifies
+  that exact baseline, not the subsequent uncommitted correction wave. Visible
+  runner deprecation warnings remain; no live or PHASE completion is implied.
+- Whole-branch independent risk review of be730b8..7af4324 is complete with
+  explicit coverage limits: no verified Critical, four Important findings in
+  legacy rewrite fan-out, semantic technical revalidation, encoded URL host
+  filtering and planner/media PostgreSQL lock order. One combined correction
+  wave with behavioral regression tests is in progress; source acceptance,
+  actual new PostgreSQL concurrency and scoped re-review remain pending.
+
 - Latest Task4 checkpoint2026-10-09: source `bfba7ede98d775510abd5353f4182c68ceb60b18`
   adds separate owned synthetic illustration review/snapshot acceptance. Frozen
   backend1871 PASS/1 local PG-only SKIP/326.78s, focused94 PASS/21.40s. Actual
@@ -1293,11 +1322,16 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: Task4 independent review accepted at `a6981f2`; commit current parent
-evidence, push only authorized origin/codex/dark-navy-ui and verify the
-exact new nine-job CI including illustration-restart. After this bounded plan's
-acceptance, perform cross-task commercial whole-branch review/QA before continuing
-remaining Telegram-only tasks. Do not repeat seed or regenerate retained secrets.
+NEXT_STEP: accept or adjudicate the single scoped independent re-review of
+`7af4324..f8aa00b`, complete fresh owned Windows illustration fixture
+`newsflow-verification-illustration-win-20261009b` build/recovery (session30008;
+native D:/Codex-Recovery/content-studio-20261008/cross-task-windows-build-20261009b.log),
+then track exact new nine-job CI. Controlled Windows PG2PASS is already complete;
+do not repeat completed tasks. Baseline37924345507 is all-nine SUCCESS, not proof
+of new changes. After acceptance continue source-bound pre-rewrite editorial
+classification contract/offline qualification harness, keeping real-model
+qualification and activation disabled. Do not repeat completed Task1-4, reseed
+retained fixtures or regenerate secrets. Only authorized origin/codex/dark-navy-ui.
 All editorial/source/draft/fact/technical/rights/
 sync/session gates remain. Live acceptance requires separately provisioned
 credentials and explicitly designated test destinations; operational sends and
