@@ -230,6 +230,34 @@ def test_master_secret_hardlink_is_not_a_separate_reviewer_credential(review_api
     assert client.get(URL).status_code == 503
 
 
+@pytest.mark.parametrize("prefix,suffix", [(" ", ""), ("", " "), ("\t ", " \r\n")])
+@pytest.mark.parametrize("alias", ["same_path", "hardlink"])
+def test_effective_runtime_master_path_whitespace_cannot_bypass_exclusion(
+    review_api, monkeypatch, prefix, suffix, alias
+):
+    from newsflow.security.master_key import load_runtime_master_key
+
+    client, _, _, _, _, secret = review_api
+    master = secret
+    if alias == "hardlink":
+        master = secret.parent / "synthetic-master-whitespace-link"
+        master.hardlink_to(secret)
+    monkeypatch.setenv("NEWSFLOW_MASTER_KEY_FILE", prefix + str(master) + suffix)
+    # Actual existing runtime loader treats all these spellings as this file.
+    assert load_runtime_master_key() == TOKEN
+    assert client.get(URL).status_code == 503
+
+
+def test_whitespace_only_master_setting_is_unconfigured_consistently(review_api, monkeypatch):
+    from newsflow.security.master_key import MasterKeyUnavailable, load_runtime_master_key
+
+    client, _, _, _, _, _ = review_api
+    monkeypatch.setenv("NEWSFLOW_MASTER_KEY_FILE", " \t\r\n ")
+    with pytest.raises(MasterKeyUnavailable, match="not provisioned"):
+        load_runtime_master_key()
+    assert client.get(URL).status_code == 200
+
+
 @pytest.mark.parametrize("verdict", ["REJECTED", "UNCERTAIN"])
 def test_negative_verdict_replay_never_becomes_approval(review_api, verdict):
     client, _, _, _, binding, _ = review_api

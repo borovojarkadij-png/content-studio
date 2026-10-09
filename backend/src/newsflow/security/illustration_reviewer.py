@@ -36,7 +36,7 @@ def authenticate_reviewer(authorization: str | None) -> ReviewerPrincipal:
             raise ValueError
         principal = ReviewerPrincipal(int(identity))
         path = Path(configured)
-        master = os.getenv("NEWSFLOW_MASTER_KEY_FILE", "")
+        master = os.getenv("NEWSFLOW_MASTER_KEY_FILE", "").strip()
         if master and (
             path.resolve() == Path(master).resolve()
             or (Path(master).exists() and os.path.samefile(path, master))
