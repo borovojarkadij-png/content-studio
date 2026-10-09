@@ -2,10 +2,13 @@
 
 ## CURRENT_STATE
 
-Status: DONE_WITH_CONCERNS. Corrected retained Windows synthetic acceptance PASS;
-primary create alias refusal and parent Tee wrapper failure remain FAIL history.
-Post-fix frozen full backend: 1871 PASS, 1 SKIP. Independent review and new CI
-are pending; no live acceptance or PHASE completion is claimed.
+Status: DONE_WITH_CONCERNS, round1 review fixes verified. Round1 retained Windows
+restart/crash/verify PASS; covering regressions: 152 PASS. Fresh independent
+review/new CI pending.
+Prior corrected retained Windows acceptance PASS and baseline full backend
+1871 PASS/1 SKIP remain historical, not rerun evidence for round1. Primary alias
+refusal and parent Tee wrapper failure remain FAIL history. No live acceptance
+or PHASE completion is claimed.
 Baseline `dae0e3057b6c3b6b5d6b174b944e2b0babb01c15`, existing
 branch `codex/dark-navy-ui`, origin `borovojarkadij-png/content-studio`.
 No production source, schema, operational credentials or worker settings changed.
@@ -195,7 +198,77 @@ updates and covering refusal tests. All failed/partial fixtures must remain
 recoverable; no down -v, prune, truncate, destructive volume removal, reseed,
 secret regeneration or recovery-by-overwrite is implemented.
 
-NEXT_STEP: Task4 independent review plus exact new CI after this scoped commit.
+## Independent-review fix round1
+
+Baseline: `bfba7ede98d775510abd5353f4182c68ceb60b18`. Read Important1 and
+Important2 in `task-4-review.md` and confirmed both controller guard-order gaps.
+No helpers/reviewers or runtime mutations performed by the implementer.
+
+Important1: prewrite policy now checks physical backend/frontend directories,
+both Dockerfiles and the standalone bound probe. Every path and ancestor passes
+the existing symlink/reparse guard, must resolve to its exact lexical checkout
+path and have the required existing directory/file type. Retained validation,
+restart, crash and retained up repeat this gate before Docker operations.
+
+Important2: before down/crash/up, read-only image inspection requires every
+original recorded SHA-256 image to exist and each original Compose explicit
+image/default project build tag to resolve to the same ID. Retained up supplies
+an in-memory stdin Compose override with all seven original image IDs, including
+migrations, plus `--no-build --pull never`. No new fixture file, seed, secret or
+manifest is written, and no mutable-tag build/pull fallback is permitted.
+
+Actual local checks:
+
+- RED: `python -m pytest backend/tests/test_illustration_restart_guards.py -q
+  -k redirected_build_inputs --tb=short` -> 20 failed in 4.32s. Creation did not
+  refuse; retained paths reached Docker config rather than the input gate.
+  Tests use real Windows junctions at build directories/ancestors and Dockerfile
+  paths, with untouched foreign sentinel, original file bytes and zero commands.
+- Initial GREEN for that change: 20 passed in 3.85s. Final covering matrix adds
+  the probe path and direct retained-up boundary, totaling 30 junction cases.
+- RED: same test file with `-k 'image_tags or required_immutable or
+  retained_startup' --tb=short` -> 19 failed in 1.64s. Running containers still
+  validated against baseline while changed tag resolution was not refused;
+  retained up also lacked no-build/pull-never and original-ID arguments.
+- Initial GREEN: 19 passed in 1.24s. Final image matrix covers all seven tags at
+  down/crash/up, missing or mismatched immutable images, original-byte retention
+  and exact image-ID startup arguments. No Docker daemon mutation is simulated
+  through to a real Docker call.
+- First combined run: 151 passed/1 failed in 27.97s; the existing read-only
+  Compose test's incomplete sample lacked the now-required Dockerfiles/probe.
+  Its setup now copies valid physical inputs; no guard or assertion was weakened.
+- Frozen final covering command:
+  `python -m pytest backend/tests/test_illustration_restart_guards.py
+  backend/tests/test_illustration_restart_probe.py
+  backend/tests/test_postgres_crash_barrier.py -q --tb=short`
+  -> 152 passed in 27.79s, session97753 exit0.
+- `python -m ruff check` for both Task4 scripts/tests: PASS;
+  `python -m ruff format --check` for changed controller/guard tests: PASS;
+  `python -m compileall -q` for both scripts/tests and `git diff --check`: PASS.
+- Controller frozen SHA-256:
+  `0AF2EED48878A5007071956EB049D512703BA15DD24BD1654F4BF1BA1EF4E12D`.
+  Standalone probe unchanged:
+  `D917CEF2D8E7156D5DF7CE00EF006F637B8A1BD00C85E2F4D581EB4BB9483039`.
+  Original runtime manifest still:
+  `239FE7796C246CE1A5763F10E1897658C89868569A69D2AD5698623D0407CE34`.
+
+Round1 actual Windows process10576 exit0: original runtime/input validation and
+all seven original ID/current-tag resolutions PASS, then pinned no-build/pull-
+never full restart -> verify-final twice -> exact PostgreSQL crash -> verify-final
+twice PASS. Real Telegram/AI calls=0; original approved receipt remains exactly
+one and abandoned SENDING has no resend. No build/reseed/new fixture files or
+rewritten manifest; original runtime SHA-256 above remains unchanged. Native
+evidence:
+`D:/Codex-Recovery/content-studio-20261008/task4-fix1-immutable-boundaries-20261009a.log`.
+The implementer independently read its health/crash/final verify PASS tail and
+rechecked frozen source/probe/runtime hashes. Root owns these runtime operations.
+No additional whole backend rerun: small controller-only fix uses covering tests;
+the 1871 PASS/1 SKIP baseline remains historical. New exact remote CI and fresh
+independent review remain pending. Probe, production source and original crash
+helper are untouched. Parent CURRENT_STATE/IMPLEMENTATION_PLAN and all previously
+listed parent-owned reports/ledger remain excluded from this fix commit.
+
+NEXT_STEP: fresh Task4 scoped independent review of round1, then exact new CI.
 After parent acceptance, cross-task
 whole-branch commercial QA/review precedes the next remaining Telegram increment.
 No user confirmation is required for these already authorized scoped gates.

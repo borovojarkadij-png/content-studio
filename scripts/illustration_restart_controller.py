@@ -89,9 +89,14 @@ def canonical_runtime(runtime, owned_bind_paths):
     return result
 
 
-def docker(args):
+def docker(args, *, input_text=None):
     result = subprocess.run(
-        ["docker", *args], capture_output=True, text=True, timeout=600, check=False
+        ["docker", *args],
+        input=input_text,
+        capture_output=True,
+        text=True,
+        timeout=600,
+        check=False,
     )
     scoped_mutation = args[0] == "compose" and any(
         command in args for command in ("up", "down", "exec")
@@ -336,6 +341,19 @@ class Fixture:
                 raise ValueError(
                     "Original Compose source changed/redirected; refuse before writes"
                 )
+        for name in (
+            "backend",
+            "frontend",
+            "backend/Dockerfile",
+            "frontend/Dockerfile",
+            "scripts/docker_illustration_probe.py",
+        ):
+            path = self.root / name
+            safe_path(path)
+            if path.resolve() != path or not (
+                path.is_dir() if name in {"backend", "frontend"} else path.is_file()
+            ):
+                raise ValueError("Build/bind input missing or redirected")
 
     def validate(self, *, resources=False):
         owner = strict_json(self.file("ownership.json").read_text(encoding="utf-8"))
@@ -574,7 +592,70 @@ class Fixture:
 
     def action(self, args):
         self.validate(resources=True)
+        if args[0] == "down":
+            self.validate_images()
         print(self.run(self.compose() + args), end="", flush=True)
+
+    def validate_images(self):
+        self.validate()
+        original = strict_json(self.file("runtime.json").read_text())
+        if type(original) is not dict or set(original) != SERVICES:
+            raise ValueError("Invalid original immutable images")
+        images = {}
+        for name, record in original.items():
+            image = record.get("image") if type(record) is dict else None
+            if type(image) is not str or not re.fullmatch(
+                r"sha256:[a-f0-9]{64}", image
+            ):
+                raise ValueError("Invalid original immutable image ID")
+            images[name] = image
+        config = strict_json(self.run(self.compose() + ["config", "--format", "json"]))
+        for name, image in images.items():
+            reference = config["services"][name].get("image", self.project + "-" + name)
+            records = strict_json(self.run(["image", "inspect", image, reference]))
+            if (
+                type(records) is not list
+                or len(records) != 2
+                or any(
+                    type(record) is not dict or record.get("Id") != image
+                    for record in records
+                )
+            ):
+                raise ValueError(
+                    "Required immutable image missing or tag resolution changed"
+                )
+        return images
+
+    def retained_up(self):
+        # No files are created/rewritten. Every service, including migrations,
+        # is pinned via stdin to the original IDs; fallback build/pull is forbidden.
+        images = self.validate_images()
+        print(
+            self.run(
+                self.compose()
+                + [
+                    "-f",
+                    "-",
+                    "up",
+                    "-d",
+                    "--no-build",
+                    "--pull",
+                    "never",
+                    "--wait",
+                    "--wait-timeout",
+                    "180",
+                ],
+                input_text=json.dumps(
+                    {
+                        "services": {
+                            name: {"image": image} for name, image in images.items()
+                        }
+                    }
+                ),
+            ),
+            end="",
+            flush=True,
+        )
 
     def probe(self, mode):
         self.action(
@@ -592,13 +673,7 @@ class Fixture:
 
     def restart(self):
         self.action(["down"])
-        # Config and secrets still validated while containers are absent.
-        self.validate()
-        print(
-            self.run(self.compose() + ["up", "-d", "--wait", "--wait-timeout", "180"]),
-            end="",
-            flush=True,
-        )
+        self.retained_up()
         self.validate(resources=True)
         self.health()
 
@@ -612,6 +687,7 @@ class Fixture:
 
     def crash(self):
         self.validate(resources=True)
+        self.validate_images()
         helper = str(self.root / "scripts/verification-postgres-crash.ps1").replace(
             "'", "''"
         )
@@ -620,11 +696,7 @@ class Fixture:
             ["pwsh", "-NoProfile", "-Command", script], check=True, timeout=60
         )
         self.validate(resources=True)
-        print(
-            self.run(self.compose() + ["up", "-d", "--wait", "--wait-timeout", "180"]),
-            end="",
-            flush=True,
-        )
+        self.retained_up()
         self.health()
 
 

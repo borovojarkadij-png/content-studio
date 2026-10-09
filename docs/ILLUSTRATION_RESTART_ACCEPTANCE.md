@@ -29,6 +29,15 @@ files are pinned by normalized UTF-8 SHA-256 so redirected image/build/context,
 Dockerfile or reviewer mounts cannot reach creation. Intentional Compose changes
 require reviewed digest updates in this separate controller. Successful bounded
 scoped Docker stderr is emitted to the transcript, including warnings.
+Backend/frontend directories, their Dockerfiles and the bound standalone probe
+must be existing physical checkout paths with no symlink/junction/reparse ancestor.
+This check repeats before retained operations, not only initial creation.
+
+Before down, crash or retained up, every original image ID must still exist and
+every original Compose image/build tag must resolve to that exact ID. Retained
+startup passes an in-memory Compose override containing only those recorded IDs,
+with `--no-build --pull never`. Missing images or changed tag resolution refuse
+before the operation; there is no build/pull recovery or manifest overwrite.
 
 The first packaged HTTP flow proves bearer authentication, canonical presentation,
 validator-bound bounded photo, review and audit persistence. It creates four

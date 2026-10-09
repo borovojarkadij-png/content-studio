@@ -26,6 +26,14 @@ def sources(root):
 
     for name in ("compose.yaml", "compose.illustration-review.yaml"):
         shutil.copyfile(ROOT / name, root / name)
+    for name in (
+        "backend/Dockerfile",
+        "frontend/Dockerfile",
+        "scripts/docker_illustration_probe.py",
+    ):
+        target = root / name
+        target.parent.mkdir(exist_ok=True)
+        shutil.copyfile(ROOT / name, target)
 
 
 @pytest.mark.parametrize(
@@ -301,14 +309,10 @@ def test_restart_refuses_unsafe_resolved_configuration_before_mutation(tmp_path,
 
 
 def test_real_compose_render_accepts_owned_packaged_configuration_without_start(tmp_path):
-    import shutil
     import subprocess
 
     module = controller()
-    for name in ("compose.yaml", "compose.illustration-review.yaml"):
-        shutil.copyfile(ROOT / name, tmp_path / name)
-    for name in ("backend", "frontend", "scripts"):
-        (tmp_path / name).mkdir()
+    sources(tmp_path)
     fixture = module.Fixture(tmp_path, PROJECT, run=lambda args: "")
     fixture.create([18237, 15394, 18337], port_free=lambda _: True)
 
@@ -578,3 +582,190 @@ def test_real_resource_guard_accepts_only_owned_alias_without_rewriting_original
     with pytest.raises(ValueError):
         fixture.validate_resources()
     assert fixture.file("runtime.json").read_bytes() == original
+
+
+@pytest.mark.parametrize(
+    "target",
+    [
+        "backend",
+        "frontend",
+        "scripts",
+        "backend/Dockerfile",
+        "frontend/Dockerfile",
+        "scripts/docker_illustration_probe.py",
+    ],
+)
+@pytest.mark.parametrize("operation", ["create", "validate", "restart", "crash", "retained_up"])
+def test_redirected_build_inputs_refuse_before_files_or_docker(tmp_path, target, operation):
+    import subprocess
+
+    module = controller()
+    sources(tmp_path)
+    calls = []
+    fixture = module.Fixture(tmp_path, PROJECT, run=lambda args: (calls.append(args), "")[1])
+    if operation != "create":
+        fixture.create([18237, 15394, 18337], port_free=lambda _: True)
+    calls.clear()
+    path = tmp_path / target
+    path.rename(path.with_name(path.name + ".original"))
+    foreign = tmp_path / "foreign"
+    foreign.mkdir()
+    (foreign / "sentinel").write_text("unchanged")
+    # Real Windows junctions, not a mocked lstat/reparse flag. A Dockerfile
+    # junction is also forbidden even though it cannot be a valid build file.
+    result = subprocess.run(
+        [
+            "pwsh",
+            "-NoProfile",
+            "-Command",
+            f"New-Item -ItemType {'Junction' if sys.platform == 'win32' else 'SymbolicLink'} -Path '{path}' -Target '{foreign}' | Out-Null",
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    before = {item.name: item.read_bytes() for item in fixture.directory.glob("*")}
+    with pytest.raises(ValueError, match="redirect"):
+        if operation == "create":
+            fixture.create([18237, 15394, 18337], port_free=lambda _: True)
+        else:
+            getattr(fixture, operation)()
+    assert calls == []
+    assert {item.name: item.read_bytes() for item in fixture.directory.glob("*")} == before
+    assert list(foreign.iterdir()) == [foreign / "sentinel"]
+    assert (foreign / "sentinel").read_text() == "unchanged"
+
+
+def retained_image_fixture(tmp_path, module, *, changed=None, missing=False, wrong_id=False):
+    sources(tmp_path)
+    fixture = module.Fixture(tmp_path, PROJECT, run=lambda args: "")
+    fixture.create([18237, 15394, 18337], port_free=lambda _: True)
+    cfg = owned_config(module, fixture)
+    cfg["services"]["redis"]["image"] = "redis:7-alpine"
+    cfg["services"]["web"]["image"] = "node:24-alpine"
+    images = {
+        name: "sha256:" + format(index, "064x")
+        for index, name in enumerate(sorted(module.SERVICES), 1)
+    }
+    references = {
+        cfg["services"][name].get("image", PROJECT + "-" + name): image
+        for name, image in images.items()
+    }
+    records = [
+        {
+            "Config": {
+                "Labels": {
+                    "com.docker.compose.project": PROJECT,
+                    "com.docker.compose.service": name,
+                },
+                "Env": ["PUBLIC=0"],
+            },
+            "Image": image,
+            "Mounts": [],
+        }
+        for name, image in images.items()
+    ]
+    mutations = []
+    calls = []
+
+    def inventory(args, *, input_text=None):
+        calls.append(args)
+        if args[-3:] == ["config", "--format", "json"]:
+            return json.dumps(cfg)
+        if args[:2] == ["volume", "inspect"]:
+            return json.dumps(
+                [
+                    {
+                        "Name": args[2],
+                        "Labels": {
+                            "com.docker.compose.project": PROJECT,
+                            "com.docker.compose.volume": args[2].removeprefix(PROJECT + "_"),
+                        },
+                    }
+                ]
+            )
+        if args[0] == "ps":
+            return "\n".join(format(i, "064x") for i in range(1, 8))
+        if args[0] == "inspect":
+            return json.dumps(records)
+        if args[:2] == ["network", "inspect"]:
+            return json.dumps([{"Labels": {"com.docker.compose.project": PROJECT}}])
+        if args[:2] == ["image", "inspect"]:
+            if missing and any(value.startswith("sha256:") for value in args[2:]):
+                raise ValueError("Required immutable image missing")
+            return json.dumps(
+                [
+                    {
+                        "Id": "sha256:" + "f" * 64
+                        if (wrong_id and value.startswith("sha256:")) or value == changed
+                        else references.get(value, value)
+                    }
+                    for value in args[2:]
+                ]
+            )
+        mutations.append((args, input_text))
+        return ""
+
+    fixture.run = inventory
+    fixture.write_new("runtime.json", json.dumps(fixture.validate_resources(capture=True)))
+    return fixture, mutations, calls, cfg, images
+
+
+@pytest.mark.parametrize(
+    "service", ["api", "worker", "migrations", "postgres", "redis", "web", "web-production"]
+)
+@pytest.mark.parametrize("operation", ["restart", "crash", "retained_up"])
+def test_changed_image_tags_refuse_before_mutation_while_running_images_match(
+    tmp_path, monkeypatch, service, operation
+):
+    module = controller()
+    reference = {
+        "postgres": "postgres:16-alpine",
+        "redis": "redis:7-alpine",
+        "web": "node:24-alpine",
+    }.get(service, PROJECT + "-" + service)
+    fixture, mutations, _, _, _ = retained_image_fixture(tmp_path, module, changed=reference)
+    monkeypatch.setattr(
+        module.subprocess, "run", lambda *a, **kw: mutations.append(("crash-helper", None))
+    )
+    monkeypatch.setattr(fixture, "health", lambda: None)
+    before = {item.name: item.read_bytes() for item in fixture.directory.glob("*")}
+    fixture.validate(resources=True)  # The exact currently running images match.
+    with pytest.raises(ValueError, match="image"):
+        getattr(fixture, operation)()
+    assert mutations == []
+    assert {item.name: item.read_bytes() for item in fixture.directory.glob("*")} == before
+
+
+@pytest.mark.parametrize("operation", ["restart", "crash", "retained_up"])
+@pytest.mark.parametrize("damage", ["missing", "wrong_id"])
+def test_required_immutable_images_refuse_before_mutation(tmp_path, monkeypatch, operation, damage):
+    module = controller()
+    fixture, mutations, _, _, _ = retained_image_fixture(tmp_path, module, **{damage: True})
+    monkeypatch.setattr(
+        module.subprocess, "run", lambda *a, **kw: mutations.append(("crash-helper", None))
+    )
+    monkeypatch.setattr(fixture, "health", lambda: None)
+    with pytest.raises(ValueError, match="image"):
+        getattr(fixture, operation)()
+    assert mutations == []
+
+
+def test_retained_startup_uses_original_ids_without_build_pull_or_manifest_writes(
+    tmp_path, monkeypatch
+):
+    module = controller()
+    fixture, mutations, _, _, images = retained_image_fixture(tmp_path, module)
+    monkeypatch.setattr(fixture, "health", lambda: None)
+    before = {item.name: item.read_bytes() for item in fixture.directory.glob("*")}
+    fixture.restart()
+    assert len(mutations) == 2
+    up, stdin = mutations[1]
+    assert "--no-build" in up and up[up.index("--pull") + 1] == "never"
+    assert up[up.index("--profile") + 1] == "dev"
+    assert up[up.index("-f", up.index("--profile")) + 1] == "-"
+    assert json.loads(stdin) == {
+        "services": {name: {"image": image} for name, image in images.items()}
+    }
+    assert {item.name: item.read_bytes() for item in fixture.directory.glob("*")} == before
