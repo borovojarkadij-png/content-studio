@@ -25,7 +25,10 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
   stale-source revocation, abort/late response/token/candidate/post-save refresh
   races and DEMO isolation are covered without publication or provider activation.
   Frozen full backend1793 PASS/1 PG-only SKIP/361.83s, frontend243/format/build,
-  entire prior browser33 and dedicated protected real API browser1 PASS. Existing
+  entire prior browser33 and dedicated protected real API browser1 PASS.
+  Parent independently executed strict migrated Windows Docker PostgreSQL209
+  PASS/334.61s/no SKIP on the same frozen source (presentation/review API/library
+  publication/binding), separate from the local full suite. Existing
   palette/navigation/CSS remain; old captures preserved on D: before overwrites.
   Source review and owned Task4 review/snapshot Docker restart acceptance remain
   separate; see task-3-report.md. CI now invokes and uploads the dedicated flow;
