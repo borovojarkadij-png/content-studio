@@ -37,6 +37,8 @@ docs/EDITORIAL_CLASSIFICATION_IMPLEMENTATION.md; docs/QUALITY_GATES.md.
 - Modify backend/src/newsflow/services/editorial_classification.py only to expose
   editorial_evidence_schema() -> dict returning a fresh strict evidence schema.
 - Create backend/tests/test_editorial_classifier_adapters.py.
+- Modify .github/workflows/ci.yml only to lint the accepted benchmark CLI and
+  execute/upload its synthetic JSON report in the existing backend job.
 - Report in this plan's SDD workspace task-1-report.md.
 
 **Interfaces:**
@@ -123,7 +125,26 @@ assert editorial_allows_rewrite(report.decision) is False
   Use owned unique D:/Codex-Recovery/content-studio-20261008/editorial-adapter-*
   temp/cache; explicit sys.path insertion for Telethon1.45 if needed. Do not
   delete retained resources; preserve failures and exact skip/exit counts.
-- [ ] Step6: Self-review, full report with commands/RED/GREEN/frozen hashes/
+- [ ] Step6: In existing Backend quality gate Lint command include
+  ../scripts/evaluate_editorial_contract.py. After successful Test step execute:
+
+```yaml
+      - name: Offline editorial classification contract benchmark
+        run: python ../scripts/evaluate_editorial_contract.py > editorial-contract-report.json
+      - name: Upload offline editorial contract evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: editorial-classification-contract
+          path: backend/editorial-contract-report.json
+          retention-days: 14
+```
+
+  Use existing permissions/dependency/job/timeouts, no check removal or
+  continue-on-error. Upload follows a successful benchmark; failed benchmark
+  remains a failed backend job. This is synthetic-only, not real-model evidence.
+  Existing CLI subprocess negatives verify nonzero error paths; inspect YAML
+  command/path and validate syntax with available tooling. Root runs exact CI.
+- [ ] Step7: Self-review, full report with commands/RED/GREEN/frozen hashes/
   limitations. Commit only task files/report; no push. Root independently reviews.
 
 Deferred: credential factory/settings selection, canonical durable admission and

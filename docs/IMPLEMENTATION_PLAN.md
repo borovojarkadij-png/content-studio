@@ -138,32 +138,30 @@ test color/untouched full-format noise remains tracked for milestone triage.
   PASS. Disclosed over1000-item fail-closed capacity limit remains; exact new CI
   is pending, earlier f8/e160 proof is not its substitute
 
-NEXT_STEP: source67afc09 classifier contract Task1 independently accepted:
-full2084 PASS/6 explicit PG-only SKIP, regression158, synthetic benchmark24/24;
-record/push evidence and track new exact CI. Prior81dd4f0 run38294917279 all9
-SUCCESS, prior24e515eb run38294424666 FAILURE retained. Continue bounded
-classifier transport adapter with existing JSON transport/pinned identity and
-all effective permissions false; durable admission/jobs/recovery and real-model
-benchmark/qualification remain separate. No activation.
-October12 retained original-image c reopen after restored
-Docker Engine passed; commit reviewed-source evidence and push authorized branch;
-track new exact CI for5fa8995. Then continue source-bound
-pre-rewrite editorial classifier contract/offline qualification harness, without
-real-model qualification or activation. Actual corrected retained Windows
-illustration recovery is PASS in ILLUSTRATION_RESTART_PARENT_20261009.md;
-historical failures remain preserved. Do not reseed the retained fixture or
-repeat completed Task1-4. Only authorized origin/codex/dark-navy-ui.
-Task2 independent review, actual Windows
-Docker PostgreSQL115PASS and packaged startup gate passed; preserve every
-independent publication gate.
-Task4 acceptance must use actual authenticated packaged HTTP presentation,
-matching-validator photo, review and revocation; preserve original review/audit,
-encrypted snapshot and photo across down/up and independent reopen. Prove revoked/
-stale fake-transport refusal and abandoned SENDING quarantine with zero resend,
-using create-only explicitly owned synthetic resources and retained secrets/media/
-PostgreSQL volumes, disabled network workers and no operational queues or reseed.
-Live acceptance requires separately provisioned credentials and explicitly
-designated test destinations; no operational sends or activation is implied.
+NEXT_STEP: execute EDITORIAL_DURABLE_ADMISSION_IMPLEMENTATION.md Task1 with
+recorded current BASE/one writer; brief/ledger prepared, not dispatched yet.
+Classifier adapters6dd3517 independently approved/no findings, full2182 PASS/6
+explicit PG-only SKIP/304.77s, focused259. Document/push/track exact new CI.
+Accepted contract67afc09 evidence pushed21c08a7, exact CI38296489059 in_progress.
+Prior81dd4f0 CI38294917279 all9 SUCCESS;24e515eb lint failure retained. After
+admission Task1: source-policy CAS/recovery, actual model
+benchmark and qualification. All effective classifier permissions stay false.
+No provider/worker activation, operational sends, reset/reseed/secret regeneration.
+Do not repeat completed illustration Tasks1–4, I4 or Windows c recovery. Existing
+publication/source/review/fact/technical/rights/sync/session gates remain unchanged.
+
+- [x] Offline source/policy-bound classifier contract67afc09: strict evidence,
+  synthetic24/24, focused158/full2084/6 explicit PG-only SKIP, independent review
+  approved. Not runtime classification/qualification; exact new CI pending.
+- [x] Bounded classification-only provider adapters6dd3517:98 new/259 focused,
+  full2182/6 explicit PG-only skips, native tool gate and independent review PASS.
+  Synthetic benchmark CI step added; exact new remote/artifact gate pending.
+- [ ] Canonical durable diagnostic admission with exact fingerprint ownership;
+  current scoped task above, no classifier execution or approval.
+- [ ] Canonical durable classification admission/jobs/recovery and independently
+  qualified real-model benchmark before automatic pre-rewrite classification.
+
+Historical checkpoints below do not supersede the current NEXT_STEP.
 - [x] Commercial DEV/integration/TEST/visual/RC/STABLE gate policy documented in QUALITY_GATES.md; policy itself is not release acceptance
 - [x] Bounded read-only single-source raw-video Fake/Telethon/encrypted factory contract; 71 offline cases including actual SDK iterator limit/cleanup regressions, false media/publication permission; NOT an automated video workflow
 - [x] Persisted mapping-filter GET/PUT API and ingress integration, canonical blocked domains, mandatory advertising markers and fresh worker/review/calendar policy guards; 442-test local gate

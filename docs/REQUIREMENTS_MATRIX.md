@@ -2,7 +2,7 @@
 
 | ID | Requirement | Phase | Status | Evidence |
 | --- | --- | --- | --- |
-| R-001 | Editorial hard gate | 1 | PARTIAL | domain/editorial.py; durable ingestion workflow tests. Source67afc09 offline source/policy-bound classifier contract and24-case synthetic benchmark independently accepted, full2084/6 explicit PG-only skips. Effective decisions never PASS; runtime classifier jobs/adapter and actual real-model qualification remain pending. Unclassified ingress stays MANUAL_REVIEW/rewritefalse; post-rewrite semantic verifier is not a pre-rewrite classifier. No assumed-neutral bypass |
+| R-001 | Editorial hard gate | 1 | PARTIAL | domain/editorial.py; durable ingestion workflow tests. Source67afc09 offline source/policy-bound classifier contract and24-case synthetic benchmark accepted; adapters6dd3517 independently approved, full2182/6 explicit PG-only skips, focused259. Effective decisions never PASS; durable classifier admission/jobs/CAS and actual real-model qualification remain pending. Unclassified ingress stays MANUAL_REVIEW/rewritefalse; post-rewrite semantic verifier is not a pre-rewrite classifier. No assumed-neutral bypass |
 | R-002 | Zero rewrite calls after reject | 1 | PARTIAL | rewrite/pipeline and durable retry tests |
 | R-003 | Safe publication revalidation | 1 | PARTIAL | durable intents/encrypted exact request/observed acknowledgements, fresh editorial/source/review/filter/media checks and synthetic no-resend recovery; live authorization pending |
 | R-004 | Durable PostgreSQL/outbox | 1 | PARTIAL | SQL workflow, migrations, transactional outbox tests |

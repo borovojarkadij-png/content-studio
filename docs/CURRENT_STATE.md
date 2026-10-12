@@ -16,6 +16,14 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
 
 ## VERIFIED WORKING
 
+- 2026-10-12 classifier adapters6dd3517 independently approved, no findings:
+  classification-only existing bounded OpenAI/free-only OpenRouter transports,
+  strict actual-model identity, fresh attempt usage, no rewrite/repair or runtime
+  wiring. Full2182 PASS/6 explicit PG-only SKIP/304.77s, focused259 including98
+  adapter cases; root inspected native log/all6 frozen hashes. Ruff0.17/format/
+  compile/YAML and synthetic benchmark24/24 PASS. Backend CI now executes/uploads
+  the offline benchmark; exact new remote execution/artifact remains pending.
+  Effective rewrite permissions remain false; not real model qualification.
 - 2026-10-12 offline classifier source67afc09 independently reviewed: spec
   compliant/quality approved, no findings. Exact UTF8 source and policy bindings,
   strict bounded JSON/evidence/alias/quote validation, classification-only prompt
@@ -1395,33 +1403,29 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: source67afc09 classifier contract Task1 reviewed/accepted; record/push
-evidence and track new exact CI (81dd4f0 all9 SUCCESS is previous-source proof).
-Continue a bounded classifier transport adapter using the existing structured
-JSON transport, pinned response identity and all effective permissions false;
-no provider activation or durable ingestion transaction IO. Then durable
-classification admission/jobs/source CAS/recovery and actual model benchmark
-remain separate increments. Real-model qualification and activation stay disabled.
-Docker Engine29.8.0 and retained Windows c are running;
-do not repeat socket recovery/build/reseed. Source5fa8995 residual I4 is independently accepted; final backend1989
-PASS/6 separately exercised PG-only skips, Windows PG332+5 and Windows c full
-recovery and October12 original-image retained c reopen are complete. Record
-new evidence and push only authorized origin/branch with account identity checked;
-track new exact CI (prior37927968218 proves e1604ef only). Then continue the
-independent source-bound pre-rewrite editorial
-classification contract/offline qualification harness, keeping real-model
-qualification and activation disabled. Do not repeat completed Task1-4, reseed
-retained fixtures or regenerate secrets. Only authorized origin/codex/dark-navy-ui.
-All editorial/source/draft/fact/technical/rights/
-sync/session gates remain. Live acceptance requires separately provisioned
-credentials and explicitly designated test destinations; operational sends and
-credential activation are not implied.
-Task4 must prove actual authenticated presentation/ETag/photo/review/revoke through
-packaged HTTP, original review/audit/encrypted snapshot/photo after down/up and
-independent reopen, stale/revoked fake-transport refusal and abandoned SENDING
-quarantine without resend. Use only create-only explicitly owned synthetic
-resources, retained secrets/volumes/manifests and disabled network workers; no
-operational queues, reseed, real credential generation or cleanup that removes data.
+NEXT_STEP: execute EDITORIAL_DURABLE_ADMISSION_IMPLEMENTATION.md Task1 after
+recording its current BASE and dispatching one writer: canonical diagnostic job/
+outbox admission after owned exact fingerprint, additive migration and isolated
+SQLite/strict PostgreSQL cases. Its SDD brief/ledger prepared, not dispatched yet.
+Classifier adapters6dd3517 accepted independently (full2182/6 PG-only skips,
+focused259, native hashes). Document/push reviewed source and track exact new CI.
+Accepted offline contract67afc09
+and reports pushed at21c08a7; its exact CI38296489059 is in_progress. Prior
+81dd4f0 all9 SUCCESS is previous-source proof, not adapter acceptance.
+
+After durable admission: source-policy CAS/recovery and actual model benchmark.
+All effective
+classifier permissions remain false, no activation/qualification or ingestion
+transaction IO. Existing editorial/source/draft/fact/technical/rights/sync/session
+gates remain. Live acceptance requires separately provisioned credentials and
+explicitly designated test destinations; no operational send/activation inferred.
+
+Docker Engine29.8.0 and retained Windows c are running. Source5fa8995 I4 and
+illustration Tasks1–4 reviewed/accepted; actual Windows c recovery/reopen and exact
+81dd4f0 nine-job CI complete. Do not repeat those tasks, socket recovery/build,
+reseed retained fixtures or regenerate secrets. Only authorized origin/branch.
+
+Historical checkpoints below remain evidence of earlier increments, not NEXT_STEP.
 
 Task 1 implemented OFFLINE on 2026-10-09: separate bounded persistent bearer-file
 authentication and configured single-human identity, strict authenticated context/

@@ -66,6 +66,28 @@ SUCCESS. Both provider original logs end with retained persistence PASS and
 zero-network synthetic publication verification; no live acceptance inferred.
 This terminal acceptance is exact81dd4f0 only, not classifier source67afc09.
 
+## Offline classifier candidate
+
+Exact run38296489059/head21c08a716d4af0316a5f941af69d27dbe34dd57a includes
+the independently accepted classifier contract67afc09. Root read native completed
+job logs rather than attributing prior-candidate counts to this source:
+
+- PostgreSQL114968694154 SUCCESS:332 PASS/240.84s plus5 controlled concurrency
+  PASS/4.67s.
+- Frontend114968694138 SUCCESS:243 unit tests, production build PASS,33 browser
+  plus1 protected illustration browser PASS/11.0s.
+- Illustration114968694009 SUCCESS:136 regressions/38.33s, packaged synthetic
+  create/restarts and original-state double reopen PASS; live acceptance SKIP.
+- Guarded admission SUCCESS. Backend/full-stack/channel-sync/two provider
+  persistence jobs are still running at this checkpoint. No terminal whole-run
+  acceptance yet; the new adapter work is not included in this candidate.
+
+Later completed logs establish backend114968694152 SUCCESS:2084 PASS/6 explicit
+PostgreSQL-only SKIP/353.17s, lint/compile/migration cycle/no-drift PASS.
+Full-stack114968693727 SUCCESS:1 PASS/4 deliberately deselected/341.10s plus
+packaged no-drift. Channel sync also SUCCESS. Both provider persistence jobs
+still running; whole exact candidate is not accepted until terminal verdict.
+
 ## Windows runtime boundary
 
 Fresh root check: real Linux Engine29.8.0 responds; retained20261009c API,
