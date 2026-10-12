@@ -243,18 +243,26 @@ class DurableEditorialRunner:
         return state if claim is None else self.execute(claim)
 
     def _check(self, claim):
-        now = _time(self._clock())
+        _time(self._clock())
         with self._factory() as session:
             history = _history(session, claim)
             if history is None:
                 raise EditorialLeaseLost
             receipt = session.scalar(select(Attempt).where(Attempt.claim_id == history.id))
             if receipt is not None:
-                return None, receipt.outcome
+                return None, receipt.outcome, None
             job = session.get(Job, claim.job_id)
-            if not _owned(job, claim, now):
+            if not _owned(job, claim, _time(self._clock())):
                 raise EditorialLeaseLost
-            return _binding(session, job), None
+            binding = _binding(session, job)
+            if not _owned(job, claim, _time(self._clock())):
+                raise EditorialLeaseLost
+            return binding, None, _persisted_time(job.lease_expires_at)
+
+    def _before_io(self, lease_expires_at):
+        # Session closure can itself take time; fence at the closed SQL boundary.
+        if lease_expires_at <= _time(self._clock()):
+            raise EditorialLeaseLost
 
     def execute(self, claim: EditorialClaim) -> str:
         _claim_input(claim)
@@ -264,9 +272,10 @@ class DurableEditorialRunner:
         error = None
         attempted = False
         try:
-            binding, replay = self._check(claim)
+            binding, replay, lease_expires_at = self._check(claim)
             if replay is not None:
                 return replay
+            self._before_io(lease_expires_at)
         except EditorialLeaseLost:
             return self._finish(claim, error="EDITORIAL_LEASE_LOST")
         except EditorialAdmissionBlocked as exc:
@@ -280,9 +289,10 @@ class DurableEditorialRunner:
             ):
                 raise ProviderConfigurationInvalid
             # Construction may have raced with an independent committed canonical change.
-            binding, replay = self._check(claim)
+            binding, replay, lease_expires_at = self._check(claim)
             if replay is not None:
                 return replay
+            self._before_io(lease_expires_at)
             attempted = True
             client.classify(binding.request)
         except EditorialLeaseLost:
@@ -312,7 +322,7 @@ class DurableEditorialRunner:
         )
 
     def _finish(self, claim, *, error=None, evidence=None, usage=None, response_model=None):
-        now = _time(self._clock())
+        _time(self._clock())
         raw, evidence_error = _evidence(evidence)
         observed, usage_reasons = _usage(usage)
         if (
@@ -322,6 +332,7 @@ class DurableEditorialRunner:
             response_model = None
         with self._factory() as session, session.begin():
             job = session.scalar(select(Job).where(Job.id == claim.job_id).with_for_update())
+            now = _time(self._clock())
             history = _history(session, claim)
             if history is None:
                 return "LOST_LEASE"
@@ -357,6 +368,11 @@ class DurableEditorialRunner:
                         diagnostic = report.diagnostic_status
                         state = "REJECT" if report.decision.status.value == "REJECT" else "REVIEW"
                         reasons = list(report.reason_codes)
+            # SQL waits, canonical resolution and assessment must not spend an expired lease.
+            now = _time(self._clock())
+            if state == "LOST_LEASE" or not _owned(job, claim, now):
+                state, reasons, diagnostic = "LOST_LEASE", ["EDITORIAL_LEASE_LOST"], None
+            else:
                 self._transition(
                     job, "QUEUED" if state == "RETRY" else state, reasons[0] if reasons else None
                 )

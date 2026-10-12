@@ -830,3 +830,198 @@ def test_two_postgres_claimants_cannot_own_the_same_attempt(store):
     with Session(engine) as session:
         assert count(session, models.EditorialClassificationClaimModel) == 1
         assert session.get(models.EditorialClassificationJobModel, owned.job_id).attempts == 1
+
+
+@pytest.mark.parametrize("stage", ["factory", "classify", "finish"])
+def test_expiry_during_canonical_sql_check_fences_io_and_finalization(store, stage):
+    ingest(store)
+    engine, _ = store
+    now = [NOW]
+    client = Classifier()
+    factory_calls = []
+
+    def factory(binding):
+        factory_calls.append(binding)
+        return client
+
+    runner = make_runner(engine, factory=factory, clock=lambda: now[0])
+    claimed = runner.claim_next(now=NOW)
+    target = {"factory": 1, "classify": 2, "finish": 3}[stage]
+    checks = []
+
+    def expire(connection, cursor, statement, parameters, context, many):
+        if (
+            statement.lstrip().upper().startswith("SELECT")
+            and "FROM editorial_classifier_policy" in statement
+        ):
+            checks.append(statement)
+            if len(checks) == target:
+                now[0] = NOW + timedelta(seconds=60)
+
+    event.listen(engine, "before_cursor_execute", expire)
+    try:
+        assert runner.execute(claimed) == "LOST_LEASE"
+    finally:
+        event.remove(engine, "before_cursor_execute", expire)
+    assert len(factory_calls) == (stage != "factory")
+    assert client.calls == (stage == "finish")
+    assert_lost_receipt_keeps_owner(engine, claimed)
+
+
+@pytest.mark.parametrize("stage", ["factory", "classify"])
+def test_expiry_at_closed_session_boundary_prevents_external_io(store, stage):
+    ingest(store)
+    engine, _ = store
+    now = [NOW]
+    enabled = [False]
+    closed = []
+    client = Classifier()
+    factory_calls = []
+    target = 1 if stage == "factory" else 2
+
+    class Closing(Session):
+        def close(self):
+            super().close()
+            if enabled[0]:
+                closed.append(self)
+                if len(closed) == target:
+                    now[0] = NOW + timedelta(seconds=60)
+
+    def factory(binding):
+        factory_calls.append(binding)
+        return client
+
+    runner = api().DurableEditorialRunner(
+        sessionmaker(engine, class_=Closing), classifier_for_binding=factory, clock=lambda: now[0]
+    )
+    claimed = runner.claim_next(now=NOW)
+    enabled[0] = True
+    assert runner.execute(claimed) == "LOST_LEASE"
+    assert len(factory_calls) == (stage != "factory")
+    assert client.calls == 0
+    assert_lost_receipt_keeps_owner(engine, claimed)
+
+
+def assert_lost_receipt_keeps_owner(engine, claimed, *, observed=False):
+    with Session(engine) as session:
+        job = session.get(models.EditorialClassificationJobModel, claimed.job_id)
+        assert (job.state, job.attempts, job.claim_token, job.last_error_code) == (
+            "RUNNING",
+            claimed.attempt,
+            claimed.token,
+            None,
+        )
+        assert job.lease_expires_at.replace(tzinfo=UTC) == NOW + timedelta(seconds=60)
+        receipt = session.scalar(select(models.EditorialClassificationAttemptModel))
+        history = session.get(models.EditorialClassificationClaimModel, receipt.claim_id)
+        assert (history.classification_job_id, history.claim_token, history.attempt) == (
+            claimed.job_id,
+            claimed.token,
+            claimed.attempt,
+        )
+        assert (receipt.outcome, receipt.diagnostic_status, receipt.reason_codes) == (
+            "LOST_LEASE",
+            None,
+            ["EDITORIAL_LEASE_LOST"],
+        )
+        assert receipt.usage_observed is observed
+        assert receipt.input_tokens == (100 if observed else None)
+        assert count(session, models.RewriteJobModel) == 0
+
+
+@pytest.mark.parametrize("completion", ["review", "reject", "retry", "blocked"])
+def test_postgres_finalizer_waiting_on_row_lock_refreshes_lease_clock(store, completion):
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Event
+    from time import monotonic
+
+    from sqlalchemy import text
+
+    engine, mapping_id = store
+    if engine.dialect.name != "postgresql":
+        pytest.skip("Actual strict migrated PostgreSQL finalizer row-lock proof is root-owned")
+    ingest(store, replace(MESSAGE, text="Civic Council opened a civic center"))
+    now = [NOW]
+    client = Classifier()
+    client.last_usage = RewriteUsage(client.model, 100, 10, 20, None)
+    original = client.classify
+
+    def classify(request):
+        original(request)
+        if completion == "retry":
+            raise ProviderUnavailable("synthetic unavailable")
+        if completion == "blocked":
+            mutate(engine, mapping_id, "disabled")
+        value = json.loads(client.last_evidence_json)
+        value["entity_findings"] = [
+            {"entity_id": "synthetic-council", "source_quote": "Civic Council"}
+        ]
+        if completion == "reject":
+            value.update(sentiment="negative", framing="hostile")
+        client.last_evidence_json = json.dumps(value)
+
+    client.classify = classify
+    runner = make_runner(engine, client, clock=lambda: now[0])
+    claimed = runner.claim_next(now=NOW)
+    requesting = Event()
+    waiter_pid = []
+
+    def requested(connection, cursor, statement, parameters, context, many):
+        if "FOR UPDATE" in statement and "SKIP LOCKED" not in statement:
+            waiter_pid.append(connection.connection.driver_connection.info.backend_pid)
+            requesting.set()
+
+    with Session(engine) as holder:
+        holder_pid = holder.scalar(text("SELECT pg_backend_pid()"))
+        holder.scalar(
+            select(models.EditorialClassificationJobModel)
+            .where(models.EditorialClassificationJobModel.id == claimed.job_id)
+            .with_for_update()
+        )
+        event.listen(engine, "before_cursor_execute", requested)
+        try:
+            with ThreadPoolExecutor(max_workers=1) as pool:
+                pending = pool.submit(runner.execute, claimed)
+                try:
+                    assert requesting.wait(20), "finalizer never requested its row lock"
+                    # Observe the actual backend wait, not thread scheduling or elapsed sleep.
+                    deadline = monotonic() + 20
+                    with engine.connect() as observer:
+                        while monotonic() < deadline:
+                            blockers = observer.scalar(
+                                text("SELECT pg_blocking_pids(:pid)"), {"pid": waiter_pid[0]}
+                            )
+                            if holder_pid in blockers:
+                                break
+                        else:
+                            pytest.fail("finalizer never waited on the independent held row lock")
+                    now[0] = NOW + timedelta(seconds=60)
+                finally:
+                    holder.commit()  # Release without changing the job row.
+                assert pending.result(timeout=20) == "LOST_LEASE"
+        finally:
+            event.remove(engine, "before_cursor_execute", requested)
+    assert client.calls == 1
+    assert_lost_receipt_keeps_owner(engine, claimed, observed=True)
+    assert runner.execute(claimed) == "LOST_LEASE"
+    assert client.calls == 1
+
+
+def test_completed_receipt_replays_unchanged_after_lease_expiry(store):
+    ingest(store)
+    now = [NOW]
+    client = Classifier()
+    factory_calls = []
+
+    def factory(binding):
+        factory_calls.append(binding)
+        return client
+
+    runner = make_runner(store[0], factory=factory, clock=lambda: now[0])
+    claimed = runner.claim_next(now=NOW)
+    assert runner.execute(claimed) == "REVIEW"
+    now[0] = NOW + timedelta(seconds=60)
+    assert runner.execute(claimed) == "REVIEW"
+    assert client.calls == len(factory_calls) == 1
+    with Session(store[0]) as session:
+        assert count(session, models.EditorialClassificationAttemptModel) == 1

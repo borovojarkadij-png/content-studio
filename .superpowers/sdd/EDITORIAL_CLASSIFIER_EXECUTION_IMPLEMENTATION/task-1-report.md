@@ -1,6 +1,6 @@
 # Task 1: durable diagnostic classifier execution
 
-Status: DONE. The frozen full backend suite and independently executed root-owned actual PostgreSQL runner/restart checks passed. No push was performed.
+Original implementation status at `c9c16d122ba6b3cee5bd6a3a157d72ca41268166`: DONE. Its frozen full backend suite and independently executed root-owned actual PostgreSQL runner/restart checks passed. Review correction round 1 is documented below, with separate amended-byte provenance. No push was performed.
 
 ## Scope and implementation
 
@@ -114,13 +114,13 @@ Directory `editorial-execution-static-0c93755210c94ef8ad2c0172baecb8ce`:
 - `python -c "from pathlib import Path;import yaml;yaml.safe_load(Path('../.github/workflows/ci.yml').read_text());print('YAML parse passed')"`: exit0; yaml.log SHA256 `C50F9677DE3402DDADE0E4E429DDA580EBA79D3B59E23C310912850B48A22F8C`.
 - `git diff --check -- src tests alembic ../.github/workflows/ci.yml`: exit0; only Git's existing LF→CRLF working-copy notices, diff.log SHA256 `839F9108E3AB900586F73C20E9FC523BB381C9A9D00290A7E4B73EC4C5F6FB53`.
 
-## Frozen full-suite and final provenance
+## Original c9 frozen full-suite and provenance
 
 Exactly one full suite started `2026-10-12T20:07:17.9092986Z`, exec session31926, directory `editorial-execution-full-6d5a38802c234c85baab8f2db0d707e7`, arguments `-q,-ra,--basetemp,$run/temp,-o,cache_dir=$run/cache`. Native exit **0**, **2462 passed, 7 skipped in 444.14s (0:07:24)**; no warnings/errors. Raw native.log SHA256 `084A9BF09531B413BE6BEE5DF7E77F75BE3D000D1CA28B1AAB34E1B12E00AC36`. Root was notified before independent PG testing; no source/test/migration/CI edits after this freeze.
 
 The seven local skips are explicit PostgreSQL-only controls: one new runner competing-claimants proof (independently executed and passed in root's actual PG120 gate), one existing real TRUNCATE check in illustration storage, and five existing planner/media PostgreSQL concurrency opt-ins. Skips are not represented as passes. No browser or Docker suite was repeated.
 
-Raw SHA256 of the full-tested and final owned files (paths relative to repository), rechecked unchanged during the run and at finalization. The full-tested production/test/migration/CI bytes are exactly the final committed source/test/migration/CI bytes; only this report was completed after the freeze:
+Raw SHA256 of the original c9 full-tested owned files (paths relative to repository), rechecked unchanged during that run and original finalization. These were exactly the original c9 committed source/test/migration/CI bytes; only this report was completed after that freeze. The runner and its tests were subsequently amended in review round 1 below. Therefore this original 2462/7 full-suite result is not full-tested evidence for the final amended bytes:
 
 | File | SHA256 |
 | --- | --- |
@@ -149,3 +149,81 @@ This is the independent actual-PG proof, including deterministic competing claim
 Self-review checked the complete owned diff, transaction rollback/fencing, immutable provenance, canonical resolver use, provider-free negative paths, sanitization and source/session boundaries. Unknown injected provider exceptions are deliberately sanitized; SQLAlchemy storage errors are explicitly re-raised. Response identity is restricted to pinned model and accepted OpenRouter free-name convention. Pre-classify failures do not copy stale adapter diagnostics. No outstanding implementation concern identified. Final self-review and commit do not change the frozen implementation or tests.
 
 All outcomes are diagnostic only. Synthetic conformance is not real-model qualification, PHASE1 completion, automatic editorial approval or rewrite/publication authorization. Actual model qualification/benchmark, encrypted factory, protected-policy settings and opt-in worker orchestration remain deferred. Existing large `models.py` was modified additively without restructuring. The focused runner and its extensive integration test remain single-responsibility files as required.
+
+## Review correction round 1: refresh lease fences after SQL waits
+
+Fix base: `c9c16d122ba6b3cee5bd6a3a157d72ca41268166`. Read the independent task-1 review and receiving-code-review guidance before correction. Reconfirmed the Important finding against the actual runner: `_finish` captured the clock before a blocking row lock, while `_check` captured it before canonical SQL. Both could spend an expired lease. Used behavioral TDD and verification-before-completion guidance; no helpers/reviewers/subagents were dispatched. Only the runner, its tests and this report are amended. Root-owned documents, CI, migrations, models and provider adapters are untouched by this correction.
+
+Minimal correction:
+
+- Refresh the lease clock after acquiring the finalizer's `FOR UPDATE` lock, and again after canonical validation/assessment immediately before authorizing the owned job transition. Expiry wins over REVIEW, REJECT, RETRY and BLOCKED; the immutable LOST_LEASE receipt retains known usage without overwriting the job's ownership, state, attempt, error or lease.
+- Refresh ownership after canonical resolution in both pre-IO checks, then compare expiry again at the closed-session boundary immediately before injected factory/classifier IO. SQL and session-close latency cannot authorize IO using an earlier clock instant.
+- Preserve exact existing-receipt replay before expiry fencing. Completed REVIEW and LOST_LEASE receipts replay without another factory/classify call or another receipt.
+
+### Actual behavioral RED before the production correction
+
+The newly added SQLite regressions ran against unchanged c9 production source. Arguments, using the native command contract above:
+
+```text
+tests/test_durable_editorial_runner.py,-q,-k,expiry_during_canonical or expiry_at_closed or completed_receipt_replays
+--basetemp,$run/temp,-o,cache_dir=$run/cache
+```
+
+Directory `D:/Codex-Recovery/content-studio-20261008/editorial-execution-fix1-red-23a6c6bfdd284222a9a70b4b3bca0028`, log `native.log`, native exit **1**, **5 failed, 1 passed, 124 deselected in 2.16s**. Failures observed unwanted factory IO, unwanted classify IO, and a persisted REVIEW instead of LOST_LEASE when canonical SQL advanced the injected clock to exact lease expiry. There were no collection/setup errors, skips or xfails. The replay control passed before the correction and remains passing. Original raw log retained, SHA256 `E0DF0FA5CA438E8677736DA1170FA3B98DB1BCA545E794C57D060A54A13B11B5`.
+
+### Amended focused and covering GREEN
+
+Focused arguments exactly match RED. Directory `D:/Codex-Recovery/content-studio-20261008/editorial-execution-fix1-green-3b5600e097ce4f1789d35aeddbbc368d`, log `native.log`, native exit **0**, **6 passed, 124 deselected in 1.97s**. SHA256 `F33915958E2D047AAC6CA18D7256CBB9F1B838AF17EA6F6F615B82343A6EFA03`.
+
+Covering arguments:
+
+```text
+tests/test_durable_editorial_runner.py,tests/test_editorial_classifier_adapters.py,tests/test_editorial_classification.py,-q,-ra
+--basetemp,$run/temp,-o,cache_dir=$run/cache
+```
+
+Directory `D:/Codex-Recovery/content-studio-20261008/editorial-execution-fix1-covering-0cde7959114b46c7996fbb47aeda40c4`, log `native.log`, exec session37358, started `2026-10-12T20:21:48.2917096Z`. Native exit **0**, **326 passed, 5 skipped in 41.65s**, no warnings/errors. SHA256 `7B7BCFA7662E202BF9D2BDABC1EF26FD33A02A604A0B1D355729F639BEC074D1`. All runner lease/late/replay/rollback/retry/evidence cases and unchanged adapter/pure-contract cases were covered. The five SQLite skips are the existing actual-PG competing-claimants case and four new actual-PG finalizer row-lock cases, not claimed as local passes.
+
+Added deterministic regressions:
+
+- `test_expiry_during_canonical_sql_check_fences_io_and_finalization[factory,classify,finish]`: real canonical SQL listener advances the injected clock at first, second or final canonical validation; asserts LOST_LEASE, unchanged ownership and zero classify calls before IO.
+- `test_expiry_at_closed_session_boundary_prevents_external_io[factory,classify]`: actual session close advances the injected clock after SQL; asserts zero classify calls and unchanged job ownership.
+- `test_postgres_finalizer_waiting_on_row_lock_refreshes_lease_clock[review,reject,retry,blocked]`: independent transaction holds the real job row lock. An Event identifies the waiting finalizer, and a third connection confirms `pg_blocking_pids` names the holder before injected expiry and unchanged-row lock release. No sleeps or probabilistic scheduling. Asserts LOST_LEASE, unchanged job ownership, immutable exact claim/receipt, preserved known usage, no rewrite and no classify replay.
+- `test_completed_receipt_replays_unchanged_after_lease_expiry`: exact completed REVIEW replays unchanged after expiry, with one factory, one classify and one receipt total.
+
+### Amended static checks and frozen hashes
+
+Directory `D:/Codex-Recovery/content-studio-20261008/editorial-execution-fix1-static-86221ca314bb47d983e0ca1dbb6b01ae`. Commands ran from `backend`; all native exits **0**:
+
+```powershell
+& 'D:/Codex-Recovery/content-studio-20261008/ruff-017-20261012/bin/ruff.exe' check src/newsflow/services/durable_editorial_runner.py tests/test_durable_editorial_runner.py
+& 'D:/Codex-Recovery/content-studio-20261008/ruff-017-20261012/bin/ruff.exe' format --check src/newsflow/services/durable_editorial_runner.py tests/test_durable_editorial_runner.py
+$env:PYTHONPYCACHEPREFIX="$run/pycache"
+python -m compileall -q src/newsflow/services/durable_editorial_runner.py tests/test_durable_editorial_runner.py
+Remove-Item Env:PYTHONPYCACHEPREFIX
+git diff --check -- src/newsflow/services/durable_editorial_runner.py tests/test_durable_editorial_runner.py
+```
+
+- `ruff.log`: `All checks passed!`, SHA256 `A4443AFDCFB6D7363ADB285762515CCF7CF50473B1A05C20C1A50F6BED4D26B0`.
+- `format.log`: `2 files already formatted`, SHA256 `97D85B4B6C185A05396E2D09A3C304FF0F7CC77F8B7B7BB7989EC6CD875B3898`.
+- `compile.log`: empty success, SHA256 `E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855`.
+- `diff.log`: only existing LF-to-CRLF working-copy notices, SHA256 `4FAECEC443BAB77D43FF9FEAC88EB079D81D2A4443116761A842ED9AB340FE53`.
+
+Amended raw SHA256, frozen before covering/independent PG execution and rechecked after local covering/static checks:
+
+| File | SHA256 |
+| --- | --- |
+| `backend/src/newsflow/services/durable_editorial_runner.py` | `A7327B9E5F7251ABF42DAD35760E8FC7F902C0925CE505ADB17DADA1451ACC3E` |
+| `backend/tests/test_durable_editorial_runner.py` | `990369208D2D04CC461314A09E904CD98B918A22571BD041EE99E2FB60CBCAC7` |
+
+No other iteration failures occurred in correction round 1. No additional whole backend suite, Docker/browser/live-provider run or actual PostgreSQL operation was performed by this implementer. Original c9 full-suite/PG/restart evidence above remains historical and is not promoted to full-tested final amended bytes. Exact amended full-suite and CI evidence remain parent-owned.
+
+### Independent actual Windows PostgreSQL fix regression gate (root)
+
+Root executed the exact new selection `-k 'expiry_during_canonical or expiry_at_closed or postgres_finalizer_waiting or completed_receipt_replays'` against its strict migrated synthetic PostgreSQL target. Root reported native exit **0**, **10 passed, 120 deselected in 7.58s**, no skips; all four real independent held-row finalizer blocking regressions executed. Frozen runner/test hashes above matched before and after. Native log `D:/Codex-Recovery/content-studio-20261008/editorial-execution-fix1-root-pg-26790f6ce24b4e798dce486945f6f4cc/native.log`, SHA256 `1B06422483B2383334D67413BCA2D277C6896A774AF4774A9A297272F38855C5`.
+
+Root validated its exact existing synthetic container and baseline1624/maxOID1232970; the gate created only ten fresh UUID namespaces, reaching1634/maxOID1241341, and restored its environment in finally. This evidence is explicitly attributed to root, not this implementer's commands. Previous original-source restart manifests remain historical/read-only; this fix gate is not a new restart or full-backend suite claim.
+
+### Correction self-review and limitations
+
+Re-read the full scoped production/test diff after GREEN. Confirmed clock refresh after blocking SQL and canonical resolution, explicit closed-session IO fences, expiry overriding every otherwise-owned completion, unchanged immutable receipt replay, retained known usage and no stale job overwrite. New SQL and session-close tests fail behaviorally against original c9; independent actual-PG row-lock tests passed on root's strict migrated target. No migration/schema/permissions/provider/worker scope expansion. All permissions remain false; diagnostic outcomes cannot approve, rewrite or publish. Source/tests stayed frozen throughout local covering and root's actual-PG gate; only report completion followed those results. Correction round 1 has no outstanding implementation concern; independent re-review remains parent-owned.
