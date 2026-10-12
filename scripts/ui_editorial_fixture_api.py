@@ -6,7 +6,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 import uvicorn
-from alembic import command
+from alembic.command import upgrade
 from alembic.config import Config
 from fastapi import Depends
 from sqlalchemy import func, select
@@ -56,7 +56,7 @@ def main():
         config = Config(str(ROOT / "backend" / "alembic.ini"))
         config.set_main_option("script_location", str(ROOT / "backend" / "alembic"))
         config.set_main_option("sqlalchemy.url", url)
-        command.upgrade(config, "head")
+        upgrade(config, "head")
         reset_database_session_factory()
         factory = configured_session_factory()
         assert factory is not None and str(factory.kw["bind"].url) == url
