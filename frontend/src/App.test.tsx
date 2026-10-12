@@ -1,4 +1,5 @@
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -24,6 +25,276 @@ const disabled = (name: string) =>
   (screen.getByRole("button", { name }) as HTMLButtonElement).disabled;
 
 describe("Content Studio UI contracts", () => {
+  it("mode discard aborts pending editorial PUT and ignores its late acknowledgement", async () => {
+    const policy = {
+      configured: true,
+      enabled: false,
+      provider: "OPENAI",
+      model: "gpt-pinned",
+      policy_version: "v1",
+      etag: "a".repeat(64),
+      protected_entities: [],
+      diagnostic_only: true,
+      real_model_qualified: false,
+      execution_authorized: false,
+      rewrite_allowed: false,
+    };
+    let resolve!: (r: Response) => void;
+    let putSignal!: AbortSignal;
+    vi.stubGlobal("fetch", async (url: string, init: RequestInit = {}) => {
+      if (!url.includes("/editorial-policy"))
+        return { ok: true, json: async () => ({ items: [] }) };
+      if (init.method === "PUT") {
+        putSignal = init.signal as AbortSignal;
+        return new Promise<Response>((r) => {
+          resolve = r;
+        });
+      }
+      return new Response(JSON.stringify(policy));
+    });
+    render(<App initialDemo={false} />);
+    navigate("Настройки");
+    fireEvent.click(screen.getByRole("button", { name: "Модерация" }));
+    fireEvent.change(screen.getByLabelText("Токен оператора"), {
+      target: { value: "synthetic-editorial-operator-token-0001" },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Загрузить редакционную политику" }),
+    );
+    await screen.findByLabelText("Модель диагностики");
+    fireEvent.click(
+      screen.getByRole("checkbox", { name: "Включить диагностику" }),
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: "Сохранить редакционную политику" }),
+    );
+    fireEvent.click(screen.getByRole("switch", { name: "DEMO" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Переключить и сбросить" }),
+    );
+    expect(putSignal.aborted).toBe(true);
+    await act(async () =>
+      resolve(new Response(JSON.stringify({ ...policy, enabled: true }))),
+    );
+    expect(
+      screen.queryByText(
+        "Редакционная политика сохранена; настроена только диагностика.",
+      ),
+    ).toBeNull();
+    expect(screen.queryByLabelText("Токен оператора")).toBeNull();
+    fireEvent.click(screen.getByRole("switch", { name: "DEMO" }));
+    fireEvent.click(screen.getByRole("button", { name: "Модерация" }));
+    expect(
+      (screen.getByLabelText("Токен оператора") as HTMLInputElement).value,
+    ).toBe("");
+  });
+  it("saving provider credentials cannot clear an independent dirty editorial draft", async () => {
+    const policy = {
+      configured: true,
+      enabled: false,
+      provider: "OPENAI",
+      model: "gpt-pinned",
+      policy_version: "v1",
+      etag: "a".repeat(64),
+      protected_entities: [],
+      diagnostic_only: true,
+      real_model_qualified: false,
+      execution_authorized: false,
+      rewrite_allowed: false,
+    };
+    vi.stubGlobal("fetch", async (url: string, init: RequestInit = {}) => {
+      if (url.includes("/editorial-policy"))
+        return new Response(JSON.stringify(policy));
+      return {
+        ok: true,
+        json: async () =>
+          init.method === "PUT"
+            ? {
+                provider: "OPENAI",
+                configured: true,
+                primary_model: "gpt-provider",
+                fallback_models: [],
+              }
+            : { items: [] },
+      };
+    });
+    render(<App initialDemo={false} />);
+    navigate("Настройки");
+    fireEvent.click(screen.getByRole("button", { name: "Модерация" }));
+    fireEvent.change(screen.getByLabelText("Токен оператора"), {
+      target: { value: "synthetic-editorial-operator-token-0001" },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Загрузить редакционную политику" }),
+    );
+    await screen.findByLabelText("Модель диагностики");
+    fireEvent.click(
+      screen.getByRole("checkbox", { name: "Включить диагностику" }),
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: "AI и перефразирование" }),
+    );
+    fireEvent.change(screen.getByLabelText("Модель OpenAI"), {
+      target: { value: "gpt-provider" },
+    });
+    fireEvent.change(screen.getByLabelText("API-ключ для замены"), {
+      target: { value: "synthetic-provider-key" },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Сохранить AI-подключение" }),
+    );
+    await screen.findByText(
+      "AI-подключение сохранено. Ключ не отображается после сохранения.",
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Модерация" }));
+    expect(
+      (screen.getByLabelText("Модель диагностики") as HTMLInputElement).value,
+    ).toBe("gpt-pinned");
+    expect(
+      (
+        screen.getByRole("checkbox", {
+          name: "Включить диагностику",
+        }) as HTMLInputElement
+      ).checked,
+    ).toBe(true);
+    fireEvent.click(screen.getByRole("switch", { name: "DEMO" }));
+    expect(
+      screen.getByRole("dialog", { name: "Переключить режим?" }),
+    ).toBeTruthy();
+  });
+  it("preserves editorial drafts across categories/pages and combines dirty ownership with the provider form", async () => {
+    const token = "synthetic-editorial-operator-token-0001";
+    const policy = {
+      configured: true,
+      enabled: false,
+      provider: "OPENAI",
+      model: "gpt-pinned",
+      policy_version: "v1",
+      etag: "a".repeat(64),
+      protected_entities: [],
+      diagnostic_only: true,
+      real_model_qualified: false,
+      execution_authorized: false,
+      rewrite_allowed: false,
+    };
+    const policyRequests: RequestInit[] = [];
+    vi.stubGlobal("fetch", async (url: string, init: RequestInit = {}) => {
+      if (url.includes("/editorial-policy")) {
+        policyRequests.push(init);
+        return new Response(
+          JSON.stringify({ ...policy, enabled: init.method === "PUT" }),
+        );
+      }
+      return { ok: true, json: async () => ({ items: [] }) };
+    });
+    render(<App initialDemo={false} />);
+    navigate("Настройки");
+    fireEvent.click(screen.getByRole("button", { name: "Модерация" }));
+    fireEvent.change(screen.getByLabelText("Токен оператора"), {
+      target: { value: token },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Загрузить редакционную политику" }),
+    );
+    await screen.findByLabelText("Модель диагностики");
+    fireEvent.click(
+      screen.getByRole("checkbox", { name: "Включить диагностику" }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Общие" }));
+    navigate("Обзор");
+    navigate("Настройки");
+    fireEvent.click(screen.getByRole("button", { name: "Модерация" }));
+    expect(
+      (
+        screen.getByRole("checkbox", {
+          name: "Включить диагностику",
+        }) as HTMLInputElement
+      ).checked,
+    ).toBe(true);
+    expect(
+      (screen.getByLabelText("Токен оператора") as HTMLInputElement).value,
+    ).toBe(token);
+    expect(policyRequests).toHaveLength(1);
+    fireEvent.click(
+      screen.getByRole("button", { name: "AI и перефразирование" }),
+    );
+    fireEvent.change(screen.getByLabelText("API-ключ для замены"), {
+      target: { value: "synthetic-provider-draft" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Модерация" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Сохранить редакционную политику" }),
+    );
+    await screen.findByText(
+      "Редакционная политика сохранена; настроена только диагностика.",
+    );
+    fireEvent.click(screen.getByRole("switch", { name: "DEMO" }));
+    expect(
+      screen.getByRole("dialog", { name: "Переключить режим?" }),
+    ).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Остаться" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "AI и перефразирование" }),
+    );
+    expect(
+      (screen.getByLabelText("API-ключ для замены") as HTMLInputElement).value,
+    ).toBe("synthetic-provider-draft");
+    fireEvent.click(screen.getByRole("button", { name: "Модерация" }));
+    fireEvent.click(screen.getByRole("switch", { name: "DEMO" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Переключить и сбросить" }),
+    );
+    expect(
+      screen.queryByRole("region", { name: "Редакционная политика" }),
+    ).toBeNull();
+    expect(policyRequests).toHaveLength(2);
+    fireEvent.click(screen.getByRole("switch", { name: "DEMO" }));
+    fireEvent.click(screen.getByRole("button", { name: "Модерация" }));
+    expect(
+      (screen.getByLabelText("Токен оператора") as HTMLInputElement).value,
+    ).toBe("");
+    expect(screen.queryByLabelText("Модель диагностики")).toBeNull();
+    expect(policyRequests).toHaveLength(2);
+  });
+  it("never mounts the operator policy or sends policy IO throughout all eight DEMO screens", () => {
+    const fetch = vi.fn();
+    vi.stubGlobal("fetch", fetch);
+    render(<App initialDemo />);
+    for (const name of [
+      "Обзор",
+      "Входящие",
+      "Доноры",
+      "Мои каналы",
+      "Связи",
+      "Планировщик",
+      "Аккаунты",
+      "Настройки",
+    ])
+      navigate(name);
+    fireEvent.click(screen.getByRole("button", { name: "Модерация" }));
+    expect(screen.queryByLabelText("Токен оператора")).toBeNull();
+    expect(fetch).not.toHaveBeenCalled();
+  });
+  it("opens the live editorial policy without sending an operator request", () => {
+    const policyRequests: string[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string) => {
+        if (url.includes("/editorial-policy")) policyRequests.push(url);
+        return { ok: true, json: async () => ({ items: [] }) };
+      }),
+    );
+    render(<App initialDemo={false} />);
+    navigate("Настройки");
+    fireEvent.click(screen.getByRole("button", { name: "Модерация" }));
+    expect(
+      screen.getByRole("region", { name: "Редакционная политика" }),
+    ).toBeTruthy();
+    expect(screen.getByLabelText("Токен оператора").getAttribute("type")).toBe(
+      "password",
+    );
+    expect(policyRequests).toEqual([]);
+  });
   it("observed album has real read-only context while historical PASS cannot enable actions", async () => {
     const fetch = vi.fn(async (_url: string) => ({
       ok: true,

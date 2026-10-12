@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { DraftActions, ScheduleDialog, type WorkspaceProps } from "./App";
+import { EditorialPolicySettings } from "./EditorialPolicySettings";
 import {
   loadRewriteProviderModels,
   loadRewriteProviders,
@@ -909,8 +910,10 @@ export function Settings({
   const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [loadingModels, setLoadingModels] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [editorialDirty, setEditorialDirty] = useState(false);
   const dirty =
-    JSON.stringify(draft) !== JSON.stringify(saved) || (!demo && apiKey !== "");
+    JSON.stringify(draft) !== JSON.stringify(saved) ||
+    (!demo && (apiKey !== "" || editorialDirty));
   useEffect(() => markDirty("settings", dirty), [dirty, markDirty]);
   useEffect(() => {
     if (demo) return;
@@ -1368,15 +1371,22 @@ export function Settings({
               </p>
             </>
           )}
-          {!demo && section !== "AI и перефразирование" && (
-            <div className="policy-note">
-              <Icon name="shield" />
-              <span>
-                Для этого раздела ещё нет рабочего API. Изменения не имитируются
-                в рабочем режиме.
-              </span>
+          {!demo && (
+            <div hidden={section !== "Модерация"}>
+              <EditorialPolicySettings onDirtyChange={setEditorialDirty} />
             </div>
           )}
+          {!demo &&
+            section !== "AI и перефразирование" &&
+            section !== "Модерация" && (
+              <div className="policy-note">
+                <Icon name="shield" />
+                <span>
+                  Для этого раздела ещё нет рабочего API. Изменения не
+                  имитируются в рабочем режиме.
+                </span>
+              </div>
+            )}
           {demo && (
             <DraftActions
               dirty={dirty}
