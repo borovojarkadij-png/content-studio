@@ -203,3 +203,87 @@ external/native PG gates as its own PASS.
   are included. The queued request and synthetic tests confer none of these powers.
 - Source commit is local only, restricted to the seven owned implementation/test/CI
   files plus this report. Root-owned documents are excluded; no push/merge/PR by worker.
+
+## Original RED output provenance clarification
+
+The excerpts below are transcribed now from the original native tool results still
+present in this agent's conversation history. They are **reconstructed transcriptions,
+not original standalone log files**, and were not produced by rerunning tests. The
+original RED commands were executed through `functions.exec` calling
+`tools.exec_command`; their results include the native `exit_code` and `chunk_id`
+shown below. These synchronous commands completed without an ongoing execution
+session ID. The original standalone RED logs were **not retained**: those original
+outputs remain in agent tool history only. Existing report artifact labels identify
+the original temporary fixture/cache paths, not retained stdout log files.
+
+Original `red01` result: `exec_command` chunk `566bb2`, native exit 1, no session ID.
+The assertion was initially inside fixture setup; this result was not used as the
+required behavioral RED:
+
+```text
+E       AssertionError: Migrated storage must retain diagnostic classification requests
+tests\test_editorial_admission.py:43: AssertionError
+ERROR tests/test_editorial_admission.py::test_mapped_unknown_queues_one_durable_diagnostic_and_reopens_terminal_history
+1 error in 0.77s
+```
+
+Original corrected `red02` result: `exec_command` chunk `11205b`, native exit 1,
+no session ID. The assertion was moved into the test body before this execution:
+
+```text
+>       assert "editorial_classification_jobs" in inspect(store[0]).get_table_names(), (
+            "Migrated storage must retain diagnostic classification requests"
+        )
+E       AssertionError: Migrated storage must retain diagnostic classification requests
+tests\test_editorial_admission.py:79: AssertionError
+FAILED tests/test_editorial_admission.py::test_mapped_unknown_queues_one_durable_diagnostic_and_reopens_terminal_history
+1 failed in 0.79s
+```
+
+Original `migration01` result: `exec_command` chunk `97701a`, native exit 1,
+no session ID. This exposed the quoted Boolean default before the correction:
+
+```text
+tests\test_editorial_admission_migration.py:104: in test_populated_downgrade_refuses_before_ddl_and_preserves_history
+    assert connection.scalar(text("SELECT enabled FROM editorial_classifier_policy")) == 0
+E   AssertionError: assert 'false' == 0
+FAILED tests/test_editorial_admission_migration.py::test_populated_downgrade_refuses_before_ddl_and_preserves_history[policy]
+1 failed, 18 passed, 38 warnings in 5.88s
+```
+
+Original `time-red` result: `exec_command` chunk `fb3ba7`, native exit 1,
+no session ID:
+
+```text
+tests\test_editorial_admission.py:301: in test_invalid_caller_inputs_never_write
+    assert api().enqueue_editorial_classification(session, content_key=key,
+src\newsflow\services\editorial_admission.py:172: in enqueue_editorial_classification
+    observed_at = now.astimezone(UTC)
+E   OverflowError: date value out of range
+1 failed, 8 passed, 70 deselected in 2.86s
+```
+
+Original `unicode-red` result: `exec_command` chunk `e06805`, native exit 1,
+no session ID:
+
+```text
+_____ test_invalid_unicode_in_stored_filter_blocks_with_sanitized_reason ______
+tests\test_editorial_admission.py:728: in test_invalid_unicode_in_stored_filter_blocks_with_sanitized_reason
+    assert api().enqueue_editorial_classification(session, content_key=KEY,
+src\newsflow\services\editorial_admission.py:260: in enqueue_editorial_classification
+    binding = resolve_editorial_admission(
+src\newsflow\services\editorial_admission.py:239: in resolve_editorial_admission
+    sha256(_canonical(identity)).hexdigest(),
+src\newsflow\services\editorial_admission.py:57: in _canonical
+    ).encode("utf-8")
+E   UnicodeEncodeError: 'utf-8' codec can't encode character '\ud800' in position 381: surrogates not allowed
+FAILED tests/test_editorial_admission.py::test_invalid_unicode_in_stored_filter_blocks_with_sanitized_reason
+1 failed, 87 deselected in 0.80s
+```
+
+The excerpts intentionally omit surrounding pytest decoration and intermediate
+traceback lines. Line numbers are historical, as printed by those original runs;
+they do not claim to identify the final formatted source. The native exit and chunk
+identifiers come from the original tool-result metadata, not from pytest text.
+This provenance clarification changes only this report; no source/test rerun or
+source/test edit accompanies it.
