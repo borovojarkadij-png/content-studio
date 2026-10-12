@@ -16,13 +16,26 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
 
 ## VERIFIED WORKING
 
+- 2026-10-12 new diagnostic admission actual Windows PostgreSQL: corrected
+  strict migrated88 PASS/62.03s/exit0. Original1FAIL/87PASS exception-class
+  expectation retained; production VARCHAR guard was intact. Exact owned
+  synthetic PostgreSQL restart plus two read-only comparisons preserve all
+  rows in176 fresh UUID schemas, including116 QUEUED/2 terminal REJECT jobs,
+  original decision/source/fingerprint/outbox bindings; same manifest SHA256.
+  Source88ce234 full2301 PASS/6 explicit PG-only SKIP/396.76s, independent
+  review approved/no findings. Test-only exception amendment separately88
+  SQLite/88PG PASS, all production hashes unchanged. No provider calls or
+  operational mutations. New exact CI pending; not execution/qualification. See
+  EDITORIAL_DURABLE_ADMISSION_VERIFICATION_20261012.md.
 - 2026-10-12 classifier adapters6dd3517 independently approved, no findings:
   classification-only existing bounded OpenAI/free-only OpenRouter transports,
   strict actual-model identity, fresh attempt usage, no rewrite/repair or runtime
   wiring. Full2182 PASS/6 explicit PG-only SKIP/304.77s, focused259 including98
   adapter cases; root inspected native log/all6 frozen hashes. Ruff0.17/format/
   compile/YAML and synthetic benchmark24/24 PASS. Backend CI now executes/uploads
-  the offline benchmark; exact new remote execution/artifact remains pending.
+  the offline benchmark; exact1d00655 CI38297928080 all9 SUCCESS. Root downloaded
+  actual benchmark artifact11770351819:24 matched/0 mismatched, calls0,
+  real_model_qualified=false. Backend2182/6 PG skips, actual PG332+5 PASS.
   Effective rewrite permissions remain false; not real model qualification.
 - 2026-10-12 offline classifier source67afc09 independently reviewed: spec
   compliant/quality approved, no findings. Exact UTF8 source and policy bindings,
@@ -36,7 +49,11 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
   PG-only skips/457.23s, separate actual PostgreSQL332+5, frontend243/browser33+1,
   full-stack1/4 deselected/356.64s and all recovery families. Original24e515eb
   run38294424666 completed FAILURE (lint only, other8 success), preserved. New
-  source67afc09 still requires its exact CI. See CI_RECOVERY_20261012.md.
+  source67afc09 exact CI38296489059/head21c08a7 now all9 SUCCESS: backend2084/6
+  PG-only skips/353.17s, actual PG332+5, frontend243/33+1, full-stack1/4 deselected
+  and all recovery families. Adapter6dd3517 exact new CI38297928080/head1d00655
+  completed SUCCESS/all9, new benchmark executed/uploaded/downloaded and checked.
+  See CI_RECOVERY_20261012.md.
 
 - 2026-10-12 follow-up: real Docker Engine29.8.0 and retained Windows c
   containers remain running (API/PostgreSQL/Redis/prod web healthy). Exact
@@ -1403,17 +1420,24 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: execute EDITORIAL_DURABLE_ADMISSION_IMPLEMENTATION.md Task1 after
-recording its current BASE and dispatching one writer: canonical diagnostic job/
-outbox admission after owned exact fingerprint, additive migration and isolated
-SQLite/strict PostgreSQL cases. Its SDD brief/ledger prepared, not dispatched yet.
+NEXT_STEP: EDITORIAL_CLASSIFIER_EXECUTION_IMPLEMENTATION.md Task1: committed
+bounded leases/attempt provenance, fresh canonical pre/post-call binding checks,
+append-only diagnostic evidence/known-usage receipts, no automatic approval.
+Use own SDD brief/report/ledger and one writer, then independent scoped review.
+Canonical admission88ce234 accepted: full2301/6 existing PG-only skips,119
+targeted,398 covering, actual strict Windows PG88 and new queued-job PG restart/
+double reopen PASS; original exception fixture failure preserved. Do not repeat
+completed admission/native gates. Track its own exact new remote CI after push.
 Classifier adapters6dd3517 accepted independently (full2182/6 PG-only skips,
-focused259, native hashes). Document/push reviewed source and track exact new CI.
+focused259, native hashes). Reviewed adapters/docs pushed authorized origin/branch
+at1d00655; exact CI completed including actual synthetic benchmark artifact.
 Accepted offline contract67afc09
-and reports pushed at21c08a7; its exact CI38296489059 is in_progress. Prior
+and reports pushed at21c08a7; its exact CI38296489059 all9 SUCCESS. New adapter
+CI38297928080/head1d00655 all9 SUCCESS, benchmark artifact11770351819 verified. Prior
 81dd4f0 all9 SUCCESS is previous-source proof, not adapter acceptance.
 
-After durable admission: source-policy CAS/recovery and actual model benchmark.
+After diagnostic execution: actual model benchmark/qualification and guarded
+configuration/orchestration before any automatic editorial PASS propagation.
 All effective
 classifier permissions remain false, no activation/qualification or ingestion
 transaction IO. Existing editorial/source/draft/fact/technical/rights/sync/session
@@ -1424,6 +1448,18 @@ Docker Engine29.8.0 and retained Windows c are running. Source5fa8995 I4 and
 illustration Tasks1–4 reviewed/accepted; actual Windows c recovery/reopen and exact
 81dd4f0 nine-job CI complete. Do not repeat those tasks, socket recovery/build,
 reseed retained fixtures or regenerate secrets. Only authorized origin/branch.
+
+Current live external acceptance limitation: previously named апи.txt did not
+yield an unambiguous usable OpenAI credential; selection stopped before any
+catalog/classification/rewrite IO, no key/setting changed. See
+EDITORIAL_LIVE_ACCEPTANCE_20261012.md. Continue independent work; do not create
+keys or infer qualification. Controlled Telegram authorization/test-destination
+and real-model benchmark acceptance also remain separately pending.
+For NEW admission tests only, root validated and started the exact retained old
+synthetic PostgreSQL4c1a412... on loopback5432; original application services stay
+stopped, all future writes restricted to fresh validated UUID schemas. See
+EDITORIAL_DURABLE_ADMISSION_VERIFICATION_20261012.md; actual88 and exact queued-job
+restart/double snapshot reopens PASS. Retain the original schemas/manifests.
 
 Historical checkpoints below remain evidence of earlier increments, not NEXT_STEP.
 

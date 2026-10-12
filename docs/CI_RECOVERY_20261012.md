@@ -88,6 +88,36 @@ Full-stack114968693727 SUCCESS:1 PASS/4 deliberately deselected/341.10s plus
 packaged no-drift. Channel sync also SUCCESS. Both provider persistence jobs
 still running; whole exact candidate is not accepted until terminal verdict.
 
+Terminal run38296489059/head21c08a7 completed SUCCESS, all9 jobs SUCCESS.
+Root read both provider terminal logs: original-state synthetic persistence
+checks passed, publication pending/final/reopen checks passed, actual Telegram/
+AI network calls0. This accepts classifier contract candidate67afc09, not later
+adapter source6dd3517. Reviewed adapter/docs pushed1d00655, exact new
+run38297928080 is in_progress and must execute/upload the new benchmark artifact.
+
+## Classifier adapter exact CI accepted
+
+Terminal run38297928080/head1d00655e7722ea615f23a35f860800b01d1d1bff is
+completed SUCCESS, all9 jobs SUCCESS. Native completed backend114973443738:
+2182 PASS/6 explicit PostgreSQL-only SKIP/772.41s, native lint/compile,
+isolated migration cycle and no-drift PASS. Separate PostgreSQL114973443849:
+332 PASS/330.84s plus5 controlled concurrency PASS/6.64s. Full-stack114973443746:
+1 PASS/4 deliberately deselected/337.48s and packaged no-drift PASS. Both provider
+families retained-state persistence/publication reopen PASS, real network calls0.
+
+The newly required offline benchmark actually executed and uploaded artifact
+editorial-classification-contract, ID11770351819. Root downloaded that exact
+run's artifact to D:/Codex-Recovery/content-studio-20261008/editorial-contract-ci-38297928080/.
+Report SHA256318DE43F3C8C0DE9501B324A31B14C3390E6AFE6470A6913571393A0B9896E45:
+24 cases/24 matched/0 mismatched, SYNTHETIC_CONTRACT, provider_calls0,
+rewrite_calls0, real_model_qualified=false. Not real model accuracy or authority.
+
+Native runner warns that existing checkout/setup-python/upload-artifact action
+versions target deprecated Node20 and are forced to Node24. This did not fail
+the run; no workflow check was disabled. Future action-version maintenance is
+separate from this narrow source increment, not silently hidden or auto-upgraded.
+New durable admission source is not part of this SHA and needs its own exact CI.
+
 ## Windows runtime boundary
 
 Fresh root check: real Linux Engine29.8.0 responds; retained20261009c API,

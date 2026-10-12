@@ -138,26 +138,42 @@ test color/untouched full-format noise remains tracked for milestone triage.
   PASS. Disclosed over1000-item fail-closed capacity limit remains; exact new CI
   is pending, earlier f8/e160 proof is not its substitute
 
-NEXT_STEP: execute EDITORIAL_DURABLE_ADMISSION_IMPLEMENTATION.md Task1 with
-recorded current BASE/one writer; brief/ledger prepared, not dispatched yet.
+NEXT_STEP: EDITORIAL_CLASSIFIER_EXECUTION_IMPLEMENTATION.md Task1: bounded
+committed leases/claim provenance, canonical pre/post-call validation and
+append-only diagnostic/known-usage receipts. Own SDD brief/report/ledger, one
+writer then independent review. Admission88ce234 accepted: full2301/6 old PG-only
+skips,119 targeted,398 covering, actual WindowsPG88 and queued-job PG restart/
+double reopen PASS; independent review no findings. Track its new exact CI,
+no unchanged admission/native suite repetition.
 Classifier adapters6dd3517 independently approved/no findings, full2182 PASS/6
-explicit PG-only SKIP/304.77s, focused259. Document/push/track exact new CI.
-Accepted contract67afc09 evidence pushed21c08a7, exact CI38296489059 in_progress.
+explicit PG-only SKIP/304.77s, focused259. Reviewed adapters/docs pushed1d00655;
+exact new CI/benchmark artifact completed and checked.
+Accepted contract67afc09 pushed21c08a7, exact CI38296489059 all9 SUCCESS.
+Adapter exact CI38297928080/head1d00655 all9 SUCCESS; actual downloaded artifact
+11770351819 confirms24/24 synthetic matches, provider/rewrite calls0, no qualification.
 Prior81dd4f0 CI38294917279 all9 SUCCESS;24e515eb lint failure retained. After
-admission Task1: source-policy CAS/recovery, actual model
-benchmark and qualification. All effective classifier permissions stay false.
+diagnostic runner: actual model benchmark and qualification/configuration before
+automatic editorial PASS propagation. All classifier permissions stay false.
 No provider/worker activation, operational sends, reset/reseed/secret regeneration.
 Do not repeat completed illustration Tasks1–4, I4 or Windows c recovery. Existing
 publication/source/review/fact/technical/rights/sync/session gates remain unchanged.
 
 - [x] Offline source/policy-bound classifier contract67afc09: strict evidence,
   synthetic24/24, focused158/full2084/6 explicit PG-only SKIP, independent review
-  approved. Not runtime classification/qualification; exact new CI pending.
+  approved; exact CI38296489059/head21c08a7 all9 SUCCESS. Not runtime
+  classification/qualification.
 - [x] Bounded classification-only provider adapters6dd3517:98 new/259 focused,
   full2182/6 explicit PG-only skips, native tool gate and independent review PASS.
-  Synthetic benchmark CI step added; exact new remote/artifact gate pending.
-- [ ] Canonical durable diagnostic admission with exact fingerprint ownership;
-  current scoped task above, no classifier execution or approval.
+  Synthetic benchmark CI step executed: exact38297928080 all9 SUCCESS; actual
+  downloaded24/24 artifact, false qualification and0 provider/rewrite calls.
+- [x] Canonical durable diagnostic admission88ce234 with exact fingerprint
+  ownership/current SQL policy/source/technical bindings, atomic job/outbox,
+  immutable DB identities and safe migration limits; full2301/6 old PG skips,
+  119 targeted/398 covering, actual WindowsPG88 and new pending-job PG restart/
+  double original-state reopen PASS; independent scoped review approved.
+- [ ] Leased diagnostic execution, canonical pre/post-call binding checks,
+  immutable claim provenance and append-only evidence/known-usage receipts;
+  current bounded task above, no automatic approval or real IO in tests.
 - [ ] Canonical durable classification admission/jobs/recovery and independently
   qualified real-model benchmark before automatic pre-rewrite classification.
 
