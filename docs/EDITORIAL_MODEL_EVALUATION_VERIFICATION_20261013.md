@@ -123,6 +123,43 @@ exactly, process-local owner credential restored in finally. Exact new evaluator
 CI38312315852 started/all9 in_progress, not PASS. Root tracks alongside the next
 independent internal policy-configuration task; no new model/operational authority.
 
+Exact evaluator CI38312315852/heada639591 partial actual evidence (whole run
+still in_progress): strict PostgreSQL job115020722860 SUCCESS,638PASS548.37s
+plus5concurrencyPASS6.92s; full-stack115020722852 SUCCESS,1PASS/4deselected
+336.73s and no new upgrade operations. Actual native logs downloaded by root:
+D:/Codex-Recovery/content-studio-20261008/editorial-model-ci-38312315852/:
+postgres-job.log SHA256
+960FFE0FCB4CBFF56525601AD636FCC08A86C1A9C2794672A536A6694946B594;
+full-stack-job.log SHA256
+84D7998DE80D2AD04A470967AB8F291A5A4F55EE581A6643E46A29F4986EBAD4.
+Backend and both provider persistence families remain in progress at inspection;
+this partial success is not whole-CI acceptance or current policy-task proof.
+
+Backend115020723038 subsequently SUCCESS:2744PASS/11explicitPG-onlySKIP/
+593.78s, Ruff/compile/migration no-drift PASS. Actual backend-job.log SHA256
+DFD839C08B8833DF700BD1B26A6169F740F174C54612AD55B8504839030F5AEC,
+same native-log directory. Actual new editorial-classification-contract artifact
+11775179022 (zip digest08690f17314939537ba6251207d83083ee940d509f9d488595788583e1e38d09)
+downloaded to D:/Codex-Recovery/content-studio-20261008/
+editorial-contract-ci-38312315852-224ec8e8265341c295ba155f6616f527/.
+Root checked24cases/24matched/0mismatched/provider0/rewrite0/qualificationfalse;
+editorial-contract-report.json SHA256
+318DE43F3C8C0DE9501B324A31B14C3390E6AFE6470A6913571393A0B9896E45.
+Artifact was downloaded from this run, not substituted from identical prior
+content. Both provider persistence jobs still running at last inspection.
+
+Terminal acceptance supersedes the partial checkpoint: exact38312315852 at
+a639591f3683da9251f2a5915d667f3f204808cb completedSUCCESS/all9SUCCESS.
+Actual OpenAI/openrouter native logs independently downloaded/read from the
+same editorial-model-ci-38312315852 directory: both source-photo, publication
+seed/recovery/quota/pending/final/double-reopen families PASS, explicit zero
+Telegram/AI network calls/no publications. openai-job.log SHA256
+E2A331066EB3EE9E632F664EF2A1B90B72136629C673538E58A0C4643C9B1285;
+openrouter-job.log SHA256
+21FFACFE0E4C3365851A184F54841D9C290BABEB9773CC007D7CBAB768C6F85B.
+This accepts the exact evaluator candidate's synthetic CI only, not the
+subsequent uncommitted internal policy service or any actual model qualification.
+
 ## Live boundaries
 
 History CI follow-up:38310060502/head34ad476 now all9SUCCESS, actual native

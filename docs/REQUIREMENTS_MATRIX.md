@@ -1,5 +1,15 @@
 # Requirements matrix
 
+2026-10-13 checkpoint: R-001/R-004 remain PARTIAL, not operational acceptance.
+Bounded evaluatorbacdd18 accepted and exacta639591 CI38312315852 all9SUCCESS:
+actual backend2744/11PG-onlySKIP, strictPG638+5, recovery/native logs and actual
+24matched/0call/unqualified artifact checked. Internal policy configuration
+c090eeb accepted by fresh spec/quality review, no findings: frozen full2835/
+15SKIP(14PG/1nonapplicableINSERT), root actual WindowsPG93/2nonapplicableSKIP,
+all3hashesunchanged, no qualification/jobs/calls/activation. Exact new-source CI
+pending; dedicated authenticated API/UI and actual real-model benchmark remain
+unfinished. See EDITORIAL_POLICY_CONFIGURATION_VERIFICATION_20261013.md.
+
 | ID | Requirement | Phase | Status | Evidence |
 | --- | --- | --- | --- |
 | R-001 | Editorial hard gate | 1 | PARTIAL | Contract67afc09/adapters6dd3517/admission88ce234 independently accepted, exact admission CI38300513652 all9 and24/24 synthetic artifact verified. Leased diagnostic executor plus stale-clock correctione29779b independently accepted: actual WindowsPG120+10 including held-row finalizers and restart/double reopen; original executor CI PG timeout preserved. Encrypted default-disabled factory/workeraf45deb accepted: full2565/11PG-only skips, actualPG97, independent review no findings; pushed65ed7f2, exact CI38306240255 all9 SUCCESS, actual PG550+5/backend2565+11PG skips and actual synthetic24/24 artifact. Effective permission remains manual/reject, never automatic PASS. Read-only diagnostic history fbb4c6e/fixfae11e7 independently accepted: originalfull2643/11PG skips/root actualPG78, amendedcovering213/5PG skips/root actualPG10, terminal coherence findingADDRESSED; exactnewCI pending. Bounded model-evaluation seam prepared; actual real-model benchmark/qualification and guarded PASS propagation pending. Unknown ingress MANUAL_REVIEW/rewritefalse; no neutral bypass. See EDITORIAL_CLASSIFIER_EXECUTION_VERIFICATION_20261012.md, EDITORIAL_CLASSIFIER_WORKER_VERIFICATION_20261012.md and EDITORIAL_DIAGNOSTIC_HISTORY_VERIFICATION_20261013.md |

@@ -283,6 +283,34 @@ Same content hash as prior run is not substituted for this actual new download.
 This supersedes history-CI-pending above, not historical failures. Does not
 include the uncommitted evaluator or qualify a real model/operational deployment.
 
+## Exact model-evaluation CI acceptance — October13
+
+Run38312315852 at a639591f3683da9251f2a5915d667f3f204808cb completedSUCCESS,
+all9jobsSUCCESS. Actual native logs downloaded and read by root under
+D:/Codex-Recovery/content-studio-20261008/editorial-model-ci-38312315852/:
+
+- postgres-job.log:638PASS548.37s plus5concurrencyPASS6.92s;
+  SHA256960FFE0FCB4CBFF56525601AD636FCC08A86C1A9C2794672A536A6694946B594.
+- backend-job.log:2744PASS/11explicitPG-onlySKIP593.78s, Ruff/compile/migration
+  no-drift PASS;
+  SHA256DFD839C08B8833DF700BD1B26A6169F740F174C54612AD55B8504839030F5AEC.
+- full-stack-job.log:1PASS/4deselected336.73s, packaged migration no-drift;
+  SHA25684D7998DE80D2AD04A470967AB8F291A5A4F55EE581A6643E46A29F4986EBAD4.
+- openai-job.log:source-photo/publication pending/recovery/quota/final/double
+  original-state reopen PASS, explicit0networkcalls;
+  SHA256E2A331066EB3EE9E632F664EF2A1B90B72136629C673538E58A0C4643C9B1285.
+- openrouter-job.log:same retained persistence families PASS/explicit0calls;
+  SHA25621FFACFE0E4C3365851A184F54841D9C290BABEB9773CC007D7CBAB768C6F85B.
+
+Actual new artifact11775179022/editorial-classification-contract downloaded into
+D:/Codex-Recovery/content-studio-20261008/
+editorial-contract-ci-38312315852-224ec8e8265341c295ba155f6616f527/.
+Root asserts24cases/24matched/0mismatched/provider0/rewrite0/qualificationfalse;
+JSON SHA256318DE43F3C8C0DE9501B324A31B14C3390E6AFE6470A6913571393A0B9896E45.
+Identical prior content was not substituted for this actual download. This is
+not current policy-service, live-model or operational acceptance. Prior failures
+and SKIPs remain recorded; disabled heartbeat remains disabled.
+
 ## Current Windows runtime boundary
 
 Earlier retained20261009c HTTP/health/reopen checks passed as recorded below;

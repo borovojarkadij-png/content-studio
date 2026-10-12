@@ -14,7 +14,31 @@ operational deployment, live authorization or real-model qualification.
 The goal tool was inspected: no separate active goal is currently configured;
 do not invent a new goal. NEXT_STEP below remains Telegram-only.
 
-## VERIFIED WORKING
+## Active recovery checkpoint — 2026-10-13
+
+NEXT_STEP: commit/push accepted policyc090eeb with root native evidence/review,
+track exact new-source CI; generate own Task1 brief/record BASE from that root
+commit and dispatch sole fresh writer for EDITORIAL_OPERATOR_API_IMPLEMENTATION.md.
+Prepared spec/plan/own ledger are docs-only; internal policy Task1 is COMPLETE,
+56f4899..c090eeb, fresh independent speccompliant/qualityApproved/no findings.
+Frozen full2835PASS/15SKIP(14PG/1nonapplicableINSERT)452.29s/native0; actual
+WindowsPG93PASS/2nonapplicableSKIP53.41s/native0, all3hashesunchanged. Root read
+final201linereport/native logs/owned4pathcommit, resolved provenance warning.
+No duplicate completed evaluator/history/oldDocker/UI gates or operational
+activation. Exact evaluatorCI38312315852/heada639591 completedSUCCESS/all9SUCCESS;
+actual backend2744/11PG-onlySKIP, strictPG638+5/fullstack1PASS/4deselected and
+bothprovider persistence native logs/new24matched artifact downloaded/checked;
+historyCI38310060502/head34ad all9SUCCESS. Engine29.8Linux/ownedPGready;
+pre-gate1785UUIDschemas/maxOID1372163 -> retained1880/maxOID1451681,95fresh
+root policy-test schemas only in owned synthetic database. Dedicated operator
+API has not been implemented or dispatched yet; source acceptance is not live
+qualification/PHASE1 completion. Disabled heartbeat remains disabled.
+See EDITORIAL_POLICY_CONFIGURATION_VERIFICATION_20261013.md.
+
+The chronological checkpoints below are evidence/history, not instructions to
+repeat work. This active checkpoint and its own SDD ledger take precedence.
+
+## VERIFIED WORKING — historical increments
 
 - 2026-10-13 bounded model diagnostic evaluatorbacdd185 independently accepted:
   full2744PASS/11explicitPG-onlySKIP415.63s/native0;361 focusedPASS/staticPASS,
@@ -1430,12 +1454,17 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: EDITORIAL_POLICY_CONFIGURATION_IMPLEMENTATION.md Task1 prepared,
-own112-line brief/ledger. Root commits plan/state then recordsBASE and dispatches
-one fresh writer. Strict internal persisted policy/CAS/outbox service using
+Current increment context: EDITORIAL_POLICY_CONFIGURATION_IMPLEMENTATION.md Task1 in_progress,
+BASE56f48999890db57c0b9c0741cad453eb23c35f0a, own112-line brief/ledger/report.
+Sole fresh /root/editorial_policy_configuration,gpt-6.1-sol/high/forknone/nohelpers.
+Strict internal persisted policy/CAS/outbox service using
 existing models; no public API/auth assumptions or automatic activation.
 Evaluator evidence/reviewsa639591f3683da9251f2a5915d667f3f204808cb pushednative0,
 exactremoterefverified. ExactnewCI38312315852 all9in_progress, root tracks alongside.
+After writerfreeze rootactualstrictPG/newUUID/native/hash alongside one backend
+fullfrombackendcwd, then exactownedcommit/fresh independentreview/fixloop.
+No repeated oldDocker/UI/recovery. SyntheticPG validatedready1785/max1372163;
+no newrootPG writes yet. Plancommit56f4899 localonly, includedinlater reviewedpush.
 No actual activation, secrets, UI redesign, autoapproval or real sends.
 EDITORIAL_MODEL_EVALUATION_IMPLEMENTATION.md Task1 COMPLETE throughbacdd185,
 BASE34ad476550f4a33ddbe2de71f0ad6ce4a743462a; do not redispatch or repeatfull.
