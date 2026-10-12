@@ -138,11 +138,14 @@ test color/untouched full-format noise remains tracked for milestone triage.
   PASS. Disclosed over1000-item fail-closed capacity limit remains; exact new CI
   is pending, earlier f8/e160 proof is not its substitute
 
-NEXT_STEP: fix exact CI38294424666 Ruff0.17 unused-noqa failure (reproduced
-locally, suppression removed without weakening tests; full CI lint command
-and scheduler4 PASS); push/track new exact CI. Then source/policy-bound
-pre-rewrite classification contract and synthetic adversarial benchmark,
-without real-model qualification/activation. October12 retained original-image c reopen after restored
+NEXT_STEP: source67afc09 classifier contract Task1 independently accepted:
+full2084 PASS/6 explicit PG-only SKIP, regression158, synthetic benchmark24/24;
+record/push evidence and track new exact CI. Prior81dd4f0 run38294917279 all9
+SUCCESS, prior24e515eb run38294424666 FAILURE retained. Continue bounded
+classifier transport adapter with existing JSON transport/pinned identity and
+all effective permissions false; durable admission/jobs/recovery and real-model
+benchmark/qualification remain separate. No activation.
+October12 retained original-image c reopen after restored
 Docker Engine passed; commit reviewed-source evidence and push authorized branch;
 track new exact CI for5fa8995. Then continue source-bound
 pre-rewrite editorial classifier contract/offline qualification harness, without

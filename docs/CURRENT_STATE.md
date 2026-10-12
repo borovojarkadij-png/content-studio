@@ -16,6 +16,20 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
 
 ## VERIFIED WORKING
 
+- 2026-10-12 offline classifier source67afc09 independently reviewed: spec
+  compliant/quality approved, no findings. Exact UTF8 source and policy bindings,
+  strict bounded JSON/evidence/alias/quote validation, classification-only prompt
+  and24-case synthetic benchmark. Full2084 PASS/6 explicit PG-only SKIP/310.90s,
+  focused158 PASS, Ruff0.17/format/compile PASS. Root checked frozen hashes/native
+  log and independently ran CLI24 matches/0 mismatches/calls0. Effective decisions
+  never PASS: valid protected-negative REJECT, otherwise unqualified/manual false
+  permission. Not runtime integration, real model accuracy or qualification.
+- Corrective exact CI38294917279/head81dd4f0 all9 SUCCESS: backend1989/6 explicit
+  PG-only skips/457.23s, separate actual PostgreSQL332+5, frontend243/browser33+1,
+  full-stack1/4 deselected/356.64s and all recovery families. Original24e515eb
+  run38294424666 completed FAILURE (lint only, other8 success), preserved. New
+  source67afc09 still requires its exact CI. See CI_RECOVERY_20261012.md.
+
 - 2026-10-12 follow-up: real Docker Engine29.8.0 and retained Windows c
   containers remain running (API/PostgreSQL/Redis/prod web healthy). Exact
   CI38294424666 at24e515eb failed backend lint before tests: freshly resolved
@@ -1381,11 +1395,14 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: push the verified Ruff0.17 unused-suppression correction to the
-authorized branch, track its exact new CI (38294424666 failed lint at24e515eb).
-Then implement the source/policy-bound pre-rewrite classification contract
-and synthetic adversarial benchmark, with real-model qualification and
-activation disabled. Docker Engine29.8.0 and retained Windows c are running;
+NEXT_STEP: source67afc09 classifier contract Task1 reviewed/accepted; record/push
+evidence and track new exact CI (81dd4f0 all9 SUCCESS is previous-source proof).
+Continue a bounded classifier transport adapter using the existing structured
+JSON transport, pinned response identity and all effective permissions false;
+no provider activation or durable ingestion transaction IO. Then durable
+classification admission/jobs/source CAS/recovery and actual model benchmark
+remain separate increments. Real-model qualification and activation stay disabled.
+Docker Engine29.8.0 and retained Windows c are running;
 do not repeat socket recovery/build/reseed. Source5fa8995 residual I4 is independently accepted; final backend1989
 PASS/6 separately exercised PG-only skips, Windows PG332+5 and Windows c full
 recovery and October12 original-image retained c reopen are complete. Record
