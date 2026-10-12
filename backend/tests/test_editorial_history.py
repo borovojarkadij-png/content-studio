@@ -442,6 +442,102 @@ def test_malformed_decoded_history_fails_closed_without_echo(store, model, attri
         event.remove(model, "load", corrupt)
 
 
+@pytest.mark.parametrize("outcome", ["FAILED", "BLOCKED"])
+@pytest.mark.parametrize("position", ["queued", "earlier-attempt"])
+def test_terminal_receipt_rejects_wrong_job_state_or_later_attempt(store, outcome, position):
+    ingest(store)
+    client = Classifier()
+    now = [NOW]
+    original = client.classify
+
+    def classify(request):
+        original(request)
+        if client.calls == 1:
+            raise ProviderUnavailable("PRIVATE_PROVIDER_MARKER")
+
+    client.classify = classify
+    runner = make_runner(store[0], client, clock=lambda: now[0])
+    assert runner.run_next(now=NOW) == "RETRY"
+    if position == "earlier-attempt":
+        now[0] += timedelta(seconds=60)
+        assert runner.run_next(now=now[0]) == "REVIEW"
+
+    def corrupt(target, context):
+        if target.outcome == "RETRY":
+            set_committed_value(target, "outcome", outcome)
+
+    # Only the decoded immutable receipt changes: null diagnostic is already valid.
+    event.listen(models.EditorialClassificationAttemptModel, "load", corrupt)
+    try:
+        with pytest.raises(ValueError, match="^EDITORIAL_HISTORY_INVALID$"):
+            read(store)
+    finally:
+        event.remove(models.EditorialClassificationAttemptModel, "load", corrupt)
+
+
+@pytest.mark.parametrize(
+    "case,state,attempts,outcomes",
+    [
+        ("failed", "FAILED", 1, ["FAILED"]),
+        ("blocked", "BLOCKED", 1, ["BLOCKED"]),
+        ("preclaim-blocked", "BLOCKED", 0, []),
+        ("preclaim-blocked-after-claim", "BLOCKED", 1, []),
+        ("exhausted", "FAILED", 2, []),
+        ("late-after-terminal", "REVIEW", 2, ["LOST_LEASE", "REVIEW"]),
+    ],
+    ids=["failed", "blocked", "preclaim", "preclaim-after-claim", "exhausted", "late"],
+)
+def test_terminal_receipt_controls_preserve_real_runner_history(
+    store, case, state, attempts, outcomes
+):
+    ingest(store)
+    client = Classifier()
+    now = [NOW]
+    runner = make_runner(store[0], client, clock=lambda: now[0])
+
+    def disable_policy():
+        with Session(store[0]) as session:
+            session.get(models.EditorialClassifierPolicyModel, 1).enabled = False
+            session.commit()
+
+    if case == "failed":
+
+        def failed(request):
+            raise RuntimeError("PRIVATE_PROVIDER_MARKER")
+
+        client.classify = failed
+        assert runner.run_next(now=NOW) == "FAILED"
+    elif case == "preclaim-blocked":
+        disable_policy()
+        assert runner.run_next(now=NOW) == "BLOCKED"
+    else:
+        first = runner.claim_next(now=NOW)
+        assert first.attempt == 1
+        if case in {"blocked", "preclaim-blocked-after-claim"}:
+            disable_policy()
+            if case == "blocked":
+                assert runner.execute(first) == "BLOCKED"
+            else:
+                now[0] += timedelta(seconds=60)
+                assert runner.run_next(now=now[0]) == "BLOCKED"
+        else:
+            now[0] += timedelta(seconds=60)
+            second = runner.claim_next(now=now[0])
+            assert second.attempt == 2
+            if case == "exhausted":
+                now[0] += timedelta(seconds=60)
+                assert runner.run_next(now=now[0]) == "FAILED"
+            else:
+                assert runner.execute(second) == "REVIEW"
+                assert runner.execute(first) == "LOST_LEASE"
+
+    payload = read(store)
+    item = payload["items"][0]
+    assert (item["state"], item["attempts"]) == (state, attempts)
+    assert [receipt["outcome"] for receipt in item["receipts"]] == outcomes
+    assert payload["execution_authorized"] is payload["rewrite_allowed"] is False
+
+
 @pytest.mark.parametrize("mode", ["missing-db", "unmigrated", "foreign", "invalid", "sql"])
 def test_http_errors_are_static_private_and_never_fake_success(store, monkeypatch, tmp_path, mode):
     from sqlalchemy.exc import OperationalError

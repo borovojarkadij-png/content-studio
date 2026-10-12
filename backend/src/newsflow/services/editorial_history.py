@@ -239,7 +239,7 @@ class EditorialHistoryReader:
             _require(len(rows) <= 1)
             if rows:
                 receipt = self._receipt(rows[0], number)
-                if receipt["outcome"] in {"REVIEW", "REJECT"}:
+                if receipt["outcome"] in {"REVIEW", "REJECT", "FAILED", "BLOCKED"}:
                     _require(number == job.attempts and job.state == receipt["outcome"])
                 if receipt["outcome"] == "RETRY":
                     _require(number == 1)

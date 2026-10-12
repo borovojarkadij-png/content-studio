@@ -179,3 +179,110 @@ exit evidence remains an explicit historical limitation; fresh focused/full nati
 exit 0 and the independent real PostgreSQL gate are retained. Commit subject:
 `feat(editorial): expose bounded diagnostic history` (this report is included in
 that commit; its SHA is reported separately to avoid a self-referential hash).
+
+## Review fix round 1 — terminal FAILED/BLOCKED receipt coherence
+
+Fix base: `fbb4c6e79c4521d5d1b6fc623e8376168b5028cc`. The controller's independent
+review found that FAILED/BLOCKED receipts could appear on a QUEUED job or before
+a later attempt. The unchanged runner terminates the owning job for both outcomes
+in `_finish`; `_claim_next` separately allows preclaim BLOCKED and attempts-exhausted
+FAILED transitions without a new receipt. Those cases must stay distinguishable.
+
+After reading the full review and unchanged runner, four behavioral regressions
+were added beside the existing malformed-history tests. Real migrated runner
+RETRY/REVIEW histories are the fixture; only the decoded immutable RETRY outcome
+is corrupted to FAILED/BLOCKED. Four real reader calls must fail closed, either
+for QUEUED state or an earlier attempt. Removing the new terminal outcome check
+causes all four regressions to fail.
+
+Six positive controls use actual runner transitions: terminal FAILED, terminal
+BLOCKED, receipt-less preclaim BLOCKED with zero claims, receipt-less BLOCKED after
+an expired first claim, receipt-less FAILED after two crashed claims, and an old
+LOST_LEASE receipt arriving after the second attempt already terminated as REVIEW.
+All retain false execution/rewrite permission. No immutable SQL rows are edited.
+
+The production fix is one line: include FAILED/BLOCKED in the existing
+REVIEW/REJECT receipt rule requiring final attempt and matching current job state.
+It does not require a receipt for every FAILED/BLOCKED job. Only the service,
+new test file and this appended report are amended; API/CI/root docs are untouched.
+
+All new logs remain in the original task evidence directory. Exact RED command,
+backend working directory:
+
+```powershell
+python -c "import sys; sys.path.insert(0,'D:/Codex-Recovery/content-studio-20261008/telethon-145'); import telethon,pytest; print('Telethon',telethon.__version__,flush=True); assert telethon.__version__ == '1.45.0'; raise SystemExit(pytest.main(['tests/test_editorial_history.py','-q','-k','terminal_receipt','--tb=short']))" 2>&1 | Tee-Object -FilePath 'D:/Codex-Recovery/content-studio-20261008/editorial-history-task1-20261012/21-review-terminal-red.log'; $taskExit = $LASTEXITCODE; "NATIVE_EXIT_CODE=$taskExit" | Tee-Object -FilePath 'D:/Codex-Recovery/content-studio-20261008/editorial-history-task1-20261012/21-review-terminal-red.log' -Append; exit $taskExit
+```
+
+Actual RED: `4 failed, 6 passed, 78 deselected in 3.76s`, native exit 1.
+All four failures were `Failed: DID NOT RAISE <class 'ValueError'>`, demonstrating
+the reader returned inconsistent history; there was no import/setup failure.
+All six legitimate transition controls already passed before the fix.
+
+Exact covering GREEN command, backend working directory:
+
+```powershell
+python -c "import sys; sys.path.insert(0,'D:/Codex-Recovery/content-studio-20261008/telethon-145'); import telethon,pytest; print('Telethon',telethon.__version__,flush=True); assert telethon.__version__ == '1.45.0'; raise SystemExit(pytest.main(['tests/test_editorial_history.py','tests/test_durable_editorial_runner.py','-q','-rs']))" 2>&1 | Tee-Object -FilePath 'D:/Codex-Recovery/content-studio-20261008/editorial-history-task1-20261012/22-review-covering-green.log'; $taskExit = $LASTEXITCODE; "NATIVE_EXIT_CODE=$taskExit" | Tee-Object -FilePath 'D:/Codex-Recovery/content-studio-20261008/editorial-history-task1-20261012/22-review-covering-green.log' -Append; exit $taskExit
+```
+
+Covering result: `213 passed, 5 skipped in 60.68s (0:01:00)` and
+`NATIVE_EXIT_CODE=0`, terminal tool exit 0 (session 93411), no failures or warnings.
+The five skips are unchanged runner checks requiring root-owned strict PostgreSQL
+lock/finalizer proof (one at line 805, four at line 942). Original full-suite result
+above is historical evidence for the original freeze; the full suite is not
+repeated or claimed as verification of amended bytes. Targeted actual PostgreSQL
+follows the two amended files' freeze.
+
+Amended-file freeze, after covering GREEN and static checks:
+
+| File | SHA256 |
+| --- | --- |
+| `backend/src/newsflow/services/editorial_history.py` | `5C643A18BE9C6FDBD7A31D1414850DEFB13BCBA6E44BBE283305FC921EBF322B` |
+| `backend/tests/test_editorial_history.py` | `C619059A9F939A0CFECAB389D44A1AEF048696A0DDDD9717D4D0A8E3DC57EAAC` |
+
+Fresh static checks (each actual command below returned native exit 0; capture
+wrapper appended `NATIVE_EXIT_CODE=0` to the named log):
+
+```powershell
+# backend working directory; 23-review-ruff.log: All checks passed!
+& 'D:/Codex-Recovery/content-studio-20261008/ruff-017-20261012/bin/ruff.exe' check src tests alembic
+# repository working directory; 24-review-format.log: 2 files already formatted
+& 'D:/Codex-Recovery/content-studio-20261008/ruff-017-20261012/bin/ruff.exe' format --check backend/src/newsflow/services/editorial_history.py backend/tests/test_editorial_history.py
+# repository working directory; 25-review-compile.log: Compile amended service and tests PASS
+python -c "import py_compile; py_compile.compile('backend/src/newsflow/services/editorial_history.py',doraise=True); py_compile.compile('backend/tests/test_editorial_history.py',doraise=True); print('Compile amended service and tests PASS')"
+# repository working directory; 26-review-diff-check.log: no whitespace errors, only existing LF-to-CRLF notices
+git diff --check -- backend/src/newsflow/services/editorial_history.py backend/tests/test_editorial_history.py
+```
+
+Root's targeted strict Windows PostgreSQL gate terminated native exit 0:
+`10 passed, 78 deselected in 7.27s`, no skips or warnings, Telethon 1.45.0. The
+resuming writer directly inspected the raw log and rechecked both frozen hashes
+unchanged after the terminal result. Root independently verified pre/post hashes
+too. Exact parent-reported pytest arguments, root repository working directory
+with the same pre-import Telethon insertion/assertion:
+
+```python
+pytest.main(['backend/tests/test_editorial_history.py', '-q', '-rs', '-k', 'terminal_receipt', '--basetemp', 'D:/Codex-Recovery/content-studio-20261008/editorial-history-fix1-root-pg-fc4e10c2abda49279a0fa03481fc0961/tmp/pytest', '-o', 'cache_dir=D:/Codex-Recovery/content-studio-20261008/editorial-history-fix1-root-pg-fc4e10c2abda49279a0fa03481fc0961/tmp/cache'])
+```
+
+Root restored the process-local synthetic PostgreSQL URL/TMP/TEMP settings
+finally. Only 10 fresh UUID test schemas were added to the retained namespace
+baseline (`1775 / maxOID1363793` -> `1785 / maxOID1372163`). Native exit 0 is root
+terminal tool evidence; raw log contains clean pytest output. Log path:
+`D:/Codex-Recovery/content-studio-20261008/editorial-history-fix1-root-pg-fc4e10c2abda49279a0fa03481fc0961/native.log`,
+SHA256 `4B1D82954578B40896DE0263A8548F5D35F7E39BB2628F719D5ED794D1CE6ACD`.
+
+Fix RED log 21 SHA256:
+`0BC63CE94D7B68067C8CA8B06294DE37802B4581E48AB2F50B73E04472F0B073`.
+Covering GREEN log 22 SHA256 (also independently checked by root):
+`CE01124F0C6F3F93C9481A5A5A2AE2667DC4AE4727DC55DB8B53E1F8DC64433B`.
+
+Fix status: DONE. Both fix gates are terminal and successful; a final scoped
+`git diff --check` including this report returned native exit 0, with only existing
+LF-to-CRLF notices. Commit includes exactly the service, tests and appended report,
+subject `fix(editorial): validate terminal diagnostic receipts`; its SHA is reported
+separately. A fresh independent scoped re-review follows. No unresolved fix concerns.
+
+No new feature, transport, permission, currentness inference,
+operational SQL, schema change, dependency change, helper or real qualification
+was introduced. Self-review matched the narrow fix to runner terminal transitions
+and retained receipt-less/late-history controls.
