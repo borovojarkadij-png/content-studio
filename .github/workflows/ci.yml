@@ -36,6 +36,8 @@ jobs:
           retention-days: 14
       - name: Lint protected illustration browser fixture
         run: python -m ruff check ../scripts/ui_illustration_fixture_api.py
+      - name: Lint protected editorial browser fixture
+        run: python -m ruff check ../scripts/ui_editorial_fixture_api.py
       - name: Compile
         run: python -m compileall -q src tests
       - name: Validate migrations
@@ -79,6 +81,16 @@ jobs:
         run: npm run test:e2e
       - name: Protected illustration reviewer browser flow
         run: npx playwright test --config=playwright.illustration.config.ts
+      - name: Protected editorial settings browser flow
+        run: npx playwright test --config=playwright.editorial.config.ts
+      - name: Upload editorial settings evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: editorial-policy-ui
+          path: .artifacts/editorial-policy-ui
+          include-hidden-files: true
+          retention-days: 14
       - name: Upload illustration reviewer evidence
         if: always()
         uses: actions/upload-artifact@v4
