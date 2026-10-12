@@ -168,6 +168,11 @@ class _Evidence(BaseModel):
     entity_findings: list[_Finding] = Field(max_length=64)
 
 
+def editorial_evidence_schema() -> dict:
+    """Return a fresh strict schema from the authoritative evidence definition."""
+    return _Evidence.model_json_schema()
+
+
 class _EvidenceError(ValueError):
     """Internal exception carrying only a stable, non-source reason code."""
 
