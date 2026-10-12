@@ -313,3 +313,185 @@ Remaining: controller's independent immutable source review; then controller-onl
 actual synthetic Windows backup/newDB restore, row comparison and read-only Alembic
 drift/native status/hash checks; then exact final CI/release evidence. This report
 does not substitute synthetic byte replay for any of those acceptance gates.
+
+## Fix round 1 — archive-list early input closure
+
+FIX_BASE: `ad06bf0a278f3b9a1b54daf0c000eb44a627f9b5`.
+Review read completely: `task-1-review.md`. The one Important finding is confirmed:
+pg_restore list consumes the archive header/TOC rather than all data, while the
+original fake always drained stdin. Previous77-case coverage therefore did not
+exercise this lifecycle. The previous self-review statement that no source defect
+was observed is superseded by this finding and correction.
+
+Only the shared helper, its existing contract test file, and this report changed.
+The controller explicitly deferred the Minor post-copy text allocation limit;
+this fix does not expand into that separate concern. Future Windows CI task2 is
+also outside this source writer's scope. No other suite, Docker, provider, auth,
+network, root-owned source/document, or operator fixture action occurred.
+
+### Causal RED and root-cause evidence
+
+Added a real native fake mode that reads exactly one byte from stdin then exits0,
+plus a16MiB data tail larger than OS pipe buffers. Both actual entrypoints were
+invoked with their valid explicit interface. Before editing production code:
+
+```powershell
+$env:PYTHONPATH='D:/Codex-Recovery/content-studio-20261008/telethon-145'
+if(Test-Path -LiteralPath 'D:/Codex-Recovery/content-studio-20261008/backup-restore-task1-fix1-red-20261013-01'){throw 'Evidence path exists'}
+python -m pytest tests/test_windows_backup_restore.py -q -p no:cacheprovider -k list_prefix_early_zero --basetemp 'D:/Codex-Recovery/content-studio-20261008/backup-restore-task1-fix1-red-20261013-01'
+[Console]::WriteLine('pytest_exit='+$LASTEXITCODE)
+```
+
+Output: `2 failed, 81 deselected in 1.41s`, `pytest_exit=1`. Backup's native receipts
+were inspect0/psql0/pg_dump0/list0, prefix `P`, but PowerShell returned1 and retained
+the full new archive without a manifest. Restore's receipts were inspect0/psql0/
+list0, prefix `P`, but PowerShell returned1 before database creation. The initial
+restore assertion checked the missing copy marker before the return code; moved
+that postcondition after the causal native/entrypoint-exit assertion and repeated:
+
+```powershell
+python -m pytest tests/test_windows_backup_restore.py -q -p no:cacheprovider -k list_prefix_early_zero
+[Console]::WriteLine('pytest_exit='+$LASTEXITCODE)
+```
+
+Both cases then failed the same causal assertion, `assert result.returncode == 0`,
+actual1 despite prefix `P` and native list0:
+
+```text
+FAILED test_list_prefix_early_zero_accepts_large_archive[backup]
+  BACKUP_FAILED: validation or native command failed; retain partial evidence.
+  assert 1 == 0
+FAILED test_list_prefix_early_zero_accepts_large_archive[restore]
+  RESTORE_FAILED: validation or native command failed; retain any partial copy.
+  assert 1 == 0
+2 failed, 81 deselected in 1.40s
+pytest_exit=1
+```
+
+A synthetic-only in-memory diagnostic replaced only the helper's input await with
+a try/catch that printed exception type/HResult before rethrowing. It used the
+retained fake and archive from RED, with no source edit or real Docker. Observed:
+
+```text
+System.IO.IOException HResult=-2147024787 message=Канал был закрыт.
+native command failed
+```
+
+This is Windows HRESULT0x8007006D, ERROR_BROKEN_PIPE109. The diagnostic appended
+a second native list0 receipt to the retained restore RED fixture. Both failure
+fixtures and their exact argv, archives, prefix, native and entrypoint receipts
+remain at the RED path; no evidence cleanup/deletion.
+
+### Minimal lifecycle correction
+
+The helper now retains input-copy/close faults independently, waits for the owned
+native process within the original remaining deadline, captures its actual exit,
+and drains stdout/stderr. Native nonzero and output-drain failures still fail.
+Only `Assert-PostgresArchive` enables the new private `AllowEarlyInputClose` option.
+After native exit0, it permits only IOException Windows closed-pipe errors109/232/
+233, with no elapsed cancellation. Other I/O errors and cancellation remain errors.
+Restore does not enable the option: a native restore exiting0 after reading a
+prefix still returns failure and retains its newly created partial copy.
+
+The final native fixture also explicitly closes its stdin handle after the one
+byte. Its close-then-sleep mode proves the expected input error does not bypass
+waiting for successful native completion or the deadline. Only its owned process
+is terminated on timeout; the existing unrelated-process test remains unchanged.
+
+### GREEN and verification
+
+Focused GREEN command:
+
+```powershell
+python -m pytest tests/test_windows_backup_restore.py -q -p no:cacheprovider -k 'list_prefix or restore_prefix' --basetemp 'D:/Codex-Recovery/content-studio-20261008/backup-restore-task1-fix1-green-20261013-01'
+[Console]::WriteLine('pytest_exit='+$LASTEXITCODE)
+```
+
+Output: `6 passed, 77 deselected in 5.04s`, `pytest_exit=0`.
+
+Final complete covering file command (same explicit Telethon1.45 path):
+
+```powershell
+if(Test-Path -LiteralPath 'D:/Codex-Recovery/content-studio-20261008/backup-restore-task1-fix1-final-20261013-01'){throw 'Evidence path exists'}
+python -m pytest tests/test_windows_backup_restore.py -q -p no:cacheprovider -rs --basetemp 'D:/Codex-Recovery/content-studio-20261008/backup-restore-task1-fix1-final-20261013-01'
+[Console]::WriteLine('pytest_exit='+$LASTEXITCODE)
+```
+
+Final covering result:
+
+```text
+........................................................................ [ 86%]
+........... [100%]
+83 passed in 33.77s
+pytest_exit=0
+```
+
+Zero failures/skips. Read final retained native/entrypoint receipts directly:
+
+```text
+list early0 backup: inspect0 psql0 pg_dump0 list0; script0 BACKUP_OK
+list early0 restore: inspect0 psql0 list0 psql0 createdb0 pg_restore0;
+                     script0 RESTORE_OK: new database copy created.
+list early23 backup: inspect0 psql0 pg_dump0 list23; script1, no manifest
+list early23 restore: inspect0 psql0 list23; script1, no database creation
+restore early0: inspect0 psql0 list0 psql0 createdb0 pg_restore0;
+                script1, retained created-copy marker, no restored marker
+list close-then-sleep: inspect0 psql0; script1, no creation;
+                      owned_pid=11280 running=False, no timeout-escaped marker
+all six prefix files: exactly one byte, hexadecimal50 (ASCII P)
+```
+
+Success stderr and failure stdout were empty. Failures printed only the fixed
+public error; synthetic private stderr did not leak. Final full-file evidence
+directory remains untouched for scoped re-review.
+
+Static commands were the same explicit Ruff0.17 check/format --check, py_compile,
+all-three-script PowerShell parser loop, and scoped git diff --check recorded above,
+with the two changed source paths supplied to diff. Output:
+
+```text
+All checks passed!
+ruff_check_exit=0
+1 file already formatted
+ruff_format_exit=0
+py_compile_exit=0
+scripts/backup.ps1 parser_errors=0
+scripts/restore.ps1 parser_errors=0
+scripts/postgres-backup-common.ps1 parser_errors=0
+diff_check_exit=0
+```
+
+Ruff format was applied to the test additions before those final checks. No new
+lint/parser/compile errors. Git's known autocrlf informational notices remain.
+
+The six added native cases cover successful prefix-only list for both entrypoints,
+prefix-only list exit23 for both entrypoints, prefix-only restore exit0 remaining
+strict, and list closing stdin then sleeping beyond the deadline. Assertions cover
+full source/archive bytes, SHA, creation gates, retained failure copies, exact
+public output/no private stderr, and owned PID absence. This is83 Windows cases,
+with the same explicit non-Windows skip policy; no CI consumer change here.
+
+### Fix freeze, self-review and handoff
+
+New frozen working-file SHA256 values:
+
+```text
+scripts/backup.ps1 8cbbab19b20fe19d9c207507c796124b0e91a3d6c3d7df18be4f5aeee2c5eb65
+scripts/restore.ps1 acf8c5bd529bfcf4d9a92e903c2c9b05796bf256993a38a5f79d1f256e967a17
+scripts/postgres-backup-common.ps1 427e7a147a8b1062c5ebea3cbb49d44ff95a597509554e2324794f4be27bf40f
+backend/tests/test_windows_backup_restore.py 47c0ed72db7c90a0393783ad5e04458c047395d8357e492a961f6e17efcf341e
+docs/BACKUP_RESTORE.md ab257b497603bd7704d6173616aace03e86e7330fcc0c941da2c919d811df5d6
+```
+
+Source fix commit: `e547e711fda45c1b95f74049cd5486c507d557e1`
+(`fix: accept successful archive list closing input early`).
+Report is committed separately to name that immutable source fix.
+
+Self-review read the complete scoped source/test diff, verified the exception
+allowance is enabled only at archive listing, actual native exit is captured
+separately, closed-pipe HRESULTs are filtered, timeout/source/output failures cannot
+be accepted, and restore remains strict and create-only. Native fixture explicitly
+closes the OS stdin handle, consumes only1byte, and supplies16MiB+32 archive bytes.
+No unrelated changes or scope expansion. Deferred Minor memory-allocation concern
+remains recorded by the controller. Fresh independent scoped review, actual Docker
+copy/drift gate, and CI consumer/release gates remain controller-owned and unclaimed.
