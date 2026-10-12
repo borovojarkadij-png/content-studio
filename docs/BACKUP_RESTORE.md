@@ -144,7 +144,25 @@ schema downgrade or older application is not automatically a safe rollback:
 preserve a known compatible application/schema/key/media set and confirm downgrade
 support explicitly before relying on it.
 
-The automated contract tests use a native synthetic Docker executable and actual
-Windows PowerShell subprocesses. They never access Docker, providers, credentials,
-or live data. Windows runtime recovery, release checks, and production recovery
-acceptance require their own recorded evidence.
+## Continuous verification
+
+The GitHub Actions `windows-backup-contracts` job, **Windows PostgreSQL backup
+contracts**, runs the actual entrypoints on `windows-latest` with PowerShell 7,
+Python 3.12, and the Windows native C# compiler. It runs
+`backend/tests/test_windows_backup_restore.py` once within a ten-minute job budget.
+Missing native prerequisites, native contract failures, and a JUnit report with
+zero executed contracts fail the job; an all-skipped run is not acceptance.
+
+The contracts use a compiled synthetic Docker executable and actual PowerShell
+subprocesses. They never access Docker Desktop, providers, credentials, or live
+data. Each run creates a new `.artifacts/windows-backup-contracts` evidence
+directory containing only synthetic fixtures, command arguments, native receipts,
+terminal output (`pytest.log`), and JUnit (`junit.xml`). The job attempts to upload
+that directory even on failure as `windows-backup-contracts`, retained for 14 days.
+The artifact does not include general workspace or environment contents.
+
+A passing hosted contract job proves the native boundary contracts against the
+synthetic executable. Windows Docker Desktop archive/restore into a new isolated
+database, exact SQL/ciphertext checks, original-key decryption, migration drift
+checks, and live operational acceptance require their own recorded evidence.
+Release and production recovery acceptance remain separate decisions.

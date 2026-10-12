@@ -9,6 +9,50 @@ permissions:
   contents: read
 
 jobs:
+  windows-backup-contracts:
+    name: Windows PostgreSQL backup contracts
+    runs-on: windows-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        shell: pwsh
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Require native Windows contract prerequisites
+        run: |
+          if ($PSVersionTable.PSVersion.Major -lt 7) { throw 'PowerShell 7 or newer is required.' }
+          $taskCompiler = Join-Path $env:WINDIR 'Microsoft.NET/Framework64/v4.0.30319/csc.exe'
+          if (-not (Test-Path -LiteralPath $taskCompiler -PathType Leaf)) { throw 'Windows native C# compiler is required.' }
+      - name: Install backend test dependencies
+        run: python -m pip install -e ".[dev]"
+      - name: Run native backup and restore contracts once
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $false
+          $taskEvidence = '../.artifacts/windows-backup-contracts'
+          if (Test-Path -LiteralPath $taskEvidence) { throw 'Contract evidence destination must be new.' }
+          New-Item -ItemType Directory -Path $taskEvidence | Out-Null
+          python -m pytest tests/test_windows_backup_restore.py -q -rs --junitxml=../.artifacts/windows-backup-contracts/junit.xml --basetemp=../.artifacts/windows-backup-contracts/fixtures 2>&1 | Tee-Object -FilePath "$taskEvidence/pytest.log"
+          $taskTestExit = $LASTEXITCODE
+          if ($taskTestExit -ne 0) { exit $taskTestExit }
+          [xml]$taskReport = Get-Content -LiteralPath '../.artifacts/windows-backup-contracts/junit.xml' -Raw
+          $taskCases = @($taskReport.SelectNodes('//testcase'))
+          $taskExecuted = @($taskCases | Where-Object { $null -eq $_.SelectSingleNode('skipped') })
+          if ($taskExecuted.Count -eq 0) { throw 'No Windows native contracts executed.' }
+          Write-Output "Windows native contracts executed: $($taskExecuted.Count)/$($taskCases.Count)"
+      - name: Upload synthetic Windows contract evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-backup-contracts
+          path: .artifacts/windows-backup-contracts
+          include-hidden-files: true
+          retention-days: 14
+
   backend:
     name: Backend quality gate
     runs-on: ubuntu-latest
