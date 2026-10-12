@@ -1,0 +1,12 @@
+# Explicit opt-in API-only persistent operator credential. Never auto-provisioned.
+services:
+  api:
+    environment:
+      NEWSFLOW_EDITORIAL_OPERATOR_SECRET_FILE: /run/secrets/editorial_operator
+      NEWSFLOW_EDITORIAL_OPERATOR_ID: ${NEWSFLOW_EDITORIAL_OPERATOR_ID:?configure an explicit positive single-human operator identity}
+    secrets:
+      - editorial_operator
+
+secrets:
+  editorial_operator:
+    file: ${NEWSFLOW_EDITORIAL_OPERATOR_SECRET_SOURCE:?provision a separate existing persistent operator secret outside Git}
