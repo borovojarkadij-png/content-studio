@@ -27,6 +27,10 @@ using System.Text;
 using System.Threading;
 using System.Web.Script.Serialization;
 class FakeDocker {
+    [System.Runtime.InteropServices.DllImport("kernel32.dll")]
+    static extern IntPtr GetStdHandle(int n);
+    [System.Runtime.InteropServices.DllImport("kernel32.dll")]
+    static extern bool CloseHandle(IntPtr handle);
     static int Main(string[] args) {
         var json = new JavaScriptSerializer();
         string dir = Environment.GetEnvironmentVariable("BACKUP_FAKE_DIR");
@@ -37,6 +41,22 @@ class FakeDocker {
         foreach(var a in args) if(a=="inspect" || a=="pg_dump" || a=="pg_restore" ||
             a=="createdb" || a=="psql") { command=a; break; }
         if(command=="pg_restore" && Array.IndexOf(args,"--list")>=0) command="list";
+        if(cfg.ContainsKey("early") && (string)cfg["early"]==command) {
+            int prefix=Console.OpenStandardInput().ReadByte();
+            File.WriteAllBytes(Path.Combine(dir,command+".prefix"),new byte[]{(byte)prefix});
+            CloseHandle(GetStdHandle(-10));
+            if(cfg.ContainsKey("early_sleep") && (bool)cfg["early_sleep"]) {
+                File.WriteAllText(Path.Combine(dir,"sleep.pid"),
+                    System.Diagnostics.Process.GetCurrentProcess().Id.ToString());
+                Thread.Sleep(30000);
+                File.WriteAllText(Path.Combine(dir,"timeout-escaped"),"bad");
+            }
+            int code=cfg.ContainsKey("early_code") ? Convert.ToInt32(cfg["early_code"]) : 0;
+            if(code!=0) Console.Error.Write("PRIVATE_DIAGNOSTIC_NEVER_PRINT");
+            if(command=="list") Console.Out.Write("; synthetic TOC\n");
+            File.AppendAllText(Path.Combine(dir,"receipts.jsonl"),command+" exit="+code+"\n");
+            return code;
+        }
         if(cfg.ContainsKey("sleep") && (string)cfg["sleep"]==command) {
             File.WriteAllText(Path.Combine(dir,"sleep.pid"),
                 System.Diagnostics.Process.GetCurrentProcess().Id.ToString());
@@ -55,6 +75,10 @@ class FakeDocker {
         else if(command=="pg_dump") {
             var b=Convert.FromBase64String((string)cfg["archive"]);
             Console.OpenStandardOutput().Write(b,0,b.Length);
+            if(cfg.ContainsKey("large_dump") && (bool)cfg["large_dump"]) {
+                var tail=new byte[16*1024*1024];
+                Console.OpenStandardOutput().Write(tail,0,tail.Length);
+            }
         }
         else if(command=="list" || command=="pg_restore") {
             using(var m=new MemoryStream()) {
@@ -690,3 +714,98 @@ def test_bundle_reparse_file_refused_where_supported(tmp_path, fake, name):
     assert result.returncode != 0
     assert trace(tmp_path) == []
     assert retained.read_bytes() == before
+
+
+def large_bundle(tmp_path):
+    source = bundle(tmp_path)
+    data = ARCHIVE + b"\x00" * (16 * 1024 * 1024)
+    (source / "database.dump").write_bytes(data)
+    manifest_path = source / "manifest.json"
+    manifest = json.loads(manifest_path.read_text())
+    manifest.update(byteLength=len(data), sha256=hashlib.sha256(data).hexdigest())
+    manifest_path.write_text(json.dumps(manifest))
+    return source, data
+
+
+@pytest.mark.parametrize("operation", ["backup", "restore"])
+def test_list_prefix_early_zero_accepts_large_archive(tmp_path, fake, operation):
+    cfg, run = fake
+    cfg["early"] = "list"
+    if operation == "backup":
+        cfg["large_dump"] = True
+        source = tmp_path / "new"
+        result = backup(run, source)
+        data = ARCHIVE + b"\x00" * (16 * 1024 * 1024)
+    else:
+        source, data = large_bundle(tmp_path)
+        result = restore(run, source)
+    assert (tmp_path / "list.prefix").read_bytes() == b"P"
+    assert "list exit=0" in (tmp_path / "receipts.jsonl").read_text()
+    assert result.returncode == 0, result.stdout + result.stderr
+    if operation == "restore":
+        assert (tmp_path / "created").read_text() == "copy"
+        assert (tmp_path / "pg_restore.input").read_bytes() == data
+    assert (source / "database.dump").read_bytes() == data
+    assert (
+        json.loads((source / "manifest.json").read_text())["sha256"]
+        == hashlib.sha256(data).hexdigest()
+    )
+
+
+@pytest.mark.parametrize("operation", ["backup", "restore"])
+def test_list_prefix_early_nonzero_rejects_large_archive(tmp_path, fake, operation):
+    cfg, run = fake
+    cfg.update(early="list", early_code=23)
+    if operation == "backup":
+        cfg["large_dump"] = True
+        source = tmp_path / "new"
+        result = backup(run, source)
+        assert not (source / "manifest.json").exists()
+    else:
+        source, data = large_bundle(tmp_path)
+        result = restore(run, source)
+        assert_no_creation(tmp_path)
+        assert (source / "database.dump").read_bytes() == data
+    assert (tmp_path / "list.prefix").read_bytes() == b"P"
+    assert "list exit=23" in (tmp_path / "receipts.jsonl").read_text()
+    assert result.returncode != 0
+
+
+def test_restore_prefix_early_zero_remains_input_strict_and_retains_copy(tmp_path, fake):
+    cfg, run = fake
+    cfg["early"] = "pg_restore"
+    source, data = large_bundle(tmp_path)
+    result = restore(run, source)
+    assert (tmp_path / "pg_restore.prefix").read_bytes() == b"P"
+    assert "pg_restore exit=0" in (tmp_path / "receipts.jsonl").read_text()
+    assert result.returncode != 0
+    assert (tmp_path / "created").read_text() == "copy"
+    assert not (tmp_path / "restored").exists()
+    assert (source / "database.dump").read_bytes() == data
+
+
+def test_list_prefix_does_not_bypass_deadline_or_creation_gate(tmp_path, fake):
+    cfg, run = fake
+    cfg.update(early="list", early_sleep=True)
+    source, data = large_bundle(tmp_path)
+    start = time.monotonic()
+    result = restore(run, source, TimeoutSeconds=1)
+    assert time.monotonic() - start < 8
+    assert result.returncode != 0
+    assert (tmp_path / "list.prefix").read_bytes() == b"P"
+    assert_no_creation(tmp_path)
+    assert (source / "database.dump").read_bytes() == data
+    pid = int((tmp_path / "sleep.pid").read_text())
+    check = subprocess.run(
+        [
+            "pwsh",
+            "-NoProfile",
+            "-Command",
+            f"if (Get-Process -Id {pid} -ErrorAction SilentlyContinue) {{ exit 1 }}",
+        ],
+        capture_output=True,
+        timeout=10,
+        check=False,
+    )
+    assert check.returncode == 0
+    assert not (tmp_path / "timeout-escaped").exists()

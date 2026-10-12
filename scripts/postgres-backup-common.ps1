@@ -33,7 +33,8 @@ function Get-BackupPath([string]$Path) {
 }
 
 function Invoke-BackupNative([string[]]$Arguments, [int]$TimeoutSeconds,
-    [IO.Stream]$InputStream, [IO.Stream]$OutputStream = [IO.Stream]::Null) {
+    [IO.Stream]$InputStream, [IO.Stream]$OutputStream = [IO.Stream]::Null,
+    [switch]$AllowEarlyInputClose) {
     $processInfo = [Diagnostics.ProcessStartInfo]::new()
     $processInfo.FileName = (Get-Command docker -CommandType Application -ErrorAction Stop |
         Select-Object -First 1).Source
@@ -54,16 +55,31 @@ function Invoke-BackupNative([string[]]$Arguments, [int]$TimeoutSeconds,
         # Drain concurrently; native diagnostics never become public errors.
         $outTask = $process.StandardOutput.BaseStream.CopyToAsync($OutputStream, 81920, $deadline.Token)
         $errTask = $process.StandardError.BaseStream.CopyToAsync([IO.Stream]::Null, 81920, $deadline.Token)
+        $inputFailure = $null
         if ($null -ne $InputStream) {
             $inTask = $InputStream.CopyToAsync($process.StandardInput.BaseStream, 81920, $deadline.Token)
-            [void]$inTask.GetAwaiter().GetResult()
+            try { [void]$inTask.GetAwaiter().GetResult() }
+            catch { $inputFailure = $_.Exception.GetBaseException() }
         }
-        $process.StandardInput.Close()
+        try { $process.StandardInput.Close() }
+        catch {
+            if ($null -eq $inputFailure) { $inputFailure = $_.Exception.GetBaseException() }
+        }
         $remaining = [Math]::Max(0, $TimeoutSeconds * 1000 - [int]$clock.ElapsedMilliseconds)
         if (-not $process.WaitForExit($remaining)) { throw 'timeout' }
+        $nativeExit = $process.ExitCode
         $tasks = [Threading.Tasks.Task[]]@($outTask, $errTask)
         [void][Threading.Tasks.Task]::WhenAll($tasks).GetAwaiter().GetResult()
-        if ($process.ExitCode -ne 0) { throw 'native exit' }
+        if ($nativeExit -ne 0) { throw 'native exit' }
+        if ($null -ne $inputFailure) {
+            # pg_restore --list reads only header/TOC. Accept only Windows closed-pipe
+            # errors after its native success, never cancellation or a source read error.
+            $closedPipe = $inputFailure -is [IO.IOException] -and
+                $inputFailure.HResult -in @(-2147024787, -2147024664, -2147024663) # 109/232/233
+            if (-not $AllowEarlyInputClose -or -not $closedPipe -or $deadline.IsCancellationRequested) {
+                throw 'input failed'
+            }
+        }
     } catch {
         if ($started -and -not $process.HasExited) {
             $process.Kill() # This handle only, never a process tree or container.
@@ -127,7 +143,7 @@ function Assert-PostgresArchive([string]$ContainerId, [IO.Stream]$Archive, [int]
     }
     $Archive.Position = 0
     Invoke-BackupNative @('exec', '-i', $ContainerId, 'pg_restore', '--list') `
-        $TimeoutSeconds -InputStream $Archive
+        $TimeoutSeconds -InputStream $Archive -AllowEarlyInputClose
 }
 
 function Read-BackupManifest([string]$SourcePath) {
