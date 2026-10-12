@@ -1,11 +1,15 @@
 """Default-disabled single human authentication; never creates a credential."""
 
-import hmac
 import os
 import re
-import stat
 from dataclasses import dataclass
-from pathlib import Path
+
+from newsflow.security.bounded_bearer import (
+    BearerFileUnavailable,
+    BearerHeaderUnauthorized,
+    read_bearer_file,
+    require_bearer,
+)
 
 
 class ReviewerUnavailable(RuntimeError):
@@ -35,39 +39,12 @@ def authenticate_reviewer(authorization: str | None) -> ReviewerPrincipal:
         if not configured or not re.fullmatch(r"[1-9][0-9]{0,18}", identity):
             raise ValueError
         principal = ReviewerPrincipal(int(identity))
-        path = Path(configured)
         master = os.getenv("NEWSFLOW_MASTER_KEY_FILE", "").strip()
-        if master and (
-            path.resolve() == Path(master).resolve()
-            or (Path(master).exists() and os.path.samefile(path, master))
-        ):
-            raise ValueError
-        before = path.lstat()
-        if (
-            not stat.S_ISREG(before.st_mode)
-            or before.st_size > 130
-            or getattr(before, "st_file_attributes", 0) & 0x400  # Windows reparse point
-        ):
-            raise ValueError
-        flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_BINARY", 0)
-        with os.fdopen(os.open(path, flags), "rb") as stream:
-            opened = os.fstat(stream.fileno())
-            if not stat.S_ISREG(opened.st_mode) or (before.st_dev, before.st_ino) != (
-                opened.st_dev,
-                opened.st_ino,
-            ):
-                raise ValueError
-            token = stream.read(131)
-        if token.endswith(b"\n"):
-            token = token[:-1]
-        if not re.fullmatch(rb"[A-Za-z0-9_-]{32,128}", token):
-            raise ValueError
-    except (OSError, ValueError, OverflowError):
+        token = read_bearer_file(configured, forbidden_paths=(master,) if master else ())
+    except (BearerFileUnavailable, ValueError, OverflowError):
         raise ReviewerUnavailable("Illustration reviewer authentication unavailable") from None
-    if (
-        type(authorization) is not str
-        or not re.fullmatch(r"Bearer [A-Za-z0-9_-]{32,128}", authorization)
-        or not hmac.compare_digest(authorization[7:].encode("ascii"), token)
-    ):
-        raise ReviewerUnauthorized("Illustration reviewer authentication required")
+    try:
+        require_bearer(authorization, token)
+    except BearerHeaderUnauthorized:
+        raise ReviewerUnauthorized("Illustration reviewer authentication required") from None
     return principal
