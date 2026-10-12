@@ -20,6 +20,7 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
+    false,
     func,
     text,
 )
@@ -610,6 +611,7 @@ class MappingContentFingerprintModel(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     mapping_id: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
     fingerprint: Mapped[str] = mapped_column(String(64), nullable=False)
+    content_key: Mapped[str | None] = mapped_column(String(255), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
@@ -635,6 +637,120 @@ class EditorialDecisionModel(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
+
+
+def _editorial_digest_check(column: str) -> str:
+    remaining = column
+    for character in "0123456789abcdef":
+        remaining = f"replace({remaining}, '{character}', '')"
+    return f"length({column}) = 64 AND {remaining} = ''"
+
+
+class EditorialClassifierPolicyModel(Base):
+    """Explicit diagnostic policy; absence and disabled rows grant no work."""
+
+    __tablename__ = "editorial_classifier_policy"
+    __table_args__ = (
+        CheckConstraint("id = 1", name="ck_editorial_policy_singleton"),
+        CheckConstraint(
+            "provider IN ('OPENAI', 'OPENROUTER')", name="ck_editorial_policy_provider"
+        ),
+        CheckConstraint(
+            "length(model) BETWEEN 1 AND 255 AND length(trim(model)) > 0",
+            name="ck_editorial_policy_model",
+        ),
+        CheckConstraint(
+            "length(policy_version) BETWEEN 1 AND 255 AND length(trim(policy_version)) > 0",
+            name="ck_editorial_policy_version",
+        ),
+    )
+    id: Mapped[int] = mapped_column(primary_key=True)
+    enabled: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default=false()
+    )
+    provider: Mapped[str] = mapped_column(String(16), nullable=False)
+    model: Mapped[str] = mapped_column(String(255), nullable=False)
+    policy_version: Mapped[str] = mapped_column(String(255), nullable=False)
+    protected_entities: Mapped[list[dict]] = mapped_column(JSON, nullable=False)
+
+
+class EditorialClassificationJobModel(Base):
+    """Immutable diagnostic binding, independently mutable execution history."""
+
+    __tablename__ = "editorial_classification_jobs"
+    __table_args__ = (
+        UniqueConstraint(
+            "source_revision_id",
+            "mapping_id",
+            "policy_sha256",
+            "mapping_sha256",
+            "provider",
+            "model",
+            "prompt_version",
+            name="uq_editorial_job_binding",
+        ),
+        CheckConstraint(
+            "state IN ('QUEUED', 'RUNNING', 'REVIEW', 'REJECT', 'BLOCKED', 'FAILED')",
+            name="ck_editorial_job_state",
+        ),
+        CheckConstraint("provider IN ('OPENAI', 'OPENROUTER')", name="ck_editorial_job_provider"),
+        CheckConstraint("attempts BETWEEN 0 AND 2", name="ck_editorial_job_attempts"),
+        CheckConstraint(
+            "(state = 'RUNNING' AND claim_token IS NOT NULL AND lease_expires_at IS NOT NULL) OR "
+            "(state <> 'RUNNING' AND claim_token IS NULL AND lease_expires_at IS NULL)",
+            name="ck_editorial_job_lease",
+        ),
+        CheckConstraint(
+            "length(content_key) BETWEEN 1 AND 255 AND length(trim(content_key)) > 0",
+            name="ck_editorial_job_content",
+        ),
+        CheckConstraint(
+            "length(model) BETWEEN 1 AND 255 AND length(trim(model)) > 0",
+            name="ck_editorial_job_model",
+        ),
+        CheckConstraint(
+            "length(prompt_version) BETWEEN 1 AND 64 AND length(trim(prompt_version)) > 0",
+            name="ck_editorial_job_prompt",
+        ),
+        CheckConstraint(
+            "claim_token IS NULL OR length(claim_token) = 36", name="ck_editorial_job_token"
+        ),
+        CheckConstraint(
+            "last_error_code IS NULL OR length(last_error_code) BETWEEN 1 AND 64",
+            name="ck_editorial_job_error",
+        ),
+        *(
+            CheckConstraint(_editorial_digest_check(column), name=f"ck_editorial_job_{column}")
+            for column in ("source_sha256", "policy_sha256", "mapping_sha256", "idempotency_key")
+        ),
+    )
+    id: Mapped[int] = mapped_column(primary_key=True)
+    content_key: Mapped[str] = mapped_column(String(255), nullable=False)
+    source_revision_id: Mapped[int] = mapped_column(
+        ForeignKey("incoming_post_revisions.id", ondelete="RESTRICT"), nullable=False
+    )
+    mapping_id: Mapped[int] = mapped_column(
+        ForeignKey("channel_mappings.id", ondelete="RESTRICT"), nullable=False
+    )
+    editorial_decision_id: Mapped[int] = mapped_column(
+        ForeignKey("editorial_decisions.id", ondelete="RESTRICT"), nullable=False
+    )
+    source_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    policy_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    mapping_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    prompt_version: Mapped[str] = mapped_column(String(64), nullable=False)
+    provider: Mapped[str] = mapped_column(String(16), nullable=False)
+    model: Mapped[str] = mapped_column(String(255), nullable=False)
+    idempotency_key: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
+    state: Mapped[str] = mapped_column(String(16), nullable=False)
+    attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
+    available_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    claim_token: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    lease_expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    last_error_code: Mapped[str | None] = mapped_column(String(64), nullable=True)
 
 
 class RewriteJobModel(Base):

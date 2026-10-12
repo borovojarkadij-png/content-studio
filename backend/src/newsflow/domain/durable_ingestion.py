@@ -30,6 +30,7 @@ from newsflow.persistence.models import (
     RewriteJobModel,
 )
 from newsflow.providers.telegram import TelegramMessage, validate_media_observation
+from newsflow.services.editorial_admission import enqueue_editorial_classification
 from newsflow.services.mapping_filters import mapping_filter
 from newsflow.services.source_revisions import source_identity_deleted, source_identity_sync_blocked
 
@@ -177,7 +178,7 @@ class DurableIngestionWorkflow:
                 )
                 return IngestionResult(False, source_key, status)
 
-            if not self._reserve_exact_content(event):
+            if not self._reserve_exact_content(event, content_key=content_key):
                 if observed_edit:
                     repository.set_state(event, "REJECTED_DUPLICATE")
                 return IngestionResult(False, source_key, "REJECTED_DUPLICATE")
@@ -196,6 +197,17 @@ class DurableIngestionWorkflow:
             if not editorial_allows_rewrite(decision):
                 status = self._blocked_status(decision)
                 repository.set_state(event, status)
+                if (
+                    status == "MANUAL_REVIEW"
+                    and type(self._configured_mapping_id) is int
+                    and self._configured_mapping_id > 0
+                ):
+                    enqueue_editorial_classification(
+                        self._session,
+                        content_key=content_key,
+                        mapping_id=self._configured_mapping_id,
+                        now=observed_at,
+                    )
                 return IngestionResult(persisted.created, source_key, status)
 
             job = editorial.create_rewrite_job(
@@ -231,7 +243,7 @@ class DurableIngestionWorkflow:
             return IngestionResult(False, source_key, self._blocked_status(decision))
         if self._technical_filter.output_channel_id is None:
             return IngestionResult(False, source_key, "REJECTED_DUPLICATE")
-        if not self._reserve_exact_content(event):
+        if not self._reserve_exact_content(event, content_key=content_key):
             return IngestionResult(False, source_key, "REJECTED_DUPLICATE")
         editorial = DurableEditorialService(self._session, self._editorial_gate)
         job = editorial.create_rewrite_job(
@@ -244,7 +256,7 @@ class DurableIngestionWorkflow:
         status = "REWRITE_QUEUED" if candidate_created else "REJECTED_DUPLICATE"
         return IngestionResult(candidate_created, source_key, status)
 
-    def _reserve_exact_content(self, event: TelegramMessage) -> bool:
+    def _reserve_exact_content(self, event: TelegramMessage, *, content_key: str) -> bool:
         """The same transactional cheap reservation gates both ingress and fan-out."""
         fingerprint = sha256(event.text.strip().casefold().encode("utf-8")).hexdigest()
         query = select(MappingContentFingerprintModel.id).where(
@@ -263,7 +275,11 @@ class DurableIngestionWorkflow:
         insert = postgres_insert if dialect == "postgresql" else sqlite_insert
         statement = (
             insert(MappingContentFingerprintModel)
-            .values(mapping_id=self._technical_filter.mapping_id, fingerprint=fingerprint)
+            .values(
+                mapping_id=self._technical_filter.mapping_id,
+                fingerprint=fingerprint,
+                content_key=content_key,
+            )
             .on_conflict_do_nothing(index_elements=["mapping_id", "fingerprint"])
             .returning(MappingContentFingerprintModel.id)
         )
