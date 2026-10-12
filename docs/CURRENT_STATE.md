@@ -1422,21 +1422,54 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: document/push accepted encrypted classifier worker
-af45deba6aaf6238a7d4901cca577184911d496d (BASE388cb3c), then document/push the
-reviewed candidate and track exact CI with corrected finite PG budget. Fresh
-/root/editorial_worker_review,gpt-6.1-sol/high,forknone/nohelpers reads complete
+NEXT_STEP: Root commit/push accepted diagnostic history documentation/reviews,
+track exact new-source CI, then dispatch prepared
+EDITORIAL_MODEL_EVALUATION_IMPLEMENTATION.md Task1 with its own recorded BASE.
+History Task1 BASE65ed7f22e3d8cefc760210bb391c96f9d38a4267 is COMPLETE through
+fae11e71d02027f8f33e80df62c5275ed83ffba7; do not redispatch it.
+Bounded readonly canonical SQL history + existing studio GET, no permission or
+UI changes. Own115-line brief/ledger/report. Root actualPG after writer freeze,
+one frozen backend suite then independent scoped review. Root tracks exact CI
+alongside work; no repeat old UI/Docker/full gates or operational activation.
+Exact predecessor CI38306240255/head65ed7f2 completed all9 SUCCESS: strictPG550+5,
+backend2565/11 explicit PG-only skips, full-stack1/4 deselected and both provider
+recovery families PASS. Actual benchmark artifact downloaded, synthetic only.
+Interrupted history-focused15 has no terminal proof; fresh resumed19 completed
+211PASS/5 PG-only skips/102.51s/native0. Four files frozen; sole full20 terminal
+2643PASS/11 explicit PG-only SKIP/583.01s/native0/no warnings, root actual log read.
+Root actual WindowsPG new-file gate completed after Desktop recovery.
+Linux Engine29.8.0 is actually responding; only validated retained synthetic PG
+started and completed interrupted-system recovery, not reseeded. Readiness PASS;
+retained1697 UUID namespaces/maxOID1294081 unchanged. Root strict new-file PG gate
+session99834 terminal78PASS/58.03s/native0/noSKIP; four frozen hashes unchanged.
+Only78 new UUID schemas, total1775/max1363793. Both gates terminal; root read
+final181-line report and exact five-file commitfbb4c6e through EOF. Complete
+BASE65ed..fbb independent review found one Important terminal FAILED/BLOCKED
+receipt/job coherence gap, spec issues/qualityNeedsFixes. Sole same writer now
+fix round1/5, FIX_BASEfbb4c6e; behavioralRED/covering new reader+runner, then
+root targeted actualPG and scoped re-review. Fixfae11e7 now committed: covering
+213PASS/5 inherited PG skips/native0, actual strictWindowsPG10PASS/noSKIP/native0,
+two amended hashes unchanged; only10 fresh schemas,total1785/max1372163. Scoped
+/root/editorial_history_review re-review accepted fbb..fae: findingADDRESSED,
+speccompliant/taskqualityApproved/no new findings. Original full2643
+remains original source proof, not amended-source proof; no duplicate full run. On acceptance
+rootdocuments/push/exactCI then dispatch prepared
+EDITORIAL_MODEL_EVALUATION_IMPLEMENTATION.md Task1. No operational stack activation.
+See EDITORIAL_DIAGNOSTIC_HISTORY_VERIFICATION_20261013.md.
+See DOCKER_STARTUP_RECOVERY_20261012.md follow-up.
+Predecessor accepted encrypted classifier worker af45deba6aaf6238a7d4901cca577184911d496d
+(BASE388cb3c), root evidence/review committed/pushed65ed7f2, native push0 and
+exact remote ref verified. Fresh /root/editorial_worker_review read complete
 BASE..HEAD package: spec compliant/qualityApproved/no findings. Root read full
 review and resolved native-provenance item with original evidence; exact CI
-remains a pending integration gate. Full45430 terminal2565PASS/11explicitPG-only
+38306240255/head65ed all9 SUCCESS as above. Full45430 terminal2565PASS/11explicitPG-only
 SKIP525.51s/native0/no warnings; covering439/5PG skips and behavioralRED retained.
 Root actual strict WindowsPG2newfiles97PASS55.81s/native0/no skips; all5 frozen
 hashes unchanged.63freshUUIDschemas only, total1697/maxOID1294081, env restored.
 Final report read EOF, seven-file commit verified. CI only timeout10->20 after
 full termination; no commands/checks removed. See
 EDITORIAL_CLASSIFIER_WORKER_VERIFICATION_20261012.md. History read-API plan/brief
-prepared, prerequisite independent worker review now accepted. Dispatch history
-after root documentation/commit/push, track corrected exact CI alongside it. No duplicate
+prepared and dispatched after root documentation/commit/push. No duplicate
 full/native gates. Root owns documentation, not frozen source. No worker/policy
 activation, real IO or automatic approval. Root owns actual WindowsPG/CI/state.
 Do not redispatch completed admission/adapter/executor or repeat their gates.

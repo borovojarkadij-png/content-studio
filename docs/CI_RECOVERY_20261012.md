@@ -212,12 +212,54 @@ Independent task review speccompliant/qualityApproved/no findings; root read
 complete report and resolved native-provenance item from original logs/hashes.
 Corrected exact-new-source CI remains pending.
 No local test or earlier artifact substitutes for that CI. No live activation.
+Reviewed source and root evidence/review committed/pushed at
+65ed7f22e3d8cefc760210bb391c96f9d38a4267. Native git push0 and independent exact
+remote ref verified, process-local owner credential restored without persistent
+authentication switch. Root tracks this new run while history writer proceeds.
+Exact run38306240255/head65ed7f2 completed SUCCESS in all9 jobs. Root downloaded
+actual native logs: strictPG115000865985 550PASS/577.47s and concurrency5PASS/8.07s;
+backend115000866311 2565PASS/11 explicit PG-only SKIP/615.59s, Ruff/compile and
+no-drift PASS. The measured finite20-minute correction passed; original canceled
+38304194927 remains canceled, not rewritten as success.
+Full-stack115000866038:1PASS/4 deliberate deselections/353.93s and packaged drift
+PASS. Both provider persistence families115000866229/115000866239 include pending,
+final and double-reopen publication PASS with explicit zero Telegram/AI calls.
+Other frontend/channel-sync/guarded-admission/illustration jobs also SUCCESS.
+Root separately downloaded artifact11772269923 into
+D:/Codex-Recovery/content-studio-20261008/editorial-contract-ci-38306240255/;
+report SHA256318DE43F3C8C0DE9501B324A31B14C3390E6AFE6470A6913571393A0B9896E45.
+Actual JSON asserts case_count24/matched_count24/mismatched_count0,
+provider/rewrite calls0 and qualificationfalse; it remains synthetic-only. No
+real-model accuracy or operational acceptance is inferred. Native logs retained
+under D:/Codex-Recovery/content-studio-20261008/editorial-worker-ci-38306240255/:
+postgres-job.log SHA256198E9BC6905920936D88D996FCF5A2CA6E078EE3C02D3BA14C2EB2566DC39E83;
+backend-job.log SHA256DF2815941D6806B275A1C555CFF72C1BB76D423D801175E71D370598C1F7408A;
+fullstack-job.log SHA256C0C39A4C754B76828EDE8FF8555576F1691689724E25F2F94328613554CFEC8A;
+openai-job.log SHA256DB35F36234B1727428DCB872A3DBFA472A2589AC425F3848320BB530F48515B4;
+openrouter-job.log SHA256F7336016ABB663E14904F55B0BB6581C82D623FF61C8FEA52AACD37ED5863B72.
+This exact SHA does not include the subsequent uncommitted history-reader task.
+
+## Subsequent retained diagnostic history — accepted locally October13
+
+Source fbb4c6e plus fixfae11e7 independently accepted after one terminal-receipt
+coherence finding. Original frozen full2643PASS/11 explicitPG-only skips/native0;
+root actualWindowsPG78PASS/noSKIP. Fix original RED4FAIL/6positivePASS, covering
+213PASS/5 inheritedPGskips and rootactualPG10PASS/noSKIP/native0; two amended
+hashes unchanged. Scoped re-review findingADDRESSED/speccompliant/qualityApproved,
+no new findings. Original full is not amended-byte proof; exact new-source CI
+must pass separately. Source/reviews/rootdocs are ready to commit/push; remote
+new-source run not yet assigned. No live calls, operational changes or UI edits.
+See EDITORIAL_DIAGNOSTIC_HISTORY_VERIFICATION_20261013.md.
 
 ## Current Windows runtime boundary
 
-Fresh root check: real Linux Engine29.8.0 responds; retained20261009c API,
-PostgreSQL, Redis and production web healthy, other worker/dev-web running.
-Actual HTTP18239/healthz and18339/healthz return newsflow-api/statusok.
+Earlier retained20261009c HTTP/health/reopen checks passed as recorded below;
+they are not the current post-Desktop-recovery container state. Latest resume
+restored actual Linux Engine29.8.0 after the recurring runtime-socket failure.
+Only exact owned synthetic unattended PostgreSQL was started, completed normal
+interrupted-system fsync/recovery and accepts connections. Retained1697 UUID
+namespaces/maxOID1294081 exactly match the pre-stop baseline. No current API
+health claim is made. Root strict new-file history PG gate now runs fresh schemas.
 No reseed/rebuild/secret regeneration, operational queues or real sends.
 Full retained original-state reopening proof is in
 DOCKER_STARTUP_RECOVERY_20261012.md. This does not complete PHASE1/live acceptance.

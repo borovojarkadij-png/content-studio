@@ -138,21 +138,44 @@ test color/untouched full-format noise remains tracked for milestone triage.
   PASS. Disclosed over1000-item fail-closed capacity limit remains; exact new CI
   is pending, earlier f8/e160 proof is not its substitute
 
-NEXT_STEP: document/push accepted worker af45deba6aaf6238a7d4901cca577184911d496d
-against BASE388cb3c, fresh /root/editorial_worker_review,gpt-6.1-sol/high,
-forknone/nohelpers. Full45430 terminal2565PASS/11explicitPG-onlySKIP525.51s/native0,
+NEXT_STEP: Root commit/push accepted history evidence/reviews and track exact CI,
+then dispatch EDITORIAL_MODEL_EVALUATION_IMPLEMENTATION.md Task1 with recordedBASE.
+History BASE65ed7f2..fae11e7 COMPLETE after fix1/scoped re-review; no redispatch.
+Bounded readonly SQL history + studio GET, own brief/ledger/report; rootactualPG
+after freeze, one frozenfull then independent review. Corrected exactCI tracked
+alongside, no activation/UI change/duplicate oldgates. Predecessor worker af45deb
+accepted by fresh independent taskreview; root reviewed evidence pushed65ed7f2.
+Exact predecessor CI38306240255/head65ed7f2 all9 SUCCESS, actual strictPG550+5,
+backend2565/11 PG-only skips, full-stack and both provider recovery families PASS.
+History focused19:211PASS/5 PG-only skips/native0; frozen four files, sole full20
+terminal2643PASS/11 explicit PG-only SKIP/583.01s/native0/no warnings; root read
+actual raw log/hash. Root new-file actual PG gate99834 terminal78PASS/58.03s/native0/noSKIP,
+four frozen hashes unchanged; only78 fresh schemas1775/max1363793 after retained
+baseline1697/max1294081 survived recovery. Engine29.8.0 responds after
+reversible socket-only recovery, no data reset/operational startup.
+Writer commitfbb4c6e exact four files/report; root read181-line final report EOF.
+Fresh /root/editorial_history_review read complete65ed..fbb package: one Important
+FAILED/BLOCKED terminal receipt coherence gap/spec issues/qualityNeedsFixes. Sole
+same writer fix1/5 fromFIX_BASEfbb: behavioralRED/minimal reader+tests, covering
+reader+runner213PASS/5PG skips and root targetedactualPG10PASS/noSKIP/native0;
+two amended hashes unchanged. Fixfae11e7 committed; scoped fbb..fae re-review now
+accepted: findingADDRESSED/speccompliant/taskqualityApproved/no new findings.
+Original full is not amended-source proof; no full repeat. Rootdocs/push/CI then prepared
+model-evaluationTask1.
+Nativepush0 and exactremoteref65ed7f2 verified.
+Full45430 terminal2565PASS/11explicitPG-onlySKIP525.51s/native0,
 covering439/5PG skips, rootactualWindowsPG97/noSKIP/native0; five frozen hashes
 unchanged. Seven owned files committed, final report read EOF. CI only finite
 PG deadline10->20 after full ended, all commands unchanged. Original writer
-owns any review fix. On acceptance document/push/track exact new CI, then
-dispatch prepared history read-API task; no duplicate full/native gates.
+owns any review fix. History read-API task is now active; no duplicate full/native
+gates. After its acceptance document/push/track exact CI, then model evaluation.
 Independent worker review speccompliant/qualityApproved/no findings; root read
-complete report and resolved native-provenance item. Corrected exact CI remains
-integrationpending, not waived. History prerequisite accepted; dispatch after
-root documentation/commit/push while tracking corrected exact CI.
+complete report and resolved native-provenance item. Corrected exact CI38306240255
+completed all9SUCCESS; history prerequisite accepted and work resumed as above.
 no runtime/policy activation or autoapproval.
-Executor e29779b accepted locally after correction/re-review; exact amended CI
-in_progress at exact CI38304194927/head388cb3c. Admission88ce234 accepted: full2301/6 old PG-only
+Executor e29779b accepted locally after correction/re-review; original amended CI
+38304194927/head388cb3c CANCELLED at old PG deadline, retained; later finite-budget
+38306240255 all9SUCCESS. Admission88ce234 accepted: full2301/6 old PG-only
 skips,119 targeted,398 covering, actual WindowsPG88 and queued-job PG restart/
 double reopen PASS; independent review no findings. Track its new exact CI,
 no unchanged admission/native suite repetition.

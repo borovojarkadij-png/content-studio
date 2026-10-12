@@ -1,6 +1,6 @@
 # Diagnostic encrypted factory/worker verification — 2026-10-12
 
-Status: IMPLEMENTATION ACCEPTED / ACTUAL PG AND FULL GATE PASS / EXACT CI PENDING.
+Status: IMPLEMENTATION ACCEPTED / ACTUAL PG, FULL GATE AND EXACT CI PASS.
 Repository borovojarkadij-png/content-studio, branch codex/dark-navy-ui.
 BASE388cb3cc92490ad8f8a9cd8106308863b1b5100e.
 Contract: EDITORIAL_CLASSIFIER_WORKER_IMPLEMENTATION.md, own SDD brief/report.
@@ -74,9 +74,17 @@ Approved, no Critical/Important/Minor; root read complete task-1-review.md.
 Reviewer checked named canonical-provider, post-factory/closed-SQL and cipher
 exception boundaries without rerunning tests. Native provenance cannot follow
 from a diff: root resolves that item through its direct log/hash/exit/frozen-source
-evidence above. Exact new CI remains a pending integration gate, not waived.
+evidence above. The subsequently completed exact CI is recorded below.
 
-Task implementation/review is accepted locally; exact new-source CI is pending.
+Task implementation/review is accepted; exact new-source CI38306240255 at
+65ed7f22e3d8cefc760210bb391c96f9d38a4267 completed SUCCESS in all9 jobs. Actual
+native strictPG550PASS/577.47s plus concurrency5PASS/8.07s, backend2565PASS/
+11PG-only SKIP/615.59s, full-stack1PASS/4deselected/353.93s and provider persistence
+families PASS/explicit zero Telegram-AI calls. Root separately downloaded actual
+benchmark artifact11772269923 and asserted24/24 matches,0 mismatches, provider/
+rewrite calls0, qualificationfalse. Full native hashes in CI_RECOVERY_20261012.md.
+Original predecessor canceled CI remains canceled. This exact new green run
+does not contain subsequent history-reader edits or qualify a real model.
 Previous executor CI38304194927/head388cb3c
 does not include this later worker source. No old browser/Windows full-stack
 restart suite is being repeated for this bounded seam.

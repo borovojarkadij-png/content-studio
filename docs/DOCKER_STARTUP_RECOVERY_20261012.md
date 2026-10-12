@@ -38,3 +38,30 @@ unchanged. Native evidenceD:/Codex-Recovery/content-studio-20261008/windows-reop
 This is actual October12 retained-state runtime proof, not a new full build or
 repetition of the October9 crash procedure. No real Telegram/AI/publication
 activation or PHASE completion implied. Continue CURRENT_STATE NEXT_STEP.
+
+## Follow-up at the October12/13 session boundary
+
+On resume, Desktop/WSL and the Linux-engine pipe were absent. Installed signed
+Desktop launched hidden as PID15432, but the same sailor-ingest.sock/error1920
+recurred before the engine started. Normal `docker desktop stop --timeout20`
+terminated native1 with a context deadline; this was not a successful normal stop.
+Only task-started PID15432 was stopped after executable/start-time checks; its
+children exited, and all Desktop/backend processes were confirmed absent.
+
+Physical parent paths and the exact zero-byte socket-only directory contents
+were validated again. Runtime-only directories were preserved, without deletion:
+
+- C:/Users/borov/AppData/Local/Docker/run.recovery-20261012b-08a23384
+- C:/Users/borov/AppData/Local/docker-secrets-engine.recovery-20261012b-08a23384
+
+Fresh empty runtime directories and hidden launch of the Valid-signature Desktop
+as PID30548 restored actual Linux Engine29.8.0/API1.56, Desktop4.91.0 and the same
+WSL2 kernel. No reset/update/prune, VHDX/volume/secret/configuration changes or
+operational stack launch. The exact owned unattended PostgreSQL container
+4c1a4120ba72394b2851fe9916eddb48572feb9c70c5cd1a3167d7401b941b5e was validated
+against its ownership nonce, original sole volume and loopback5432 binding before
+starting only that container. PostgreSQL reports interrupted-system recovery and
+data-directory fsync. PostgreSQL completed recovery and pg_isready reports
+accepting connections; the retained1697 UUID namespaces/maxOID1294081 match the
+pre-stop baseline exactly. No schema reset or reseed. The new history-reader
+tests now use only newly generated synthetic namespaces on this recovered DB.
