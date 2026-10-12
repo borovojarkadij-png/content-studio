@@ -16,6 +16,15 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
 
 ## VERIFIED WORKING
 
+- 2026-10-12 follow-up: real Docker Engine29.8.0 and retained Windows c
+  containers remain running (API/PostgreSQL/Redis/prod web healthy). Exact
+  CI38294424666 at24e515eb failed backend lint before tests: freshly resolved
+  Ruff0.17.0 rejects an unused DTZ001 noqa; local0.16.6 did not. Reproduced
+  with an isolated0.17.0 executable, removed only the stale suppression,
+  retained the deliberate invalid-time test. Exact CI lint command now PASS
+  with0.17.0; scheduler4 PASS/1.03s. No checks disabled or dependency downgraded.
+  Original failed CI remains failure; subsequent exact CI is required.
+
 - 2026-10-12 resume: correct origin/branch/source5fa8995 and frozen hashes
   rechecked. Independent scoped re-review accepts residual I4, no new findings;
   original whole-branch I1–I4 now addressed. Capacity limit1000 fails closed;
@@ -1372,7 +1381,12 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: source5fa8995 residual I4 is independently accepted; final backend1989
+NEXT_STEP: push the verified Ruff0.17 unused-suppression correction to the
+authorized branch, track its exact new CI (38294424666 failed lint at24e515eb).
+Then implement the source/policy-bound pre-rewrite classification contract
+and synthetic adversarial benchmark, with real-model qualification and
+activation disabled. Docker Engine29.8.0 and retained Windows c are running;
+do not repeat socket recovery/build/reseed. Source5fa8995 residual I4 is independently accepted; final backend1989
 PASS/6 separately exercised PG-only skips, Windows PG332+5 and Windows c full
 recovery and October12 original-image retained c reopen are complete. Record
 new evidence and push only authorized origin/branch with account identity checked;

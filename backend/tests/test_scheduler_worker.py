@@ -150,4 +150,5 @@ def test_tick_rejects_naive_time_before_any_planning(scheduler_store):
     from newsflow.worker import run_scheduler_tick
 
     with pytest.raises(ValueError, match="timezone-aware"):
-        run_scheduler_tick(scheduler_store, now=datetime(2030, 1, 2, tzinfo=None))  # noqa: DTZ001 -- deliberately invalid input
+        # Deliberately invalid input: the scheduler must reject naive timestamps.
+        run_scheduler_tick(scheduler_store, now=datetime(2030, 1, 2, tzinfo=None))
