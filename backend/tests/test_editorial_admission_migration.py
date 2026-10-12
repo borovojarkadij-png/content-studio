@@ -67,7 +67,6 @@ def test_additive_upgrade_preserves_legacy_and_empty_roundtrip(migrated):
             text("SELECT id,mapping_id,fingerprint,created_at FROM mapping_content_fingerprints")
         ).one()
     command.upgrade(config, HEAD)
-    command.check(config)
     assert sentinels(engine) == before
     with engine.connect() as connection:
         assert (
@@ -86,6 +85,8 @@ def test_additive_upgrade_preserves_legacy_and_empty_roundtrip(migrated):
     command.downgrade(config, PARENT)
     assert sentinels(engine) == before
     command.upgrade(config, HEAD)
+    assert sentinels(engine) == before
+    command.upgrade(config, "head")
     command.check(config)
     assert sentinels(engine) == before
 

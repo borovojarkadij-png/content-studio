@@ -145,7 +145,8 @@ def test_neutral_evidence_is_diagnostic_pass_with_manual_permission_and_exact_pa
     assert all(value != KEY for name, value in vars(client).items() if not name.startswith("_"))
     for name in ("rewrite", "qualify", "schedule", "publish"):
         assert not hasattr(client, name)
-    for name in ("last_usage", "last_response_model"):
+    assert json.loads(client.last_evidence_json) == evidence(req)
+    for name in ("last_usage", "last_response_model", "last_evidence_json"):
         with pytest.raises(AttributeError):
             setattr(client, name, "stale")
 
@@ -215,6 +216,7 @@ def test_unexpected_response_identity_is_sanitized_and_never_exposed(provider, a
     ) as error:
         client.classify(req)
     assert client.last_response_model is None
+    assert client.last_evidence_json is None
     assert client.last_usage.input_tokens == 100
     assert KEY not in "".join(traceback.format_exception(error.value))
     assert len(http.requests) == 1
@@ -316,7 +318,37 @@ def test_transport_errors_keep_typed_sanitized_failure_and_single_attempt(provid
     trace = "".join(traceback.format_exception(error.value))
     assert KEY not in trace and SOURCE not in trace
     assert client.last_usage is None and client.last_response_model is None
+    assert client.last_evidence_json is None
     assert len(http.requests) == 1
+
+
+@pytest.mark.parametrize("kind", ["model", "transport", "size", "schema"])
+def test_second_attempt_receipt_resets_before_failure_and_only_keeps_actual_bounded_json(
+    provider, kind
+):
+    req = request()
+    http = HttpBoundary(body(provider, evidence(req)))
+    client = classifier(provider, http)
+    client.classify(req)
+    assert json.loads(client.last_evidence_json) == evidence(req)
+    if kind == "model":
+        result = body(provider, evidence(req))
+        result["model"] = "foreign/model"
+        http.body = result
+    elif kind == "transport":
+        http.body = URLError(KEY + SOURCE)
+    else:
+        http.body = body(provider, {"extra": "x" * 262145} if kind == "size" else {"approve": True})
+    if kind == "schema":
+        report = client.classify(req)
+        assert report.decision.rewrite_allowed is False
+        assert report.reason_codes == ("EVIDENCE_SCHEMA_INVALID",)
+        assert json.loads(client.last_evidence_json) == {"approve": True}
+    else:
+        with pytest.raises((ProviderResponseInvalid, ProviderUnavailable)):
+            client.classify(req)
+        assert client.last_evidence_json is None
+    assert len(http.requests) == 2
 
 
 @pytest.mark.parametrize("invalid", [None, {}, "source", "subclass"])
@@ -335,6 +367,7 @@ def test_invalid_second_request_clears_attempt_state_without_io(provider, invali
         client.classify(invalid)
     assert len(http.requests) == 1
     assert client.last_usage is None and client.last_response_model is None
+    assert client.last_evidence_json is None
 
 
 @pytest.mark.parametrize("kind", ["codepoints", "bytes"])
@@ -365,6 +398,7 @@ def test_oversize_policy_payload_is_refused_before_io_and_clears_prior_state(pro
         client.classify(oversized)
     assert len(http.requests) == 1
     assert client.last_usage is None and client.last_response_model is None
+    assert client.last_evidence_json is None
 
 
 @pytest.mark.parametrize(

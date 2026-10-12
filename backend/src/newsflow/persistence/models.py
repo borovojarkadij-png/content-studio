@@ -753,6 +753,111 @@ class EditorialClassificationJobModel(Base):
     last_error_code: Mapped[str | None] = mapped_column(String(64), nullable=True)
 
 
+def _editorial_token_check():
+    value = "replace(claim_token, '-', '')"
+    for character in "0123456789abcdef":
+        value = f"replace({value}, '{character}', '')"
+    return (
+        "length(claim_token) = 36 AND substr(claim_token,9,1) = '-' "
+        "AND substr(claim_token,14,1) = '-' AND substr(claim_token,19,1) = '-' "
+        "AND substr(claim_token,24,1) = '-' "
+        "AND length(replace(claim_token, '-', '')) = 32 AND " + value + " = ''"
+    )
+
+
+class EditorialClassificationClaimModel(Base):
+    """Immutable provenance for a committed diagnostic lease, including old owners."""
+
+    __tablename__ = "editorial_classification_claims"
+    __table_args__ = (
+        UniqueConstraint("classification_job_id", "attempt", name="uq_editorial_claim_attempt"),
+        CheckConstraint("attempt BETWEEN 1 AND 2", name="ck_editorial_claim_attempt"),
+        CheckConstraint(_editorial_token_check(), name="ck_editorial_claim_token"),
+        CheckConstraint(
+            "typeof(attempt) = 'integer'", name="ck_editorial_claim_attempt_type"
+        ).ddl_if(dialect="sqlite"),
+    )
+    id: Mapped[int] = mapped_column(primary_key=True)
+    classification_job_id: Mapped[int] = mapped_column(
+        ForeignKey("editorial_classification_jobs.id", ondelete="RESTRICT"), nullable=False
+    )
+    attempt: Mapped[int] = mapped_column(Integer, nullable=False)
+    claim_token: Mapped[str] = mapped_column(String(36), unique=True, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class EditorialClassificationAttemptModel(Base):
+    """Append-only diagnostic receipt; contains no action permission or qualification."""
+
+    __tablename__ = "editorial_classification_attempts"
+    __table_args__ = (
+        CheckConstraint(
+            "outcome IN ('REVIEW','REJECT','BLOCKED','FAILED','RETRY','LOST_LEASE')",
+            name="ck_editorial_attempt_outcome",
+        ),
+        CheckConstraint(
+            "diagnostic_status IS NULL OR diagnostic_status IN ('PASS','REJECT','MANUAL_REVIEW')",
+            name="ck_editorial_attempt_diagnostic",
+        ),
+        CheckConstraint(
+            "response_model IS NULL OR (length(response_model) BETWEEN 1 AND 255 "
+            "AND length(trim(response_model)) > 0)",
+            name="ck_editorial_attempt_model",
+        ),
+        CheckConstraint(
+            "(usage_observed = false AND input_tokens IS NULL AND cached_tokens IS NULL "
+            "AND output_tokens IS NULL AND estimated_cost_usd IS NULL) OR "
+            "(usage_observed = true AND input_tokens IS NOT NULL AND cached_tokens IS NOT NULL "
+            "AND output_tokens IS NOT NULL AND input_tokens >= 0 AND cached_tokens >= 0 "
+            "AND output_tokens >= 0 AND cached_tokens <= input_tokens)",
+            name="ck_editorial_attempt_usage",
+        ),
+        CheckConstraint(
+            "estimated_cost_usd IS NULL OR (estimated_cost_usd >= 0 "
+            "AND estimated_cost_usd < 10000000000)",
+            name="ck_editorial_attempt_cost",
+        ),
+        CheckConstraint(
+            "input_tokens IS NULL OR (typeof(input_tokens) = 'integer' "
+            "AND typeof(cached_tokens) = 'integer' AND typeof(output_tokens) = 'integer')",
+            name="ck_editorial_attempt_token_types",
+        ).ddl_if(dialect="sqlite"),
+        CheckConstraint(
+            "json_type(reason_codes) = 'array'", name="ck_editorial_attempt_reasons_sqlite"
+        ).ddl_if(dialect="sqlite"),
+        CheckConstraint(
+            "json_typeof(reason_codes) = 'array'", name="ck_editorial_attempt_reasons_pg"
+        ).ddl_if(dialect="postgresql"),
+        CheckConstraint(
+            "evidence_json IS NULL OR length(CAST(evidence_json AS BLOB)) <= 262144",
+            name="ck_editorial_attempt_evidence_sqlite",
+        ).ddl_if(dialect="sqlite"),
+        CheckConstraint(
+            "evidence_json IS NULL OR octet_length(evidence_json) <= 262144",
+            name="ck_editorial_attempt_evidence_pg",
+        ).ddl_if(dialect="postgresql"),
+    )
+    id: Mapped[int] = mapped_column(primary_key=True)
+    claim_id: Mapped[int] = mapped_column(
+        ForeignKey("editorial_classification_claims.id", ondelete="RESTRICT"),
+        unique=True,
+        nullable=False,
+    )
+    outcome: Mapped[str] = mapped_column(String(16), nullable=False)
+    diagnostic_status: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    reason_codes: Mapped[list[str]] = mapped_column(JSON, nullable=False)
+    evidence_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+    response_model: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    usage_observed: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default=false(), nullable=False
+    )
+    input_tokens: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    cached_tokens: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    output_tokens: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    estimated_cost_usd: Mapped[Decimal | None] = mapped_column(Numeric(20, 10), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
 class RewriteJobModel(Base):
     __tablename__ = "rewrite_jobs"
     __table_args__ = (

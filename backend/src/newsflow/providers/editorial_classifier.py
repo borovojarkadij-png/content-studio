@@ -27,6 +27,7 @@ class _EditorialClassifier:
         self._model = model
         self._last_usage: RewriteUsage | None = None
         self._last_response_model: str | None = None
+        self._last_evidence_json: str | None = None
 
     @property
     def model(self) -> str:
@@ -40,9 +41,14 @@ class _EditorialClassifier:
     def last_response_model(self) -> str | None:
         return self._last_response_model
 
+    @property
+    def last_evidence_json(self) -> str | None:
+        return self._last_evidence_json
+
     def classify(self, request: EditorialClassificationRequest) -> EditorialClassificationReport:
         self._last_usage = None
         self._last_response_model = None
+        self._last_evidence_json = None
         if type(request) is not EditorialClassificationRequest:
             raise ProviderConfigurationInvalid("EDITORIAL_REQUEST_INVALID")
         payload = json.dumps(request.payload, ensure_ascii=False)
@@ -76,6 +82,7 @@ class _EditorialClassifier:
             raise ProviderResponseInvalid("EDITORIAL_EVIDENCE_INVALID") from None
         if size > 262144:
             raise ProviderResponseInvalid("EDITORIAL_EVIDENCE_TOO_LARGE")
+        self._last_evidence_json = raw
         return assess_editorial_classification(request, raw)
 
 
