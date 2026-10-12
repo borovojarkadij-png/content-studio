@@ -7,7 +7,10 @@ actual backend2744/11PG-onlySKIP, strictPG638+5, recovery/native logs and actual
 c090eeb accepted by fresh spec/quality review, no findings: frozen full2835/
 15SKIP(14PG/1nonapplicableINSERT), root actual WindowsPG93/2nonapplicableSKIP,
 all3hashesunchanged, no qualification/jobs/calls/activation. Exact new-source CI
-pending; dedicated authenticated API/UI and actual real-model benchmark remain
+38314610140/heada24c226 completedSUCCESS/all9, actual backend2835/15SKIP,
+strictPG731/2nonapplicableSKIP+5, fullstack1/4deselected, bothprovider native
+restart/zero-call logs and actual new24matched artifact inspected; dedicated
+authenticated API/UI and actual real-model benchmark remain
 unfinished. See EDITORIAL_POLICY_CONFIGURATION_VERIFICATION_20261013.md.
 
 | ID | Requirement | Phase | Status | Evidence |

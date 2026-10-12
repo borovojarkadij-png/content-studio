@@ -3,6 +3,23 @@
 Origin: borovojarkadij-png/content-studio. Branch: codex/dark-navy-ui.
 No merge/force-push/disabled assertion or live provider activation.
 
+## Latest accepted internal policy candidate — 2026-10-13
+
+Exact38314610140/heada24c2265335982dc9ea0bfd86344f853d2adb945 completedSUCCESS,
+all9jobsSUCCESS. Actual downloaded native logs: backend1150281451802835PASS/
+15SKIP634.92s, Ruff/compile/migrationsPASS; strictPG115028145246731PASS/
+2nonapplicableSKIP609.24s + concurrency5PASS6.79s; fullstack115028145225
+1PASS/4deselected353.12s/no drift. Both provider persistence115028145261OPENAI/
+115028144960OPENROUTER source-photo/publication/quotas/pending/final/double-reopen
+PASS with explicit zero real Telegram/AI/send calls. Frontend, channel-sync,
+guarded admission and authenticated illustration also terminalSUCCESS.
+Root retained native logs/hashes and actual new artifact11775864576:24matched/
+0mismatch/provider0/rewrite0/qualifiedfalse, not an earlier artifact substitution.
+See EDITORIAL_POLICY_CONFIGURATION_VERIFICATION_20261013.md for exact paths,
+SHA256s, visible action Node warnings and expected constraint-negative logs.
+This accepts internal policy sourcec090eeb/rootreviewa24c226, not the current
+uncommitted operator API or future UI. No PHASE1/live qualification claim.
+
 ## Original failed candidate
 
 Run38294424666, head24e515eb4e62b2a04e38d23651f621870f1a11ae:

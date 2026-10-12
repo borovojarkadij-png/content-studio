@@ -138,10 +138,23 @@ test color/untouched full-format noise remains tracked for milestone triage.
   PASS. Disclosed over1000-item fail-closed capacity limit remains; exact new CI
   is pending, earlier f8/e160 proof is not its substitute
 
-NEXT_STEP: commit/push independently accepted policyc090eeb/root evidence/review,
-track exactCI, then sole fresh EDITORIAL_OPERATOR_API_IMPLEMENTATION.md Task1
-from recordedrootcommitBASE. Prepared design/plan/ownledger docs-only; no source
-writer yet. Internal configuration Task1 COMPLETE56f4899..c090eeb/reviewclean,
+NEXT_STEP: inspect independent review of operator APIc9d1247, resolve any
+findings, commit root evidence and push exact authorized branch for its own CI;
+then EDITORIAL_SETTINGS_IMPLEMENTATION.md Task1/Task2. Current API root actual
+Windows Docker PG181PASS/1nonapplicable JSON SKIP108.47s/native0, seven final
+hashes unchanged/130new retained UUID schemas. Original frozen full2933/15SKIP
+456.00s and corrected-byte API/reviewer182PASS43.66s/static are distinct evidence.
+No model qualification, actual credentials, operational SQL or worker activation.
+Policy predecessor exactCI38314610140/heada24c226 all9SUCCESS with actual native
+logs/new artifact inspected; not the new API's CI. Disabled heartbeat unchanged.
+
+Earlier dispatch checkpoint (superseded by NEXT_STEP above):
+EDITORIAL_OPERATOR_API_IMPLEMENTATION.md Task1 in_progress,
+solefresh/root/editorial_operator_api,gpt-6.1-sol/high/forknone/nohelpers,
+BASEa24c2265335982dc9ea0bfd86344f853d2adb945, own124-linebrief/ledger/report,
+rootnativePG/CI. Roota24c226 pushednative0/exactremoteverified; current policy
+CI38314610140/all9in_progress tracked alongside work, not PASS.
+Internal configuration Task1 COMPLETE56f4899..c090eeb/reviewclean,
 no publicAPI or automaticactivation. Evaluatorrootdocsa639591 pushednative0/exactremote
 verified; exactnewCI38312315852 all9SUCCESS; root downloaded actual backend
 2744/11PG-onlySKIP, strictPG638+5, full-stack/bothprovider persistence logs and
@@ -152,7 +165,8 @@ frozen targeted368/9explicitSKIP(8PG/1nonapplicableINSERT)/staticPASS; root actu
 Writerc090eeb18d19fcb23f8238ad24e7a4698f112d38 exact4paths/own201-line report;
 fresh readonly editorial_policy_configuration_review completeBASEdiff approved
 spec+quality/no findings; root provenance warning resolved, exactnewCIpending.
-Prepared next operator API design/plan is docs-only and not dispatched yet.
+Next operator API solewriter dispatched; preserve existing reviewer boundary,
+no real credential provisioning or operational activation.
 No runtime activation/autoapproval/real sends. EvaluatorTask1 COMPLETE,
 BASE34ad476550f4a33ddbe2de71f0ad6ce4a743462a..bacdd1854054316c5d99f1420ef915e9b381cc95,
 fresh scoped review speccompliant/qualityApproved/no findings, both root-owned

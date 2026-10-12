@@ -16,10 +16,31 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
 
 ## Active recovery checkpoint — 2026-10-13
 
-NEXT_STEP: commit/push accepted policyc090eeb with root native evidence/review,
-track exact new-source CI; generate own Task1 brief/record BASE from that root
-commit and dispatch sole fresh writer for EDITORIAL_OPERATOR_API_IMPLEMENTATION.md.
-Prepared spec/plan/own ledger are docs-only; internal policy Task1 is COMPLETE,
+NEXT_STEP: push reviewed operator APIc9d1247/root evidence to exact authorized
+branch and track its own CI, then EDITORIAL_SETTINGS_IMPLEMENTATION.md Task1.
+API independent spec/quality review approved/no findings; verbatim own review
+saved. Root sequencing ruling allows branch-local frontend development while
+that exact CI runs, not release/runtime acceptance or qualification. Root actual corrected-byte
+Windows Docker PostgreSQL gate completed native0:181PASS/1nonapplicable JSON
+SKIP108.47s; all7 frozen hashes unchanged,130 fresh UUID namespaces,
+1880|1451681 -> 2010|1560501. Native receipt/log hash recorded in
+EDITORIAL_OPERATOR_API_VERIFICATION_20261013.md. No repeated full/backend/old
+Docker gate; original full2933PASS/15SKIP456.00s belongs to original generation,
+corrected unexpected500 API/reviewer cover182PASS43.66s/static native0 belongs
+to amended generation. No operational credential or policy changes.
+Task1 remains with sole
+/root/editorial_operator_api,gpt-6.1-sol/high/forknone/nohelpers,
+BASEa24c2265335982dc9ea0bfd86344f853d2adb945. Own124-line brief/ledger/report,
+seven source/test/CI paths only. Root owns docs/nativePG/exactCI. Focused600PASS/
+10SKIP158.57s/native0 and original API98PASS/native0/staticGREEN. Writer
+self-review unexpected500 no-store boundary is now corrected with behavioral
+RED, narrow private500 fix, covering tests/static/refreeze and actual strict
+new API+reviewer WindowsPG. Root preflight refused wrong copied-summary manifest hash before
+test/schemaIO; actual unchanged Oct8 manifest212bytes SHA2569FE53C36D8820C758D321A88F5DA33A8190BAB2188DE6F398BFA2655B61DD8F7,
+exact fields/container/volume/loopback/readiness verified. Inspect native/hashes/report/owned commit, fresh
+spec+quality review/fix loop, document/push/track exactCI and next integration.
+No second sourcewriter, no host credential discovery or actual activation.
+Internal policy Task1 is COMPLETE,
 56f4899..c090eeb, fresh independent speccompliant/qualityApproved/no findings.
 Frozen full2835PASS/15SKIP(14PG/1nonapplicableINSERT)452.29s/native0; actual
 WindowsPG93PASS/2nonapplicableSKIP53.41s/native0, all3hashesunchanged. Root read
@@ -30,10 +51,23 @@ actual backend2744/11PG-onlySKIP, strictPG638+5/fullstack1PASS/4deselected and
 bothprovider persistence native logs/new24matched artifact downloaded/checked;
 historyCI38310060502/head34ad all9SUCCESS. Engine29.8Linux/ownedPGready;
 pre-gate1785UUIDschemas/maxOID1372163 -> retained1880/maxOID1451681,95fresh
-root policy-test schemas only in owned synthetic database. Dedicated operator
-API has not been implemented or dispatched yet; source acceptance is not live
+root policy-test schemas only in owned synthetic database. Root acceptance/
+nextplan commita24c226 pushednative0/exactremoteverified, processlocalowner
+credential restored; exact policy CI38314610140/heada24c226 now terminalSUCCESS/
+all9SUCCESS: actual backend2835/15SKIP, strictPG731/2nonapplicableSKIP+5, fullstack
+1PASS/4deselected and bothprovider native restart/photo/publication zero-call logs
+downloaded/checked; actual new artifact24matched/0calls/unqualifiedfalse checked.
+Dedicated operator API writer dispatched; source acceptance is not live
 qualification/PHASE1 completion. Disabled heartbeat remains disabled.
 See EDITORIAL_POLICY_CONFIGURATION_VERIFICATION_20261013.md.
+
+Prepared next bounded UI integration only: EDITORIAL_SETTINGS_DESIGN_20261013.md /
+EDITORIAL_SETTINGS_IMPLEMENTATION.md with own preflight ledger. No UI writer or
+BASE dispatched until current API accepted. Live-only existing Settings/Модерация,
+same-origin memory-only operator bearer, strict DTO/original ETag, explicit save/
+discard/conflict handling, exact aliases and single Settings dirty owner; DEMO
+accepted eight-screen design unchanged. Separate actual synthetic browser gate/
+CI follows component task, no credentials/model/provider activation.
 
 The chronological checkpoints below are evidence/history, not instructions to
 repeat work. This active checkpoint and its own SDD ledger take precedence.

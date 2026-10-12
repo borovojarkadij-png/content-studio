@@ -112,6 +112,56 @@ remains separately blocked by credentials/manual test destinations. Neither is
 waived by source acceptance. Task1 complete,56f4899..c090eeb, review clean.
 Continue separate operator API, not public policy mutation without authority.
 
+Root evidence/review/nextplan commita24c2265335982dc9ea0bfd86344f853d2adb945
+pushednative0 to exact authorized origin/branch, remote ref independently equals
+HEAD; process-local existing owner credential restored in finally. Exact current
+policy CI38314610140 started/all9in_progress, not terminal acceptance. Root
+tracks this while next independent protected operator API writer proceeds.
+
+Subsequent exact policy CI38314610140/heada24c226: frontend/guarded-admission/
+illustration/channel-sync/fullstack completedSUCCESS (5of9); backend/strictPG/
+both provider persistence still running, whole workflow not yet PASS. Root
+downloaded actual fullstackjob115028145225 via gh API/native0:
+1PASS/4deselected353.12s and packaged no-new-upgrade drift check. Retained
+D:/Codex-Recovery/content-studio-20261008/
+editorial-policy-ci-38314610140-e82454713d8443cbb16c213fc1abdbd5/fullstack-job.log,
+SHA256906055E785A5BD5C682991D68D1A636794D6E5EBDA8ACB929865C013DE1A31E9.
+This is accepted internal policy candidate, not current uncommitted operator API.
+
+Later exact native logs establish backendjob115028145180SUCCESS:
+2835PASS/15SKIP634.92s, Ruff/compile/migration driftPASS; strictPGjob115028145246
+SUCCESS731PASS/2nonapplicableSKIP609.24s and concurrency5PASS6.79s. Root downloaded
+both via gh API/native0 to same CI directory above. SHA256 backend-job.log
+D9DB8082BF497471AE79C2606A6CB744B1B4D6D09E925CD5A86C38D1EAE26762;
+postgres-job.log C917741E9F005CAA24254191B9787AE30A720E7318CA26013CA87F0FD8715059.
+Expected constraint/append-only/PK/deadlock-control PostgreSQL ERROR lines are
+retained passing negatives, not unexpected test failures. Existing GitHub action
+Node punycode/url.parse deprecation warnings are visible; no assertion/check
+disabled or unrelated dependency upgrade. Whole workflow7SUCCESS/2provider
+restart jobs running at this observation, not yet terminalPASS.
+
+Actual new benchmark artifact11775864576/digest
+3c0b80c8c37c842472a7c1252ecc859f692466a67f6fd65458906652eb7d818c
+downloaded native0 to D:/Codex-Recovery/content-studio-20261008/
+editorial-contract-ci-38314610140-ad283fad53df4d4192a7c8114583b2ab/.
+Root asserted24cases/24matched/0mismatch/provider0/rewrite0/unqualifiedfalse;
+editorial-contract-report.json SHA256
+318DE43F3C8C0DE9501B324A31B14C3390E6AFE6470A6913571393A0B9896E45.
+Same content hash as earlier artifact is not substituted for this actual download.
+
+Terminal exact CI38314610140/heada24c2265335982dc9ea0bfd86344f853d2adb945
+completedSUCCESS/all9SUCCESS. Root downloaded remaining provider native logs
+115028145261OPENAI and115028144960OPENROUTER/native0. Both original-photo bytes/
+rights/recovery, ingestion/mapping, publication seed/recover/quota/pending/final/
+double-reopen PASS; explicit external Telegram/AI/send calls0, no real publication.
+Same retained CI directory: openai-job.log SHA256
+F67A7EA130F061FE74292BED1302968FE4C3F66E44ADB53EB19FC6AD2A4A008A;
+openrouter-job.log SHA256
+A943BB08A3B3A4A8DD0B8922D0FEA3DC493D08DD94D28138418B830A87BB6621.
+All nine are actual terminal statuses, not inferred from partial/predecessor
+success. Internal policy source/review/exactCI accepted, not live qualification
+or current operator API/Settings/PHASE1 acceptance.
+
 ## Reproduction of actual root PG gate
 
 After the exact ownership/frozen-hash/readiness/baseline checks described above,
