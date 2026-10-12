@@ -1,5 +1,21 @@
 # Requirements matrix
 
+Current2026-10-13: protected Settings tasks and optional API-only operator
+Compose64ce1e9 independently accepted. Actual Windows packaged default503,
+mounted privateauth/browser create+update/noop/staleCAS/audit/REJECT0jobs and
+APIrestart/down-up/normal PG recovery PASS; exact SQL/policy/three public
+synthetic secret hashes unchanged. Not live model/TG authorization or STABLE.
+UI sourceci38319840777 endedFAIL (8jobsSUCCESS; backend2936PASS/15SKIP then
+standalone fixture import lint). Portable correction5413179 independently
+accepted/3targetedbrowserPASS; rootcf38929 pushednative0/exactremote and exact
+CI38321414003 all9SUCCESS (actual backend2950/15SKIP, PG831/3SKIP+5,
+frontend334/33+1+3/new24casezero-callartifact inspected). Guarded Windows
+backup/create-only restore source7861c4a+e547e71/report6b96be1 independently
+accepted;83native contracts/noSKIP and actual Docker4.4MiB archive/newDBcopy/
+exact SQL/ciphertext decrypt/originalexternalkey/drift/sourceunchanged PASS.
+Hosted Windows contract CI Task2 in progress; priorCI does not cover newer source.
+Supersedes older pending statements below, not their evidence.
+
 2026-10-13 checkpoint: R-001/R-004 remain PARTIAL, not operational acceptance.
 Bounded evaluatorbacdd18 accepted and exacta639591 CI38312315852 all9SUCCESS:
 actual backend2744/11PG-onlySKIP, strictPG638+5, recovery/native logs and actual
@@ -48,3 +64,4 @@ EDITORIAL_OPERATOR_API_VERIFICATION_20261013.md.
 | R-015 | Exact source-photo reuse with explicit rights | 1 | PARTIAL | immutable protected identity, bounded decoded acquisition and original-photo transport, rights/attribution, durable jobs, Connections rights/Planner queue/exact protected preview; synthetic recovery verified; actual authorized source download/send pending |
 | R-016 | Donor video manual/discard; YouTube excluded before AI | 1 | PARTIAL / SYNTHETIC VERIFIED | Mandatory visible/hidden entity/button URL and video filters, malformed/Unicode/backslash guards, immutable metadata/replay/source equality and guarded migration, zero-classifier/job/provider tests, Connections hint; actual corrected CI 37787946778 PG 85 PASS; live/Windows acceptance pending; DONOR_AUTOMATION_EXCLUSIONS_VERIFICATION.md; HIDDEN_SOURCE_LINKS_VERIFICATION.md |
 | R-017 | Local free library-photo acquisition and honest relevance review | 1 | PARTIAL / AUTHENTICATED SYNTHETIC VERIFIED | Free acquisition/durable media jobs, protected canonical review UI, separate persistent reviewer auth, immutable review/revocation/audit and newest-only publication consumer/version2 snapshot/final bytes; explicit illustration credit, no event-photo claim. Task1-4 independent reviews accepted, actual WindowsPG209 plus owned review/photo/snapshot restart/crash proof, prior dae0e30 all-eight CI SUCCESS. New exact CI, whole-branch and real authorized acquisition/publication pending; ILLUSTRATION_REVIEW_AUTH.md / ILLUSTRATION_CONSUMER_PARENT_20261009.md / ILLUSTRATION_PRESENTATION_PARENT_20261009.md / ILLUSTRATION_RESTART_PARENT_20261009.md |
+| R-018 | Windows backup/restore commands and recovery proof | 1 | PARTIAL / PostgreSQL COPY VERIFIED | Guarded custom archive/strict manifest/explicit target/newDB-only copy independently reviewed after early-list closure fix;83actual Windows native contracts/noSKIP. Actual Windows Docker4.4MiB archive/newDBcopy/exact SQL/ciphertext with originalexternalkey/drift/sourceunchanged/native0 PASS; BACKUP_RESTORE_VERIFICATION_20261013.md. Hosted Windows CI pending; SQL-only backup is not full secret/media backup or production cutover. |

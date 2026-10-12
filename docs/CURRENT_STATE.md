@@ -16,9 +16,23 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
 
 ## Active recovery checkpoint — 2026-10-13
 
-NEXT_STEP: commit root mounted-Windows acceptance/evidence, authorized push to
-borovojarkadij-png/content-studio codex/dark-navy-ui, track exact corrected-head
-CI, then next independent Telegram implementation/readiness task. Optional
+NEXT_STEP: Windows backup/restore Task1 source7861c4a+e547e71/report6b96be1
+independently accepted after early archive-list stdin-close fix. Actual83Windows
+contracts PASS/noSKIP/staticnative0; source reviewPASS/qualityPASS. Root actual
+Windows Docker 4,412,729-byte archive/newDBcopy/exact SQL/ciphertext decrypt with
+original external key/drift/sourceunchanged/native0 PASS. No existing DB/backup
+overwrite; see BACKUP_RESTORE_VERIFICATION_20261013.md. Task2 solewriter
+/root/windows_backup_contract_ci active BASE6b96be1: independent hosted Windows
+native-contract gate, existing nine CI executions unchanged. WriterDONE81920ab/
+report65c85d2; root actual83caseJUnit/0SKIP+82native receipts/sixhashes checked.
+Fresh /root/windows_backup_contract_ci_review speccompliant/qualityApproved/
+no findings. Next root evidence commit/authorized exact-head push/hosted CI,
+then independent TelegramLogin Task1 (prepared spec+plan, not implemented yet)
+while root tracks exact CI; no hosted success inferred before real result.
+Own docs/BACKUP_RESTORE_IMPLEMENTATION.md brief/ledger. Correctedcf38929 pushednative0/
+exactremote, actual CI38321414003 completedSUCCESS/all9SUCCESS, new raw native
+logs/artifact independently inspected in EDITORIAL_CI_ACCEPTANCE_20261013.md.
+That SHA does not cover newer backup source. Optional
 Compose64ce1e9 independently accepted; actual owned API/browser saves/private
 auth/audit/noop/stale/REJECT0jobs and APIrestart/down-up/normal PGrecovery PASS.
 Exact snapshots identical, original namedvolume/3publicsyntheticfiles retained,

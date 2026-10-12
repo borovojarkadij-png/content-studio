@@ -5,8 +5,16 @@ YouTube analysis/distribution/upload is excluded from the deliverable and all
 remaining-work/progress estimates. This overrides historical master-spec
 YouTube sections without changing the approved Telegram architecture or gates.
 
-Current NEXT_STEP2026-10-13: root mounted-Windows acceptance/evidence commit,
-authorized corrected-head push/exact CI, next independent Telegram task.
+Current NEXT_STEP2026-10-13: Windows hosted-contract Task2 source81920ab/report
+65c85d2 independently speccompliant/qualityApproved/no findings; root actual
+83caseJUnit/0SKIP/native receipts/frozenhashes checked. Root evidence commit/
+authorized exact-head push/hosted CI, then independent TelegramLogin Task1
+under TELEGRAM_LOGIN_IMPLEMENTATION.md while exact CI runs. No live login yet.
+Guarded backup Task1 independently accepted after early archive-list closure fix;
+83actual Windows contracts PASS/noSKIP, actual Docker4.4MiB archive/newDBcopy/
+exact SQL/ciphertext+originalkey/drift/sourceunchanged/native0 PASS. Separate
+media/key/full-app restore and operational cutover remain unverified. Prepared
+Telegram first-login spec follows after this gate; no implementation/live login yet.
 Settings UI1/UI2 and optional operator Compose64ce1e9 independently accepted.
 Actual Windows packaged default503/optional401+200/create+update/audit/private
 CAS/noop/REJECT0jobs/APIrestart/down-up/normal PGrecovery PASS, stable original
@@ -15,7 +23,20 @@ Unchanged frontend Dockerfile clean rebuild resolved poisoned npm cached layer;
 no dependency/source/cache-delete workaround. ExactUI38319840777 terminalFAIL
 on backend-cwd fixture import lint after2936PASS/15SKIP,8otherjobsSUCCESS.
 Correction5413179 independently accepted: actual0.17RED1/backend+rootGREEN0,
-compile0/3editorialbrowserPASS8.1s; final exact CI pending. PHASE1 not complete.
+compile0/3editorialbrowserPASS8.1s. Corrected exactcf38929 CI38321414003 now
+all9SUCCESS; source/backend2950PASS/15SKIP, PG831/3nonapplicableSKIP+5,
+frontend334/33+1+3 and actual new benchmark24matches/0calls/unqualified checked.
+PHASE1 not complete; this CI does not cover newer backup scripts.
+
+Prior execution update (superseded by NEXT_STEP): rootcf38929 evidence pushednative0/exactremote,
+exactCI38321414003 completedSUCCESS. Independent approved Windows backup/restore
+workflow correction Task1 source7861c4a/reportad06bf0 is frozen under
+BACKUP_RESTORE_IMPLEMENTATION.md: causal nativefailurefalse-success RED,
+77actual Windows contracts PASS/noSKIP/staticnative0, fivehashesmatch. Fresh
+scoped /root/windows_backup_restore_review is active; resolve native early-stdin
+close finding if raised before rootactualnewDBcopy/SQL/ciphertext/drift gate.
+No existing DB/backup/secret/media overwrite; Windows operational/live gates
+remain separate. No repeated old source suites or UI redesign.
 
 - [x] Repository, backend test harness, frontend build foundation
 - [x] Restore Windows Docker Desktop engine startup without persistent-data deletion: validated runtime sockets preserved, real Engine 29.8.0/WSL and network-none/no-volume container execution verified; subsequent fresh synthetic Windows stack/recovery acceptance passed below, operational/live deployment remains pending
