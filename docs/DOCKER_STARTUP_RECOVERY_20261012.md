@@ -1,0 +1,40 @@
+# Windows Docker startup recovery — 2026-10-12
+
+Repository origin borovojarkadij-png/content-studio, branch codex/dark-navy-ui,
+application source5fa89952afac22b438f26381eef8a5f7471c6cdb unchanged.
+Normal engine check failed: missing dockerDesktopLinuxEngine pipe. Desktop had
+no running processes. Normal `docker desktop start --timeout 45` launched the
+installed Desktop but backend crashed before WSL startup on the retained
+`sailor-ingest.sock` rename/error1920, matching the previously documented failure.
+
+Only explicit task-started process IDs were stopped after validating executable
+paths under C:/Program Files/Docker; one parent exited during the stop sequence,
+so its later Stop-Process reported already absent. No unrelated processes were
+stopped. The normal detached stop subsequently reported Stopping Docker Desktop;
+Desktop/backend absence was checked again before filesystem changes.
+
+Validated both physical absolute directories, rejected redirected parents and
+unexpected/nonzero/subdirectory content. Docker/run held exactly the four known
+zero-byte socket endpoints; docker-secrets-engine held only zero-byte engine.sock.
+Native PowerShell moved these runtime-only directories, without deletion, to:
+
+- C:/Users/borov/AppData/Local/Docker/run.recovery-20261012-8d87c822
+- C:/Users/borov/AppData/Local/docker-secrets-engine.recovery-20261012-8d87c822
+
+Fresh empty original directories created; installed Desktop executable signature
+Valid was required before hidden launch. Previous recovery copies remain intact.
+No factory reset/update/prune, volumes/VHDX/WSL distribution/configuration/secrets
+or application data modified. This workaround is not a permanent vendor fix.
+
+Fresh `docker version`/`docker info`: real Linux Engine29.8.0/API1.56,
+Desktop4.91.0, WSL2 kernel6.18.33.2. No containers were running automatically.
+The retained explicitly owned20261009c fixture was validated against its exact
+original seven images, mounts, environment, secrets and volume labels, then
+started with pinned IDs, --no-build/--pull never. No operational stack started.
+Migrations/health passed; two independent original SQL/photo/review/encrypted
+snapshot reopens passed with real RPC0. Entire command exit0. Original runtime
+SHA2569de0045ca2fe24c0ab8f0187e759cbc6b6421e76b71b9cbd17c3057a76176e6a
+unchanged. Native evidenceD:/Codex-Recovery/content-studio-20261008/windows-reopen-20261012c.log.
+This is actual October12 retained-state runtime proof, not a new full build or
+repetition of the October9 crash procedure. No real Telegram/AI/publication
+activation or PHASE completion implied. Continue CURRENT_STATE NEXT_STEP.

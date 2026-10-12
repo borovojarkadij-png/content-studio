@@ -125,10 +125,22 @@ test color/untouched full-format noise remains tracked for milestone triage.
   Windows PG controlled deadlock RED then2PASS, covering332PASS intermediate
   pre-URL-compatibility-parser evidence. Original aborted/setup failures retained
 
-NEXT_STEP: single scoped re-review7af4324..f8aa00b, fresh owned Windows Docker
-illustration build/recovery on distinct retained project20261009b, exact new
-nine-job CI. These are pending; baseline all-nine CI does not verify new changes.
-Then continue source-bound
+- [x] Scoped review7af4324..f8aa00b: I1–I3 addressed; actual fresh f8 Windows
+  illustration build/migration/down-up/PG crash/final drift and repeated reopen,
+  separate Redis-worker restart passed; no operational/live claim
+- [x] Residual I4 transaction-wide shared-policy cycle: strict Windows PG new
+  AUTOMATIC two-source reconciliation/READY/mixed cases3FAIL40P01, old controls2
+  PASS. Corrected GREEN5/full1989 and scoped review accepted; exact new CI separate
+
+- [x] Residual I4 source5fa8995 independently accepted: fixed transaction-wide
+  bounded snapshot, actual PG GREEN5 and migrated332 PASS, full1989/6 explicit
+  PG-only SKIP; all skips separately exercised, Windows c build/recovery/reopen
+  PASS. Disclosed over1000-item fail-closed capacity limit remains; exact new CI
+  is pending, earlier f8/e160 proof is not its substitute
+
+NEXT_STEP: October12 retained original-image c reopen after restored
+Docker Engine passed; commit reviewed-source evidence and push authorized branch;
+track new exact CI for5fa8995. Then continue source-bound
 pre-rewrite editorial classifier contract/offline qualification harness, without
 real-model qualification or activation. Actual corrected retained Windows
 illustration recovery is PASS in ILLUSTRATION_RESTART_PARENT_20261009.md;
@@ -184,6 +196,7 @@ designated test destinations; no operational sends or activation is implied.
 - [x] Candidate media UI Windows Docker restart/crash gate: exact preview/idempotent queue/revocation/lease recovery with synthetic provider; no real sends
 - [ ] Live authorized source download/restart verification remains external-auth pending
 - [ ] Fully unattended channel automation: user-defined limits/delays/priorities/filters, timer-driven planning, configurable guarded automatic approval and durable publication worker; a manual click is not the final automatic-mode behavior
+- [~] Transaction-wide planner/media deadlock regression: actual Windows PG RED3FAIL/2PASS followed by corrected GREEN5PASS; final source gates, scoped review and exact CI still pending
 - [x] Timer-driven durable automatic plan selection: per-channel local day/future slots, serialized quota, restart idempotency, stale editorial rejection and per-channel failure isolation; no transport side effects
 - [x] Packaged runtime Alembic upgrades before API/worker startup, Windows dev reload override, production static frontend/nginx API proxy and repeatable isolated PowerShell persistence procedure
 - [x] Conservative deterministic fact-anchor benchmark/guard; no semantic-proof or automatic-approval claim

@@ -16,6 +16,56 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
 
 ## VERIFIED WORKING
 
+- 2026-10-12 resume: correct origin/branch/source5fa8995 and frozen hashes
+  rechecked. Independent scoped re-review accepts residual I4, no new findings;
+  original whole-branch I1–I4 now addressed. Capacity limit1000 fails closed;
+  no PHASE/operational claim. Docker Desktop startup reproduced stale socket
+  error; only validated zero-byte runtime directories preserved in recovery
+  copies, no data removed. Fresh real Linux Engine29.8.0 responds. Retained
+  Windows c original-image/no-build startup/health/two original-state reopens
+  PASS/exit0, original immutable manifest unchanged; new exact CI is pending.
+  See DOCKER_STARTUP_RECOVERY_20261012.md and residual-i4-rereview.md.
+
+- Frozen residual I4 backend gate1989 PASS/6 explicit PG-only SKIP/428.88s/exit0,
+  recovered from the same original writer process89870 after interruption, not a
+  repeated suite. Three final source hashes unchanged; targeted175 PASS/5 PG-only
+  SKIP, lint/changed3 format/compile PASS. Actual PG separately covers all six
+  skipped cases (five concurrency plus protected-review TRUNCATE regression).
+  Scoped independent review and exact new CI remain pending; see residual report.
+
+- Corrected transaction-wide I4 source: actual migrated Windows PostgreSQL332
+  PASS/423.04s and concurrency5 PASS/6.50s. Fresh Windows owned project20261009c
+  build/migrations/health/authenticated review/pending down-up/PG crash/fake
+  execution/final down-up/no-drift completed with terminal create PASS; subsequent
+  independent read-only double reopen PASS/exit0. Original native logs retained;
+  prior run tool handles were lost at the intentional turn interruption, so their
+  process exit codes are not invented. Final backend gate/scoped review/new CI
+  remain pending. No live RPCs or operational activation.
+- Exact e1604efe99db1332702d0eed6ee2f2e861950dc0 CI37927968218 all9 SUCCESS:
+  backend1984 PASS/3 explicit PG-only SKIP/473.44s, actual migrated PostgreSQL332
+  and old concurrency2 PASS, frontend243 units/33+1 browser PASS, separate Docker
+  recovery families including authenticated illustration PASS. New multi-candidate
+  I4 cases are not in that SHA; no residual acceptance inferred.
+
+- Residual I4 corrected-source Windows PostgreSQL GREEN: full named concurrency
+  harness5 PASS/6.50s/exit0 (two existing controls plus reconciliation, READY and
+  mixed two-source AUTOMATIC cases). Fresh UUID schemas only, same exact retained
+  synthetic PostgreSQL identity/loopback port; original RED failures preserved.
+  Native planner-pair-green-20261009a.log retained on D:. This is behavioral
+  evidence, not independent review acceptance: final frozen full suite, new
+  scoped review and exact-source CI are pending. Separate332-case migrated
+  Windows PostgreSQL regression is running on this corrected source.
+
+- Subsequent scoped review: I1/I2/I3 ADDRESSED, I4 remains Important. Its
+  one-candidate fix did not establish transaction-wide ordering across multiple
+  AUTOMATIC candidates. Parent reproduced all three two-source reconciliation,
+  READY and mixed cycles on strict Windows PostgreSQL:3 FAIL/2 older controls
+  PASS/13.23s, SQLSTATE40P01 in each new case. Sole writer continues a focused
+  transaction-wide correction under the user's autonomous bug-fix instruction;
+  no false I4 acceptance or operational activation. Exact new CI37927968218
+  tracks e1604ef/f8 source independently; its passing cases cannot cover the
+  newly demonstrated residual. See WHOLE_BRANCH_CORRECTION_PARENT_20261009.md.
+
 - Correction source `f8aa00bbba59321f0a53c4bc206d8d76f08e83cc` is frozen:
   final backend1984 PASS/3 explicit PG-only SKIP/397.90s, lint/changed-file
   format/compile and isolated SQLite migration cycle/no-drift PASS. Actual
@@ -1322,13 +1372,12 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: accept or adjudicate the single scoped independent re-review of
-`7af4324..f8aa00b`, complete fresh owned Windows illustration fixture
-`newsflow-verification-illustration-win-20261009b` build/recovery (session30008;
-native D:/Codex-Recovery/content-studio-20261008/cross-task-windows-build-20261009b.log),
-then track exact new nine-job CI. Controlled Windows PG2PASS is already complete;
-do not repeat completed tasks. Baseline37924345507 is all-nine SUCCESS, not proof
-of new changes. After acceptance continue source-bound pre-rewrite editorial
+NEXT_STEP: source5fa8995 residual I4 is independently accepted; final backend1989
+PASS/6 separately exercised PG-only skips, Windows PG332+5 and Windows c full
+recovery and October12 original-image retained c reopen are complete. Record
+new evidence and push only authorized origin/branch with account identity checked;
+track new exact CI (prior37927968218 proves e1604ef only). Then continue the
+independent source-bound pre-rewrite editorial
 classification contract/offline qualification harness, keeping real-model
 qualification and activation disabled. Do not repeat completed Task1-4, reseed
 retained fixtures or regenerate secrets. Only authorized origin/codex/dark-navy-ui.
