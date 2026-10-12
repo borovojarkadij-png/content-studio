@@ -16,7 +16,29 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
 
 ## Active recovery checkpoint — 2026-10-13
 
-NEXT_STEP: reviewed UI Task2 complete85e1d4c..ddb2c20; root acceptance docs/push
+NEXT_STEP: commit root mounted-Windows acceptance/evidence, authorized push to
+borovojarkadij-png/content-studio codex/dark-navy-ui, track exact corrected-head
+CI, then next independent Telegram implementation/readiness task. Optional
+Compose64ce1e9 independently accepted; actual owned API/browser saves/private
+auth/audit/noop/stale/REJECT0jobs and APIrestart/down-up/normal PGrecovery PASS.
+Exact snapshots identical, original namedvolume/3publicsyntheticfiles retained,
+no workers/live authorizations/model qualification. UI CI38319840777 is terminal
+FAILURE:8jobsSUCCESS, backend2936PASS/15SKIP then standalone fixture RuffI001.
+Original writer correction5413179/report2fe3579 independently accepted:
+Ruff0.17 actualRED1/backend+rootGREEN0/compile0/3browserPASS8.1s. NoCI weakening.
+Do not rerun completed gates or mistake original source CI for corrected HEAD.
+
+Prior checkpoint (superseded above): optional operator Compose Task1 source64ce1e9 is DONE,197covering
+PASS/native0/no pytestwarnings/skips; all3frozenhashes matched, complete actual
+CLIrawJSON/native proof parsed. Fresh independent scoped review
+/root/editorial_operator_compose_review is active, complete1bb3463..64ce1e9
+package17169bytes. Resolve review before attaching existing public synthetic
+operator/reviewer files to the owned Windows fixture. Config-only root actual
+bothprofiles/API-exclusive auth/reviewer coexist PASS; no mounted authority yet.
+Then actual create/update/noop/stale/privateHTTP/audit/REJECT0jobs/APIrestart/
+down-up/PGrecovery, source CI and next independent task.
+
+Prior checkpoint (superseded above): reviewed UI Task2 complete85e1d4c..ddb2c20; root acceptance docs/push
 then optional operator Compose Task1/source review and actual owned Windows
 candidate mounted-secret/restart/down-up gate. Docker29.8/Linux/API1.56 is
 responding; do not restart/reset a healthy engine. Root packaged frontend
@@ -27,6 +49,17 @@ accepted baseline/root visually inspected, live1440/390 fit. Independent
 Task2 speccompliant/qualityApproved/no blocking findings, retained Minor color
 warning. New exact CI and mounted operator runtime acceptance pending.
 No operational authorization or real publication/model qualification.
+
+Current progress: accepted UI/evidence pushed1bb3463 native0/exactremote,
+exactCI38319840777 in progress. Root diagnosed successful npmci cached without
+optional musl binding; clean unchanged Dockerfile --no-cache build native0,
+frontend image7f3f56f... source labelddb2c20. No dependency/source/cache-delete
+workaround. Default packaged web startup session39010 completednative0/healthy;
+actual nginxassets/health/operator503HTTP/native0 plus browserrealSettings503
+visually checked in exact ownedfixture, no worker/operator override yet. Sole Compose Task1 writer
+/root/editorial_operator_compose BASE1bb3463, actual configRED native1 with
+valid renderedJSON/native0 then implementation/covering checks; source review
+and mounted runtime pending. Disabled heartbeat remains disabled.
 
 Prior Task2 checkpoint (superseded above): actual isolated migrated
 browser/API/CAS/audit/privacy/dirty/narrow/axe and all8DEMO screenshots. Fresh

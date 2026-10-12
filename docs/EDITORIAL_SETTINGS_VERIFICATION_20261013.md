@@ -1,8 +1,26 @@
 # Protected editorial Settings verification — 2026-10-13
 
 Status: TASK1 ACCEPTEDf8890786d94da8163cc80d8a7c9fb711ef4931ff;
-ORIGINAL325 FULL + AMENDED106 COVERING/STATIC PASS; REVIEW CLEAN AFTER FIX1.
-No actual browser/runtime/visual acceptance yet.
+TASK2 ACCEPTEDddb2c20067470af1558035d4e9029dd39ce18c06.
+Correction5413179 independently accepted: CI backend-cwd RuffI001 reproduced
+with0.17/native1; portable same-function import passes both contexts/native0,
+compile0 and amended targeted3editorial browserPASS8.1s. No assertions or CI
+checks changed. Exact1bb3463 workflow38319840777 now terminalFAILURE after
+backend2936PASS/15SKIP714.46s: fixture standalone lint only; other8jobsSUCCESS.
+Final exact corrected-head CI pending. Mounted Windows operator API/browser/
+restart/down-up/normal PG recovery now actuallyPASS; see runtime report.
+The pending statements below are chronological checkpoints, superseded here.
+Actual current334units/37browser/static and all8visual PASS; fresh independent
+reviews approved. Exact1bb3463 CI38319840777 frontend job115045020998SUCCESS:
+334units/33main+1illustration+3editorial/format/build PASS; other jobs pending.
+New artifact11778451641 downloaded/parsed:3expected/0retry/0skip, actual SQL
+audit4/actor29/REJECTfalse/all6execution counts0/unqualifiedfalse asserted.
+ReportHTMLSHA2565015111B0FE5CB43578F82C26B53D76E73BB667CE0DD5B602F1C5449F4AD4EBA;
+artifact zipdigest5e146f8b64e3ffef4bb6d84a04cf80dec87e2b5e248054a2895a82d40e68acfc.
+Root native frontend.logSHA256C69EB968D67744D0E3E2524B453F632156A2665D9427CB0233F8B936876A6419
+in editorial-settings-ci-38319840777-20261013a. GitHub action/Node deprecation
+warnings retained, not app assertions. Optional mounted runtime remains pending;
+default packaged nginx/API503 and visual panel actually verified separately.
 BASE3d34b40bccd0b7bdeac2692c3a52bacc1e108ac0; authorized origin
 borovojarkadij-png/content-studio, branch codex/dark-navy-ui.
 Sole /root/editorial_settings_ui,gpt-6.1-sol/high/forknone/nohelpers,

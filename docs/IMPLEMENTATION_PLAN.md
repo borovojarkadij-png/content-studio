@@ -5,12 +5,17 @@ YouTube analysis/distribution/upload is excluded from the deliverable and all
 remaining-work/progress estimates. This overrides historical master-spec
 YouTube sections without changing the approved Telegram architecture or gates.
 
-Current NEXT_STEP2026-10-13: protected Settings tasks independently accepted
-(UI1 ambiguousPUT fix approved; UI2 actual334units/37browser/static/visualPASS).
-Root acceptance push/exact new CI, optional api-only operator Compose task,
-then owned synthetic Windows mounted-secret/restart/down-up gate. Root default
-packagedAPI startup/503 PASS. Frontend packaging native-binding failure under
-diagnosis; no image/lock workaround guessed and no operational activation.
+Current NEXT_STEP2026-10-13: root mounted-Windows acceptance/evidence commit,
+authorized corrected-head push/exact CI, next independent Telegram task.
+Settings UI1/UI2 and optional operator Compose64ce1e9 independently accepted.
+Actual Windows packaged default503/optional401+200/create+update/audit/private
+CAS/noop/REJECT0jobs/APIrestart/down-up/normal PGrecovery PASS, stable original
+volume/3separatepublicsyntheticfiles; no worker or operational activation.
+Unchanged frontend Dockerfile clean rebuild resolved poisoned npm cached layer;
+no dependency/source/cache-delete workaround. ExactUI38319840777 terminalFAIL
+on backend-cwd fixture import lint after2936PASS/15SKIP,8otherjobsSUCCESS.
+Correction5413179 independently accepted: actual0.17RED1/backend+rootGREEN0,
+compile0/3editorialbrowserPASS8.1s; final exact CI pending. PHASE1 not complete.
 
 - [x] Repository, backend test harness, frontend build foundation
 - [x] Restore Windows Docker Desktop engine startup without persistent-data deletion: validated runtime sockets preserved, real Engine 29.8.0/WSL and network-none/no-volume container execution verified; subsequent fresh synthetic Windows stack/recovery acceptance passed below, operational/live deployment remains pending

@@ -1,7 +1,72 @@
 # Packaged editorial operator acceptance — Windows Docker
 
-Status: DEFAULT STARTUP/AUTH DISABLED PASS; OPTIONAL MOUNT/RESTART PENDING.
+Status: DEFAULT DISABLED AND OPTIONAL MOUNTED WINDOWS RUNTIME/PERSISTENCE PASS.
 Not PHASE1 completion, operational activation or live model/Telegram acceptance.
+
+## Current affected-candidate result — 2026-10-13
+
+Optional Compose64ce1e9 independently approved (spec and quality, no blocking
+findings); actual197 covering tests/native0. Root attached only the existing
+separate public synthetic files in the exact owned fixture below. Actual
+production startup/migrations/health/native0; API-only read-only operator,
+reviewer and master mounts inspected. No worker container exists. Wrong/no
+bearer and reviewer bearer return private401/no-store; correct operator reads
+unconfigured200, then actual browser creates and updates the diagnostic policy.
+Both browser saves changed the exact ETag and produced exactly2 immutable
+EditorialPolicyConfigured outbox events with actor29/unique idempotency keys.
+Exact spaced/multiline alias survived SQL and browser reload. A no-op PUT
+preserves ETag/audit; stale create-only PUT returns private409/no extra event.
+
+Root actual API restart, Compose down/up without volume deletion, and normal
+PostgreSQL restart/recovery each completed native0 with healthy stack and
+byte-identical canonical policy/SQL/audit/REJECT/secret-hash snapshots. This is
+a normal PG restart, not a newly claimed hard-crash test. After down/up new
+owned APIc2e5fe251fe1f25bd30eadb903ceadfaae5aa4263776e8cda8bfe66daccc45ae,
+PG2ad14cabdc57f56cfa4281b4a1609a777658c30e960b872ee243106630588341,
+weba5c2d02992085ace83ebd8bc3041174960e67cf346168d73e02e11cc0de32060
+retain the candidate images and original named PostgreSQL volume. No reseed.
+Actual packaged browser reload clears the memory-only token; explicit reload
+with the same public synthetic operator reads the original model/ETag/alias.
+
+REJECT row1 remains REJECT/rewrite_allowed=false. All6 counts remain0:
+rewrite jobs, diagnostic jobs, diagnostic attempts, publication jobs, rewrite
+usage and semantic jobs. Diagnostic policy remains disabled/unqualified and
+execution_authorized/rewrite_allowed=false. No Telegram or AI provider IO.
+All3 separate synthetic file hashes remain equal to pre-activation values.
+Four persistent-*.json files have the same SHA256:
+3CBCC5E94CF1ECC3B1532878C2CA2566F350449B7C0EADFD5EA397100022DC6C.
+
+Actual root transcript SHA256 values:
+- verification-Baseline.log (guard-only failure):41B178FC96D13071E1FC2EB6E3CBD22EE3CB91F3014F1FB72335A756129DDAF5;
+- verification-Baseline-b.log:57057B338BD683DE51AA53ECCA3E929A134FADAF21E71C5CB812EF10D7415A5E;
+- verification-ApiRestart-a.log:8A682E2076B0893AB0B442E07A51A239CFAC9BF0F62F22DDBAD07382A01B7146;
+- verification-DownUp-a.log:3A96207B058F1B82F5863539D97D4456D2DEAE13EC7DA00F633FBD402D3A07A3;
+- verification-PostgresRestart-a.log:9683CE6911F3B2AABE1AB458F4420B66E5252CC2303EC77C2E48C413418C710A.
+
+Root verification script/raw transcripts and exact snapshots are retained at
+the fixture root below. Initial guard-only baseline attempt failed before HTTP
+or mutation: PowerShell @($null).Count is1 despite actual PG port5432:null;
+corrected explicit null check and preserved original log. No application bug
+or port exposure. API restart emitted deprecated --time warning; subsequent
+PG check uses supported --timeout, original warning retained. Neither failure
+nor warning is hidden. Snapshot statements read the actual PostgreSQL rows;
+native command statuses are captured immediately in transcripts.
+
+Exact UI CI38319840777/head1bb3463 is terminal FAILURE, not green:8other jobs
+SUCCESS; Backend performed2936PASS/15SKIP714.46s then standalone fixture Ruff
+I001 failed due backend-cwd bare Alembic import classification. This affects
+browser test fixture only, not the immutable runtime image inputs. Original
+backend.logSHA256880CD8560FB8D98897B316B68EB268B3BE2297DD27F85ECB7A5595BE6E485970.
+Minimal source5413179 changes only import/call to alembic.command.upgrade;
+Ruff0.17 backendRED1 then backend/rootGREEN0, compile0 and targeted3browser
+PASS8.1s. Fresh scoped review findingADDRESSED/specPASS/qualityPASS/no new
+breakage. Final exact branch-head CI remains pending; historical successes do
+not replace it. No UI redesign, operational secret or authorization changed.
+
+Reviewed original Compose report SHA256D2B1304A1AC3A6D71233D29AC011ADC1AC8AC8E6BF6AF57D4C5C0E29BBDEBEF4.
+Root git whitespace gate caught14 quoted trailing spaces and blank report EOF;
+removed presentation whitespace only before evidence commit. Original raw
+logs/native receipts are unchanged; no original output/status reconstructed.
 
 ## Exact candidate and isolation
 
@@ -61,6 +126,54 @@ evidence, not a later fabricated original raw log. It is unrelated to retained
 strict-test namespaces in the separate5432 fixture.
 
 ## Pending affected-candidate gate
+
+Optional Compose source64ce1e9 DONE/197coveringPASS/native0/no pytestwarning
+or skip; root independently matched3frozenhashes and parsed entire actual
+CLI evidence inventory:7JSONrenders (1behaviorRED+2default+4enabled),8refusals,
+actual terminal197PASS/native0. Fresh independent source review pending.
+Root actual candidate config with both profiles and both optional overrides:
+native0, exact source, operator auth/mount exclusivelyAPI; other services do
+not receive operator/reviewer auth variables. Create-only operator-runtime.env
+contains ordinary synthetic values, process-only IDs/source interpolation.
+Original default test.env/ownership/data unchanged; config is not mount proof.
+All3publicsyntheticsecret hashes recorded before activation, distinct paths,
+nonreparse regularfiles. Create-only synthetic REJECT row id1/statusREJECT/
+rewrite_allowedfalse inserted in exact owned PostgreSQL, native0. No job or
+provider execution. Mounted startup/recovery waits for source review approval.
+
+Root packaged frontend diagnosis retained under editorial-web-image-20261013a:
+original build native1, actual cached npm debug reports failed optional
+dependency /app/node_modules/@rolldown/binding-linux-x64-musl while npm exits0.
+Same immutable Node image/lockfiles in clean executable-overlay container:
+npmci104packages/native0 and actual Rolldown import PASS. Initial diagnostic
+used noexec tmpfs (separate load-permission defect, not original root cause).
+Cached-layer probe confirms package absent despite successful cached npm step.
+No code/lock/version/base-image change or cache/volume deletion. Actual standard
+frontend Dockerfile rebuild --no-cache succeeds native0, build-fresh.log SHA256
+8C9B01370D54376D8F4E95A3371AC9B9BEEE94C9CB32FCEB8A7C3409311EE27C.
+Candidate image newsflow-verification-editorial-web:20261013a actual identity
+sha256:7f3f56fafa33ee97dd3a84cf609ff7eedc55c92c9366537457ee5f58986fe666,
+source labelddb2c20067470af1558035d4e9029dd39ce18c06. Existing immutable
+backend image remains unchanged. Actual frontend startup native0, default
+packaged nginx health200 and exact static assetsHTTP200/native0. Asset names
+index-BIGfI_fV.js/index-Clz7HfYA.css match local accepted build. HTTP probe
+checks503/no-store through nginx with/without public synthetic bearer.
+default-web-startup.logSHA2560D6B5F0606D73BDA1074239C99FC2D26371F19276672048AEDD4CC765EC348EC;
+default-web-http.logSHA2566FC442E7DDFB53D0631A40290771CB6A4B57FEA8F4686B1F7C207D0EFBF29159.
+Actual web container835f4e73357fa82cbfb4876fde5ebf16e7b11e87f0899f07dbaabf96d0bf9064,
+correctproject/image/healthy inspected. Root browser opened exact18340, read
+actual SQL-backed Overview0records, Settings/Модерация masked memory-only
+operator field and explicit synthetic load honest503. Root actual screenshot
+visually confirms existing navy layout, not a newdesign. No worker/auth grant.
+
+Root evidence push1bb346351edadd710350310ed0c05f9038b864a8 native0, exact
+remote HEAD matched on authorized origin/branch; existing owner process-local
+credential restored finally. Exact CI38319840777 all9jobs in progress at
+inspection, not accepted yet. Original task2 report presentation had two raw
+trailing spaces/blank EOF; root removed only these for git whitespace gate.
+Original reviewed report hashA79F... retained in receipt; committed presentation
+hash2578BB4995CFA885FE24C9B4D9460E9364B48DF50B9E73331570895622C64A5D.
+Actual raw logs/hashes are unchanged; no native receipts fabricated.
 
 After optional operator override independent source review, use only this exact
 owned synthetic fixture to attach its existing separate public file. Actual

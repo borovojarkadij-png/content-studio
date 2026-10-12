@@ -158,3 +158,12 @@ never filter warnings or alter assertions — cost if wrong: readable harness
 noise remains, no authorization/data/design effect. Exact new-source CI pending.
 Root prepared packaged frontend build exposed missing native Rolldown binding;
 original native1/log preserved, diagnosis ongoing, no source fix guessed.
+
+Task2 CI correction fix round1/5: original actual38319840777/head1bb3463
+backend-cwd standalone RuffI001 after2936PASS/15SKIP; other8jobsSUCCESS.
+Originalwriter resumed64ce1e9, source5413179/report2fe3579, actual0.17RED1/
+backend+rootGREEN0/compile0/targeted3browserPASS8.1s. Allamendedhashesmatched.
+Fresh readonly /root/editorial_fixture_import_fix_review complete scoped
+64ce..2fe package10829bytes: findingADDRESSED/specPASS/qualityPASS/no new
+breakage/outsideobservations; verbatimtask-2-fix1-review.md.
+Task 2: complete (commits64ce1e9..2fe3579, fix1 review clean).
