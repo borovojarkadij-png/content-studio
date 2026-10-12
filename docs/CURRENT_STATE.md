@@ -1422,10 +1422,22 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: EDITORIAL_CLASSIFIER_WORKER_IMPLEMENTATION.md Task1: fresh canonical
-encrypted credential factory and strictly default-disabled bounded diagnostic
-worker tick. Own SDD brief/report/ledger, one fresh writer then independent
-review; record BASE after this acceptance-document commit. No worker/policy
+NEXT_STEP: document/push accepted encrypted classifier worker
+af45deba6aaf6238a7d4901cca577184911d496d (BASE388cb3c), then document/push the
+reviewed candidate and track exact CI with corrected finite PG budget. Fresh
+/root/editorial_worker_review,gpt-6.1-sol/high,forknone/nohelpers reads complete
+BASE..HEAD package: spec compliant/qualityApproved/no findings. Root read full
+review and resolved native-provenance item with original evidence; exact CI
+remains a pending integration gate. Full45430 terminal2565PASS/11explicitPG-only
+SKIP525.51s/native0/no warnings; covering439/5PG skips and behavioralRED retained.
+Root actual strict WindowsPG2newfiles97PASS55.81s/native0/no skips; all5 frozen
+hashes unchanged.63freshUUIDschemas only, total1697/maxOID1294081, env restored.
+Final report read EOF, seven-file commit verified. CI only timeout10->20 after
+full termination; no commands/checks removed. See
+EDITORIAL_CLASSIFIER_WORKER_VERIFICATION_20261012.md. History read-API plan/brief
+prepared, prerequisite independent worker review now accepted. Dispatch history
+after root documentation/commit/push, track corrected exact CI alongside it. No duplicate
+full/native gates. Root owns documentation, not frozen source. No worker/policy
 activation, real IO or automatic approval. Root owns actual WindowsPG/CI/state.
 Do not redispatch completed admission/adapter/executor or repeat their gates.
 
@@ -1451,7 +1463,20 @@ retained in own SDD workspace. Source accepted locally; exact amended CI pending
 Original full2462/7 is c9 evidence, not amended fulltested=final. Do not accept/
 push before fix/re-review; those gates now passed. Do not repeat unrelated
 full/UI/Docker gates; exact amended remote fullCI remains required.
-Worker plan/brief prepared, next sole writer may start after documentation.
+Worker sole writer now active after reviewed acceptance-document commit388cb3c.
+Reviewed executor/source/reports/docs pushed to authorized branch, remote exact
+HEAD388cb3cc92490ad8f8a9cd8106308863b1b5100e independently verified.
+New exact CI38304194927 in_progress/all9 jobs started; no terminal result yet.
+Follow-up: exact backend now SUCCESS2468/11PGskips545.67s plus migration/drift,
+actual new benchmark11772106662 downloaded/24matches/calls0/noqualification.
+StrictPG550-case job CANCELLED at old10-minute deadline after continuous91%
+progress; no terminalPASS/concurrency stepSKIPPED. Original log retained,
+diagnosis/ruling in CI_RECOVERY. Same worker writer authorized only this job's
+finite20-minute budget after frozenfull ends; Python hashes/commands unchanged.
+Whole-run remains unaccepted, exact corrected subsequent CI required.
+Terminal38304194927 completedCANCELLED:8SUCCESS/1PGdeadlineCANCELLED;
+providerpublication/persistence/doublereopen/fullsynthstack passed with network0.
+Preserve originalresult; newfinite-budgetcandidateCI required, not rerun oldSHA.
 Canonical admission88ce234 accepted: full2301/6 existing PG-only skips,119
 targeted,398 covering, actual strict Windows PG88 and new queued-job PG restart/
 double reopen PASS; original exception fixture failure preserved. Do not repeat

@@ -1,11 +1,21 @@
 # Durable diagnostic execution verification — 2026-10-12
 
-Status: CORRECTED LOCAL/ACTUAL PG PASS / INDEPENDENT REVIEW ACCEPTED / EXACT CI PENDING.
+Status: CORRECTED LOCAL/ACTUAL PG PASS / REVIEW ACCEPTED / CI PG DEADLINE CORRECTION PENDING.
 Repository borovojarkadij-png/content-studio, branch codex/dark-navy-ui.
 Task baseline e8b761728c6630473620adb04b518b8262c2283b.
 Implementation contract: EDITORIAL_CLASSIFIER_EXECUTION_IMPLEMENTATION.md.
 Original source c9c16d122ba6b3cee5bd6a3a157d72ca41268166;
-accepted correction e29779b7a570f850e51e542fcc50e77c68c06dd6, not yet pushed.
+accepted correction e29779b7a570f850e51e542fcc50e77c68c06dd6;
+root evidence commit388cb3cc92490ad8f8a9cd8106308863b1b5100e pushed and remote-ref
+verified. Exact CI38304194927 completed CANCELLED:8SUCCESS/1PGdeadlinecancel,
+not whole-run accepted.
+
+Its exact remote backend now2468 PASS/11 explicit PG-only SKIP/545.67s,
+lint/compile/migration/no-drift PASS. Root read native terminal and downloaded
+new benchmark artifact11772106662:24/24/calls0/no qualification. StrictPG job
+canceled by old ten-minute deadline after continuous progress to91%; no terminal
+PG pass or concurrency execution is claimed. Full new-source acceptance awaits
+the bounded CI-budget correction and exact subsequent run; see CI_RECOVERY.
 
 ## Original independent review and subsequent correction
 

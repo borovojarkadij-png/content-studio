@@ -50,6 +50,11 @@ authorize publication. Current actual-model qualification remains pending.
 - Create backend/tests/test_editorial_worker.py.
 - Modify the existing tracked .env.example only to document default-disabled
   execution; never read or edit the real .env as part of this task.
+- Root-authorized narrow CI correction after full-suite termination: in
+  .github/workflows/ci.yml change only unattended-postgres timeout-minutes10->20.
+  Actual previous-source run38304194927 reached91% with continuous successful
+  progress before the ten-minute job deadline; preserve all test commands,
+  safety settings, failure propagation and all other job budgets.
 - Report in this plan's SDD workspace task-1-report.md.
 
 **Factory contract:**
@@ -134,6 +139,11 @@ def run_editorial_classification_tick(
   No schema/dependency migration or unchanged UI/Docker recovery rerun required.
 - [ ] Self-review and report original RED/GREEN, native commands/counts/skips,
   exact frozen hashes and limitations. Commit only owned files/report; no push.
+- [ ] After the already-running five-file frozen full suite terminates, apply
+  only the authorized CI deadline correction, parse YAML and assert the new
+  finite budget and unchanged PostgreSQL test commands. Preserve actual timeout
+  as failed verification, not PASS; root tracks exact corrected new-source CI.
+  No Python edits or second full-suite run for this configuration-only change.
 
 Deferred: protected-policy settings API/UI and diagnostic history read model,
 actual benchmark/qualification, qualified editorial PASS propagation and its

@@ -149,7 +149,71 @@ persistence PASS, publication pending/final/double-reopen PASS and explicit
 zero Telegram/AI network calls. This accepts admission candidate88ce234 and
 its associated root docs, not the later uncommitted execution task.
 
-## Windows runtime boundary
+## Corrected diagnostic execution candidate
+
+Executor c9c16d1 plus independently accepted lease-clock correction e29779b and
+root evidence/review reports pushed at388cb3cc92490ad8f8a9cd8106308863b1b5100e.
+Remote exact branch ref independently read/verified; correct owner/origin/branch,
+no persistent authentication switch. Native git push succeeded0; outer wrapper
+returned1 from optional suppressed missing-variable cleanup after success. No
+push retry or force was performed, independent remote verification native0.
+Exact CI38304194927 started all9 jobs; terminal result remains pending.
+Original full2462/7 identifies c9, not amended bytes. Corrected covering326/5
+PG-only skips and root actual WindowsPG10/noSKIP/native0 plus clean scoped
+re-review are accepted; exact amended remote complete suite remains required.
+New PG list includes the executor/actual-held-row cases, not only old admission.
+Later encrypted-factory/worker implementation is independent/not in this SHA.
+
+Exact backend114994133321 completed SUCCESS:2468 PASS/11 explicit PG-only SKIP/
+545.67s, lint/compile/migration/no-drift PASS. Root read native terminal summary.
+This is the amended executor's actual remote full suite, distinct from original
+c9 local2462 gate. No automatic approval or later worker source is covered.
+Downloaded exact-run benchmark artifact11772106662 to
+D:/Codex-Recovery/content-studio-20261008/editorial-contract-ci-38304194927/:
+raw report SHA256318DE43F3C8C0DE9501B324A31B14C3390E6AFE6470A6913571393A0B9896E45,
+24/24/0mismatch, provider/rewrite calls0 and real_model_qualified=false. Root
+validated all case flags; repeated content hash does not substitute for this
+new run's actual execution/download.
+
+Strict PG114994133488 completed CANCELLED at the configured ten-minute deadline;
+no terminal test PASS exists. Original native log retained:
+D:/Codex-Recovery/content-studio-20261008/editorial-execution-ci-38304194927/postgres-job.log,
+SHA2560B7D845B228999FAF037142DEBBBCD89F362A01D60BA34EAC9FD88D98CC88707.
+Actual progress13/26/39/52/65/78/91% at20:27:24..20:36:14 with no assertionFAIL,
+then operation-canceled20:36:25. Concurrency step deliberately not run because
+job was canceled; it remains SKIPPED, not PASS. Expected negative PostgreSQL
+constraint ERROR lines in container teardown are test evidence, not the cause.
+Fresh migrated workload grew420->550 cases; measured progress outran old job
+deadline, not a demonstrated deadlock. Checkpoint log confirms large schema-file
+write activity. Same task writer authorized to change only this finite job
+budget10->20 after its frozen suite; all checks/commands/isolation retained.
+Correction and exact new-source CI required; current whole-run not accepted.
+
+Terminal exact run38304194927 is completed CANCELLED,8 jobs SUCCESS/1 PG CANCELLED.
+Root inspected both provider native tails: synthetic publication pending/final/
+double-reopen/persistence PASS, explicit zero Telegram/AI network calls. Actual
+full-stack114994133467:1 PASS/4 deliberately deselected/354.61s, packaged drift
+PASS. Frontend/channel-sync/guarded admission/illustration jobs SUCCESS. No
+rerun overwrites this canceled original; new finite-budget candidate must pass.
+
+## Diagnostic factory/worker and finite PG budget candidate
+
+Source af45deba6aaf6238a7d4901cca577184911d496d adds the bounded opt-in
+diagnostic factory/worker. Its sole full local gate terminated native0:
+2565 PASS/11 explicit PG-only SKIP/525.51s, no warnings. Separate root WindowsPG
+new-file gate97 PASS/55.81s/noSKIP/native0. Frozen five implementation hashes
+unchanged; final report and seven-file commit independently inspected.
+After full termination, the authorized CI diff changes only
+unattended-postgres.timeout-minutes10->20. All commands, safety flags, service
+settings, failure propagation and other budgets remain unchanged. YAML/exact
+single-change/static checks passed. This corrects a measured deadline, not a
+failed assertion; prior38304194927 remains CANCELLED/8SUCCESS+1PG cancellation.
+Independent task review speccompliant/qualityApproved/no findings; root read
+complete report and resolved native-provenance item from original logs/hashes.
+Corrected exact-new-source CI remains pending.
+No local test or earlier artifact substitutes for that CI. No live activation.
+
+## Current Windows runtime boundary
 
 Fresh root check: real Linux Engine29.8.0 responds; retained20261009c API,
 PostgreSQL, Redis and production web healthy, other worker/dev-web running.

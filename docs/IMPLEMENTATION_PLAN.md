@@ -138,12 +138,21 @@ test color/untouched full-format noise remains tracked for milestone triage.
   PASS. Disclosed over1000-item fail-closed capacity limit remains; exact new CI
   is pending, earlier f8/e160 proof is not its substitute
 
-NEXT_STEP: EDITORIAL_CLASSIFIER_WORKER_IMPLEMENTATION.md Task1: fresh canonical
-encrypted factory and strictly default-disabled bounded diagnostic tick/main
-loop. Own SDD brief/report/ledger, one fresh writer then independent review;
-record BASE after acceptance docs. No runtime/policy activation or autoapproval.
+NEXT_STEP: document/push accepted worker af45deba6aaf6238a7d4901cca577184911d496d
+against BASE388cb3c, fresh /root/editorial_worker_review,gpt-6.1-sol/high,
+forknone/nohelpers. Full45430 terminal2565PASS/11explicitPG-onlySKIP525.51s/native0,
+covering439/5PG skips, rootactualWindowsPG97/noSKIP/native0; five frozen hashes
+unchanged. Seven owned files committed, final report read EOF. CI only finite
+PG deadline10->20 after full ended, all commands unchanged. Original writer
+owns any review fix. On acceptance document/push/track exact new CI, then
+dispatch prepared history read-API task; no duplicate full/native gates.
+Independent worker review speccompliant/qualityApproved/no findings; root read
+complete report and resolved native-provenance item. Corrected exact CI remains
+integrationpending, not waived. History prerequisite accepted; dispatch after
+root documentation/commit/push while tracking corrected exact CI.
+no runtime/policy activation or autoapproval.
 Executor e29779b accepted locally after correction/re-review; exact amended CI
-pending. Admission88ce234 accepted: full2301/6 old PG-only
+in_progress at exact CI38304194927/head388cb3c. Admission88ce234 accepted: full2301/6 old PG-only
 skips,119 targeted,398 covering, actual WindowsPG88 and queued-job PG restart/
 double reopen PASS; independent review no findings. Track its new exact CI,
 no unchanged admission/native suite repetition.
