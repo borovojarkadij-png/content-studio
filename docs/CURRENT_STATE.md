@@ -25,7 +25,9 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
   Source88ce234 full2301 PASS/6 explicit PG-only SKIP/396.76s, independent
   review approved/no findings. Test-only exception amendment separately88
   SQLite/88PG PASS, all production hashes unchanged. No provider calls or
-  operational mutations. New exact CI pending; not execution/qualification. See
+  operational mutations. Exact CI38300513652/head e8b7617 all9 SUCCESS;
+  actual PG420+5/backend2301+6PG skips and benchmark artifact inspected, not
+  execution/qualification. See
   EDITORIAL_DURABLE_ADMISSION_VERIFICATION_20261012.md.
 - 2026-10-12 classifier adapters6dd3517 independently approved, no findings:
   classification-only existing bounded OpenAI/free-only OpenRouter transports,
@@ -1420,14 +1422,46 @@ Additional create-only wait restart fixture now verified OFFLINE: 7 dedicated /
 33 combined / full 988 backend PASS (77961), exact CI lint/format/compile/PowerShell
 parse/explicit D: drift PASS. Its actual new PostgreSQL/down-up CI remains pending.
 
-NEXT_STEP: EDITORIAL_CLASSIFIER_EXECUTION_IMPLEMENTATION.md Task1: committed
-bounded leases/attempt provenance, fresh canonical pre/post-call binding checks,
-append-only diagnostic evidence/known-usage receipts, no automatic approval.
-Use own SDD brief/report/ledger and one writer, then independent scoped review.
+NEXT_STEP: EDITORIAL_CLASSIFIER_WORKER_IMPLEMENTATION.md Task1: fresh canonical
+encrypted credential factory and strictly default-disabled bounded diagnostic
+worker tick. Own SDD brief/report/ledger, one fresh writer then independent
+review; record BASE after this acceptance-document commit. No worker/policy
+activation, real IO or automatic approval. Root owns actual WindowsPG/CI/state.
+Do not redispatch completed admission/adapter/executor or repeat their gates.
+
+Execution original source c9c16d122ba6b3cee5bd6a3a157d72ca41268166;
+covering534 PASS/1 SQLite PG-only SKIP, one full native0 suite2462 PASS/7PG skips/
+444.14s. Root read original terminal log/hash and confirmed all9 frozen hashes.
+Root actual strict WindowsPG120 PASS/86.96s/native0/no skips, all9 frozen hashes
+unchanged.101 fresh UUID namespaces only; new total1624/maxOID1232970.
+Exact synthetic PG restart20:10:17Z and independent double reopen PASS:
+78claims/73receipts/103jobs incl3QUEUED/4RUNNING, manifest458DB740... unchanged.
+See EDITORIAL_CLASSIFIER_EXECUTION_VERIFICATION_20261012.md. Do not repeat
+completed PG/restart/full proof. Independent scoped review completed:
+/root/editorial_execution_review, full BASEe8b7617..c9c16d1 package, report in
+own SDD task-1-review.md: one Important stale lease-clock fence in _check/_finish,
+spec FAIL/quality Needs fixes, no Critical/Minor. Original writer corrected
+SQL-wait/pre-IO expiry in e29779b7a570f850e51e542fcc50e77c68c06dd6:
+behavioralRED5FAIL/1PASS, focused6PASS, covering326PASS/5explicitPG-onlySKIP,
+static native0. Root actual new WindowsPG10PASS/noSKIP/7.58s/native0 including
+all4 actual held-row cases;10freshUUIDschemas only, total1634/maxOID1241341,
+amended hashes unchanged. Fresh independent scoped re-review ACCEPTED:
+finding ADDRESSED/specPASS/qualityAPPROVED/no new breakage. Both review reports
+retained in own SDD workspace. Source accepted locally; exact amended CI pending.
+Original full2462/7 is c9 evidence, not amended fulltested=final. Do not accept/
+push before fix/re-review; those gates now passed. Do not repeat unrelated
+full/UI/Docker gates; exact amended remote fullCI remains required.
+Worker plan/brief prepared, next sole writer may start after documentation.
 Canonical admission88ce234 accepted: full2301/6 existing PG-only skips,119
 targeted,398 covering, actual strict Windows PG88 and new queued-job PG restart/
 double reopen PASS; original exception fixture failure preserved. Do not repeat
 completed admission/native gates. Track its own exact new remote CI after push.
+Reviewed source/report/docs actually pushed e8b7617 to authorized origin/branch;
+exact CI38300513652/head e8b7617 completed SUCCESS, all9 jobs SUCCESS.
+Native backend2301/6 PG-only skips, strictPG420+5 and full-stack1/4 deselected
+PASS; actual benchmark artifact11770269469 downloaded/24 matched/calls0/
+qualification=false. Both provider families retained persistence and synthetic
+publication/double-reopen PASS with network calls0. See CI_RECOVERY_20261012.md.
 Classifier adapters6dd3517 accepted independently (full2182/6 PG-only skips,
 focused259, native hashes). Reviewed adapters/docs pushed authorized origin/branch
 at1d00655; exact CI completed including actual synthetic benchmark artifact.
@@ -1460,6 +1494,9 @@ synthetic PostgreSQL4c1a412... on loopback5432; original application services st
 stopped, all future writes restricted to fresh validated UUID schemas. See
 EDITORIAL_DURABLE_ADMISSION_VERIFICATION_20261012.md; actual88 and exact queued-job
 restart/double snapshot reopens PASS. Retain the original schemas/manifests.
+Before executor cases baseline1523/maxOID1148480; actual120-case run created
+101 new schemas, now1624/maxOID1232970. Preserve both accepted task manifests;
+all subsequent test writes still require fresh UUID namespaces only.
 
 Historical checkpoints below remain evidence of earlier increments, not NEXT_STEP.
 

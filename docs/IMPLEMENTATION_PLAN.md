@@ -138,13 +138,18 @@ test color/untouched full-format noise remains tracked for milestone triage.
   PASS. Disclosed over1000-item fail-closed capacity limit remains; exact new CI
   is pending, earlier f8/e160 proof is not its substitute
 
-NEXT_STEP: EDITORIAL_CLASSIFIER_EXECUTION_IMPLEMENTATION.md Task1: bounded
-committed leases/claim provenance, canonical pre/post-call validation and
-append-only diagnostic/known-usage receipts. Own SDD brief/report/ledger, one
-writer then independent review. Admission88ce234 accepted: full2301/6 old PG-only
+NEXT_STEP: EDITORIAL_CLASSIFIER_WORKER_IMPLEMENTATION.md Task1: fresh canonical
+encrypted factory and strictly default-disabled bounded diagnostic tick/main
+loop. Own SDD brief/report/ledger, one fresh writer then independent review;
+record BASE after acceptance docs. No runtime/policy activation or autoapproval.
+Executor e29779b accepted locally after correction/re-review; exact amended CI
+pending. Admission88ce234 accepted: full2301/6 old PG-only
 skips,119 targeted,398 covering, actual WindowsPG88 and queued-job PG restart/
 double reopen PASS; independent review no findings. Track its new exact CI,
 no unchanged admission/native suite repetition.
+Completed executor writer /root/editorial_execution, BASEe8b7617, own SDD workspace;
+no helpers/parallel source writers. Reviewed admission source/report/docs pushed
+e8b7617 to authorized origin/branch, exact CI38300513652 completed SUCCESS/all9.
 Classifier adapters6dd3517 independently approved/no findings, full2182 PASS/6
 explicit PG-only SKIP/304.77s, focused259. Reviewed adapters/docs pushed1d00655;
 exact new CI/benchmark artifact completed and checked.
@@ -171,9 +176,21 @@ publication/source/review/fact/technical/rights/sync/session gates remain unchan
   immutable DB identities and safe migration limits; full2301/6 old PG skips,
   119 targeted/398 covering, actual WindowsPG88 and new pending-job PG restart/
   double original-state reopen PASS; independent scoped review approved.
-- [ ] Leased diagnostic execution, canonical pre/post-call binding checks,
+  Exact e8b7617 CI38300513652 all9 SUCCESS, actual PG420+5/backend2301+6PG skips,
+  new benchmark artifact24/24/calls0/qualificationfalse independently inspected.
+- [x] Leased diagnostic execution, canonical pre/post-call binding checks,
   immutable claim provenance and append-only evidence/known-usage receipts;
   current bounded task above, no automatic approval or real IO in tests.
+  Frozen covering534/1 SQLite PG skip; actual WindowsPG120/no skips and new
+  claim/receipt/job PG restart/double reopen PASS. Frozen full2462/7PG skips/native0
+  sourcec9c16d1, root native/hash inspection PASS. Independent scoped review found
+  one Important stale-clock fence in _check/_finish: fix round1 e29779b corrected
+  after behavioralRED5FAIL/1PASS; focused6/covering326+5PGskips PASS. Root actual
+  freshPG10/noSKIP PASS including4 held-row cases, unchanged hashes; scoped
+  re-review findingADDRESSED/specPASS/qualityAPPROVED/no new breakage;
+  exact amended new-source CI remains pending. Original full2462 gate is not
+  amended-source evidence. Prepared encrypted factory/opt-in worker follows
+  only after this task's review acceptance.
 - [ ] Canonical durable classification admission/jobs/recovery and independently
   qualified real-model benchmark before automatic pre-rewrite classification.
 

@@ -118,6 +118,37 @@ the run; no workflow check was disabled. Future action-version maintenance is
 separate from this narrow source increment, not silently hidden or auto-upgraded.
 New durable admission source is not part of this SHA and needs its own exact CI.
 
+## Canonical durable admission candidate
+
+Independently reviewed source88ce234, report provenance0d142f1 and root evidence
+pushed at e8b761728c6630473620adb04b518b8262c2283b to authorized origin/branch.
+Exact run38300513652 is in_progress; no prior candidate substitutes for its
+expanded PG/admission migration gate. Diagnostic executor is a later independent
+task and is not included in this SHA. No checks/permissions/timeouts disabled.
+
+Completed native backend114982032345 is SUCCESS:2301 PASS/6 explicit
+PostgreSQL-only SKIP/347.20s; lint/compile/migration/no-drift PASS. Actual
+PostgreSQL114982032560 is SUCCESS:420 PASS/255.64s plus5 controlled concurrency
+PASS/4.79s. Frontend, channel-sync, illustration and guarded admission jobs also
+completed SUCCESS. Both provider persistence families and full-stack were still
+running at this inspection; whole-run acceptance remains pending.
+
+Root downloaded this exact run's editorial-classification-contract artifact
+ID11770269469 to
+D:/Codex-Recovery/content-studio-20261008/editorial-contract-ci-38300513652/.
+Actual report SHA256318DE43F3C8C0DE9501B324A31B14C3390E6AFE6470A6913571393A0B9896E45:
+24 cases/24 matched/0 mismatched, SYNTHETIC_CONTRACT, provider_calls0,
+rewrite_calls0, real_model_qualified=false. Its equality to the prior report
+does not replace executing/downloading the new candidate's actual artifact.
+
+Terminal run38300513652/head e8b761728c6630473620adb04b518b8262c2283b is
+completed SUCCESS, all9 jobs SUCCESS. Root read native full-stack114982032513:
+1 PASS/4 deliberately deselected/346.48s and packaged no-drift PASS.
+Both provider jobs114982032270/114982032326 end with original-state synthetic
+persistence PASS, publication pending/final/double-reopen PASS and explicit
+zero Telegram/AI network calls. This accepts admission candidate88ce234 and
+its associated root docs, not the later uncommitted execution task.
+
 ## Windows runtime boundary
 
 Fresh root check: real Linux Engine29.8.0 responds; retained20261009c API,

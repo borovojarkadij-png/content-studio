@@ -42,3 +42,28 @@ Three successful smoke examples alone would not establish that qualification.
 Credential unavailability does not stop independent canonical durable admission,
 migration, PostgreSQL, regression, recovery or CI work. Current manual/editorial/
 fact/source/media/publication gates stay unchanged and PHASE1 remains unfinished.
+
+## Consolidated external acceptance actions
+
+No intermediate response is requested while independent implementation remains.
+When live acceptance is ready, collect these actions together, not one by one:
+
+1. Make an existing valid OpenAI or intended free-only OpenRouter credential
+   available through the secure app/local path. No key in Git, reports or logs;
+   do not create/replace one automatically. Root then performs actual catalog,
+   bounded synthetic compatibility and separately frozen benchmark/report gates.
+   Providing a key does not itself qualify any model or enable autoapproval.
+2. Complete the chosen test Telegram account's manual authentication when needed
+   (code/2FA/CAPTCHA). No existing personal/production authorization is replaced,
+   no session/master key regenerated. Verify encrypted authorization survives
+   actual controlled container restart, not merely fake session roundtrip.
+3. Explicitly identify synthetic donor/output test channel IDs and grant that
+   account the intended test-only rights. No existing operational output is
+   inferred to be a test destination. Use synthetic posts/owned media, not real
+   donor materials or operational queues. Original-photo/live library review
+   acceptance requires the corresponding real rights/reviewer setup too.
+
+Docker is not currently an external blocker: Engine29.8.0 actually runs and
+the owned synthetic PostgreSQL restart proof is available. Exact new-source
+application images/CI/runtime gates remain autonomous verification work, not a
+request for the user to troubleshoot Docker. Disabled heartbeat stays disabled.

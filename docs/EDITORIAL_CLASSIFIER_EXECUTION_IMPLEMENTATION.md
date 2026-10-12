@@ -57,6 +57,10 @@ before a receipt may require another call, bounded by two committed attempts.
 - Create backend/tests/test_durable_editorial_runner.py.
 - Create backend/tests/test_editorial_attempt_migration.py.
 - Extend backend/tests/test_editorial_classifier_adapters.py for receipt reset.
+- Modify backend/tests/test_editorial_admission_migration.py narrowly: preserve
+  pinned historical d7b340a92e16 assertions/empty roundtrip/sentinels, but run
+  model-metadata command.check only after explicit upgrade to actual head.
+  New model tables are intentional later evolution, not old-head metadata drift.
 - Append only the new runner test file to the existing strict migrated PG CI list.
 - Report in this plan's SDD workspace task-1-report.md.
 
