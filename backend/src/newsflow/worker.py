@@ -30,11 +30,13 @@ from newsflow.services.channel_sync_enforcement import ChannelSyncEnforcement
 from newsflow.services.channel_sync_tick import run_channel_sync_tick as _channel_sync_tick
 from newsflow.services.donor_import_resolution import DonorImportResolutionRunner
 from newsflow.services.donor_ingestion_runner import DonorIngestionRunner
+from newsflow.services.durable_editorial_runner import DurableEditorialRunner
 from newsflow.services.durable_media_runner import DurableMediaRunner
 from newsflow.services.durable_publication_runner import DurablePublicationRunner
 from newsflow.services.durable_rewrite_runner import DurableRewriteRunner
 from newsflow.services.durable_semantic_runner import DurableSemanticRunner
 from newsflow.services.durable_source_photo_runner import DurableSourcePhotoRunner
+from newsflow.services.editorial_classifier_factory import ConfiguredEditorialClassifierFactory
 from newsflow.services.publication_planning import PlanValidationError, PublicationPlanningService
 from newsflow.services.rewrite_provider_factory import ConfiguredRewriteProviderFactory
 from newsflow.services.semantic_verifier_factory import ConfiguredSemanticVerifierFactory
@@ -109,6 +111,27 @@ def rewrite_enabled(value: str) -> bool:
     if value not in {"0", "1"}:
         raise ValueError("NEWSFLOW_REWRITE_ENABLED must be exactly 0 or 1")
     return value == "1"
+
+
+def editorial_classification_enabled(value: str) -> bool:
+    if type(value) is not str or value not in {"0", "1"}:
+        raise ValueError("NEWSFLOW_EDITORIAL_CLASSIFICATION_ENABLED must be exactly 0 or 1")
+    return value == "1"
+
+
+def run_editorial_classification_tick(
+    session_factory, *, enabled: bool, cipher, now: datetime, opener=None
+) -> str:
+    if type(enabled) is not bool:
+        raise ValueError("NEWSFLOW_EDITORIAL_CLASSIFICATION_ENABLED requires an exact bool")
+    if not enabled:
+        return "DISABLED"
+    if cipher is None:
+        raise ValueError("Explicit stable cipher is required for editorial classification")
+    classifier = ConfiguredEditorialClassifierFactory(session_factory, cipher=cipher, opener=opener)
+    return DurableEditorialRunner(session_factory, classifier_for_binding=classifier).run_next(
+        now=now
+    )
 
 
 def publication_enabled(value: str) -> bool:
@@ -411,6 +434,9 @@ def main() -> None:
         raise ValueError("Scheduler polling interval must be between 5 and 60 seconds")
     network_enabled = rewrite_enabled(getenv("NEWSFLOW_REWRITE_ENABLED", "0"))
     semantic_enabled = rewrite_enabled(getenv("NEWSFLOW_SEMANTIC_VERIFICATION_ENABLED", "0"))
+    editorial_enabled = editorial_classification_enabled(
+        getenv("NEWSFLOW_EDITORIAL_CLASSIFICATION_ENABLED", "0")
+    )
     media_enabled = rewrite_enabled(getenv("NEWSFLOW_INTERNET_MEDIA_ENABLED", "0"))
     ingestion_enabled = rewrite_enabled(getenv("NEWSFLOW_TELEGRAM_INGESTION_ENABLED", "0"))
     channel_sync_network_enabled = channel_sync_enabled(
@@ -427,6 +453,7 @@ def main() -> None:
         SessionCipher(load_runtime_master_key())
         if network_enabled
         or semantic_enabled
+        or editorial_enabled
         or ingestion_enabled
         or source_photo_enabled
         or publication_network_enabled
@@ -525,6 +552,14 @@ def main() -> None:
                 logger.info("ingestion.tick", outcomes=outcomes)
             except Exception:  # noqa: BLE001 - retain progress/leases, never expose provider secrets
                 logger.warning("ingestion.execution_interrupted", recovery="persisted_lease")
+        if editorial_enabled and not stopped.is_set():
+            try:
+                outcome = run_editorial_classification_tick(
+                    factory, enabled=True, cipher=cipher, now=datetime.now(UTC)
+                )
+                logger.info("editorial.tick", outcome=outcome)
+            except Exception:  # noqa: BLE001 - retain committed history, never log private data
+                logger.warning("editorial.execution_interrupted", recovery="persisted_lease")
         if network_enabled and not stopped.is_set():
             try:
                 outcome = run_rewrite_tick(

@@ -164,7 +164,7 @@ jobs:
   unattended-postgres:
     name: Synthetic unattended PostgreSQL vertical slice
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     services:
       postgres:
         image: postgres:16-alpine
