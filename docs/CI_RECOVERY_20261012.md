@@ -248,8 +248,40 @@ root actualWindowsPG78PASS/noSKIP. Fix original RED4FAIL/6positivePASS, covering
 hashes unchanged. Scoped re-review findingADDRESSED/speccompliant/qualityApproved,
 no new findings. Original full is not amended-byte proof; exact new-source CI
 must pass separately. Source/reviews/rootdocs are ready to commit/push; remote
-new-source run not yet assigned. No live calls, operational changes or UI edits.
+new-source run38310060502/head34ad476 now all9in_progress. Root evidence/reviews commit34ad476
+and push native0, exact remote ref independently verified with process-local
+owner credential restored. Root tracks this new CI while evaluator writer works;
+no terminal PASS yet. No live calls, operational changes or UI edits.
 See EDITORIAL_DIAGNOSTIC_HISTORY_VERIFICATION_20261013.md.
+
+## Exact history CI terminal acceptance — October13
+
+Run38310060502 at34ad476550f4a33ddbe2de71f0ad6ce4a743462a completed SUCCESS,
+all9 jobs SUCCESS. Root downloaded actual terminal native logs to
+D:/Codex-Recovery/content-studio-20261008/editorial-history-ci-38310060502/:
+
+- postgres-job.log:638PASS/562.20s plus5concurrencyPASS/7.64s;
+  SHA256248E8D9082B7468494C1CD4A720716E4CC95D74A51BB082C1F4AE2991C5BD4F3.
+- backend-job.log:2653PASS/11 explicitPG-only SKIP/629.89s; Ruff/compile and
+  packaged migration no-drift PASS;
+  SHA25692CD4F2D45EB334BD8589A30A165F2767073B4246370F0B45B9DDDE63AD0639B.
+- full-stack-job.log:1PASS/4deselected/341.24s and packaged drift PASS;
+  SHA256ADA548DDCE5ED6D07D937B99BA0CA893689505DCDF625E4861307A969E9FC98E.
+- openai-job.log:pending/recovery/final/two read-only reopens PASS, explicit
+  zero Telegram/AI calls;
+  SHA2567BE90259838797E187F128456F87D28594F06AFE0BD25AF8A147B0CD93D7748D.
+- openrouter-job.log:same recovery family PASS/explicit zero network calls;
+  SHA2561DA804F6D1FAD82097376A9BB9314A5593A8D57E306E11FB34F166FBD97ECFF2.
+
+Actual new artifact11774523569/editorial-classification-contract downloaded to
+D:/Codex-Recovery/content-studio-20261008/
+editorial-contract-ci-38310060502-7fd7e07aace2459f90393a486171d981/.
+editorial-contract-report.json SHA256
+318DE43F3C8C0DE9501B324A31B14C3390E6AFE6470A6913571393A0B9896E45;
+root asserts24cases/24matched/0mismatched/provider0/rewrite0/qualificationfalse.
+Same content hash as prior run is not substituted for this actual new download.
+This supersedes history-CI-pending above, not historical failures. Does not
+include the uncommitted evaluator or qualify a real model/operational deployment.
 
 ## Current Windows runtime boundary
 

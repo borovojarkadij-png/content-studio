@@ -138,8 +138,26 @@ test color/untouched full-format noise remains tracked for milestone triage.
   PASS. Disclosed over1000-item fail-closed capacity limit remains; exact new CI
   is pending, earlier f8/e160 proof is not its substitute
 
-NEXT_STEP: Root commit/push accepted history evidence/reviews and track exact CI,
-then dispatch EDITORIAL_MODEL_EVALUATION_IMPLEMENTATION.md Task1 with recordedBASE.
+NEXT_STEP: root reviewed evaluatorbacdd185 docs/review commit/push/exactremoteCI,
+then prepare safe persisted diagnostic-policy configuration in existing models.
+No runtime activation/autoapproval/real sends. EvaluatorTask1 COMPLETE,
+BASE34ad476550f4a33ddbe2de71f0ad6ce4a743462a..bacdd1854054316c5d99f1420ef915e9b381cc95,
+fresh scoped review speccompliant/qualityApproved/no findings, both root-owned
+provenance items resolved. No repeated completedtask/fullgate.
+Bounded labeled evaluator/default-no-networkCLI, one frozenfull/rootnative+safeCLI/
+independent review; no qualification or operational activation.
+Current evaluator sourcefrozen,361focusedPASS/native0/staticPASS/root safe
+no-flagCLI expected2/attempted0/allfalse. Invalid-cwd full26469 stoppednative1
+and preserved; corrected validfull84779 terminal2744PASS/11PG-onlySKIP415.63s/
+native0, root rawlog/fivehash/146-line reportEOF checked. WriterDONEbacdd185 exact
+sixpaths; completeBASE34ad..bac package generated. Fresh scoped review now
+/root/editorial_model_evaluation_review,gpt-6.1-sol/high/forknone/nohelpers.
+Do not repeatfull; resolve verdict then document/push/exactCI/next independenttask.
+History evidence and reviews committed/pushed34ad476,native0/exactremoteverified.
+Exact history CI38310060502/head34ad476 now all9SUCCESS. Root inspected/downloaded
+actual backend2653/11PG-onlySKIP, strictPG638+5, full-stack and both provider
+persistence/double-reopen PASS/calls0, new benchmark24/24/calls0/qualfalse.
+Native hashes/paths in CI_RECOVERY_20261012.md; not evaluator-source acceptance.
 History BASE65ed7f2..fae11e7 COMPLETE after fix1/scoped re-review; no redispatch.
 Bounded readonly SQL history + studio GET, own brief/ledger/report; rootactualPG
 after freeze, one frozenfull then independent review. Corrected exactCI tracked

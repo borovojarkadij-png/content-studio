@@ -119,9 +119,26 @@ Minor or outside observations. Root read full verdict and saved both original
 review and scoped re-review, including the original Important rather than
 erasing it. Local implementation accepted; exact final-source CI still pending,
 not waived by review or prior65ed CI. Root documents/pushes this branch then
-continues the prepared bounded model-evaluation increment. PHASE1 not complete.
+continues the prepared bounded model-evaluation increment. Root evidence/reviews
+commit34ad476550f4a33ddbe2de71f0ad6ce4a743462a pushed native0; independently
+verified exact remote. Exact history CI38310060502 now queued, not PASS yet.
+PHASE1 not complete.
 Root documentation/push and exact new-source CI remain pending. Prior exact CI
 38306240255/head65ed all9 SUCCESS proves the predecessor, not this later task.
 PHASE1 remains unfinished. Live model benchmark/qualification, manual test
 Telegram authorization and test destinations remain separate external actions;
 independent implementation continues without enabling automation or real sends.
+
+## Exact final history-source CI completed
+
+Run38310060502/head34ad476550f4a33ddbe2de71f0ad6ce4a743462a is now completed
+SUCCESS/all9 jobs SUCCESS. Root downloaded/read actual backend2653PASS/11
+explicitPG-onlySKIP/629.89s, strict migratedPG638PASS/562.20s plus5concurrency
+PASS/7.64s, full-stack1PASS/4deselected/341.24s and packaged drift. Both
+OpenAI/OpenRouter synthetic persistence families passed pending/recovery/final/
+double reopen with explicit zero network calls. New benchmark artifact11774523569
+actually downloaded and asserted24/24/0/provider0/rewrite0/qualificationfalse.
+Exact native-log/artifact hashes and paths in CI_RECOVERY_20261012.md.
+This resolves earlier pending statements for history only. Evaluator source
+is separate/uncommitted and still undergoing its frozen local gate; PHASE1/live
+acceptance remains unfinished, not inferred from nine green CI jobs.
