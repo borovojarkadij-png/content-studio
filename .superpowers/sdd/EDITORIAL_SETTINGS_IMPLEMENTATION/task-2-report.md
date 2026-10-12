@@ -480,3 +480,137 @@ Running 1 test using 1 worker
     e2e-editorial\policy.spec.ts:7:1 › protected browser GET has isolated SQL evidence ─────────────
 
 ```
+
+
+## Scoped CI correction — 2026-10-13, commit5413179
+
+Root's exact CI run38319840777/head1bb3463, Backend job115045020837, failed only the standalone fixture lint. Original CI backend.log retained at D:/Codex-Recovery/content-studio-20261008/editorial-settings-ci-38319840777-20261013a/backend.log; independently verified SHA256880CD8560FB8D98897B316B68EB268B3BE2297DD27F85ECB7A5595BE6E485970. Starting current HEAD64ce1e98343d25e6c73b33e844b781f76483020e; root dirty docs/CURRENT_STATE.md, docs/EDITORIAL_OPERATOR_RUNTIME_VERIFICATION_20261013.md and docs/EDITORIAL_SETTINGS_VERIFICATION_20261013.md were preserved.
+
+Read receiving-code-review skill completely and reproduced before editing. No helpers/subagents/reviewers. Same Ruff0.17 executable and actual backend cwd/relative fixture argument reproduced I001/native1. Root cwd had passed because Ruff's import classification considered bare alembic third-party there; backend cwd's local alembic migrations directory changes classification of from alembic import command to first-party while dotted external alembic.config remains third-party. Original CI precisely requested moving only bare command import to its own group. Moving the line to satisfy backend would re-break root context. Portable minimal change imports external upgrade function from alembic.command and calls that same upgrade(config,"head"). No behavior/config change or suppression, no CI edits, no assertions weakened.
+
+Sole source change scripts/ui_editorial_fixture_api.py:2insertions/2deletions. Frozen pre-verification and post-verification SHA25644BBEECFFC59D882C51D76A986767AAB03AC228584D6FA7E0222D593C503D014. Self-review diff shows only import and call replacement. No other implementation file changed.
+
+Exact local checks and immediately captured native receipts:
+- Backend cwd: & D:/Codex-Recovery/content-studio-20261008/ruff-017-20261012/bin/ruff.exe check ../scripts/ui_editorial_fixture_api.py -> backend-red.log before fix, BACKEND_RUFF_NATIVE_EXIT=1; backend-green.log after fix, BACKEND_RUFF_NATIVE_EXIT=0.
+- Root cwd: & D:/Codex-Recovery/content-studio-20261008/ruff-017-20261012/bin/ruff.exe check scripts/ui_editorial_fixture_api.py -> root-green.log, ROOT_RUFF_NATIVE_EXIT=0.
+- Root cwd: python -m py_compile scripts/ui_editorial_fixture_api.py -> compile.log, COMPILE_NATIVE_EXIT=0.
+- Frontend cwd: npx playwright test --config=playwright.editorial.config.ts -> editorial-browser.log, EDITORIAL_BROWSER_NATIVE_EXIT=0;3passed8.1s.
+- Backend cwd: python -m ruff check ../scripts/ui_editorial_fixture_api.py -> backend-python-module-green.log, BACKEND_MODULE_RUFF_NATIVE_EXIT=0.
+- Root cwd: python -m ruff check scripts/ui_editorial_fixture_api.py -> root-python-module-green.log, ROOT_MODULE_RUFF_NATIVE_EXIT=0.
+- Root cwd git diff --check -- scripts/ui_editorial_fixture_api.py and git diff --cached --check both native0; Git CRLF conversion notices only.
+- git add -- scripts/ui_editorial_fixture_api.py; staged stat exactly1file2+/2-.
+- git commit -m "fix(test): make editorial fixture imports portable" -> COMMIT_NATIVE_EXIT=0, commit5413179d5ef932f1d7e86ba32366ad078b9517f9. Postcommit status shows only the same three root-owned dirty docs.
+
+Version distinction: explicit executable above is verified Ruff0.17.0 and is the authoritative RED/GREEN match for CI. Additional literal python -m ruff calls printed ruff0.16.6. Attempting a child-process-only PYTHONPATH pointing at the isolated0.17 package did not select its0.17 executable: reading ruff/_find_ruff.py showed find_ruff_bin prioritizes the current Python scripts directory. This was diagnosed, not represented as a0.17 module run. Those extra module commands additionally pass; the0.17 standalone command checks the exact CI args/context without touching installed tools or configuration. Child PYTHONPATH was restored in finally; no host environment persisted.
+
+Every command log was redirected with *>LOG, followed immediately by $taskFixNativeExit=$LASTEXITCODE and Write-Output "LABEL_NATIVE_EXIT=$taskFixNativeExit" in original tool output. This report is the retained native receipt; raw logs below were not retroactively altered. Targeted browser retains inherited NO_COLOR/FORCE_COLOR warning, no failures. All three tests still run real migrated API/browser/SQL behavior. No full backend/full frontend/main browser/illustration/browser or Docker replay was performed in this correction, per scoped instructions. Root owns fresh scoped review/push/exact final CI; local success does not assert remote CI completion.
+
+Raw correction logs (complete through EOF):
+
+### Fix backend-green.log
+
+SHA256 A4443AFDCFB6D7363ADB285762515CCF7CF50473B1A05C20C1A50F6BED4D26B0
+
+```text
+All checks passed!
+
+```
+
+### Fix backend-python-module-green.log
+
+SHA256 A4443AFDCFB6D7363ADB285762515CCF7CF50473B1A05C20C1A50F6BED4D26B0
+
+```text
+All checks passed!
+
+```
+
+### Fix backend-red.log
+
+SHA256 4EC8C1EC6995612D56A4CCC5ED7C3F41720ADAAFBB04BE936D52FDBA8878469E
+
+```text
+I001 [*] Import block is un-sorted or un-formatted
+  --> C:\Users\borov\Documents\Codex\2026-09-08\files-pasted-by-the-user-software-2\scripts\ui_editorial_fixture_api.py:3:1
+   |
+ 1 |   """Create-only synthetic policy browser fixture; no operational secrets or providers."""
+ 2 |
+ 3 | / import os
+ 4 | | import sys
+ 5 | | from pathlib import Path
+ 6 | | from tempfile import TemporaryDirectory
+ 7 | |
+ 8 | | import uvicorn
+ 9 | | from alembic import command
+10 | | from alembic.config import Config
+11 | | from fastapi import Depends
+12 | | from sqlalchemy import func, select
+   | |___________________________________^
+13 |
+14 |   ROOT = Path(__file__).resolve().parents[1]
+   |
+help: Organize imports
+   |
+8  | import uvicorn
+   - from alembic import command
+9  | from alembic.config import Config
+10 | from fastapi import Depends
+11 | from sqlalchemy import func, select
+12 |
+13 + from alembic import command
+14 +
+15 | ROOT = Path(__file__).resolve().parents[1]
+   |
+
+Found 1 error.
+[*] 1 fixable with `--fix`.
+
+```
+
+### Fix compile.log
+
+SHA256 E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855
+
+```text
+
+```
+
+### Fix editorial-browser.log
+
+SHA256 894111C9EFF0F063D1F625D620C1A8F0B5698B99C1347F9C3F37BF4B4EA8FFCB
+
+```text
+[WebServer] (node:2224) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 3 tests using 1 worker
+
+(node:32760) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 1 e2e-editorial\policy.spec.ts:53:1 › protected browser GET has isolated SQL evidence (526ms)
+  ok 2 e2e-editorial\policy.spec.ts:78:1 › real create, disable, aliases, noop and stale ETag preserve exact drafts and audit (3.3s)
+  ok 3 e2e-editorial\policy.spec.ts:373:1 › pending real responses cannot restore cancelled authorization or duplicate a save (740ms)
+
+  3 passed (8.1s)
+
+```
+
+### Fix root-green.log
+
+SHA256 A4443AFDCFB6D7363ADB285762515CCF7CF50473B1A05C20C1A50F6BED4D26B0
+
+```text
+All checks passed!
+
+```
+
+### Fix root-python-module-green.log
+
+SHA256 A4443AFDCFB6D7363ADB285762515CCF7CF50473B1A05C20C1A50F6BED4D26B0
+
+```text
+All checks passed!
+
+```
+
+Root tracked the initial SDD report after the first handoff; this correction evidence is committed separately from the minimal source fix. Final correction scope contains only the fixture and its owned report.
