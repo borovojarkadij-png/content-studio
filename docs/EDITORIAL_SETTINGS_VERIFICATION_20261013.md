@@ -87,6 +87,27 @@ completed old Docker recovery gate is repeated for frontend-only changes.
 
 ## Visual comparison inputs
 
+Task2 actual main browser run regenerated all8sections in five viewports
+(1366x768,1440x900,1586x992,1920x1080,390x844). Root read final-main-browser.log
+33PASS/57.1s; actual illustration1PASS/9.5s and editorial3PASS/7.8s logs read.
+Browser harness emits retained NO_COLOR/FORCE_COLOR conflict warnings; these
+logs are not described as pristine and no assertion/warning filter is disabled.
+Root compared fresh1440x900 PNG SHA256 against preserved accepted baseline:
+all8 EXACT BYTES EQUAL, with fresh actual capture timestamps2026-10-13
+01:55:04–01:55:05local. Root visually opened every fresh8PNG after capture;
+sidebar/topbar/panels/typography/cards/tables/calendar/selected states preserved.
+Root also visually opened actual live saved policy1440 and390 screenshots;
+masked token/diagnostic-only explanation/exact multiline aliases fit existing
+navy styles, no horizontal overflow visible. Screenshots remain in
+.artifacts/ui-dark-navy/{viewport}/ and .artifacts/editorial-policy-ui/test-results/.
+This closes visual comparison, not Task2 source review/exactCI/live acceptance.
+
+Root read actual final frontend logs334PASS/21files4.20s, fullformatPASS,
+tsc+Vite44modules/103msPASS, fixtureRuff0.17AllchecksPASS/compileempty. Writer
+captured actual native0 in original tool receipts; raw files lack in-log native
+markers, so do not represent a later receipt as an original log marker. Final
+report/hash/owned commit/fresh review remain required before Task2 acceptance.
+
 Fix1 root inspected actual behavioral RED9FAIL/97filtered1.26s/native1,
 red-behavior.logSHA256CBF62B38BECA383851BEAE6B4509E8FCA23F7D27EC40652471501D9FCC8B110D.
 Covering `npm test -- src/EditorialPolicySettings.test.tsx
@@ -115,6 +136,37 @@ accounts/settings. These are accepted comparison inputs, not fresh screenshot
 or new live UI acceptance. New captures/comparison remain Task2 gates.
 
 ## Remaining acceptance boundaries
+
+Task2 source ddb2c20067470af1558035d4e9029dd39ce18c06 independently accepted:
+speccompliant/qualityApproved/no blocking findings. Root read complete report
+through EOF/native receipts and matched all5frozenhashes; report SHA256
+A79F77417FEF3028EC17AD9945DF9104C24EE9B0E4EE18503F214D1E08F952DB.
+334units and33+1+3browser actualPASS; fixture is real migrated SQLite/API,
+unrelated empty provider-settings override is not live AI-settings proof.
+Verbatim own task-2-review.md retains Minor color warning; old logs unchanged.
+Exact new CI remains pending, not inferred from API predecessor CI.
+
+Actual Windows packaged frontend build failed native1 at Rolldown binding:
+D:/Codex-Recovery/content-studio-20261008/editorial-web-image-20261013a/build.log
+SHA2562996141671D1204CCDC2F00FE94C50C2924FDE0D2A0004EF87E97AF7E553D6DD.
+No guessed dependency/base-image change. Diagnostic installed musl package
+successfully but attempted load on default noexec tmpfs, a separate diagnostic
+environment defect; that result must not be substituted for original build
+root cause. Both logs retained; clean executable-filesystem diagnosis follows.
+
+Root prepared a backend-only packaged image without starting containers or
+touching SQL/credentials. Actual git input delta from acceptedc9d1247 to root
+85e1d4c for backend/src/alembic/pyproject/Dockerfile is empty. Windows Engine
+29.8 build native0: `docker build --progress=plain --label
+org.opencontainers.image.revision=c9d12471b0da361d0534be64a48b51f8dd129791
+--tag newsflow-verification-editorial-api:c9d1247-20261013a ./backend`.
+Image identitysha256:164171b35d2b8f19e21051cc0ab9015619f7f9a44ed2fe3253458957ce5f914e;
+actual label matches source. Native build.log in D:/Codex-Recovery/
+content-studio-20261008/editorial-api-image-3ccd593edaf148eeae487f5463fdfea9/,
+SHA2566151EB9D6D98F968B0DC053CC16A16FC9C175D9F20842B8B7449B00CC45E1536.
+Normal build-container pip-root warning/update notice retained, not suppressed.
+This proves image build only; optional mounted operator/startup/restart/API
+runtime acceptance remains a separate pending candidate gate.
 
 Root read final appended fix report through EOF, six-path owned commit and
 complete20904byte fix package. Scoped independent review confirms Important

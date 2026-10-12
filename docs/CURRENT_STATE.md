@@ -16,9 +16,31 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
 
 ## Active recovery checkpoint — 2026-10-13
 
-NEXT_STEP: EDITORIAL_SETTINGS_IMPLEMENTATION.md Task2 actual isolated migrated
+NEXT_STEP: reviewed UI Task2 complete85e1d4c..ddb2c20; root acceptance docs/push
+then optional operator Compose Task1/source review and actual owned Windows
+candidate mounted-secret/restart/down-up gate. Docker29.8/Linux/API1.56 is
+responding; do not restart/reset a healthy engine. Root packaged frontend
+build native1: native Rolldown binding unavailable, original raw log retained
+in editorial-web-image-20261013a; diagnose before source fix, not a data/volume
+failure. Actual334units/33+1+3browser/static PASS; all8fresh1440DEMO equal
+accepted baseline/root visually inspected, live1440/390 fit. Independent
+Task2 speccompliant/qualityApproved/no blocking findings, retained Minor color
+warning. New exact CI and mounted operator runtime acceptance pending.
+No operational authorization or real publication/model qualification.
+
+Prior Task2 checkpoint (superseded above): actual isolated migrated
 browser/API/CAS/audit/privacy/dirty/narrow/axe and all8DEMO screenshots. Fresh
-sole writer/own48linebrief and report; BASE after root review/docs checkpoint.
+sole writer/root/editorial_settings_browser,gpt-6.1-sol/high/forknone/nohelpers,
+own48linebrief/report; BASE85e1d4c4d6e60ea0ee62f33f7b4019e5a58329e4.
+Five fixture/browser/CI paths only, root docs/evidence separate. API backend-only
+image built native0/acceptedc9d1247 inputs unchanged, digest164171b35d2b...;
+not runtime/startup/restart acceptance. No operational containers started.
+Subsequent root isolated default candidate startup native0: fresh dedicated
+newsflow-verification-editorial-win-20261013a api/PG/Redis healthy, packaged
+migrations exited0, actual health200/operator503no-store with/without public
+synthetic bearer. No operator mount, worker or operational resources activated;
+optional mount/restart remains pending source review. See
+EDITORIAL_OPERATOR_RUNTIME_VERIFICATION_20261013.md.
 Task1 source3d34b40..f889078 accepted: Important ambiguousHTTPPUT finding fixed,
 actual RED9FAIL/native1 -> covering106PASS/native0/staticGREEN/all8hashmatch;
 scoped reviewspecApproved/qualityApproved/no new breakage. Original325full

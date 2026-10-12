@@ -5,6 +5,13 @@ YouTube analysis/distribution/upload is excluded from the deliverable and all
 remaining-work/progress estimates. This overrides historical master-spec
 YouTube sections without changing the approved Telegram architecture or gates.
 
+Current NEXT_STEP2026-10-13: protected Settings tasks independently accepted
+(UI1 ambiguousPUT fix approved; UI2 actual334units/37browser/static/visualPASS).
+Root acceptance push/exact new CI, optional api-only operator Compose task,
+then owned synthetic Windows mounted-secret/restart/down-up gate. Root default
+packagedAPI startup/503 PASS. Frontend packaging native-binding failure under
+diagnosis; no image/lock workaround guessed and no operational activation.
+
 - [x] Repository, backend test harness, frontend build foundation
 - [x] Restore Windows Docker Desktop engine startup without persistent-data deletion: validated runtime sockets preserved, real Engine 29.8.0/WSL and network-none/no-volume container execution verified; subsequent fresh synthetic Windows stack/recovery acceptance passed below, operational/live deployment remains pending
 - [x] Fresh current-application-source Windows synthetic acceptance: unattended nine-stage down/up/Redis-worker/PG crash (1 PASS/398.08s), separate channel-sync/admission and full OPENAI/OPENROUTER recovery families PASS; actual Windows strict PG 217 PASS/235.80s, packaged drift/HTTP/health/hash/config PASS, no live sends
