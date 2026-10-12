@@ -130,6 +130,65 @@ it.each([409, 422, 401, 503])(
     expect(requests).toHaveLength(2);
   },
 );
+it.each([500, 502, 504])(
+  "requires explicit reload after unconfirmed HTTP PUT %i while keeping the dirty draft",
+  async (status) => {
+    let reads = 0;
+    const writes: unknown[] = [];
+    vi.stubGlobal("fetch", async (_url: string, init: RequestInit) => {
+      if (init.method === "PUT") {
+        writes.push(JSON.parse(init.body as string));
+        return writes.length === 1
+          ? new Response(token, { status })
+          : json({ ...policy, enabled: true, etag: "b".repeat(64) });
+      }
+      return json({
+        ...policy,
+        etag: ++reads === 1 ? "a".repeat(64) : "b".repeat(64),
+      });
+    });
+    const dirty = vi.fn();
+    render(<EditorialPolicySettings onDirtyChange={dirty} />);
+    await load();
+    enabled();
+    fireEvent.click(button("Сохранить редакционную политику"));
+    const alert = await screen.findByRole("alert");
+    expect(
+      (button("Сохранить редакционную политику") as HTMLButtonElement).disabled,
+    ).toBe(true);
+    expect(alert.textContent).toContain("Сохранение не подтверждено");
+    expect(alert.textContent).not.toContain(token);
+    expect(
+      (
+        screen.getByRole("checkbox", {
+          name: "Включить диагностику",
+        }) as HTMLInputElement
+      ).checked,
+    ).toBe(true);
+    expect(dirty).toHaveBeenLastCalledWith(true);
+    fireEvent.click(button("Сохранить редакционную политику"));
+    expect(writes).toHaveLength(1);
+    expect(reads).toBe(1);
+    fireEvent.click(button("Загрузить редакционную политику"));
+    fireEvent.click(button("Сохранить черновик"));
+    expect(reads).toBe(1);
+    expect(dirty).toHaveBeenLastCalledWith(true);
+    fireEvent.click(button("Загрузить редакционную политику"));
+    fireEvent.click(button("Отбросить черновик"));
+    await screen.findByText("Редакционная политика загружена.");
+    expect(reads).toBe(2);
+    expect(dirty).toHaveBeenLastCalledWith(false);
+    enabled();
+    fireEvent.click(button("Сохранить редакционную политику"));
+    await screen.findByText(
+      "Редакционная политика сохранена; настроена только диагностика.",
+    );
+    expect(writes).toMatchObject([
+      { expected_etag: "a".repeat(64) },
+      { expected_etag: "b".repeat(64) },
+    ]);
+  },
+);
 it("fences duplicate PUTs, freezes drafts, and invalidates late acknowledgement on token edit", async () => {
   let resolve!: (r: Response) => void;
   let writes = 0;

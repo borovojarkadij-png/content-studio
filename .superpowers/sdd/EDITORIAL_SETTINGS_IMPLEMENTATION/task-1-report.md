@@ -76,3 +76,52 @@ Read the complete owned diff and checked the brief against implementation. Extra
 The new panel is a focused but verbose form (400 lines after formatting); existing `workspaces.tsx` and `App.test.tsx` are already large. No unrelated restructuring was introduced. Row controls operate on controlled current array positions without sorting/reordering; exact submitted strings and alias multiplicity are preserved.
 
 Task1 verification is source/RTL/transport evidence only. Actual isolated migrated API persistence, real browser privacy/dirty/narrow/axe flows, and comparison of all eight DEMO screenshots with the accepted baseline remain Task2, after root's independent spec/quality review. Default503/provisioning, real model qualification, worker/rewrite/publication permissions and optional api-only Compose secret integration remain pending and outside this commit. No runtime/qualification/release acceptance is claimed.
+
+## Fix round 1 — unexpected HTTP PUT acknowledgement
+
+Fix base: `bcbce56e0a2952a19c4fa01a9564237ef7f7c556`. Read `.superpowers/sdd/EDITORIAL_SETTINGS_IMPLEMENTATION/task-1-review.md` verbatim. The finding is valid: HTTP500/502/504 can arrive after persistence and cannot establish that a PUT was rejected before commit. The previous panel classified only status0 as unconfirmed and left Save enabled after these HTTP failures.
+
+Minimal production fix: the panel treats every unexpected PUT status as unconfirmed, excluding the specifically documented401/409/422/503 and local preflight failures. It retains the dirty draft and disables repeat Save until a successful explicit reload. The client's unexpected PUT error is static unconfirmed text; GET and documented status notices retain their prior handling. No helper, new file, backend or operational change.
+
+Added nine parameterized cases for500/502/504 across the real panel, transport client and actual App. They assert disabled repeat-save and no extra PUT, retained draft/dirty page guard across navigation, private static notices, reload discard/cancel behavior, and use of the newly displayed ETag after explicit reload. The existing documented-status and local-validation regressions remain passing.
+
+Raw evidence directory: `D:/Codex-Recovery/content-studio-20261008/editorial-settings-task1-fix1-20261013/`. Every test/static log includes its immediately captured `NATIVE_EXIT`. All npm commands ran from frontend cwd in native Windows PowerShell, using the same capture wrapper described above.
+
+| Exact command | Native / result | Raw log |
+| --- | --- | --- |
+| `npm test -- src/EditorialPolicySettings.test.tsx src/editorialPolicyApi.test.ts src/App.test.tsx -t 'unconfirmed HTTP PUT\|unexpected PUT HTTP\|unconfirmed editorial PUT HTTP'` | 1; 9 failed / 97 filtered, 3 failed files, 1.25s. Initial RED showed definitive rejection notices. | red.log |
+| Same exact filtered command before production edits | 1; 9 failed / 97 filtered, 3 failed files, 1.26s. Strengthened behavioral RED asserted Save disabled first: actual false vs expected true for each500/502/504 in both panel and actual App. Client static-error cases also failed. | red-behavior.log |
+| `npx prettier --write src/EditorialPolicySettings.tsx src/EditorialPolicySettings.test.tsx src/editorialPolicyApi.ts src/editorialPolicyApi.test.ts src/App.test.tsx` | 0; only five owned changed paths formatted. | format-owned.log |
+| `npm test -- src/EditorialPolicySettings.test.tsx src/editorialPolicyApi.test.ts src/App.test.tsx` | 0; 106/106, 3 files, 3.21s, no warnings/skips. This is focused verification of the changed generation. | green.log |
+| `npm run format:check` | 0; all matched files use Prettier style. | format-check.log |
+| `npx tsc --noEmit` | 0; no diagnostics. | typecheck.log |
+| `npm run build` | 0; TypeScript passed, Vite8.2.2 transformed44 modules and built in95ms; CSS39.06kB/gzip9.53kB, JS403.14kB/gzip112.80kB; no warnings. | build.log |
+| `git diff --check -- frontend/src/EditorialPolicySettings.tsx frontend/src/EditorialPolicySettings.test.tsx frontend/src/editorialPolicyApi.ts frontend/src/editorialPolicyApi.test.ts frontend/src/App.test.tsx` | 0; no whitespace errors. Only Git LF-to-CRLF future-touch warnings. | Task transcript |
+
+New source freeze (after owned formatting and GREEN, before static checks; root notified). No code/test changes after this freeze:
+
+| Path | SHA256 |
+| --- | --- |
+| frontend/src/boundedResponse.ts | 4f7ee3832f7a9dba30d2db6149808914551d5e7c6679777a22df61da795d1f0e |
+| frontend/src/illustrationReviewApi.ts | 4762c4a16623b74134dbbcbe861eff06fb5a4b07e1e72ae4955871ac85ff99dc |
+| frontend/src/editorialPolicyApi.ts | a941419af3cc45b10e50ebd3a40b0f5446193d26494a8737ec27b4ecf0890a91 |
+| frontend/src/editorialPolicyApi.test.ts | 2755649625aca1ac5bfb8643bc8d851a1fc5052449e516d347c790ce7b6adef3 |
+| frontend/src/EditorialPolicySettings.tsx | d16bf7bb9344e0da98b965d7f0e1ff4a6e477d266f673b66b6c0e0ff8894e337 |
+| frontend/src/EditorialPolicySettings.test.tsx | e5cc4913343e22ed68bb6ff0a5f0506b0a96cea3f6d2fd8c3247bcd9cbb2785b |
+| frontend/src/workspaces.tsx | b0081b3e30c8d9c71a7f0a259ef40122e430118cc041a6f4e9216778d287b84b |
+| frontend/src/App.test.tsx | 1ca7196d0985c4c95fc59554dcf773ce42b66c92a33d8c8bfbd3e9fed1b6efdf |
+
+| Evidence file | SHA256 |
+| --- | --- |
+| red.log | 10795afa6a1005376ac5a2795d29f8124e09082d3132fdb20a08a064cb5a3673 |
+| red-behavior.log | cbf62b38beca383851beae6b4509e8fca23f7d27ec40652471501d9fcc8b110d |
+| green.log | 380d8facb98beb1836e15eff47a591452f3d88dcf969e8105e9716171619b28c |
+| format-owned.log | c4aea84a5d63e4234d37f503b69485add7a0ee21d60677d4afb13d667ae66355 |
+| format-check.log | 5bc72681e845ccfba7ecc5a1aee5df403f1e38ed3ec0df0ccc84ab848ac0d29a |
+| typecheck.log | 50ecf457c4dd72b28211f3b189582bdbd20a9966ca052072d330c6008c9682e0 |
+| build.log | b9d6e07c92ed1b5a6b077044ee2d6dfc9573ad3c15e181afecabaed2dac8d198 |
+| frozen-source-sha256.txt | 12f87f397c4a9e7ef14b497b58e522dafc9f7f09660ccc12e8fd0e4dafd71652 |
+
+Self-review: inspected the full fix diff, including all three new test groups. Only two small production branches changed. The nine cases exercise real state/transport behavior; no component/client mock, assertion suppression, automatic retry or fabricated success. Original full325/325 remains evidence for the original freeze only; no second full frontend suite was run for this narrow fix. Task2 must run full verification on its changed source generation. Real browser/API/visual acceptance and all prior authority limits remain pending. Root docs remain unmodified by this agent and unstaged.
+
+Commit preparation: the initial exact-path `git add` returned native1 because the SDD report's parent directory is ignored, although the tracked report and five owned files were staged. The guarded command stopped before committing. Retried with `git add -f -- .superpowers/sdd/EDITORIAL_SETTINGS_IMPLEMENTATION/task-1-report.md`; no source/test change or verification rerun was needed. Native failure output is preserved in the task transcript.

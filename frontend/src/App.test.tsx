@@ -25,6 +25,70 @@ const disabled = (name: string) =>
   (screen.getByRole("button", { name }) as HTMLButtonElement).disabled;
 
 describe("Content Studio UI contracts", () => {
+  it.each([500, 502, 504])(
+    "keeps live Settings dirty and blocks retry after unconfirmed editorial PUT HTTP %i",
+    async (status) => {
+      const policy = {
+        configured: true,
+        enabled: false,
+        provider: "OPENAI",
+        model: "gpt-pinned",
+        policy_version: "v1",
+        etag: "a".repeat(64),
+        protected_entities: [],
+        diagnostic_only: true,
+        real_model_qualified: false,
+        execution_authorized: false,
+        rewrite_allowed: false,
+      };
+      let writes = 0;
+      vi.stubGlobal("fetch", async (url: string, init: RequestInit = {}) => {
+        if (!url.includes("/editorial-policy"))
+          return { ok: true, json: async () => ({ items: [] }) };
+        if (init.method === "PUT") {
+          writes++;
+          return new Response("synthetic-private-error", { status });
+        }
+        return new Response(JSON.stringify(policy));
+      });
+      render(<App initialDemo={false} />);
+      navigate("Настройки");
+      fireEvent.click(screen.getByRole("button", { name: "Модерация" }));
+      fireEvent.change(screen.getByLabelText("Токен оператора"), {
+        target: { value: "synthetic-editorial-operator-token-0001" },
+      });
+      fireEvent.click(
+        screen.getByRole("button", { name: "Загрузить редакционную политику" }),
+      );
+      await screen.findByLabelText("Модель диагностики");
+      fireEvent.click(
+        screen.getByRole("checkbox", { name: "Включить диагностику" }),
+      );
+      fireEvent.click(
+        screen.getByRole("button", { name: "Сохранить редакционную политику" }),
+      );
+      const alert = await screen.findByRole("alert");
+      expect(disabled("Сохранить редакционную политику")).toBe(true);
+      expect(alert.textContent).toContain("Сохранение не подтверждено");
+      fireEvent.click(
+        screen.getByRole("button", { name: "Сохранить редакционную политику" }),
+      );
+      expect(writes).toBe(1);
+      navigate("Обзор");
+      navigate("Настройки");
+      expect(
+        (
+          screen.getByRole("checkbox", {
+            name: "Включить диагностику",
+          }) as HTMLInputElement
+        ).checked,
+      ).toBe(true);
+      fireEvent.click(screen.getByRole("switch", { name: "DEMO" }));
+      expect(
+        screen.getByRole("dialog", { name: "Переключить режим?" }),
+      ).toBeTruthy();
+    },
+  );
   it("mode discard aborts pending editorial PUT and ignores its late acknowledgement", async () => {
     const policy = {
       configured: true,

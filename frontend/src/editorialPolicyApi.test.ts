@@ -151,6 +151,19 @@ it("rejects a contradictory successful PUT", async () => {
   setup();
   await expect(writeEditorialPolicy(token, change, signal())).rejects.toThrow();
 });
+it.each([500, 502, 504])(
+  "reports unexpected PUT HTTP %i as unconfirmed without echoing response data",
+  async (status) => {
+    setup();
+    vi.stubGlobal("fetch", async () => new Response(token, { status }));
+    const operation = writeEditorialPolicy(token, change, signal());
+    await expect(operation).rejects.toMatchObject({
+      status,
+      message: expect.stringContaining("не подтверждён"),
+    });
+    await expect(operation).rejects.not.toThrow(token);
+  },
+);
 it.each([401, 409, 422, 503, 500])(
   "uses fixed private HTTP %i error",
   async (status) => {

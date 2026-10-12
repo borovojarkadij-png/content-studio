@@ -111,7 +111,7 @@ export function EditorialPolicySettings({
         cause instanceof EditorialPolicyApiError ? cause.status : 0;
       const ambiguous =
         method === "PUT" &&
-        status === 0 &&
+        ![401, 409, 422, 503].includes(status) &&
         !(cause instanceof EditorialPolicyApiError && cause.local);
       if (status === 401) setAuthorized(false);
       if (status === 409 || ambiguous) setBlocked(true);
