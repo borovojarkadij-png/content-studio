@@ -70,8 +70,8 @@ EditorialPolicySettings({onDirtyChange}: {onDirtyChange: (dirty:boolean)=>void})
 
 ```tsx
 render(<App initialDemo={false} />);
-await user.click(screen.getByRole('button', {name: 'Настройки', exact: true}));
-await user.click(screen.getByRole('button', {name: 'Модерация', exact: true}));
+await user.click(screen.getByRole('button', {name: 'Настройки'}));
+await user.click(screen.getByRole('button', {name: 'Модерация'}));
 expect(screen.getByRole('region', {name: 'Редакционная политика'})).toBeTruthy();
 expect(screen.getByLabelText('Токен оператора').getAttribute('type')).toBe('password');
 expect(policyRequests).toEqual([]); // collect actual fetch path calls, other API separately

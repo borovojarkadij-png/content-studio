@@ -16,8 +16,43 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
 
 ## Active recovery checkpoint — 2026-10-13
 
-NEXT_STEP: push reviewed operator APIc9d1247/root evidence to exact authorized
-branch and track its own CI, then EDITORIAL_SETTINGS_IMPLEMENTATION.md Task1.
+NEXT_STEP: EDITORIAL_SETTINGS_IMPLEMENTATION.md Task2 actual isolated migrated
+browser/API/CAS/audit/privacy/dirty/narrow/axe and all8DEMO screenshots. Fresh
+sole writer/own48linebrief and report; BASE after root review/docs checkpoint.
+Task1 source3d34b40..f889078 accepted: Important ambiguousHTTPPUT finding fixed,
+actual RED9FAIL/native1 -> covering106PASS/native0/staticGREEN/all8hashmatch;
+scoped reviewspecApproved/qualityApproved/no new breakage. Original325full
+belongs original generation, amended106 belongs fix. No actual browser/SQL/
+visual acceptance until Task2 executes. Root batch authorized push/exact new
+UI CI after Task2 review, no merge/PR/force or operational activation.
+
+Prior fix checkpoint (superseded by Task2 NEXT_STEP above): Task1 fix round1/5 with original
+/root/editorial_settings_ui; FIX_BASEbcbce56e0a2952a19c4fa01a9564237ef7f7c556.
+Fresh independent review found one Important: ambiguous PUT500/502/504 must
+preserve draft and prevent another save until explicit reload. Behavioral RED,
+minimal classification fix, covering panel/client/App/static, report append/
+new freeze/owned commit, then scoped re-review; no duplicate whole-suite run
+solely for this fix. Task2 browser/API/8screens waits for clean Task1 review.
+Docker fresh read29.8.0/Linux/API1.56 responds, no restart needed.
+Exact API CI38317025203/head3d34b40 is now COMPLETED SUCCESS/all9SUCCESS;
+actual remaining backend2936PASS/15SKIP773.20s and both synthetic provider
+restart/publication zero-network logs downloaded/checked. New downloaded
+artifact11777329013 actual24matched/0mismatches/provider0/rewrite0/unqualified
+asserted; this is API acceptance, not current UI source CI or live qualification.
+
+Prior Task1 checkpoint (superseded by fix-round NEXT_STEP above): solefresh
+/root/editorial_settings_ui,gpt-6.1-sol/high/forknone/nohelpers,
+BASE3d34b40bccd0b7bdeac2692c3a52bacc1e108ac0/own86-linebrief/report.
+Root evidence3d34b40 pushed native0/exactremote verified to authorized branch,
+existing processlocal ownercredential restored; exact API CI38317025203 queued,
+root tracks it. No secondsourcewriter or Task2 dispatch before Task1 review.
+Task1 frozen8frontendpaths: root pre/post hashes match. Actual focused131PASS/
+5files2.86s/native0, ONE full325PASS/21files3.63s/native0/no warnings,
+format:check and tsc+productionbuild actualnative0. Writer completes report/
+ownedcommit, then root completeBASEdiff/fresh review before Task2 actual
+isolated browser/SQL/CAS/8screen acceptance. Raw logs in
+D:/Codex-Recovery/content-studio-20261008/editorial-settings-task1-ui-20261013-0133/;
+see EDITORIAL_SETTINGS_VERIFICATION_20261013.md. No real credential activation.
 API independent spec/quality review approved/no findings; verbatim own review
 saved. Root sequencing ruling allows branch-local frontend development while
 that exact CI runs, not release/runtime acceptance or qualification. Root actual corrected-byte
@@ -61,13 +96,16 @@ Dedicated operator API writer dispatched; source acceptance is not live
 qualification/PHASE1 completion. Disabled heartbeat remains disabled.
 See EDITORIAL_POLICY_CONFIGURATION_VERIFICATION_20261013.md.
 
-Prepared next bounded UI integration only: EDITORIAL_SETTINGS_DESIGN_20261013.md /
-EDITORIAL_SETTINGS_IMPLEMENTATION.md with own preflight ledger. No UI writer or
-BASE dispatched until current API accepted. Live-only existing Settings/Модерация,
+Bounded UI integration now in progress: EDITORIAL_SETTINGS_DESIGN_20261013.md /
+EDITORIAL_SETTINGS_IMPLEMENTATION.md with own preflight ledger and Task1 writer
+dispatched from3d34b40 after API source/review/nativePG acceptance. Live-only existing Settings/Модерация,
 same-origin memory-only operator bearer, strict DTO/original ETag, explicit save/
 discard/conflict handling, exact aliases and single Settings dirty owner; DEMO
 accepted eight-screen design unchanged. Separate actual synthetic browser gate/
 CI follows component task, no credentials/model/provider activation.
+Root also prepared separate optional api-only persistent operator-secret Compose
+design/plan/ledger; not implemented/dispatched while UI writer runs. No default
+stack/key/container changes or configuration/runtime proof claimed.
 
 The chronological checkpoints below are evidence/history, not instructions to
 repeat work. This active checkpoint and its own SDD ledger take precedence.

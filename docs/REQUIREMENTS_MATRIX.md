@@ -10,8 +10,20 @@ all3hashesunchanged, no qualification/jobs/calls/activation. Exact new-source CI
 38314610140/heada24c226 completedSUCCESS/all9, actual backend2835/15SKIP,
 strictPG731/2nonapplicableSKIP+5, fullstack1/4deselected, bothprovider native
 restart/zero-call logs and actual new24matched artifact inspected; dedicated
-authenticated API/UI and actual real-model benchmark remain
-unfinished. See EDITORIAL_POLICY_CONFIGURATION_VERIFICATION_20261013.md.
+authenticated APIc9d1247 now independently approved/no findings, corrected-byte
+Windows Docker PG181PASS/1nonapplicableSKIP/native0; original full2933/15SKIP
+and amended covering182PASS remain distinguished. Root3d34b40 pushed/exactref,
+its own CI38317025203 terminalSUCCESS/all9SUCCESS; actual backend2936/15SKIP,
+strictPG831/3nonapplicableSKIP+5, fullstack/provider native zero-network logs
+and actual new24matched/unqualified artifact checked. Protected Settings
+integration Task1 acceptedf889078 after one Important finding fixed (ambiguous
+HTTP PUT blocks repeat save until reload), scopedreviewApproved/no new breakage,
+amended106coveringPASS/staticnative0; original325 full is prior-generation proof.
+Task2 actual browser/SQL/privacy/8screen acceptance still pending, no new-source
+UI CI substituted. Actual real-model benchmark/qualification and
+live acceptance remain unfinished. See
+EDITORIAL_POLICY_CONFIGURATION_VERIFICATION_20261013.md and
+EDITORIAL_OPERATOR_API_VERIFICATION_20261013.md.
 
 | ID | Requirement | Phase | Status | Evidence |
 | --- | --- | --- | --- |

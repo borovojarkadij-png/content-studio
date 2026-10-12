@@ -22,6 +22,35 @@ final hashes again after owned commit, exactHEAD and clean index; diff native0.
 Plan sequencing ruling permits reviewed branch-local UI development while CI
 runs, not release/runtime acceptance; reversible rework if CI finds a defect.
 
+Root evidence/review commit3d34b40bccd0b7bdeac2692c3a52bacc1e108ac0 pushed
+native0/exactremote verified, existing processlocal owner credential restored.
+Exact new-source CI38317025203/head3d34b40 still in_progress;5/9jobs completed
+SUCCESS at this checkpoint. Root actual native log downloads, not predecessor:
+D:/Codex-Recovery/content-studio-20261008/
+editorial-operator-ci-38317025203-native-37e18765b6114b41a46b3567d7693c13/.
+frontend115035987303:243PASS/all33main+1protected illustration browser PASS,
+format/build PASS; rawSHA256
+10B252D0EEC3D98FB41A984C32F0E0F2C97F933ED82C82E62BE527CA51388FCF.
+fullstack115035987577:1PASS/4deselected354.21s, actual packaged migrations/health/
+recovery PASS/no real calls, rawSHA256
+B98D2165E9672831110BF610A4E380C891C3F6E00303CA6E5684483C297F70D1.
+illustration115035987312:actual packaged pending/execute/final/reopen checks PASS,
+realTelegram/AIcalls0/liveSKIP, rawSHA256
+449D7B214ED1135BCC446E94CA0BD994F5FA3F71495C1E9E8373C13BB5791DB3.
+All3 downloads returned actual native0. First gh download refused terminal ANSI
+with native1 before a log was delivered; original failed directory60e868...
+retained. Explicit --allow-escape-sequences then retained raw CI bytes safely
+without printing or executing them; no test/rule disabled or false log PASS.
+Backend/strictPG/bothprovider persistence and overall terminal outcome still
+pending, as is actual new benchmark artifact download/validation.
+
+Later exact strictPG115035987360 completedSUCCESS: actual831PASS/3explicitSKIP
+465.70s plus separate5concurrencyPASS4.92s. Root downloaded raw postgres-job.log
+native0/SHA25614CCB3C4CD2F3EE44371DD761906D1BB72AF17F4A7D0DEA69033CB2EFA95085B.
+Expected synthetic constraint/append-only/primary-key/deadlock negatives and
+existing action Node-runtime warning remain visible, not disabled/suppressed.
+Overall6/9SUCCESS at this later checkpoint; backend/bothprovider still pending.
+
 ## Scope
 
 Dedicated default-disabled single-operator auth and GET/PUT policy API, exact
@@ -130,6 +159,35 @@ after exact ownership validation; current retained baseline1880UUIDschemas/
 maxOID1451681. No repeated old Docker/UI/recovery gate and no operational writes.
 Final native/log/hash/report/owned commit inspection, fresh independent
 spec+quality review and exact new-source CI before source acceptance.
+
+## Exact API CI acceptance
+
+Run38317025203 exact head3d34b40bccd0b7bdeac2692c3a52bacc1e108ac0 is terminal
+SUCCESS/all9jobsSUCCESS. Root downloaded actual native logs, not predecessor
+proof. Previously checked frontend243PASS +33main/1illustration browser, strict
+PostgreSQL831PASS/3explicit nonapplicableSKIP465.70s+5concurrencyPASS4.92s,
+full-stack1PASS/4deselected354.21s and authenticated illustration restartPASS.
+Remaining logs downloaded native0 in D:/Codex-Recovery/content-studio-20261008/
+editorial-operator-ci-38317025203-final-bdee37b5f3d0413da36256d4db4d9462/:
+backend-job.log2936PASS/15SKIP773.20s, SHA256
+4F37BBC1BB8DE42D6D2541ED62002789911FD99FA333AE57F5558B0669DAAEA1;
+openai-job.log synthetic persistence/recovery/publicationPASS/provider network0,
+SHA2561C5C4559949A788214C4FAC4EA2806F6F8C3486AC10F913DEE566FCDD3918765;
+openrouter-job.log same bounded synthetic familyPASS/network0,
+SHA25656256A9E448896E68FFC368188F9F14DE6531AB3B1A888F538F90EC7AB61D803.
+Existing Git/Node action deprecation notices retained; no pytest warnings shown
+in accepted summary. Synthetic rewrite executor counts are not network calls.
+
+Actual new artifact11777329013 editorial-classification-contract downloaded
+native0; API zipdigest51d2e4406b930c5815ef984737b527907ca2f0da256541e26b2b6b900f62906e.
+JSON at D:/Codex-Recovery/content-studio-20261008/
+editorial-contract-ci-38317025203-a1c8171236fe46659be0d69ca2d1b828/
+editorial-contract-report.json, SHA256
+318DE43F3C8C0DE9501B324A31B14C3390E6AFE6470A6913571393A0B9896E45.
+Root parsed/asserted24cases/24matched/0mismatches/provider0/rewrite0/
+real_model_qualified=false and every case rewrite_allowed=false.
+This accepts this API generation; not subsequent UI/source CI, Windows proof
+by Linux substitution, actual model qualification or PHASE1 completion.
 
 ## Independent predecessor CI
 

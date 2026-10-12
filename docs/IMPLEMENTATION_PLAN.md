@@ -138,9 +138,28 @@ test color/untouched full-format noise remains tracked for milestone triage.
   PASS. Disclosed over1000-item fail-closed capacity limit remains; exact new CI
   is pending, earlier f8/e160 proof is not its substitute
 
-NEXT_STEP: inspect independent review of operator APIc9d1247, resolve any
-findings, commit root evidence and push exact authorized branch for its own CI;
-then EDITORIAL_SETTINGS_IMPLEMENTATION.md Task1/Task2. Current API root actual
+NEXT_STEP: EDITORIAL_SETTINGS_IMPLEMENTATION.md Task2 actual isolated migrated
+browser/API/CAS/audit/privacy/dirty/narrow/axe plus all8DEMO screenshots and
+frontend final-generation full gate. Task1 source3d34b40..f889078 accepted after
+fix1 scopedreview(specApproved/qualityApproved/no new breakage), actual106
+coveringPASS/native0/staticGREEN/all8hashmatch. Original325full is separate.
+No browser/visual acceptance claim yet. Authorized batchpush/exact new UI CI
+after Task2 independent review; optional operatorCompose follows separately.
+
+Prior fix checkpoint (superseded by Task2 NEXT_STEP above): Task1 fix round1/5 with original
+/root/editorial_settings_ui; FIX_BASEbcbce56e0a2952a19c4fa01a9564237ef7f7c556.
+Fresh review Important: ambiguous HTTP PUT500/502/504 must block repeat save
+until explicit reload, preserving draft. Actual RED/minimal fix/covering tests/
+static/report/owned commit, scoped re-review before Task2. Original full325PASS
+belongs original freeze, no repeated full solely for narrow fix.
+APIc9d1247 independent review approved/no findings; root3d34b40 evidence pushed
+native0/exactremote, its own CI38317025203 terminalSUCCESS/all9SUCCESS. Actual
+native backend2936/15SKIP, strictPG831/3nonapplicableSKIP+5, fullstackPASS and
+bothprovider restart/publication network0/new24matched artifact checked.
+No API CI substitution for current UI bytes. Ruling permits
+branch-local UI development while exactCI runs, not runtime/release acceptance.
+Task2 actual API browser/8screen comparison follows fresh Task1 review; optional
+operator Compose integration separately prepared/not dispatched. Current API root actual
 Windows Docker PG181PASS/1nonapplicable JSON SKIP108.47s/native0, seven final
 hashes unchanged/130new retained UUID schemas. Original frozen full2933/15SKIP
 456.00s and corrected-byte API/reviewer182PASS43.66s/static are distinct evidence.
