@@ -18,9 +18,18 @@ fresh scopedreview DONE speccompliant/qualityApproved/no findings, complete
 54942bytepackage. Task2runner DONE084c2d0, threehashes/nativeexits rootmatched;
 final103PASS20explicitPGSKIP/215coveringPASS/staticnative0. Fresh scoped
 concurrency review Approved/speccompliant/no findings; actual ownedWindowsPG
-20PASS/0SKIP14.47s/native0/2082retained/public and13inputsunchanged. Next Task3 worker
-from TELEGRAM_SAMPLING_IMPLEMENTATION.md. No full
-backend until combinedTask3. No PHASE/live/model claim or UI/real-data change.
+20PASS/0SKIP14.47s/native0/2082retained/public and13inputsunchanged. Task3 worker
+DONEfa3564d, exact5sourcefiles+report, fivefrozenhashes rootmatched; focused53PASS,
+covering909PASS25explicitSKIP/native0; ONEcombinedfull3801PASS76explicitSKIP
+649.92s/native0/0FAIL/0ERROR. Scoped Task3review Approved/no findings; actual
+immutablepackage42365d... build0/smoke0/networknone/readonly/noVolumes/noSecrets/
+324inputsunchanged and THREEactualsyntheticcontainerstarts0/0/0 PASS:
+unfinishedlease→expiredrecovery→idempotentreopen/publictestcipher/config/REJECT
+preserved/FakeRPC0,1,0/rewrite0. Finalcross-taskreview DONE speccompliant/
+qualityApproved/no findings/complete251082bytepackage+actualreceipts. NEXT
+rootcheckpoint/push/exactCI. No repeatPG/full/runtime suite. Next independent confirmed correction is
+BACKUP_OUTPUT_CAP_IMPLEMENTATION.md (actual-helper causalRED2MiBvs1MiB),
+prepared only/no source writer yet. No PHASE/live/model claim or UI/real-data change.
 
 Retained preceding checkpoint (superseded): engagement8308f15+344a28a independent task reviews
 Approved/no findings; actual owned Windows Docker PostgreSQL26PASS/0SKIP/native0

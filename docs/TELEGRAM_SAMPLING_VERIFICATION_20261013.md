@@ -1,6 +1,105 @@
 # Durable Telegram sampling evidence — 2026-10-13
 
-## Latest Task2 source checkpoint
+## Current Task3 verification checkpoint
+
+Task3 source DONEfa3564d987f2a9e6414a98b8a0d4cecb24574422; fresh scoped
+review speccompliant/qualityApproved/noCritical/Important/Minor. Verbatim
+task-3-review.md retained. Actual root package and container restart gates
+below completed; fresh final cross-task integration review DONE speccompliant/
+qualityApproved/noCritical/Important/Minor over the complete4796line/251082byte
+f0ff933..fa3564d package. Actual receipts/324hashes and named configuredprovider
+boundary independently checked; verbatim final-integration-review.md retained.
+Exact-generation CI follows guarded
+branch push; no PHASE/live/operational activation or historicalwholebranch claim.
+
+## Actual packaged and container restart acceptance
+
+Unchanged backend/Dockerfile built the immutable reviewed-source image
+`sha256:42365d5f4eab6ea1758a95967dcf55538311d4b7bdff9cc4bad6b17ebb890e31`.
+Build0 and smoke0; Python3.12.15/Telethon1.45.0; all324trackedbackend input
+hashes matched before/after and independently by root. Standard pip root-user
+warning and upgrade notice remain in the build log; tests/smoke have no warning.
+No dependency/Dockerfile edit or cache deletion workaround.
+
+The first isolated read-only/network-none/no-volume/no-secret smoke migrated an
+ephemeral SQLite database, committed an unfinished claim, closed the process
+and recovered in a fresh Python child. The stale owner did no IO; the new owner
+made one fake aggregate fetch. A second child completed the remaining five
+actual-time samples, with one honestly missed threshold and no fabricated
+observation. Terminal replay did no IO; disabled seam did no DB/provider/secret
+IO; enabled terminal seam was idle. Unknown counts stayed unknown and source/
+REJECT/rewritefalse/zeroRewriteJobs/zeroAIcalls stayed intact. This first smoke
+honestly reports container_restart_verified=false: its independent processes
+alone do not prove a container restart.
+
+A separate actual-container gate then created a fresh nonce-owned container
+`4f46a39e1d4004cca26ec4be6b4d0d241cddd6f6fabf1ec97d077b51ba8b088e`,
+nonce`d2dfcc1f48174598914ee06b088b1eb5`, using the same accepted image and only
+a new D:evidence bind directory. Networknone/readonly/capdropALL/noprivileges;
+exact owner/name/image/bind/state checked before each start. Three actual
+`docker start -a` executions and inspected container exit codes were all0:
+
+| Start | Persisted outcome | Fake aggregate calls | Rewrite jobs/calls |
+| --- | --- | --- | --- |
+| 1 | COMMITTED_UNFINISHED | 0 | 0 / 0 |
+| 2 | RECOVERED_AFTER_CONTAINER_START | 1 | 0 / 0 |
+| 3 | REOPEN_IDEMPOTENT | 0 | 0 / 0 |
+
+The same public deterministic external test cipher decrypted the preserved
+synthetic non-Telegram session fixture on every start. Configuration, source
+identity and REJECT stayed unchanged; this is not live Telegram authorization
+or real-session verification. Fresh synthetic storage and the stopped owned
+container are retained, not deleted. No existing operational container, volume,
+key, queue, rights, credentials or data was changed.
+
+Evidence root:
+`D:/Codex-Recovery/content-studio-20261008/telegram-sampling-acceptance-20261013a/`.
+
+| Artifact | SHA256 |
+| --- | --- |
+| package-build.log | A786C827B89569629E2A8DA55AA610B7BC5BBD159B7C119D756F860960D55FB7 |
+| package-smoke.log | 30B3716D8D3FE68DB5623AB12DE7747F2AA025D6A2F9339C6DD8B14385238BFA |
+| package-receipt.json | 018624E0344ACE42648312D2B065A96CB12B644DA6EF97B7CB9C2291C0C6A551 |
+| container-restart-receipt.json | 73889823F9C5ED8633E7BBB018A33E48FEB66F99CB6F8AAF9326C7F811B3A548 |
+
+The following preparation/checkpoint entries are chronological, superseded by
+the actual results above, not extra runtime obligations or permission to replay.
+
+Task3 solewriter started at BASE810a0debc2ae9087b6bec522b0879919929fd75e.
+Default-disabled worker seam, strict opt-in and the single PG CI append are
+implemented but not yet independently reviewed. Final focused53PASS4.44s;
+covering909PASS25explicitSKIP197.56s; Ruff0.17/format/compile/static exactCI
+append checks native0. Five frozen source hashes matched independently by
+root after the ONE combined full backend run:3801PASS76explicitSKIP649.92s,
+native0; actual JUnit3877total/0FAIL/0ERROR/76SKIP/time649.733. Source and
+HEAD810a0de stayed unchanged through the invocation. No duplicate full run.
+
+Full raw SHA2568FB8511A3C05B910D69C76F9FE4A01F869A72D9377AC6A895B605C315BC4FCDE;
+JUnit SHA2566A645E7CF8429274F5CB331CC0FCD120B23E70B5232C381ABC3D30839AAD32EE.
+Full skip breakdown:61missing explicitPG URL,5concurrencyoptin,4root-ownedPG
+finalizerlock,2singletonPG,1rootPGlock,1PGrowlock,1PGTRUNCATE,1policyINSERT
+create-only. No warning/error or relabeling of skipped cases.
+
+Evidence: `D:/Codex-Recovery/content-studio-20261008/telegram-sampling-task3-20261013a/`.
+The 25 covering skips comprise20missing explicitPG URL, four root-ownedPG
+finalizer-lock proofs and one root-ownedPG-lock proof. Separate actual20PG
+acceptance below remains its own evidence, not a relabeled local skip.
+Source review, immutable-image smoke, actual three-start synthetic container
+restart, final cross-task review and exact-generation CI are next; no repeat
+actualPG/full suite or operational collector activation is authorized.
+
+## Accepted Task2 source and PostgreSQL checkpoint
+
+Root independent actual-container restart gate additionally prepared only:
+container-restart-sampling.py/verify-container-restart.ps1, parser/AST/Ruff0.17/
+format0, not runtime acceptance. Uses accepted immutable image, new nonce-bound
+isolated networknone/readonly container and fresh D:evidence bind storage only.
+Three actual container starts are required: commit unfinished claim/noRPC;
+expired takeover/staleowner0IO/honest observation; idempotent reopen/noextraIO.
+Same public deterministic test cipher verifies encrypted fixture readability,
+configuration/source/REJECT/nojobs preserved. Container/storage retained; no
+operational worker/session/key/volume touched. Root guarded push now requires
+this separate receipt, in addition to actualPG and networknone packaged smoke.
 
 Fresh scoped concurrency review DONE: speccompliant/qualityApproved/no findings;
 verbatim own task-2-review.md. Root actual frozen084c2d0 Windows ownedDocker

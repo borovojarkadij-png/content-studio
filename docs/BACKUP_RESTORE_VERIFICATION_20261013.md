@@ -32,6 +32,13 @@ Deferred Minor: accepted text output is limited after collecting into a
 MemoryStream, not with an allocation cap. This remains in the review ledger
 for final whole-branch triage; it is not silently dropped.
 
+2026-10-13 follow-up: a root-owned isolated actual-helper resource probe
+confirmed Capacity2,097,152 for 1,052,672 output bytes despite the1,048,576
+post-read rejection. No product source, child process, Docker or database was
+changed. The causal assertion failed/native1 as expected. See
+BACKUP_OUTPUT_CAP_DESIGN_20261013.md and its bounded implementation plan;
+implementation remains queued behind the current sampling source/full gate.
+
 ## Actual Docker Desktop copy drill
 
 Engine29.8.0/Linux/API1.56 responded; a healthy engine was not reset/restarted.

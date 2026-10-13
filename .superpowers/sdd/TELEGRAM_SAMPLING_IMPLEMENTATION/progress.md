@@ -1,5 +1,91 @@
 # SDD ledger — plan: docs/TELEGRAM_SAMPLING_IMPLEMENTATION.md
 
+Final cross-task /root/telegram_sampling_integration_review,gpt-6-astra/high/
+forknone/nohelpers DONE speccompliant/qualityApproved/noCritical/Important/Minor;
+complete4796line/251082bytef0ff933..fa3564d package, all ownreports/reviews,
+actual20PG/package/threecontainerstarts/full receipts and324inputhashes checked.
+Named outsidecheck configuredprovider transaction/sessionCAS accepted;12PG
+sourcehashes match,13thCIonly reviewed append. Verbatim final-integration-review.md
+retained. Incrementacceptedsource/runtime, NOT exactCI/wholehistoricalPHASE/live.
+NEXT rootdocscheckpoint/guardedbranchpush/exactCI, while next independent
+backup resourcecap correction may proceed after reviewed sampling push.
+
+Root actualfa3564d unchangedDockerfile image42365d5f4eab6ea1758a95967dcf55538311d4b7bdff9cc4bad6b17ebb890e31
+build0/networknone/readonly/noVolumes/noSecrets smoke0/Python3.12.15/SDK1.45;
+324backendinputs unchanged/rootmatched; freshchildrecovery/stale0IO/6actualtime
+observations/terminalreplay/defaultoff0IO/REJECT0jobs0rewritecalls PASS.
+Separate freshnonceowned4f46a39e... sameimage container actualTHREEstarts0/0/0,
+unfinishedlease→expiredrecovery→idempotentreopen/FakeRPC0,1,0/publicsynthetic
+cipherdecrypt/config/source/REJECTpreserved. Retainedfixture/stoppedcontainer,
+no operationalcontainer/volume/secret mutation. Actualreceipt hashes in
+TELEGRAM_SAMPLING_VERIFICATION_20261013.md. Fresh finalcross-task
+/root/telegram_sampling_integration_review,gpt-6-astra/high/forknone/nohelpers
+active, completef0ff933..fa3564d package251082bytes. NEXT finalreview/rootdocs
+checkpoint/guardedpush/exactCI; no source writer or repeatedfull/PG/runtime.
+
+Task 3: complete (commits 810a0de..fa3564d, review clean)
+Fresh scoped /root/telegram_sampling_tick_review,gpt-6.1-sol/high/forknone/
+nohelpers DONE speccompliant/qualityApproved/no findings; verbatim
+task-3-review.md retained. Its outside-diff inherited fencing/key/REJECT
+obligations are supported by accepted Task1/2 source reviews and actual20PG
+receipt; independent package/containerrestart/finalintegration/exactCI follow,
+not relabeled as completed. Root now runs immutable package atfa3564d; no
+source writer or HEAD change during hash-fenced runtime gates.
+
+Task3 writerDONEfa3564d987f2a9e6414a98b8a0d4cecb24574422, exact5sourcefiles+
+own179linereport. Root readreportEOF, native01..17 and actual fullJUnit/raw:
+3801PASS76explicitSKIP649.92s/native0/3877total0FAIL0ERROR; fivefrozenSHA256
+matched independently. ONEfull/source+HEAD unchanged, no repeat. Fresh scoped
+/root/telegram_sampling_tick_review,gpt-6.1-sol/high/forknone/nohelpers active;
+complete810a0de..fa3564d package46261bytes. NEXT source review then package/
+threeactualsyntheticcontainerstarts/finalcross-taskreview/push/exactCI.
+Root prepared separate narrow backup allocation-cap diagnosis/plan/ownledger
+only; no second sourcewriter or operational activation.
+
+Task3 finalfocused53PASS4.44s, precedingcovering909PASS25explicitPGSKIP197.56s;
+backendRuff0.17(src/tests/alembic)0/format4/compile0, exactBASE CIappend/YAML0.
+Five source hashes frozen in own evidence13-frozen-source-hashes.json;
+ONEcombinedfull now running atHEAD810a0de, D:TEMP/TMP/basetemp. Root may edit
+docs/evidence but must not commit or touch product source until writerhandoff.
+Actual full result not inferred. Next ownreport/commit/roothash/nativechecks/
+scopedreview then package+actualcontainerrestart/integration/exactCI.
+
+Task3 Ruling: exactBASE CI append comparison/YAML parse belongs to retained
+static evidence, not permanent runtime test pinned to historical wholeci.yml —
+otherwise unrelated future legitimateCI edits fail this feature's tests;
+cost if wrong: runtime module alone no longer polices futureCI configuration,
+while current exactdiff/source review/exactCI still bind. Writer self-review
+raised beforefreeze; root approved removing only that brittle new assertion.
+Root read initial44FAIL/6PASS: seam ImportErrors are prerequisites, not causal
+behavioralRED. Existingmain cipher/ordering real assertion must be cited in
+report; root requested explicit trace or focusedbody RED/GREEN beforefreeze.
+No assertion weakening or repeated full suite authorized.
+
+Root additional independent synthetic container-restart gate prepared only,
+AST/parser/Ruff0.17/format0: container-restart-sampling.py SHA
+003A2A01850D4980BA38A9C80AAA57D1012AF9F88E037AA84D43442A4E4563D7,
+verify-container-restart.ps1 SHA
+5FECC553D8E4F6065C9EB55779910CE4747A25B2DC0004AACC171396FC05331B.
+Fresh nonce-owned offline/readonly container and D:fixturebind only, three
+actual starts required; preserve encryptedpublictestcipher/config/source/
+unfinishedlease/recovery/noextraRPC/REJECT0calls. Existing operationalcontainers
+and volumes unchanged; retain ownedstoppedcontainer/data, no delete. Guarded
+push now requires restartreceipt, parser0/SHA
+BD696A999760E211A65BCA921EB59F9BBEEDFAA49BE55AA3E38AE847E4A5DEDD.
+
+Task3 solewriter /root/telegram_sampling_tick,gpt-6.1-sol/high/forknone/nohelpers,
+BASE810a0debc2ae9087b6bec522b0879919929fd75e. Own5sourcefiles+report, root
+owns docs/evidence. Targeted/covering/static then freeze and ONEcombinedfull;
+TEMP/TMP/basetemp D:, current C:10.5GiB/D:140GiB. No source concurrency or
+repeat actualPG. Current20PG gate accepted, public/retainedschemas unchanged.
+Task3 Ruling: preserve non-None stable-cipher convention, not new isinstance;
+exactboolflag first, disabled returns passed transient cursor without other
+validation/IO; enabled validates awareUTC and exactsigned64cursor before
+credentials/SQL — consistent inert opt-in and accepted configured factory;
+cost if wrong: injected invalid cipher fails conservatively at its consumer,
+disabled arbitrary cursor has no persistence/provider authority. Writer asked,
+explicit flag/disabled/invalid-enabled tripwires required; no new key fallback.
+
 Task 2: complete (commits 584f4cb..084c2d0, review clean)
 Fresh scoped concurrency review /root/telegram_sampling_runner_review,
 gpt-6-astra/high/forknone/nohelpers: speccompliant/qualityApproved/no findings.

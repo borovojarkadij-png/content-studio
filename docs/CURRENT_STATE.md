@@ -46,8 +46,30 @@ review /root/telegram_sampling_runner_review,gpt-6-astra/high/forknone/nohelpers
 DONE speccompliant/qualityApproved/no findings, complete584f4cb..084c2d0
 package80516bytes. Actual frozen084c2d0 ownedWindowsDocker PostgreSQL gate
 20PASS/0SKIP14.47s/native0;2062retained+20fresh=2082 namespaces/public catalog/
-13inputs unchanged. NEXT: root docs/review checkpoint, then sole Task3 writer
-default-disabled tick/worker/CI seam, one combined backend after source freeze.
+13inputs unchanged. Rootcheckpoint810a0de native0/clean tree. NEXT Task3 sole
+writer /root/telegram_sampling_tick DONEfa3564d987f2a9e6414a98b8a0d4cecb24574422:
+default-disabled tick/worker/CI seam, exact5sourcefiles+report; finalfocused53PASS/
+covering909PASS25explicitSKIP197.56s/staticnative0. ONEcombinedbackend completed
+3801PASS76explicitSKIP649.92s/native0;JUnit3877total/0FAIL/0ERROR, fivehashes
+rootmatched/source+HEAD unchanged throughfull. Full179linereport readEOF/native
+exits checked. Fresh scoped /root/telegram_sampling_tick_review,gpt-6.1-sol/high/
+forknone/nohelpers DONE speccompliant/qualityApproved/no findings. Actual package
+fa3564d image42365d5f4eab6ea1758a95967dcf55538311d4b7bdff9cc4bad6b17ebb890e31
+build0/networknone/readonly/noVolumes/noSecrets smoke0/324inputsunchanged,
+Python3.12.15/SDK1.45/processrecovery/6observations/terminalreplay/REJECT0calls.
+Separate freshnonceownedcontainer4f46a39e... actualTHREEstarts0/0/0:
+COMMITTED_UNFINISHED→RECOVERED_AFTER_CONTAINER_START→REOPEN_IDEMPOTENT,
+persistentpublictestcipher/config/source/REJECT0jobs0calls; FakeRPC0,1,0.
+All324sourcehashes rootmatched. Fresh finalcross-task integration review
+/root/telegram_sampling_integration_review,gpt-6-astra/high/forknone/nohelpers
+DONE speccompliant/qualityApproved/noCritical/Important/Minor, complete4796line/
+f0ff933..fa3564d package251082bytes; receipts324hashes and namedproviderboundary
+independently checked, verbatim final-integration-review.md. NEXT rootcheckpoint/
+guardedpush/exactCI, then bounded backupcap correction while exact CI runs.
+Root owns docs/evidence;
+no repeatPG/full or operational activation. Backup output allocation-cap causal
+RED confirmed2MiBcapacity versus1MiBbound/no native/Docker IO; narrow nextplan
+prepared in BACKUP_OUTPUT_CAP_IMPLEMENTATION.md, no source dispatched yet.
 Root package controller+separate-process synthetic smoke and guarded
 push helpers prepared only; no sampling runtime/build/push claim from preparation.
 no duplicate Task1/fullgate, actualPG after runnerreview. Root tracks exact
