@@ -161,3 +161,130 @@ buffer memory. Blocked overflow can wait for the existing finite native
 deadline; no immediate cancellation claim. Tests use the deterministic shim,
 not operational backup/restore. This work grants no editorial/publication
 authority, and makes no whole-app backup, release or PHASE completion claim.
+
+## Fix round 1: native-shim readiness after Windows CI startup failure
+
+Status: DONE. Base `384cb42cbc7191447aaf7e31ae7882dfd78fdded`, initially clean.
+Root explicitly released sole source ownership after the unrelated selection
+writer completed. This round changes only the test module and appends this
+report. Production helper, callers, dependencies, CI and other files unchanged.
+
+Exact CI `38338368307`, source `bffda47`, had 96 PASS / 1 FAIL / 0 SKIP. The
+first native overflow-inspect-backup case had no trace, oversized PID or start
+marker, although the private failure exit and sentinel were present. Seven
+later oversized cases reached the shim and passed. The one-second production
+deadline starts before Process.Start; failure is therefore before the tested
+output boundary. Cold CLR/OS/AV startup contention is likely, but generic
+private diagnostics cannot prove the exact historical startup substage.
+The failed CI artifact/logs remain retained at
+`D:/Codex-Recovery/content-studio-20261008/backup-output-cap-ci-38338368307-20261013a`.
+
+### Causal startup experiment, performed before repository correction
+
+Root authorized only disposable copies during the unrelated writer's work.
+Exact test and three script input hashes, changed disposable hashes, commands,
+native exits and contamination isolation are recorded in
+`D:/Codex-Recovery/content-studio-20261008/backup-output-cap-startup-probe-20261013a/REPORT.md`
+and `04-evidence-integrity.log`. No checkout/index/HEAD mutation by this agent.
+The copied helper hash remained the original fixed-capacity generation.
+
+Injected 1,800ms delay before the shim's initial trace on its first launch:
+RED reproduced missing oversized.pid, pytest native exit 1, 1 failed in 1.53s.
+The injected startup marker existed and completion marker did not. An explicit
+native `--ready` response, asserted with bounded timeout before timed cases,
+consumed the controlled first-launch delay (readiness exit 0, SHIM_READY,
+empty stderr, 1.875s). Same exact target GREEN: native exit 0, 1 passed in
+2.55s. Eight scoped cases GREEN: native exit 0, 8 passed / 89 deselected in
+10.45s. Every existing one-second/<8s/PID/privacy/trace/source assertion stayed
+intact. This proves the injected mechanism, not the historical CI host event.
+
+### Narrow correction and behavior coverage
+
+The synthetic C# shim now accepts exactly `--ready` before reading
+BACKUP_FAKE_DIR/configuration. It initializes and exercises the existing JSON
+serializer, returns exact ASCII SHIM_READY and native exit 0. Session fixture
+invokes that exact compiled private executable with timeout 30 seconds,
+BACKUP_FAKE_DIR absent, and asserts native exit 0, exact response and empty
+stderr before timed cases. Receipt includes native outputs/exit/elapsed time.
+There is no retry, success assumption, arbitrary warm-up sleep, production
+change or global/process timeout change. The only sleep used by the causal
+experiment was its deliberate disposable fault injection, not this correction.
+
+One added actual-native case proves readiness works without configuration and
+creates no fixture data. It fails if readiness is missing, moved after config
+access, emits malformed response/diagnostics or has nonzero exit. No validation
+helper was introduced; direct fixture assertions reject malformed readiness.
+All prior 97 cases/assertions are unchanged, including TimeoutSeconds=1,
+elapsed<8s, exact owned PID gone, unrelated process alive, private errors,
+no later database commands, unchanged sentinel/bundle and absent destination.
+
+New readiness subprocess captures bytes to validate exact ASCII independently
+of the machine's diagnostic code page. UTF-8/backslashreplace decoding is only
+for evidence JSON; the pass/fail comparisons remain strict byte comparisons.
+
+### Exact commands and results
+
+Evidence root for repository correction:
+`D:/Codex-Recovery/content-studio-20261008/backup-output-cap-readiness-fix-20261013a`.
+Python 3.12.10; PS7 7.6.5; Ruff 0.17.0, same runtime paths as original Task1.
+All pytest commands ran from `<workspace>/backend` with TEMP/TMP set to this
+root's `temp` directory. Exact command prefix is the original report's
+Telethon 1.45.0 assertion/injection prefix; exact pytest.main argument lists:
+
+```python
+# First new-readiness RED attempt, before shim correction:
+['-q','tests/test_windows_backup_restore.py','-k','native_shim_readiness','--basetemp=D:/Codex-Recovery/content-studio-20261008/backup-output-cap-readiness-fix-20261013a/red-fixtures','--junitxml=D:/Codex-Recovery/content-studio-20261008/backup-output-cap-readiness-fix-20261013a/01-readiness-red.xml']
+# Proper assertion RED after making diagnostic capture byte-safe, still before shim correction:
+['-q','tests/test_windows_backup_restore.py','-k','native_shim_readiness','--basetemp=D:/Codex-Recovery/content-studio-20261008/backup-output-cap-readiness-fix-20261013a/red2-fixtures','--junitxml=D:/Codex-Recovery/content-studio-20261008/backup-output-cap-readiness-fix-20261013a/02-readiness-red.xml']
+# Focused GREEN:
+['-q','tests/test_windows_backup_restore.py','-k','native_shim_readiness or native_text_destination or oversized_native_text','--basetemp=D:/Codex-Recovery/content-studio-20261008/backup-output-cap-readiness-fix-20261013a/focused-fixtures','--junitxml=D:/Codex-Recovery/content-studio-20261008/backup-output-cap-readiness-fix-20261013a/03-focused-green.xml']
+# Full Windows module, once after correction:
+['-q','tests/test_windows_backup_restore.py','--basetemp=D:/Codex-Recovery/content-studio-20261008/backup-output-cap-readiness-fix-20261013a/full-fixtures','--junitxml=D:/Codex-Recovery/content-studio-20261008/backup-output-cap-readiness-fix-20261013a/04-full.xml']
+```
+
+Each command's combined output is retained in the matching .log file alongside
+its JUnit. LASTEXITCODE was captured immediately, appended as NATIVE_EXIT to
+the log, and used as the shell exit; synthetic fixtures/native receipts remain.
+
+- `01-readiness-red`: pytest/shell native 1, 1 failed / 97 deselected / 1 warning
+  in 0.86s. Localized unhandled native diagnostics could not decode under the
+  default CP1251 reader, yielding a reader warning/None stderr and assertion
+  diagnostic TypeError. Retained this failed attempt; changed only new readiness
+  capture to bytes, then obtained a proper causal assertion RED.
+- `02-readiness-red`: pytest/shell native 1, 1 failed / 97 deselected in 0.70s,
+  no warnings. Actual shim native exit 3762504530 because old Main attempted
+  config path access with BACKUP_FAKE_DIR absent; expected response/native0
+  assertion failed before adding the readiness branch.
+- `03-focused-green`: native 0, 15 passed / 83 deselected in 10.44s, no skips
+  or warnings. Six actual-helper, eight oversized entrypoint, one readiness case.
+- `04-full`: native 0, 98 passed in 43.96s; JUnit tests=98, failures=0,
+  errors=0, skipped=0. All prior 97 cases executed. No full backend repeat.
+- `05-static.log`: Ruff check/format, Python py_compile, all three PS parsers
+  and scoped git diff --check each native 0. Only existing Git CRLF notice.
+
+Static commands match original report's exact commands and runtime paths;
+PYTHONPYCACHEPREFIX was this new root's `pycache` directory, and scoped diff
+command was `git diff --check -- backend/tests/test_windows_backup_restore.py`.
+No tests were running while staging/committing.
+
+### Self-review, freeze and limitations
+
+Read the scoped diff; only the native readiness branch, bounded fixture
+readiness/asserted receipt and one behavior case were added. No prior
+assertions changed. No machine-specific path added to tests. Source hashes
+after full98/static checks, with no later test/source edits:
+
+- Final test module:
+  `AB743D5FFBC60F639DF7F32B0731ED4DF74E7C997DC41CFD733740EB096929E5`
+- Unchanged production helper:
+  `2C79B0BC2AE32D10D2E8E6B4981FF6483D2BD5328AD9758DEF51CA9F646EB9C3`
+
+Root's concurrent documentation/ledger changes were observed, preserved and
+excluded from the owned two-path commit. Root owns scoped review and new exact
+CI evidence; no push, package build or original resource/full-backend rerun.
+
+No unresolved scoped correctness concern. Readiness warms native first-launch
+prerequisites; it cannot guarantee arbitrary later scheduler behavior within
+one second. Retain the distinction between synthetic delay proof and likely
+historical CI startup cause. Original capacity/privacy/lifecycle boundaries
+and all prior safety/authority limits still apply.

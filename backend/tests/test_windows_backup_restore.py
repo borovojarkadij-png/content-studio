@@ -33,6 +33,11 @@ class FakeDocker {
     static extern bool CloseHandle(IntPtr handle);
     static int Main(string[] args) {
         var json = new JavaScriptSerializer();
+        if(args.Length==1 && args[0]=="--ready") {
+            json.DeserializeObject("{\"ready\":true}");
+            Console.Out.Write("SHIM_READY");
+            return 0;
+        }
         string dir = Environment.GetEnvironmentVariable("BACKUP_FAKE_DIR");
         var cfg = json.DeserializeObject(File.ReadAllText(Path.Combine(dir,"config.json")))
             as System.Collections.Generic.Dictionary<string,object>;
@@ -133,7 +138,61 @@ def native_docker(tmp_path_factory):
         check=False,
     )
     assert result.returncode == 0, result.stdout + result.stderr
+    # Assert native startup before one-second lifecycle cases spend their deadline.
+    env = os.environ.copy()
+    env.pop("BACKUP_FAKE_DIR", None)
+    start = time.monotonic()
+    ready = subprocess.run(
+        [str(exe), "--ready"],
+        env=env,
+        cwd=directory,
+        capture_output=True,
+        timeout=30,
+        check=False,
+    )
+    (directory / "readiness-status.json").write_text(
+        json.dumps(
+            {
+                "exit": ready.returncode,
+                "stdout": ready.stdout.decode("utf-8", errors="backslashreplace"),
+                "stderr": ready.stderr.decode("utf-8", errors="backslashreplace"),
+                "elapsed": time.monotonic() - start,
+            }
+        ),
+        encoding="utf-8",
+    )
+    assert ready.returncode == 0, ready.stdout + ready.stderr
+    assert ready.stdout == b"SHIM_READY"
+    assert ready.stderr == b""
     return directory
+
+
+def test_native_shim_readiness_does_not_require_config(tmp_path, native_docker):
+    env = os.environ.copy()
+    env.pop("BACKUP_FAKE_DIR", None)
+    result = subprocess.run(
+        [str(native_docker / "docker.exe"), "--ready"],
+        env=env,
+        cwd=tmp_path,
+        capture_output=True,
+        timeout=30,
+        check=False,
+    )
+    receipt = tmp_path / "readiness-status.json"
+    receipt.write_text(
+        json.dumps(
+            {
+                "exit": result.returncode,
+                "stdout": result.stdout.decode("utf-8", errors="backslashreplace"),
+                "stderr": result.stderr.decode("utf-8", errors="backslashreplace"),
+            }
+        ),
+        encoding="utf-8",
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert result.stdout == b"SHIM_READY"
+    assert result.stderr == b""
+    assert list(tmp_path.iterdir()) == [receipt]
 
 
 @pytest.fixture
