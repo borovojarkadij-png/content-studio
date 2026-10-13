@@ -15,8 +15,11 @@ accepted;83native contracts/noSKIP and actual Docker4.4MiB archive/newDBcopy/
 exact SQL/ciphertext decrypt/originalexternalkey/drift/sourceunchanged PASS.
 Hosted Windows contract CI Task2 PASS83/0SKIP with actual artifact/receipts;
 whole exactd7c580a CI38323820316 completedSUCCESS/all10SUCCESS; actual all logs,
-Windows/benchmark/protectedUI artifacts checked. New loginbb30b96 source has its
-own pending CLI/migratedPG/package gate, not inherited backup acceptance.
+Windows/benchmark/protectedUI artifacts checked. New loginbb30b96/f30fb73 source
+and CLI independently reviewed; full3186/26PG-onlySKIP, actual migrated11PG/
+0SKIP/0warnings and four private network-none packaged CLI cases PASS. Final
+cross-task source review Approved with nonblocking Minors. Evidence6bc5adc exact
+CI38326431585 in progress; live login/restart/rights still pending.
 Supersedes older pending statements below, not their evidence.
 
 2026-10-13 checkpoint: R-001/R-004 remain PARTIAL, not operational acceptance.

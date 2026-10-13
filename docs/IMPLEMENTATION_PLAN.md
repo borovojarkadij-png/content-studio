@@ -10,8 +10,12 @@ speccompliant/qualityApproved/no findings,100focused/160covering/native0;
 Task2f30fb73 speccompliant/qualityApproved/one deferred test-only Minor;
 153focused/full3186/26PG-onlySKIP/staticnative0. Root actual11PG/0SKIP/0warnings
 and immutable-image141inputs/four private network-none CLIcases native0 PASS.
-See TELEGRAM_LOGIN_VERIFICATION_20261013.md. NEXTdocs/authorizedpush/exactCI/
-final review; live human login/restart/rights pending. Backup exactd7c580a CI38323820316: Windows83/0SKIP
+See TELEGRAM_LOGIN_VERIFICATION_20261013.md. Evidence6bc5adc pushednative0/
+exactremote; exactCI38326431585 in progress. Final cross-task login integration
+review Approved/no Critical/Important, two nonblocking Minors retained. NEXT:
+exact CI evidence and approved engagement/HypeScore increment; live human
+login/restart/rights and full historical PHASE branch review remain pending.
+Backup exactd7c580a CI38323820316: Windows83/0SKIP
 hosted artifact verified; PostgreSQL831/3explicitSKIP+5, frontend334/33+1+3,
 full-stack/all recovery logs checked. Exactworkflow COMPLETED SUCCESS/all10;
 backend2950/98SKIP/new24casebenchmark checked. Task2 login source is newer and
@@ -20,7 +24,8 @@ Guarded backup Task1 independently accepted after early archive-list closure fix
 83actual Windows contracts PASS/noSKIP, actual Docker4.4MiB archive/newDBcopy/
 exact SQL/ciphertext+originalkey/drift/sourceunchanged/native0 PASS. Separate
 media/key/full-app restore and operational cutover remain unverified. Prepared
-Telegram first-login adapter/service reviewed; interactiveCLI/runtime/live pending.
+Telegram first-login adapter/service and interactive CLI independently reviewed;
+actual synthetic migrated PostgreSQL/package acceptance PASS, human live pending.
 Settings UI1/UI2 and optional operator Compose64ce1e9 independently accepted.
 Actual Windows packaged default503/optional401+200/create+update/audit/private
 CAS/noop/REJECT0jobs/APIrestart/down-up/normal PGrecovery PASS, stable original

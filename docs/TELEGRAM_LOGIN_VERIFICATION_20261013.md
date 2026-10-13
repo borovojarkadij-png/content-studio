@@ -25,7 +25,8 @@ restart acceptance. Those conclusions cannot be inferred from SQLite/fake RPC.
 
 ## Task2 and controller gates
 
-Task2 is in progress under `TELEGRAM_LOGIN_IMPLEMENTATION.md`: default-disabled
+Historical Task2 checkpoint (superseded by completed source/runtime below):
+Task2 was in progress under `TELEGRAM_LOGIN_IMPLEMENTATION.md`: default-disabled
 interactive CLI, masked prompts, explicit configured/migrated PostgreSQL checks,
 private errors, migrated create-only PostgreSQL regressions and operator guide.
 It must preserve REJECTfalse/zero-rewrite invariants, all existing CI checks and
@@ -43,7 +44,8 @@ Ruff0.17/format3/compile/YAML exactappend native0, one full backend3186PASS/
 26PG-onlySKIP514.98s/native0. Controller read complete retained output and matched
 all six frozen owned hashes. Full log SHA256
 `DB9DE9D3F2B6F75D991185A0CB112484E4EF2543A4DDD2732667791A7E476F26`.
-Fresh independent Task2 spec+quality review is in progress. No new actualPG or
+At that earlier checkpoint, fresh independent Task2 spec+quality review was in
+progress. No new actualPG or
 container gate claimed before review; no same-source full suite rerun.
 
 Controller actual Windows PostgreSQL/package gates now PASS on reviewed
@@ -174,7 +176,17 @@ strict helper. No public-schema reuse, drop, reset, old-fixture reseed, producti
 queue changes, or real Telegram credentials. Root will record exact source/image
 and namespace growth before claiming that gate.
 
-## External boundaries
+## Current integrated-source and CI status
+
+Evidence commit `6bc5adc255be3ab446568e80ddfb83ff7d69a331` was pushed with
+native exit0 and independently matched to the authorized remote branch.
+Exact CI run38326431585 is in progress, not inherited from predecessor CI.
+Fresh final cross-task review of the complete `d7c580a..6bc5adc` package:
+Approved, no Critical/Important findings. Nonblocking machine-specific test
+import path remains explicitly deferred; stale intermediate status prose is
+now labeled historical. This is not the final historical PHASE branch review.
+
+## Remaining external boundaries
 
 Actual Telegram code/2FA/CAPTCHA is human-only; successful encrypted live-session
 restart remains pending. Existing blocked AI credential selection is not retried;

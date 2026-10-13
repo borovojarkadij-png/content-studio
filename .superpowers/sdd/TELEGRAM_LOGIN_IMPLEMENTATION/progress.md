@@ -127,3 +127,19 @@ readonly/no-volume/no-credential CLIcases correct2/0/1/1 statuses/privatevalue
 absent. Actual packagedPython3.12.15/Telethon1.45.0/SQLAlchemy2.1.4 native0.
 See TELEGRAM_LOGIN_VERIFICATION_20261013.md for full IDs/hashes/failures/native
 receipts. Root docs/authorizedpush/exactCI and final review next; live gatepending.
+
+Root evidence6bc5adc255be3ab446568e80ddfb83ff7d69a331 pushnative0/exactremote.
+ExactCI38326431585 in progress; predecessor CI not reused as current proof.
+Generated raw review.diff had literal diff-context trailing whitespace when
+staged; unstaged only that raw scratch artifact, preserved bytes unchanged,
+remaining staged diffcheck0/commit0. No product/source/test change.
+Final cross-task login review /root/telegram_login_integration_review,
+gpt-6-astra/high/forknone/nohelpers: Approved/no Critical/Important, no reruns or
+mutations; complete frozen179497byte d7c580a..6bc5adc package plus unchanged
+integration dependencies read. Verbatim final-integration-review.md retained.
+Final triage: machine-specific test path nonblocking, retained for whole-PHASE
+triage; stale current-status/intermediate checkpoint prose Minor corrected by
+controller documentation-only update. No fix wave/source change required.
+Login increment integrated-source accepted; human/live, exactCI and historical
+whole-PHASE branch gates remain separate. NEXT exactCI evidence, then approved
+engagement observations/HypeScore work without revising accepted architecture.
