@@ -38,3 +38,7 @@ Spec/plan self-review: every bounded scope requirement mapped to Task1 or Task2;
 full HypeScore/baselines/event matching/opt-in collector explicitly subsequent,
 not fake completed. Interfaces consistent; no undefined consumed functions or
 placeholder steps. New source not dispatched until root docs checkpoint commit.
+Generated brief ended with an extra blank line: initial staged diffcheck native2
+was followed by documentation commit e05560f because controller shell sequence
+did not stop. Corrected only trailing generated blank before source dispatch;
+retain this controller bookkeeping failure, not a product test failure.
