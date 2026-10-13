@@ -5,6 +5,19 @@ YouTube analysis/distribution/upload is excluded from the deliverable and all
 remaining-work/progress estimates. This overrides historical master-spec
 YouTube sections without changing the approved Telegram architecture or gates.
 
+AUTHORITATIVE NEXT_STEP2026-10-13: pure intake kernel920c099 scoped Approved;
+Both freshreviews now complete: finalkernelCompliant/Approved/no findings,
+backupfixallfindingsADDRESSED/no newbreakage. Rootdocscheckpoint/guardedpush
+then exactnewCI98/all10; durableintegration design follows independently.
+actual installed networknone Docker smoke4544143/native0/all326inputs unchanged,
+final increment review active. Native backup shim readiness fix4544143 has
+focused15/full98zero skips/static0 and frozen hashes independently checked;
+scoped fix review active. Finish review/docs checkpoint/fresh guarded FF push
+and exact newCI98/all10 gates; retain oldWindows96/1FAIL. No repeat of completed
+localfull/PG/resourceprobe/package. Next independent task is durable pre-AI
+ranked ingestion integration, not targetmix or wholeautomation completion;
+use AUTOMATION_SELECTION_GAP_ANALYSIS_20261013.md and preserve all fresh guards.
+
 Latest NEXT_STEP: capsource21d24d3 scopedreviewApproved/no findings, root
 originalresourceprobe PASS/native0/bounded1048576. Windows97PASS0SKIP/static0.
 Finalincrementreview Approved/speccompliant/no findings; rootcheckpoint/guardedpush, exactnewCI next.

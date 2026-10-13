@@ -72,6 +72,19 @@ TELEGRAM_INTAKE_SELECTION_DESIGN_20261013.md and its singleTask plan: pure
 deterministic bounded kernel first, no caller activation or durable claim.
 This deliberately does not close the observed ingestion/planning obligations.
 
+Downstream integration trace, inspected after kernel review: the common
+candidate_technical_allowed boundary is consumed by rewrite runner both before
+and after execution, illustration binding, publication preflight, planning and
+calendar checks; output_technical_allowed reaches review outputs, semantic
+verification and automatic approval. A durable selection binding should be
+revalidated at these established boundaries, not added as a planner-only flag.
+resolve_editorial_admission separately binds current source/mapping/fingerprint
+before diagnostic classification. DurableEditorialService.create_rewrite_job
+currently has only editorial/source availability and output-scoped idempotency;
+its two ingestion/fanout callers must establish current owned selection before
+creating work. No API exists to treat the pure kernel result as authority.
+No integration implementation or permission change is claimed by this trace.
+
 ## Constraints on the next implementation
 
 - Preserve the current core and accepted UI; add a bounded seam, not a new app.

@@ -16,6 +16,29 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
 
 ## Active recovery checkpoint — 2026-10-13
 
+AUTHORITATIVE NEXT_STEP (supersedes the chronological entries below):
+Both reviews now complete: backup fixallfindingsADDRESSED/no newbreakage;
+kernel finalincrement Compliant/Approved/no findings. Verbatim reports saved.
+NEXT commitrootdocs/checkpoint then fresh guardedFFpush against remotebffda47,
+exactnewCI98/all10; continue durableintegration design while hosted gates run.
+Kernel source920c099 scoped review Compliant/Approved. Root actual Docker
+package at4544143e05d7c8435d934c620e960c2e746bbad2 built and smoked/native0,
+image d4862c940b11d71c5403b1267f72ec8d48dc977b12134bc2a2f6a8edec07dbcb.
+All326 committed backend inputs independently rehashed unchanged; networknone,
+readonly/no volumes/secrets; literal modes/process replay/guard reasons/carry
+PASS, provider0, durable_ingress_verified=false. Final increment review
+/root/intake_selection_final_review active/read-only, no source writer.
+Backup readiness fix4544143 changes test/report only; root actual logs/JUnit
+and frozen test/helper hashes checked: focused15/full98/0FAIL/0ERROR/0SKIP,
+static native0. /root/backup_readiness_review scoped fix review active.
+NEXT accept both reviews, save verbatim/report/ledgers, rootdocs checkpoint,
+fresh guarded FF push against remotebffda47, exact newCI98/all10 acceptance.
+Do not replay localfull/PG/resourceprobe/package. OldCI38338368307 remains
+WindowsFAIL96/1; eight otherSUCCESS/backend running at last snapshot. Retain
+failure; never substitute local98 or old83. Then implement durable ranked
+ingress from documented gap analysis under its own scoped design/test gates.
+No UI/live credentials/operational data changed. PHASE1 not complete.
+
 LATEST: sampling exactCI38337278244 at2051990 completedSUCCESS/all10SUCCESS,
 allactual logs/new24caseunqualified0callartifact inspected; backend3718/159SKIP,
 PG892/3nonapplicableSKIP+5,Windows83/frontend334/33+1+3/allrecoveryPASS.
@@ -38,6 +61,13 @@ test/report fixround1 under fix-1-brief.md; independentkernelreview readonly.
 Kernel packagecontroller prepared/syntaxchecked only, execution after capfix
 writerDONE/sourcefreeze. CapCI38338368307 remainsunaccepted96PASS1FAIL, five
 otherjobsSUCCESS/fourrunning. No blindrerun/no provider/data/UI change.
+
+Most recent: kernel scopedreview DONE speccompliant/qualityApproved/no findings;
+Task1complete/ownverbatimreview saved. Caporiginalwriter fixround1 active at
+BASE384cb42/clean, owns onlytest+report; expected98=97preserved+1readinesscase,
+no productiondeadline change. NEXT fixreport/sourcehashes/scopedreview then
+actualkernelpackage/finalincrementreview/rootcheckpoint/guardednewCI. Current
+oldcapCI has sixotherSUCCESS/three running plus retainedWindowsFAIL.
 
 NEXT_STEP (supersedes chronological entries below): backupcap source21d24d3
 scopedreview speccompliant/qualityApproved/no findings; original unchanged

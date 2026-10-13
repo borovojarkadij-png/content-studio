@@ -1,5 +1,27 @@
 # SDD ledger — plan: docs/BACKUP_OUTPUT_CAP_IMPLEMENTATION.md
 
+Task1 fixround1: complete384cb42..4544143, fresh readonly scopedreview
+/root/backup_readiness_review Compliant/qualityPASS/allfindingADDRESSED/no new
+Critical/Important/Minor/no out-of-scope observations. Fullverbatim
+fix-1-review.md retained. RootnewCI98 exactgeneration pending; historical
+Windows96/1 failure remains visible and unaccepted.
+
+Fixround1 writerDONE4544143e05d7c8435d934c620e960c2e746bbad2. Root read full
+appended report and actual15focused/98full/static logs/native0; test hash
+AB743D5FFBC60F639DF7F32B0731ED4DF74E7C997DC41CFD733740EB096929E5 and
+unchanged helper2C79B0...EB9C3 independently matched. Complete immutable
+review-384cb42..4544143.diff14095bytes; fresh scoped
+/root/backup_readiness_review,gpt-6.1-sol/high/forknone/nohelpers active.
+No prior97assertion/deadline changed; one native readiness case added. Root
+original resource probe need not repeat for harness-only change. Exact CI
+newgeneration still required, original hosted WindowsFAIL retained.
+
+Fixround1 sourceownership RELEASED originalwriter /root/backup_output_cap at
+BASE384cb42cbc7191447aaf7e31ae7882dfd78fdded/clean. OwnWindowscontracttest+
+appendownreport only; kernelreview readonly, kernelfilesfrozen. Native --ready
+branch/sessionfixture plus onebehaviorcase; expected98=97old+1, targeted15.
+No production/CI/dependency edits. Rootpackage/index/commit waits forDONE.
+
 Fixround1 investigation complete readonly/disposable. Rootread full8477byte
 REPORT.md in backup-output-cap-startup-probe-20261013a: injected1800ms first
 launch before trace reproduces exactmissingPID/1FAIL/native1; explicitbounded

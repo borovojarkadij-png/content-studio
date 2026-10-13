@@ -1,5 +1,28 @@
 # SDD ledger — plan: docs/TELEGRAM_INTAKE_SELECTION_IMPLEMENTATION.md
 
+Final increment review complete /root/intake_selection_final_review,
+gpt-6-astra/high/forknone/nohelpers: Compliant/Approved/noCritical/Important/
+Minor. Fullverbatim final-integration-review.md retained; independent reviewer
+matched complete326receiptinputs/sourcegeneration/actualpackage boundaries.
+Rootcheckpoint/guardednewCI next; durable integration and wholebranchrelease
+remain outstanding. No merge/main/push by reviewer, no repeated tests.
+
+Root actual installed Docker gate at4544143e05d7c8435d934c620e960c2e746bbad2
+build0/smoke0/image d4862c940b11d71c5403b1267f72ec8d48dc977b12134bc2a2f6a8edec07dbcb;
+all326backendinputhashes independently matched. No network/volumes/secrets,
+readonly/capdrop; literal3modes/process replay/guard reasons/fractionalcarry
+PASS/provider0, no durable ingress/selection authority claim. Complete
+review-639bef0..920c099.diff43546bytes regenerated from explicitBASE/source;
+fresh final increment /root/intake_selection_final_review,gpt-6-astra/high/
+forknone/nohelpers active. No source edits/full/PG/resourceprobe repeat.
+
+Task 1: complete (commits 639bef0..920c099, review clean).
+Fresh scopedreview /root/intake_selection_kernel_review DONE speccompliant/
+qualityApproved/noCritical/Important/Minor; fullverbatim task-1-review.md retained.
+Outsidekernel durableownership/authority gaps explicitly unfinished; no current
+caller changed. NEXT actualnetworknone package/finalincrementreview after
+capfix solewriterDONE/sourcefreeze, then rootcheckpoint/guardedexactCI.
+
 Task1 writerDONE920c099fe035cc4757c7c7bbf38d829fb26871e1, exactnewtwofiles+
 own206linereport. RootreadEOF/actual300targeted+final127GREEN/pristine,
 bothhashes matched B94DB875.../4CE4114D...; staticnative0. Retainedinitial
