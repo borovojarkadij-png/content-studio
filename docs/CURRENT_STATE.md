@@ -16,7 +16,16 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
 
 ## Active recovery checkpoint — 2026-10-13
 
-NEXT_STEP: Windows backup/restore Task1 source7861c4a+e547e71/report6b96be1
+NEXT_STEP: Engagement Task1 source8308f15 independently speccompliant/
+qualityApproved/no findings;88focused/453covering/staticnative0 and frozen hashes
+checked. Dispatch prepared Task2 durable append-only history/migration/PG contracts
+under docs/TELEGRAM_ENGAGEMENT_IMPLEMENTATION.md, then clean source review and
+actual owned Windows PostgreSQL gate. ONE combined backend after Task2; no
+duplicate Task1/full suite. Login exact6bc5adc CI38326431585 all10SUCCESS,
+actual ten logs/Windows/benchmark checked. No human/live/PHASE/STABLE claim.
+
+Retained preceding milestones (current NEXT_STEP above supersedes older NEXT
+phrasing): Windows backup/restore Task1 source7861c4a+e547e71/report6b96be1
 independently accepted after early archive-list stdin-close fix. Actual83Windows
 contracts PASS/noSKIP/staticnative0; source reviewPASS/qualityPASS. Root actual
 Windows Docker 4,412,729-byte archive/newDBcopy/exact SQL/ciphertext decrypt with
@@ -48,12 +57,23 @@ Root tracks backup CI in BACKUP_RESTORE_CI_20261013.md;
 actual new Windowsjob SUCCESS83/0SKIP/hosted JUnit+native receipts verified,
 other completed frontend/illustration/admission/channel-sync raw logs checked.
 Root evidence6bc5adc255be3ab446568e80ddfb83ff7d69a331 pushed native0/exactremote;
-exact new CI38326431585 is in progress. Fresh final cross-task login integration
+exact new CI38326431585 completedSUCCESS/all10SUCCESS; root actual ten logs,
+Windows83/0SKIP artifact and24case zero-call/unqualified benchmark checked in
+TELEGRAM_LOGIN_CI_20261013.md. Backend3103/109SKIP,PG842/3SKIP+5,
+frontend334/33+1+3 and all synthetic recovery families PASS.
+Fresh final cross-task login integration
 review Approved/no Critical or Important findings; two nonblocking Minors
 retained (machine-specific test import path; stale checkpoint prose corrected).
-This is not the full historical PHASE branch review. NEXT: inspect completed
-exact-CI logs/artifacts and execute the approved engagement/HypeScore increment,
+This is not the full historical PHASE branch review. NEXT: execute the approved engagement/HypeScore increment,
 keeping observation data separate from immutable content revision identity.
+Engagement Task1 writerDONE8308f15;88focused/453covering native0/staticPASS,
+root six frozen hashes+complete report checked. Fresh scoped independent
+/root/telegram_engagement_provider_review speccompliant/qualityApproved/no findings,
+42030byte BASE0bc8ebd..8308f15
+package. Exact brief/spec/ledger under TELEGRAM_ENGAGEMENT_IMPLEMENTATION.
+Root owns docs/CI, not six source files. No full suite until combined Task2;
+clean Task1 review before history writer. New engagement PG helper prepared,
+not executed before Task2 source review. Do not redispatch completed Task1.
 No live login success
 inferred from local/synthetic source evidence. Do not re-dispatch completed work.
 Own docs/BACKUP_RESTORE_IMPLEMENTATION.md brief/ledger. Correctedcf38929 pushednative0/

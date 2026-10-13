@@ -180,7 +180,8 @@ and namespace growth before claiming that gate.
 
 Evidence commit `6bc5adc255be3ab446568e80ddfb83ff7d69a331` was pushed with
 native exit0 and independently matched to the authorized remote branch.
-Exact CI run38326431585 is in progress, not inherited from predecessor CI.
+Exact CI run38326431585 completedSUCCESS/all10SUCCESS, not inherited from
+predecessor CI; actual logs/artifacts verified in TELEGRAM_LOGIN_CI_20261013.md.
 Fresh final cross-task review of the complete `d7c580a..6bc5adc` package:
 Approved, no Critical/Important findings. Nonblocking machine-specific test
 import path remains explicitly deferred; stale intermediate status prose is

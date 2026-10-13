@@ -19,7 +19,9 @@ Windows/benchmark/protectedUI artifacts checked. New loginbb30b96/f30fb73 source
 and CLI independently reviewed; full3186/26PG-onlySKIP, actual migrated11PG/
 0SKIP/0warnings and four private network-none packaged CLI cases PASS. Final
 cross-task source review Approved with nonblocking Minors. Evidence6bc5adc exact
-CI38326431585 in progress; live login/restart/rights still pending.
+CI38326431585 all10SUCCESS; actual ten logs/Windows83/0SKIP and24case zero-call
+benchmark inspected;backend3103/109SKIP,PG842/3SKIP+5,frontend334/33+1+3/allrecovery.
+Live login/restart/rights still pending.
 Supersedes older pending statements below, not their evidence.
 
 2026-10-13 checkpoint: R-001/R-004 remain PARTIAL, not operational acceptance.

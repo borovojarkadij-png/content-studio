@@ -143,3 +143,9 @@ controller documentation-only update. No fix wave/source change required.
 Login increment integrated-source accepted; human/live, exactCI and historical
 whole-PHASE branch gates remain separate. NEXT exactCI evidence, then approved
 engagement observations/HypeScore work without revising accepted architecture.
+ExactCI38326431585/6bc5adc completedSUCCESS/all10SUCCESS; actual ten raw logs
+native0 downloaded/read, Windows83JUnit0SKIP/82entrypoint112native receipts,
+new24case benchmark0calls/unqualified independently parsed. Backend3103/
+109SKIP744.64s,PG842/3SKIP550.02s+5locks6.12s,frontend334/33+1+3 and full
+recovery families PASS. See TELEGRAM_LOGIN_CI_20261013.md. Source/runtime/CI
+login increment accepted, not human/live/PHASEwholebranch or STABLE approval.

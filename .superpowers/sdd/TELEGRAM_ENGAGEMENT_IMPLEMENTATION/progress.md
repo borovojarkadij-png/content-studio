@@ -42,3 +42,34 @@ Generated brief ended with an extra blank line: initial staged diffcheck native2
 was followed by documentation commit e05560f because controller shell sequence
 did not stop. Corrected only trailing generated blank before source dispatch;
 retain this controller bookkeeping failure, not a product test failure.
+Corrective docs0bc8ebd staged diffcheck native0/commitnative0/clean tree.
+Task1 solewriter /root/telegram_engagement_provider,gpt-6.1-sol/high/forknone/
+nohelpers dispatched at BASE0bc8ebd77ec985d43e5e3a349697d6ea7fe8c21b.
+Exact six source/test files + own report only; root owns docs/CI. Do not
+redispatch until report/review; Task2 waits clean spec+quality review.
+Root prepares actualPG helper only (no execution before reviewed Task2):
+D:/Codex-Recovery/content-studio-20261008/telegram-engagement-acceptance-20261013a/verify-postgres.ps1,
+parsernative0/SHA B2A26B89759731E6ED9BBD2BF26B2472694C3BBEA1BE0CF112E875301A19E384.
+Existing exact owned PG container/manifest/solevolume/loopback plus input hashes,
+2032baseline namespace retention/public unchanged/JUnit0SKIP guards; supports
+fresh new namespaces only. No real credentials or unchanged gates replayed.
+Ruling: Task1 brief pre-client "identity/time/counter checks" means request
+identity/observed_at before IO, raw counters/publication date after bounded read
+and before return — response counters do not exist before RPC; cost if wrong:
+invalid provider responses fail without persisted history, no pretend preflight.
+Clarification delivered to solewriter; exact spec response checks unchanged.
+Task1 writerDONE8308f15; complete106line report read, all six owned SHA256+report
+B461DC726602DB217D076CBF07D3D98C8E3D3250D717DB0D7869F7341779ADED matched.
+Actual88focusedPASS0.52s/453coveringPASS38.58s/native0/Telethon1.45/static0;
+causal missingreader RED, fixture collection signature error not productRED,
+type-contract negatives and lint corrections retained. No full suite requested.
+Fresh scoped /root/telegram_engagement_provider_review,gpt-6.1-sol/high/forknone/
+nohelpers active; complete BASE0bc8ebd..8308f15 onecommit42030byte package.
+Do not launch Task2 until review resolves. Root earlier missingreport read was
+before writer finished, no mutation/rerun/loss; report now complete/hashverified.
+
+Task 1: complete (commits 0bc8ebd..8308f15, review clean).
+Fresh independent speccompliant/qualityApproved/no findings; verbatim review
+retained. Cannotverify PG/history belongs Task2/controller; broader source/
+media/editorial authority covered by actual453regression and unchanged paths,
+not presumed live proof. No repeated suites or review changes. Task2 ready.
