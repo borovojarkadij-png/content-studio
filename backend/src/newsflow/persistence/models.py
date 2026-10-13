@@ -1379,3 +1379,178 @@ class IllustrationReviewRecordModel(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
+
+
+class TelegramIntakeSelectionStreamModel(Base):
+    """Retained comparison carry; Alembic guards serial advancement and identity."""
+
+    __tablename__ = "telegram_intake_selection_streams"
+    __table_args__ = (
+        UniqueConstraint("mapping_id", "policy_binding_sha256", name="uq_intake_stream_binding"),
+        *(
+            CheckConstraint(expression, name=f"ck_intake_stream_{column}")
+            for column, expression in (
+                ("id", "id BETWEEN 1 AND 9223372036854775807"),
+                ("mapping_id", "mapping_id BETWEEN 1 AND 9223372036854775807"),
+                ("carry", "carry BETWEEN 0 AND 99"),
+                ("next_sequence", "next_sequence BETWEEN 1 AND 9223372036854775807"),
+                ("policy_payload", "length(policy_payload) <= 256"),
+                (
+                    "created_at",
+                    (
+                        "created_at >= '0001-01-01 00:00:00+00' AND "
+                        "created_at <= '9999-12-31 23:59:59.999999+00'"
+                    ),
+                ),
+            )
+        ),
+        *(
+            CheckConstraint(
+                f"length({column}) = 64 AND "
+                + "replace(" * 16
+                + column
+                + "".join(f",'{digit}','')" for digit in "0123456789abcdef")
+                + " = ''",
+                name=f"ck_intake_stream_{column}_digest",
+            )
+            for column in ("policy_binding_sha256", "policy_sha256")
+        ),
+        *(
+            CheckConstraint(
+                f"typeof({column}) = 'integer'", name=f"ck_intake_stream_{column}_sqlite"
+            ).ddl_if(dialect="sqlite")
+            for column in ("id", "mapping_id", "carry", "next_sequence")
+        ),
+        *(
+            CheckConstraint(
+                f"typeof({column}) = 'text' AND length(CAST({column} AS BLOB)) = length({column})",
+                name=f"ck_intake_stream_{column}_sqlite",
+            ).ddl_if(dialect="sqlite")
+            for column in ("policy_binding_sha256", "policy_sha256", "policy_payload")
+        ),
+        CheckConstraint(
+            "typeof(created_at) = 'text' AND length(created_at) = 26 AND "
+            "length(CAST(created_at AS BLOB)) = 26 AND substr(created_at,20,1) = '.' AND "
+            "substr(created_at,21,6) NOT GLOB '*[^0-9]*' AND "
+            "strftime('%Y-%m-%d %H:%M:%S', substr(created_at,1,19), '+0 days') "
+            "IS substr(created_at,1,19)",
+            name="ck_intake_stream_created_at_sqlite",
+        ).ddl_if(dialect="sqlite"),
+        CheckConstraint(
+            "octet_length(policy_payload) = length(policy_payload)",
+            name="ck_intake_stream_payload_postgresql",
+        ).ddl_if(dialect="postgresql"),
+    )
+
+    id: Mapped[int] = mapped_column(
+        BigInteger().with_variant(Integer(), "sqlite"), primary_key=True
+    )
+    mapping_id: Mapped[int] = mapped_column(
+        ForeignKey("channel_mappings.id", ondelete="RESTRICT"), nullable=False
+    )
+    policy_binding_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    policy_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    policy_payload: Mapped[str] = mapped_column(Text, nullable=False)
+    carry: Mapped[int] = mapped_column(Integer, default=0, server_default="0", nullable=False)
+    next_sequence: Mapped[int] = mapped_column(
+        BigInteger().with_variant(Integer(), "sqlite"),
+        default=1,
+        server_default="1",
+        nullable=False,
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class TelegramIntakeSelectionWindowModel(Base):
+    """Immutable bounded comparison snapshots; JSON semantics belong to the repository."""
+
+    __tablename__ = "telegram_intake_selection_windows"
+    __table_args__ = (
+        UniqueConstraint("stream_id", "window_key", name="uq_intake_window_key"),
+        UniqueConstraint("stream_id", "sequence", name="uq_intake_window_sequence"),
+        *(
+            CheckConstraint(expression, name=f"ck_intake_window_{column}")
+            for column, expression in (
+                ("id", "id BETWEEN 1 AND 9223372036854775807"),
+                ("stream_id", "stream_id BETWEEN 1 AND 9223372036854775807"),
+                ("sequence", "sequence BETWEEN 1 AND 9223372036854775806"),
+                ("carry_in", "carry_in BETWEEN 0 AND 99"),
+                ("carry_out", "carry_out BETWEEN 0 AND 99"),
+                ("algorithm_version", "algorithm_version = 'intake-selection-v1'"),
+                ("input_payload", "length(input_payload) <= 262144"),
+                ("result_payload", "length(result_payload) <= 262144"),
+                (
+                    "created_at",
+                    (
+                        "created_at >= '0001-01-01 00:00:00+00' AND "
+                        "created_at <= '9999-12-31 23:59:59.999999+00'"
+                    ),
+                ),
+            )
+        ),
+        *(
+            CheckConstraint(
+                f"length({column}) = 64 AND "
+                + "replace(" * 16
+                + column
+                + "".join(f",'{digit}','')" for digit in "0123456789abcdef")
+                + " = ''",
+                name=f"ck_intake_window_{column}_digest",
+            )
+            for column in ("window_key", "input_sha256")
+        ),
+        *(
+            CheckConstraint(
+                f"typeof({column}) = 'integer'", name=f"ck_intake_window_{column}_sqlite"
+            ).ddl_if(dialect="sqlite")
+            for column in ("id", "stream_id", "sequence", "carry_in", "carry_out")
+        ),
+        *(
+            CheckConstraint(
+                f"typeof({column}) = 'text' AND length(CAST({column} AS BLOB)) = length({column})",
+                name=f"ck_intake_window_{column}_sqlite",
+            ).ddl_if(dialect="sqlite")
+            for column in (
+                "window_key",
+                "input_sha256",
+                "algorithm_version",
+                "input_payload",
+                "result_payload",
+            )
+        ),
+        CheckConstraint(
+            "typeof(created_at) = 'text' AND length(created_at) = 26 AND "
+            "length(CAST(created_at AS BLOB)) = 26 AND substr(created_at,20,1) = '.' AND "
+            "substr(created_at,21,6) NOT GLOB '*[^0-9]*' AND "
+            "strftime('%Y-%m-%d %H:%M:%S', substr(created_at,1,19), '+0 days') "
+            "IS substr(created_at,1,19)",
+            name="ck_intake_window_created_at_sqlite",
+        ).ddl_if(dialect="sqlite"),
+        *(
+            CheckConstraint(
+                f"octet_length({column}) = length({column})",
+                name=f"ck_intake_window_{column}_postgresql",
+            ).ddl_if(dialect="postgresql")
+            for column in ("input_payload", "result_payload")
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(
+        BigInteger().with_variant(Integer(), "sqlite"), primary_key=True
+    )
+    stream_id: Mapped[int] = mapped_column(
+        BigInteger().with_variant(Integer(), "sqlite"),
+        ForeignKey("telegram_intake_selection_streams.id", ondelete="RESTRICT"),
+        nullable=False,
+    )
+    sequence: Mapped[int] = mapped_column(
+        BigInteger().with_variant(Integer(), "sqlite"), nullable=False
+    )
+    window_key: Mapped[str] = mapped_column(String(64), nullable=False)
+    input_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    algorithm_version: Mapped[str] = mapped_column(String(32), nullable=False)
+    carry_in: Mapped[int] = mapped_column(Integer, nullable=False)
+    carry_out: Mapped[int] = mapped_column(Integer, nullable=False)
+    input_payload: Mapped[str] = mapped_column(Text, nullable=False)
+    result_payload: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)

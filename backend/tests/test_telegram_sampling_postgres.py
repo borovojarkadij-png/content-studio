@@ -376,8 +376,10 @@ def test_postgres_retained_sampling_rows_and_identity_cannot_be_erased(postgres,
 def test_postgres_populated_downgrade_retains_job_and_version(postgres):
     factory, config = postgres
     runner(factory).enqueue_window(now=NOW)
+    with factory() as session:
+        before_version = session.scalar(text("SELECT version_num FROM alembic_version"))
     with pytest.raises(RuntimeError, match="sampling"):
         command.downgrade(config, "a7e239bc5180")
     with factory() as session:
-        assert session.scalar(text("SELECT version_num FROM alembic_version")) == "b8c34d26e190"
+        assert session.scalar(text("SELECT version_num FROM alembic_version")) == before_version
     assert job_after(factory).state == "QUEUED"
