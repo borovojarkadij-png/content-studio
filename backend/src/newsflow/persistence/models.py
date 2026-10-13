@@ -573,6 +573,130 @@ class IncomingPostModel(Base):
     )
 
 
+class TelegramEngagementSamplingJobModel(Base):
+    """Retained read-only aggregate work, independent of editorial authority.
+
+    Alembic installs transition, terminal and incoming-identity retention guards.
+    Session digests and claim tokens must never be projected into logs or APIs.
+    """
+
+    __tablename__ = "telegram_engagement_sampling_jobs"
+    __table_args__ = (
+        CheckConstraint(
+            "state IN ('QUEUED', 'RUNNING', 'SUCCEEDED', 'BLOCKED', 'FAILED')",
+            name="ck_sampling_state",
+        ),
+        CheckConstraint("step BETWEEN 0 AND 7", name="ck_sampling_step"),
+        CheckConstraint("attempts BETWEEN 0 AND 3", name="ck_sampling_attempts"),
+        CheckConstraint("missed_windows BETWEEN 0 AND 6", name="ck_sampling_missed"),
+        CheckConstraint(
+            "available_at >= created_at AND "
+            "(lease_expires_at IS NULL OR lease_expires_at > available_at)",
+            name="ck_sampling_time_order",
+        ),
+        CheckConstraint(
+            "incoming_post_id BETWEEN 1 AND 9223372036854775807 AND "
+            "(expected_user_id IS NULL OR expected_user_id BETWEEN 1 AND 9223372036854775807)",
+            name="ck_sampling_identity",
+        ),
+        CheckConstraint(
+            "last_error_code IS NULL OR last_error_code IN "
+            "('WAIT_SYNC', 'WAIT_COOLDOWN', 'RETRY_PROVIDER', 'FLOOD_WAIT', "
+            "'SOURCE_UNAVAILABLE', 'SESSION_UNAVAILABLE', 'INVALID_OBSERVATION', "
+            "'ATTEMPTS_EXHAUSTED', 'INVALID_SCHEDULE')",
+            name="ck_sampling_error",
+        ),
+        CheckConstraint(
+            "(state = 'RUNNING' AND step <= 6 AND attempts BETWEEN 1 AND 3 "
+            "AND claim_token IS NOT NULL AND lease_expires_at IS NOT NULL "
+            "AND expected_user_id IS NOT NULL AND session_digest IS NOT NULL) OR "
+            "(state <> 'RUNNING' AND claim_token IS NULL AND lease_expires_at IS NULL "
+            "AND expected_user_id IS NULL AND session_digest IS NULL AND "
+            "((state = 'QUEUED' AND step <= 6) OR "
+            "(state = 'SUCCEEDED' AND step = 7 AND attempts = 0) OR "
+            "(state IN ('BLOCKED', 'FAILED') AND step <= 6 AND last_error_code IS NOT NULL)))",
+            name="ck_sampling_claim",
+        ),
+        *(
+            CheckConstraint(
+                f"{column} IS NULL OR ({column} >= '0001-01-01 00:00:00+00' "
+                f"AND {column} <= '9999-12-31 23:59:59.999999+00')",
+                name=f"ck_sampling_{column}_time",
+            )
+            for column in ("available_at", "created_at", "lease_expires_at")
+        ),
+        *(
+            CheckConstraint(
+                f"{column} IS NULL OR (typeof({column}) = 'text' AND length({column}) = 26 "
+                f"AND length(CAST({column} AS BLOB)) = 26 "
+                f"AND substr({column},20,1) = '.' "
+                f"AND substr({column},21,6) NOT GLOB '*[^0-9]*' "
+                f"AND strftime('%Y-%m-%d %H:%M:%S', substr({column},1,19), '+0 days') "
+                f"IS substr({column},1,19))",
+                name=f"ck_sampling_{column}_sqlite",
+            ).ddl_if(dialect="sqlite")
+            for column in ("available_at", "created_at", "lease_expires_at")
+        ),
+        *(
+            CheckConstraint(
+                f"{column} IS NULL OR typeof({column}) = 'integer'",
+                name=f"ck_sampling_{column}_sqlite",
+            ).ddl_if(dialect="sqlite")
+            for column in (
+                "incoming_post_id",
+                "step",
+                "attempts",
+                "missed_windows",
+                "expected_user_id",
+            )
+        ),
+        CheckConstraint(
+            "claim_token IS NULL OR (typeof(claim_token) = 'text' AND length(claim_token) = 36 "
+            "AND length(CAST(claim_token AS BLOB)) = 36 "
+            "AND substr(claim_token,9,1) = '-' AND substr(claim_token,14,1) = '-' "
+            "AND substr(claim_token,19,1) = '-' AND substr(claim_token,24,1) = '-' "
+            "AND length(replace(claim_token,'-','')) = 32 "
+            "AND replace(claim_token,'-','') NOT GLOB '*[^0-9a-f]*')",
+            name="ck_sampling_token_sqlite",
+        ).ddl_if(dialect="sqlite"),
+        CheckConstraint(
+            "session_digest IS NULL OR (typeof(session_digest) = 'text' AND length(session_digest) = 64 "
+            "AND length(CAST(session_digest AS BLOB)) = 64 "
+            "AND session_digest NOT GLOB '*[^0-9a-f]*')",
+            name="ck_sampling_digest_sqlite",
+        ).ddl_if(dialect="sqlite"),
+        CheckConstraint(
+            "claim_token IS NULL OR claim_token ~ "
+            "'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'",
+            name="ck_sampling_token_postgresql",
+        ).ddl_if(dialect="postgresql"),
+        CheckConstraint(
+            "session_digest IS NULL OR session_digest ~ '^[0-9a-f]{64}$'",
+            name="ck_sampling_digest_postgresql",
+        ).ddl_if(dialect="postgresql"),
+        Index("ix_sampling_due", "state", "available_at", "lease_expires_at"),
+    )
+
+    incoming_post_id: Mapped[int] = mapped_column(
+        ForeignKey("incoming_posts.id", ondelete="RESTRICT"), primary_key=True
+    )
+    state: Mapped[str] = mapped_column(String(16), nullable=False)
+    step: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
+    attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
+    missed_windows: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, server_default="0"
+    )
+    available_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    claim_token: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    lease_expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    expected_user_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    session_digest: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    last_error_code: Mapped[str | None] = mapped_column(String(64), nullable=True)
+
+
 class TelegramEngagementSourceModel(Base):
     """First observed publication time, bound to an existing canonical source."""
 
