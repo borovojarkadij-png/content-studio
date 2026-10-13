@@ -17,6 +17,14 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
 ## Active recovery checkpoint — 2026-10-13
 
 AUTHORITATIVE NEXT_STEP (supersedes the chronological entries below):
+Latest checkpoint0950b33cf0d664001f05f6da432e4524363a74af pushedFF/native0/
+exactremote ownerborovojarkadij-png verified. CI38340236416 started/all10running;
+inspect actualnewWindows98/alllogs/benchmark without borrowingoldgeneration.
+Durable comparison ledger design/2Taskplan/preflight now prepared:
+TELEGRAM_INTAKE_LEDGER_IMPLEMENTATION.md. NEXT commitdesign/plan/ledger then
+solewriterTask1 schema/migration, scopedreview, Task2repository. Ledger stores
+comparison evidence/carry only; no ingestion/worker/policy activation or grants.
+RootownsCI/docs and no sourceconcurrency/fullgate repetition. Dockerhealthy.
 Both reviews now complete: backup fixallfindingsADDRESSED/no newbreakage;
 kernel finalincrement Compliant/Approved/no findings. Verbatim reports saved.
 NEXT commitrootdocs/checkpoint then fresh guardedFFpush against remotebffda47,

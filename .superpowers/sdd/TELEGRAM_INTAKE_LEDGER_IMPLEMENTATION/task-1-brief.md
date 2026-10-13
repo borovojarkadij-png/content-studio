@@ -1,0 +1,19 @@
+### Task 1: Retained comparison schema and guarded migration
+
+**Files:** Modify backend/src/newsflow/persistence/models.py only to add the two spec classes/imports; create backend/alembic/versions/c9d45e37f201_add_telegram_intake_selection_ledger.py and backend/tests/test_intake_selection_ledger_migration.py. Modify ONLY the retained-version assertion in test_telegram_sampling_migration.py and test_telegram_sampling_postgres.py as described below. Own task-1-report.md only.
+**Consumes:** Existing Base/channel_mappings, current Alembic head b8c34d26e190 and sampling migration/test conventions.
+**Produces:** TelegramIntakeSelectionStreamModel and TelegramIntakeSelectionWindowModel exact fields/constraints/triggers from spec. No repository/caller yet.
+
+- [ ] Fully read spec storage/transaction constraints and actual current head/models/relevant migration fixtures. Confirm single head before writing; no existing row backfill.
+- [ ] Write actual behavioral RED against migrated raw SQL, not nonexistent-import collection error. Example desired invariant:
+```python
+with engine.begin() as connection, pytest.raises(DBAPIError):
+    connection.execute(text("UPDATE telegram_intake_selection_windows SET carry_out=99"))
+```
+  First temporary discovery test may assert inspect(engine).has_table(...) is True; retain its RED separately, then implement declarations and demonstrate an actual immutability/state refusal RED before adding guards. Synthetic seed helper must create mapping/account/donor/output in a migrated isolated store; no prod URL fallback.
+- [ ] Add only two models and exact guarded migration from spec. Portable/SQLite-specific checks reflected in metadata with ddl_if as existing conventions. No type/affinity assumptions. Initialstream carry0/sequence1; immutable policy/identity; exact nextwindow linkage before streamadvance; immutable windows including no-op and OR REPLACE; parent/missing/duplicate guards; downgrade refuses any history before DDL.
+- [ ] Parameterized tests cover malformed/uppercase/NUL/blob hashes, invalid IDs/carry/sequence/payload/time, streamnoninitialinsert, changed identity/policy/created_at, missing/existing replacement, invalid window sequence/carry, updates/noops/deletes/replacements, missing linked window atadvance and wrong carry. Valid window insert then streamadvance succeeds. Snapshot JSON semantics are repository responsibility, not schema algorithm proof.
+- [ ] Prove upgrade/reopen preserves old source/REJECT/false decision and zero rewrite_jobs/rewrite_usage/outbox_events; monkeypatch provider rewrite to forbidden. Empty downgrade/re-upgrade/check passes; nonempty downgrade raises preserving tables/history/head. Migration autogenerate/check should find no drift; no original data mutation.
+- [ ] Existing sampling migration/PG populated-downgrade tests currently hardcode previous head b8c34d26e190 despite upgrading to head. Capture version before attempted downgrade and assert the identical version afterward, preserving their job/state/assertions. This is a necessary new-head compatibility correction, not a relaxed rollback guarantee. No other existing assertion changes. Record any observed old-head failure before correction.
+- [ ] Run new migration cases plus targeted existing sampling/configuration/runtime migration tests once; Ruff0.17 check/format, compile, migration check and diff. Use Python3.12/Telethon1.45 overlay where pytest shared conftest needs it. No full backend/Windows backup/resource/container/PG gate repeated by writer.
+- [ ] Self-review/freeze owned source hashes, exact commands/native exits/RED/intermediates/GREEN/no-skips-or-explicit-skips/limits in own report. Commit only three owned files/report; return DONE/commit/onelinechecks/concerns. Root independently scoped-reviews before Task2 source ownership.

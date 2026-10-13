@@ -6,6 +6,11 @@ remaining-work/progress estimates. This overrides historical master-spec
 YouTube sections without changing the approved Telegram architecture or gates.
 
 AUTHORITATIVE NEXT_STEP2026-10-13: pure intake kernel920c099 scoped Approved;
+Checkpoint0950b33 pushedFF/native0/exactownerremote verified; newCI38340236416
+running/all10, rootactualnewWindows98/alllogs/artifact acceptance pending.
+Execute TELEGRAM_INTAKE_LEDGER_IMPLEMENTATION.md next: two retainedtables/
+migration then boundedtransactionalrepository; independentreviews/rootPG/
+package. No caller/worker/UI activation; pre-AI ingress/fanout remains nextgate.
 Both freshreviews now complete: finalkernelCompliant/Approved/no findings,
 backupfixallfindingsADDRESSED/no newbreakage. Rootdocscheckpoint/guardedpush
 then exactnewCI98/all10; durableintegration design follows independently.
