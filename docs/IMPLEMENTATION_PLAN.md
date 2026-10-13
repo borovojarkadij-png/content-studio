@@ -12,6 +12,12 @@ SamplingCI2051990/38337278244 sixSUCCESS/fourrunning; do not relabel its83-case
 Windowsartifact as new97 acceptance. Continue Telegram selection discovery
 after source gate; no UI/operational activation/live qualification.
 
+Continuation: finalcapreviewApproved; rootbffda47 pushednative0/exactremote,
+exactCI38338368307 active. Execute TELEGRAM_INTAKE_SELECTION_IMPLEMENTATION.md
+Task1 pureboundedkernel under prepared design/ledger; no automatic activation
+or completion claim for durable ingestion/planner targetmix. Root accepts
+actual new97Windows/allten CI independently, no repeated localfull/PG.
+
 Current NEXT_STEP2026-10-13: Hype653e113 scoped reviews Approved/no findings;
 combinedfull3496PASS56explicitSKIP/native0, actual ownedWindowsDockerPG4PASS/
 0SKIP/native0/publicretained and packaged image8851bc041620 migratedSQLite/

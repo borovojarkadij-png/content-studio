@@ -27,6 +27,14 @@ channel-sync/full-stack restart logs PASS/no livecalls, no completeCI claim.
 Continue independently with AUTOMATION_SELECTION_GAP_ANALYSIS_20261013.md
 after cap source gate; no selection design/plan/source dispatched yet.
 
+Latest continuation: finalcapreview Approved/speccompliant/no findings;
+rootcheckpointbffda47235cbbda484485b26117f4ee72d7813f0 pushednative0/exactremote
+ownerborovojarkadij-png verified. NewexactCI38338368307 active; its Windows97
+artifact pending, old83 generation not borrowed. Telegram intake kernel design/
+singleTaskplan/preflightledger prepared, no caller activation. NEXT solewriter
+Task1 in TELEGRAM_INTAKE_SELECTION_IMPLEMENTATION.md then scopedreview/package/
+finalreview/exactCI; durable ranked ingress/targetmix remain unfinished.
+
 NEXT_STEP: Hype source653e11331b23d5e14a047530014baccb1a772900 Task1/Task2
 scoped reviews speccompliant/qualityApproved/no findings. Root actual Windows
 owned Docker PostgreSQL4PASS/0SKIP/5.09s/native0,2058retained+4fresh=2062
