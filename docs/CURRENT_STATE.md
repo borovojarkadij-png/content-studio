@@ -16,6 +16,17 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
 
 ## Active recovery checkpoint — 2026-10-13
 
+NEXT_STEP (supersedes chronological entries below): backupcap source21d24d3
+scopedreview speccompliant/qualityApproved/no findings; original unchanged
+rootresourceprobe now PASS/native0/peak1048576/rejectedtrue/sourceunchanged.
+Actual Windows97PASS0SKIP/static0 retained; final increment review
+/root/backup_cap_final_review DONE speccompliant/Approved/no findings. Finish docscheckpoint,
+fresh guarded push and exact-generation Windows97/all-ten CI acceptance.
+SamplingCI38337278244 at2051990 now6of10SUCCESS/4running; newly downloaded
+channel-sync/full-stack restart logs PASS/no livecalls, no completeCI claim.
+Continue independently with AUTOMATION_SELECTION_GAP_ANALYSIS_20261013.md
+after cap source gate; no selection design/plan/source dispatched yet.
+
 NEXT_STEP: Hype source653e11331b23d5e14a047530014baccb1a772900 Task1/Task2
 scoped reviews speccompliant/qualityApproved/no findings. Root actual Windows
 owned Docker PostgreSQL4PASS/0SKIP/5.09s/native0,2058retained+4fresh=2062
@@ -65,11 +76,23 @@ All324sourcehashes rootmatched. Fresh finalcross-task integration review
 DONE speccompliant/qualityApproved/noCritical/Important/Minor, complete4796line/
 f0ff933..fa3564d package251082bytes; receipts324hashes and namedproviderboundary
 independently checked, verbatim final-integration-review.md. NEXT rootcheckpoint/
-guardedpush/exactCI, then bounded backupcap correction while exact CI runs.
-Root owns docs/evidence;
+guardedpush completed205199010669d1c2850e34cc8a0fb41cb67ac94d/native0/clean
+tree/exactremoteverified asborovojarkadij-png. ExactsamplingCI38337278244 at
+2051990 in_progress/all10started, no completion claim. NEXT root acceptance of
+actual ten logs/artifacts at exacthead, no source-generation substitution.
+Next independent backupcap writerDONE21d24d3fb39b40654c5f78cef80e4df600bfcbcd,
+exactcommonhelper/Windowscontracttest+163linereport; causalREDcapacity2MiB,
+14focusedPASS andONE97WindowscontractsPASS0SKIP44.35s/native0/static/parsers0.
+RootreadreportEOF/matched2hashes/JUnit97/0FAIL/0ERROR/0SKIP. Fresh scoped
+/root/backup_output_cap_review,gpt-6.1-sol/high/forknone/nohelpers active,
+complete2051990..21d24d3 package21216bytes. NEXT source review then rootoriginal
+resourceprobe/finalreview/newexactCI. Root owns docs/evidence; no sourcewriter
+or rootcommit during review/hashfencedgate. SamplingCI actual4jobsSUCCESS,
+6running at lastboundedsnapshot; actual83-caseWindowsartifact checked, cannot
+qualify this newer97-casecap correction.
 no repeatPG/full or operational activation. Backup output allocation-cap causal
-RED confirmed2MiBcapacity versus1MiBbound/no native/Docker IO; narrow nextplan
-prepared in BACKUP_OUTPUT_CAP_IMPLEMENTATION.md, no source dispatched yet.
+RED confirmed2MiBcapacity versus1MiBbound/no native/Docker IO; narrow plan
+BACKUP_OUTPUT_CAP_IMPLEMENTATION.md now executes; no actualbackup/restore.
 Root package controller+separate-process synthetic smoke and guarded
 push helpers prepared only; no sampling runtime/build/push claim from preparation.
 no duplicate Task1/fullgate, actualPG after runnerreview. Root tracks exact

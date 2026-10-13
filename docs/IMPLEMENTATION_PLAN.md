@@ -5,6 +5,13 @@ YouTube analysis/distribution/upload is excluded from the deliverable and all
 remaining-work/progress estimates. This overrides historical master-spec
 YouTube sections without changing the approved Telegram architecture or gates.
 
+Latest NEXT_STEP: capsource21d24d3 scopedreviewApproved/no findings, root
+originalresourceprobe PASS/native0/bounded1048576. Windows97PASS0SKIP/static0.
+Finalincrementreview Approved/speccompliant/no findings; rootcheckpoint/guardedpush, exactnewCI next.
+SamplingCI2051990/38337278244 sixSUCCESS/fourrunning; do not relabel its83-case
+Windowsartifact as new97 acceptance. Continue Telegram selection discovery
+after source gate; no UI/operational activation/live qualification.
+
 Current NEXT_STEP2026-10-13: Hype653e113 scoped reviews Approved/no findings;
 combinedfull3496PASS56explicitSKIP/native0, actual ownedWindowsDockerPG4PASS/
 0SKIP/native0/publicretained and packaged image8851bc041620 migratedSQLite/
@@ -27,9 +34,12 @@ immutablepackage42365d... build0/smoke0/networknone/readonly/noVolumes/noSecrets
 unfinishedlease→expiredrecovery→idempotentreopen/publictestcipher/config/REJECT
 preserved/FakeRPC0,1,0/rewrite0. Finalcross-taskreview DONE speccompliant/
 qualityApproved/no findings/complete251082bytepackage+actualreceipts. NEXT
-rootcheckpoint/push/exactCI. No repeatPG/full/runtime suite. Next independent confirmed correction is
-BACKUP_OUTPUT_CAP_IMPLEMENTATION.md (actual-helper causalRED2MiBvs1MiB),
-prepared only/no source writer yet. No PHASE/live/model claim or UI/real-data change.
+rootcheckpoint2051990 guardedpushnative0/clean/exactremote ownerverified;
+exactCI38337278244 running, actual alltenlogs/artifacts acceptance follows.
+No repeatPG/full/runtime suite. Next independent confirmed correction
+BACKUP_OUTPUT_CAP_IMPLEMENTATION.md (actual-helper causalRED2MiBvs1MiB)
+executes solewriter /root/backup_output_cap atBASE2051990, exacttwofiles+report;
+root owns docs/CI, no source concurrency or PHASE/live/model/UI/real-data change.
 
 Retained preceding checkpoint (superseded): engagement8308f15+344a28a independent task reviews
 Approved/no findings; actual owned Windows Docker PostgreSQL26PASS/0SKIP/native0

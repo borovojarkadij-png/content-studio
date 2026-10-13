@@ -33,6 +33,33 @@ HYBRID (default HYBRID), observable sampling decisions and preference for the
 best30 of100 suitable posts at intake30%. Existing daily slots/limits and
 immediate/delayed mapping eligibility are not evidence of those ranking modes.
 
+Confirmed against the actual original attachment, sections8/9/104: intake is
+the proportion of suitable donor messages admitted further; target mix is the
+desired donor share within an output, not a second intake filter. Section104
+requires observable persisted sampling decisions, modes RANDOM/TOP_SCORE/HYBRID
+and defaultHYBRID. Section39 makes daily maximum a hard limit and minimum only
+a soft target: unsuitable material must not be used to fill a quota. These are
+the retained requirements, not new behavior invented from a stored field name.
+
+Further concrete integration evidence: publication_planning._lock_planning_batch
+already freezes at most1000candidate hints and locks reservations→rewritejobs→
+editorialdecisions→drafts before downstream policy checks. A ranking consumer
+must not acquire a new upstream lock after these downstream locks. Calling the
+current HypeService.inspect separately for every candidate could multiply up to
+1000×2001baseline rows; a future consumer needs a total bounded evidence budget,
+not an assertion that each individual inspect is bounded. Current default Hype
+weights assign50of100 to freshness+three velocities, minimumcoverage0.5; missing
+velocity evidence can therefore honestly keep the score unknown. Unknown is
+not a zero score or automatic permission to fill daily minimums.
+
+The existing DurableIngestionWorkflow reserves a mapping fingerprint and may
+create editorial/rewrite work in the same transaction. Its existing-source
+fan-out path returns duplicate when no decision exists. A pre-AI ranking hold
+must therefore be integrated for both initial and fan-out sources, retain the
+exact owned fingerprint, and add current-selection checks to diagnostic/admission
+and rewrite boundaries. A post-rewrite planner-only change does not satisfy
+the original intake cost-saving/best-percentage requirement.
+
 ## Constraints on the next implementation
 
 - Preserve the current core and accepted UI; add a bounded seam, not a new app.

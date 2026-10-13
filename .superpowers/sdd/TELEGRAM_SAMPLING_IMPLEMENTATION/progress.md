@@ -1,5 +1,11 @@
 # SDD ledger — plan: docs/TELEGRAM_SAMPLING_IMPLEMENTATION.md
 
+Rootcheckpoint205199010669d1c2850e34cc8a0fb41cb67ac94d committed13owned docs/
+review/nextplanpaths/native0/clean; guardedpushnative0 exactremote ownerverified.
+ExactsamplingCI38337278244/2051990 in_progress/alltenstarted, actuallogs/artifacts
+pending. No repeatoldCI/full/PG/runtime. Next independent backupcap solewriter
+active under ownplan/ledger; cannot borrow sampling CI as its source acceptance.
+
 Final cross-task /root/telegram_sampling_integration_review,gpt-6-astra/high/
 forknone/nohelpers DONE speccompliant/qualityApproved/noCritical/Important/Minor;
 complete4796line/251082bytef0ff933..fa3564d package, all ownreports/reviews,
