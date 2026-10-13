@@ -100,7 +100,8 @@ function Get-BackupSha256([IO.Stream]$Archive) {
 }
 
 function Get-BackupNativeText([string[]]$Arguments, [int]$TimeoutSeconds) {
-    $buffer = [IO.MemoryStream]::new()
+    $buffer = [IO.MemoryStream]::new([byte[]]::new(1048576), 0, 1048576, $true, $true)
+    $buffer.SetLength(0)
     try {
         Invoke-BackupNative $Arguments $TimeoutSeconds -OutputStream $buffer
         if ($buffer.Length -gt 1048576) { throw 'output size' }

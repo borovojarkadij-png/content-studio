@@ -41,6 +41,21 @@ class FakeDocker {
         foreach(var a in args) if(a=="inspect" || a=="pg_dump" || a=="pg_restore" ||
             a=="createdb" || a=="psql") { command=a; break; }
         if(command=="pg_restore" && Array.IndexOf(args,"--list")>=0) command="list";
+        if(cfg.ContainsKey("oversized") && (string)cfg["oversized"]==command) {
+            File.WriteAllText(Path.Combine(dir,"oversized.pid"),
+                System.Diagnostics.Process.GetCurrentProcess().Id.ToString());
+            Console.Error.Write("PRIVATE_DIAGNOSTIC_NEVER_PRINT");
+            var block=Encoding.UTF8.GetBytes(new string('x',4096));
+            byte[] marker=Encoding.UTF8.GetBytes("PRIVATE_DIAGNOSTIC_NEVER_PRINT");
+            Array.Copy(marker,block,marker.Length);
+            var output=Console.OpenStandardOutput();
+            int writes=cfg.ContainsKey("blocked_output") && (bool)cfg["blocked_output"] ? 4096 : 257;
+            File.WriteAllText(Path.Combine(dir,"oversized.started"),writes.ToString());
+            for(int n=0;n<writes;n++) output.Write(block,0,block.Length);
+            File.WriteAllText(Path.Combine(dir,"oversized.completed"),"done");
+            File.AppendAllText(Path.Combine(dir,"receipts.jsonl"),command+" exit=0\n");
+            return 0;
+        }
         if(cfg.ContainsKey("early") && (string)cfg["early"]==command) {
             int prefix=Console.OpenStandardInput().ReadByte();
             File.WriteAllBytes(Path.Combine(dir,command+".prefix"),new byte[]{(byte)prefix});
@@ -209,6 +224,153 @@ def fake(tmp_path, native_docker):
 def trace(tmp_path):
     path = tmp_path / "trace.jsonl"
     return [json.loads(line) for line in path.read_text().splitlines()] if path.exists() else []
+
+
+@pytest.mark.parametrize(
+    "case,expected,rejected",
+    [
+        ("empty", "", False),
+        ("ascii", "A" * 1048576, False),
+        ("multibyte", "é" * 524288, False),
+        ("overflow_one", None, True),
+        ("overflow_chunks", None, True),
+        ("invalid_utf8", None, True),
+    ],
+    ids=[
+        "empty",
+        "ascii_limit",
+        "multibyte_limit",
+        "overflow_one",
+        "overflow_chunks",
+        "invalid_utf8",
+    ],
+)
+def test_native_text_destination_capacity_and_strict_utf8(tmp_path, case, expected, rejected):
+    # Reverting to an expandable destination must fail even when the final size guard rejects.
+    helper = str(ROOT / "scripts" / "postgres-backup-common.ps1").replace("'", "''")
+    code = (
+        f". '{helper}'\n$case = '{case}'\n"
+        + r"""
+$ErrorActionPreference = 'Stop'
+$script:peakCapacity = 0
+$script:initialLength = -1
+$script:writes = 0
+function Invoke-BackupNative([string[]]$Arguments, [int]$TimeoutSeconds,
+    [IO.Stream]$OutputStream) {
+    $script:initialLength = $OutputStream.Length
+    $script:peakCapacity = $OutputStream.Capacity
+    $block = [Text.Encoding]::UTF8.GetBytes(('A' * 4096))
+    $count = 256
+    switch ($case) {
+        'empty' { $count = 0 }
+        'multibyte' { $block = [Text.Encoding]::UTF8.GetBytes(([string][char]0xE9 * 2048)) }
+        'overflow_chunks' { $count = 257 }
+        'invalid_utf8' { $count = 1; $block = [byte[]]@(0xC3, 0x28) }
+    }
+    if ($case -like 'overflow*') {
+        $marker = [Text.Encoding]::UTF8.GetBytes('PRIVATE_DIAGNOSTIC_NEVER_PRINT')
+        [Array]::Copy($marker, $block, $marker.Length)
+    }
+    try {
+        for ($n = 0; $n -lt $count; $n++) {
+            try { $OutputStream.Write($block, 0, $block.Length); $script:writes++ }
+            finally { $script:peakCapacity = [Math]::Max($script:peakCapacity, $OutputStream.Capacity) }
+        }
+        if ($case -eq 'overflow_one') {
+            try { $OutputStream.WriteByte(65); $script:writes++ }
+            finally { $script:peakCapacity = [Math]::Max($script:peakCapacity, $OutputStream.Capacity) }
+        }
+    } finally { $script:peakCapacity = [Math]::Max($script:peakCapacity, $OutputStream.Capacity) }
+}
+$rejected = $false
+$errorText = ''
+$text = $null
+try { $text = Get-BackupNativeText @('synthetic') 1 }
+catch { $rejected = $true; $errorText = $_.Exception.Message }
+$digest = $null
+if (-not $rejected) {
+    $bytes = [Text.Encoding]::UTF8.GetBytes([string]$text)
+    $digest = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($bytes)).ToLowerInvariant()
+}
+@{ rejected=$rejected; peakCapacity=$script:peakCapacity; initialLength=$script:initialLength;
+   writes=$script:writes; digest=$digest; error=$errorText } | ConvertTo-Json -Compress
+"""
+    )
+    result = subprocess.run(
+        ["pwsh", "-NoProfile", "-NonInteractive", "-Command", code],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=10,
+        check=False,
+    )
+    (tmp_path / "helper-status.json").write_text(
+        json.dumps({"exit": result.returncode, "stdout": result.stdout, "stderr": result.stderr}),
+        encoding="utf-8",
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert result.stderr == ""
+    assert PRIVATE not in result.stdout + result.stderr
+    observed = json.loads(result.stdout)
+    assert observed["rejected"] is rejected, observed
+    assert observed["initialLength"] == 0, observed
+    assert observed["peakCapacity"] <= 1048576, observed
+    if rejected:
+        assert observed["digest"] is None
+        assert observed["error"]
+    else:
+        assert observed["digest"] == hashlib.sha256(expected.encode("utf-8")).hexdigest()
+        assert observed["error"] == ""
+
+
+@pytest.mark.parametrize("operation", ["backup", "restore"])
+@pytest.mark.parametrize("command", ["inspect", "psql"])
+@pytest.mark.parametrize("blocked", [False, True], ids=["overflow", "blocked_writer"])
+def test_oversized_native_text_refuses_before_database_changes(
+    tmp_path, fake, operation, command, blocked
+):
+    cfg, run = fake
+    cfg.update(oversized=command, blocked_output=blocked)
+    source = bundle(tmp_path) if operation == "restore" else None
+    before = {p.name: p.read_bytes() for p in source.iterdir()} if source else None
+    with subprocess.Popen(["pwsh", "-NoProfile", "-Command", "Start-Sleep -Seconds 20"]) as other:
+        start = time.monotonic()
+        result = (
+            backup(run, tmp_path / "new", TimeoutSeconds=1)
+            if operation == "backup"
+            else restore(run, source, TimeoutSeconds=1)
+        )
+        assert time.monotonic() - start < 8
+        assert result.returncode == 1
+        assert result.stderr.startswith(operation.upper() + "_FAILED:")
+        assert other.poll() is None
+        other.terminate()
+    pid = int((tmp_path / "oversized.pid").read_text())
+    check = subprocess.run(
+        [
+            "pwsh",
+            "-NoProfile",
+            "-Command",
+            f"if (Get-Process -Id {pid} -ErrorAction SilentlyContinue) {{ exit 1 }}",
+        ],
+        capture_output=True,
+        timeout=10,
+        check=False,
+    )
+    assert check.returncode == 0
+    assert (tmp_path / "oversized.started").read_text() == ("4096" if blocked else "257")
+    if blocked:
+        assert not (tmp_path / "oversized.completed").exists()
+    calls = trace(tmp_path)
+    assert calls[0] == ["inspect", CONTAINER]
+    assert len(calls) == (1 if command == "inspect" else 2)
+    if command == "psql":
+        assert calls[1][-2:] == ["--command", "SHOW server_version;"]
+    assert not any(arg in {"pg_dump", "createdb", "pg_restore"} for call in calls for arg in call)
+    assert not (tmp_path / "new").exists()
+    assert_no_creation(tmp_path)
+    if source:
+        assert {p.name: p.read_bytes() for p in source.iterdir()} == before
 
 
 def backup(run, destination, **overrides):
