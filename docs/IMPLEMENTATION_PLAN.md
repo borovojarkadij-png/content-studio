@@ -5,16 +5,22 @@ YouTube analysis/distribution/upload is excluded from the deliverable and all
 remaining-work/progress estimates. This overrides historical master-spec
 YouTube sections without changing the approved Telegram architecture or gates.
 
-Current NEXT_STEP2026-10-13: Windows hosted-contract Task2 source81920ab/report
-65c85d2 independently speccompliant/qualityApproved/no findings; root actual
-83caseJUnit/0SKIP/native receipts/frozenhashes checked. Root evidence commit/
-authorized exact-head push/hosted CI, then independent TelegramLogin Task1
-under TELEGRAM_LOGIN_IMPLEMENTATION.md while exact CI runs. No live login yet.
+Current NEXT_STEP2026-10-13: TelegramLogin Task1bb30b96 independently
+speccompliant/qualityApproved/no findings,100focused/160covering/native0;
+Task2f30fb73 speccompliant/qualityApproved/one deferred test-only Minor;
+153focused/full3186/26PG-onlySKIP/staticnative0. Root actual11PG/0SKIP/0warnings
+and immutable-image141inputs/four private network-none CLIcases native0 PASS.
+See TELEGRAM_LOGIN_VERIFICATION_20261013.md. NEXTdocs/authorizedpush/exactCI/
+final review; live human login/restart/rights pending. Backup exactd7c580a CI38323820316: Windows83/0SKIP
+hosted artifact verified; PostgreSQL831/3explicitSKIP+5, frontend334/33+1+3,
+full-stack/all recovery logs checked. Exactworkflow COMPLETED SUCCESS/all10;
+backend2950/98SKIP/new24casebenchmark checked. Task2 login source is newer and
+requires its own actualPG/package/source CI gate, not inherited success.
 Guarded backup Task1 independently accepted after early archive-list closure fix;
 83actual Windows contracts PASS/noSKIP, actual Docker4.4MiB archive/newDBcopy/
 exact SQL/ciphertext+originalkey/drift/sourceunchanged/native0 PASS. Separate
 media/key/full-app restore and operational cutover remain unverified. Prepared
-Telegram first-login spec follows after this gate; no implementation/live login yet.
+Telegram first-login adapter/service reviewed; interactiveCLI/runtime/live pending.
 Settings UI1/UI2 and optional operator Compose64ce1e9 independently accepted.
 Actual Windows packaged default503/optional401+200/create+update/audit/private
 CAS/noop/REJECT0jobs/APIrestart/down-up/normal PGrecovery PASS, stable original

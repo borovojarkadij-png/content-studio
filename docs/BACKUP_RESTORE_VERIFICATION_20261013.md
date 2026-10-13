@@ -92,9 +92,11 @@ authenticity or permission to restore untrusted SQL.
 
 ## Remaining gates
 
-New independent Windows hosted native-contract job and exact-head GitHub Actions
-acceptance follow source review. Previous cf38929 CI all-nine PASS does not cover
-these scripts. Separate media/keys/full-app backup and operational cutover need
+New independent Windows hosted native-contract job passed83/0SKIP59.56s with
+actual downloaded JUnit/native receipts on d7c580a; whole exact workflow now
+completedSUCCESS/all10SUCCESS with actual logs/new artifacts independently
+checked in BACKUP_RESTORE_CI_20261013.md. Previous cf38929 all-nine PASS does
+not cover these scripts. Separate media/keys/full-app backup and operational cutover need
 their own explicit procedure and proof. Real Telegram login/session restart,
 test-output authorization and actual model benchmark/qualification remain
 external gates. No synthetic result grants real autoapproval. PHASE1 remains

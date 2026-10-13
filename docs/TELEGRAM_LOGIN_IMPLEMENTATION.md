@@ -53,7 +53,7 @@ and async provision(request, *, phone, read_code, read_password)->int accountID.
 Task2 CLI consumes these exact public names/signatures. Do not expose session
 material through a CLI result or persist serialized requests.
 
-- [ ] Read spec, TelegramAccount/OutboxEventModel, SessionCipher, existing shared
+- [x] Read spec, TelegramAccount/OutboxEventModel, SessionCipher, existing shared
   load_telegram_credentials/_validate_credentials and read-only provider.
   Write a successful encrypted-row/reopen/audit test before implementation:
   ```python
@@ -72,7 +72,7 @@ material through a CLI result or persist serialized requests.
   Use actual service/DB/cipher, fake only RPC. Run and retain meaningful RED,
   not a collection/import-only error. A minimal interface scaffold raising
   TelegramLoginError permits a causal missing durable behavior assertion.
-- [ ] Implement adapter: credential validation without discovery; fresh
+- [x] Implement adapter: credential validation without discovery; fresh
   in-memory StringSession, request_retries=0/connection_retries=0,
   auto_reconnect=False/flood_sleep_threshold=0/receive_updates=False,
   private quiet non-propagating logger. No start()/QR/bot/login loop.
@@ -86,13 +86,13 @@ material through a CLI result or persist serialized requests.
   Fixed private TelegramLoginError for malformed/RPC/FloodWait/timeout; no
   underlying exception chain leaks through public errors. EOF/KeyboardInterrupt/
   CancelledError do not save anything or repeat remote actions.
-- [ ] Implement preflight before RPC: trimmed accountname1–100/no control or
+- [x] Implement preflight before RPC: trimmed accountname1–100/no control or
   format characters; actor/expected IDs positive signed64/nonbool. Load existing
   master key and initialize SessionCipher without generating anything. Capture
   stable key fingerprint, metadata id/name/user/empty-session/health/cooldown
   in request, close transaction. Reject existing nonempty session, nonDISCONNECTED,
   any cooldown, expected identity mismatch before client construction/RPC.
-- [ ] Provision validates request and phone, calls adapter once, validates
+- [x] Provision validates request and phone, calls adapter once, validates
   returned identity/session again at persistence boundary. Recheck same master
   key fingerprint after RPC; encrypt only with matching supplied key. In one
   transaction, verify different-name user-ID conflict, create-only new account
@@ -104,7 +104,7 @@ material through a CLI result or persist serialized requests.
   idempotency_key telegram-session-provision:{fresh_uuid_hex}. Commit atomically.
   Any encryption/SQL/audit/commit failure rolls back DB; remote sign-in is not
   reversible and never triggers automatic logout/revoke.
-- [ ] Extend real-service regressions for one-code/2FA, credential/client config,
+- [x] Extend real-service regressions for one-code/2FA, credential/client config,
   malformed phone/code/password/session/user/bot, mismatched expected/userphone,
   invalid/expired code/FloodWait, every RPC timeout, disconnect failure/timeout,
   abort, key-change, existing provisioned before0RPC, compatible metadata fill,
@@ -114,10 +114,10 @@ material through a CLI result or persist serialized requests.
   publication/usage rows absent; no real AI/send calls permitted by fake.
   Prove reopen through real ConfiguredTelegramProvider/fake authorized RPC,
   not just a standalone cipher check. Don't weaken existing provider invariants.
-- [ ] Run focused new file, covering provider/session/health/configuration
+- [x] Run focused new file, covering provider/session/health/configuration
   regressions once, Ruff0.17 check/format/compile/diff. Full backend is deferred
   until Task2's combined deliverable, not duplicated after every edit.
-- [ ] Freeze exact owned hashes; complete report with commands/RED/GREEN/
+- [x] Freeze exact owned hashes; complete report with commands/RED/GREEN/
   native statuses/limitations/self-review; commit only owned source/tests/report.
   Root fresh spec+quality review/fixloop before Task2; no push/live call.
 
@@ -128,18 +128,22 @@ material through a CLI result or persist serialized requests.
 - Create backend/tests/test_telegram_login_cli.py.
 - Create backend/tests/test_telegram_login_postgres.py.
 - Create docs/TELEGRAM_LOGIN.md.
+- Modify .github/workflows/ci.yml, append the new PG test file to the existing
+  unattended-postgres migrated test command only.
 - Own task-2-report.md in this plan's SDD workspace.
 
 **Interfaces:** Consumes reviewed Task1 interfaces exactly; no Task1 source edits
 without controller routing. python -m newsflow.telegram_login exposes main(argv=None)
 and CLI module guard. Existing PostgreSQL isolation helper
 backend/tests/unattended_postgres.py creates fresh UUID schemas for explicit
-synthetic NEWSFLOW_TEST_POSTGRES_URL only. Root owns actual Docker/image/PG gate.
+synthetic NEWSFLOW_UNATTENDED_POSTGRES_URL only. Root owns actual Docker/image/PG gate.
 
 - [ ] TDD actual CLI entrypoint/private IO. Default/help/malformed invocation
   touches no DB/keyfile/client/network. Default prints LOGIN_DISABLED/exit2;
   help exit0. Enabled requires --enable-login, --account-name, --actor-id,
   optional --expected-user-id, no phone/code/password/session arguments.
+  Parser errors must emit only the fixed failure status, never echo supplied
+  argv/invalid values; even a forbidden secret-bearing argument stays private.
   Refuse nonTTY stdin/stderr before any configured runtime construction.
   Use getpass only; never fall back to echoed input if masking unavailable.
   On success print LOGIN_SAVED account_id=<internalID> only; failure fixed
@@ -159,6 +163,7 @@ synthetic NEWSFLOW_TEST_POSTGRES_URL only. Root owns actual Docker/image/PG gate
   interactive TTY/getpass and network/configured test boundary. Actual subprocess
   default/help/nonTTY sentinel files remain unchanged/no network (socket guard).
   Test parse/TTy/URL/prerequisite refusal before0RPC, Unicode account name,
+  forbidden/invalid secret-bearing argv with no echoed argument values,
   one-code/2FA success fixedoutput, GetPassWarning refusal, abort and sanitized
   secret-bearing SDK/SQL/config errors, no session artifacts/log leakage.
 - [ ] Add explicit isolated migrated PostgreSQL cases using existing strict
@@ -168,6 +173,13 @@ synthetic NEWSFLOW_TEST_POSTGRES_URL only. Root owns actual Docker/image/PG gate
   No public-schema reuse/drop/reset/new fixedschema. Root runs actual PG after
   source review and reports exact new namespaces; implementer does not touch
   operational Docker/old fixtures. Source REJECT/zero-execution invariants remain.
+- [ ] Append tests/test_telegram_login_postgres.py to the existing migrated
+  unattended-postgres pytest invocation, using its existing
+  NEWSFLOW_UNATTENDED_POSTGRES_URL and strict create_postgres_namespace helper.
+  Preserve every other workflow job/step/env/command/trigger/permission and
+  timeout, including the new Windows native gate. Validate parsed YAML plus
+  scoped command delta; root exact hosted run must actually execute PG cases,
+  not accept the normal no-PG backend skips as PostgreSQL proof.
 - [ ] Operator docs give actual guarded CLI commands from backend cwd and
   Docker Compose `run --rm --no-deps --entrypoint python api -m newsflow.telegram_login`
   interactive option with approved account/actor flags and operator-provisioned

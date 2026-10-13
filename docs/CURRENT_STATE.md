@@ -21,14 +21,35 @@ independently accepted after early archive-list stdin-close fix. Actual83Windows
 contracts PASS/noSKIP/staticnative0; source reviewPASS/qualityPASS. Root actual
 Windows Docker 4,412,729-byte archive/newDBcopy/exact SQL/ciphertext decrypt with
 original external key/drift/sourceunchanged/native0 PASS. No existing DB/backup
-overwrite; see BACKUP_RESTORE_VERIFICATION_20261013.md. Task2 solewriter
-/root/windows_backup_contract_ci active BASE6b96be1: independent hosted Windows
-native-contract gate, existing nine CI executions unchanged. WriterDONE81920ab/
+overwrite; see BACKUP_RESTORE_VERIFICATION_20261013.md. BackupTask2 independent
+hosted Windows native-contract gate complete, existing nine executions unchanged.
+WriterDONE81920ab/
 report65c85d2; root actual83caseJUnit/0SKIP+82native receipts/sixhashes checked.
 Fresh /root/windows_backup_contract_ci_review speccompliant/qualityApproved/
-no findings. Next root evidence commit/authorized exact-head push/hosted CI,
-then independent TelegramLogin Task1 (prepared spec+plan, not implemented yet)
-while root tracks exact CI; no hosted success inferred before real result.
+no findings. Root d7c580a evidence pushednative0/exactremote; exactCI38323820316
+completed SUCCESS/all10SUCCESS (new Windowsjob115057791858). Root actual
+2950backend/98SKIP,PG831/3SKIP+5,334frontend/33+1+3,all recovery logs/new24case
+benchmark/Windows83artifact checked; see BACKUP_RESTORE_CI_20261013.md. Current
+TelegramLoginTask1 writerDONEbb30b96;100focused/160covering/native0/staticPASS,
+complete report/rootfrozenhashes checked. Fresh scoped independent
+/root/telegram_login_provisioning_review speccompliant/qualityApproved/no findings;
+verbatim review retained, Task1 complete. Task2 CLI/migratedPG solewriter
+/root/telegram_login_cli DONEf30fb73:153focusedPASS/11noURLPG-onlySKIP,
+Ruff0.17/format3/compile/YAML exactappend native0, full3186PASS/26PG-onlySKIP.
+Root full rawlog/six frozen hashes checked. Fresh scoped independent
+/root/telegram_login_cli_review speccompliant/qualityApproved/no blocking findings;
+one test-only machine-path Minor deferred to final whole-branch triage.
+Root actual migrated11PG PASS7.02s/0SKIP/0warnings/native0 after diagnostic SQL
+cast and JUnitfamily corrections; retained original2010+11+11=2032namespaces,
+public/source unchanged. Packaged f30fb73 imagece3d1ab8... built native0,
+141inputsunchanged/actualSDK1.45/four network-none/read-only/no-volume/private
+CLI cases PASS/native0. No live login or operational deployment inferred.
+Root tracks backup CI in BACKUP_RESTORE_CI_20261013.md;
+actual new Windowsjob SUCCESS83/0SKIP/hosted JUnit+native receipts verified,
+other completed frontend/illustration/admission/channel-sync raw logs checked.
+NEXT: root docs/authorizedpush/exactnewCI for reviewed f30fb73+evidence, then
+final cross-task/whole-branch review with retained Minors. No live login success
+inferred from local/synthetic source evidence. Do not re-dispatch completed work.
 Own docs/BACKUP_RESTORE_IMPLEMENTATION.md brief/ledger. Correctedcf38929 pushednative0/
 exactremote, actual CI38321414003 completedSUCCESS/all9SUCCESS, new raw native
 logs/artifact independently inspected in EDITORIAL_CI_ACCEPTANCE_20261013.md.

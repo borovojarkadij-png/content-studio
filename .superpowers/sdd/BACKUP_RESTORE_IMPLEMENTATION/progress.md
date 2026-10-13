@@ -121,3 +121,20 @@ Controller resolved current origin/branch and actual Windows recovery/REJECT
 cross-task items through recorded exact owned Docker gate; hosted dependency/
 exact CI remains explicitly pending. Root evidence commit and authorized push
 follow; no predecessor CI presented as current source acceptance.
+
+Task 2: complete (commits 6b96be1..65c85d2, review clean).
+Root authorized d7c580a pushnative0/exactref; exactCI38323820316 started10jobs.
+Actual Windows115057791858 SUCCESS, hosted pip/83PASS59.56s/0SKIP, downloaded
+artifact11779563916/native0/JUnit+82uniqueentrypoint+112native receipts checked.
+Uploader materialized24pytestcurrentaliases;17pairedreceipts SHAequaloriginals;
+not extra executions. Reader diagnostics corrected, source/tests/artifact intact.
+See BACKUP_RESTORE_CI_20261013.md; whole workflow still INPROGRESS, no release
+claim. Deferred Minor remains for final whole-branch triage.
+
+Exactd7c580a CI38323820316 terminalCOMPLETED SUCCESS/all10SUCCESS. Root downloaded
+every new job rawlognative0/read actual results:backend2950/98SKIP940.30s,
+PG831/3nonapplicableSKIP+5,frontend334/33+1+3,allsyntheticrecoveryfamilies0IO.
+New artifact11779958155 independently JSONasserted24matched/0mismatch/calls0/
+allpermissionsfalse/unqualified. Windows83/0SKIP artifact already accepted.
+Report BACKUP_RESTORE_CI_20261013.md updated; no older/newer source substitution,
+no rerun/disabledcheck/realprovider/operationaldata changes.
