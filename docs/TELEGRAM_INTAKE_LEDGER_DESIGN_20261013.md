@@ -21,6 +21,10 @@ not authentic source identity or current editorial/technical approval.
 
 Only two new tables, no existing business-row backfill or default activation.
 Use existing SQLAlchemy/Alembic SQLite and PostgreSQL conventions.
+Physical ledger id/stream_id/sequence/next_sequence types are BigInteger with
+Integer SQLite variant (including autoincrement-compatible SQLite primary key)
+to fulfill signed64 bounds on PostgreSQL. mapping_id retains the existing
+Integer parent FK convention, carry fields Integer. Do not alter parent IDs.
 
 `TelegramIntakeSelectionStreamModel`, table `telegram_intake_selection_streams`:
 
@@ -82,6 +86,13 @@ head before writing). Unsupported dialect fails visibly. Empty downgrade drops
 only owned tables/triggers/functions; any retained stream/window aborts downgrade
 before DDL. Forward fix is the rollback path after comparison history exists.
 Existing data and REJECT/job/usage/outbox states survive upgrade/reopen/check.
+Downgrade guarantees apply to this migration's own history, not atomicity of
+an arbitrary multi-revision chain in SQLite. Actual evidence: empty ledger
+downgrade to b8 commits successfully before a later populated sampling migration
+refuses; the existing SQLite sampling test correctly expects b8. PostgreSQL
+transactional DDL retains the initial version on later refusal; its regression
+captures the exact before/after version. No env.py change or sampling preflight
+is added to this ledger migration, and empty-ledger-only downgrade stays valid.
 
 ## Transactional repository
 

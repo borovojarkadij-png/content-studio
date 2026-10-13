@@ -3,8 +3,12 @@
 Exact rootcheckpoint `bffda47235cbbda484485b26117f4ee72d7813f0`, authorized
 branch push native0/exact remote verified. Run38338368307 is not accepted:
 Windows job115103532885 endedFAIL,97cases/96PASS/1FAIL/0SKIP67.49s.
-Eight other jobs SUCCESS and backend running at the latest retained snapshot;
-no whole workflow success claim.
+Terminal workflow FAILURE, nine other jobs SUCCESS; no whole workflow success
+claim. Backend3718PASS173explicitSKIP1725.02s/static/migration drift clear;
+log9D57BAF24D4A81FC754F59C884F6599EBD3D7AA2AB218E876D201B1B8293EDC8.
+New artifact11786885630 inspected independently:24/24matched0mismatches,
+SYNTHETIC_CONTRACT/real_model_qualified=false/provider_calls0/rewrite_calls0/
+all editorial_allows_rewritefalse; SHA318DE43F3C8C0DE9501B324A31B14C3390E6AFE6470A6913571393A0B9896E45.
 
 ## Observed failure
 
@@ -80,6 +84,14 @@ deadlines/assertions unchanged; focused15PASS/full98PASS43.96s/native0,
 JUnit98/0FAIL/0ERROR/0SKIP/static0. Fresh independent scoped re-review:
 allfindingsADDRESSED/no new breakage/specPASS/qualityPASS. Exact new hosted
 generation remains required; this does not relabel failed38338368307.
+
+New checkpoint0950b33/run38340236416 Windows job115109351546 completedSUCCESS:
+98PASS79.29s/0FAIL/0ERROR/0SKIP, newartifact11785814789 independently inspected.
+Exact readiness receipts native0/exactSHIM_READY/emptystderr before cases;
+first fixture readiness elapsed0.812s. This accepts new hosted Windows backup
+contracts. Exact new run38340236416 is now completed SUCCESS/all ten SUCCESS;
+all actual logs and its new unqualified zero-call benchmark were inspected.
+See TELEGRAM_INTAKE_SELECTION_CI_20261013.md. Historical failure stays unchanged.
 
 Correction evidence in
 D:/Codex-Recovery/content-studio-20261008/backup-output-cap-readiness-fix-20261013a/.

@@ -17,35 +17,41 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
 ## Active recovery checkpoint — 2026-10-13
 
 AUTHORITATIVE NEXT_STEP (supersedes the chronological entries below):
-Latest checkpoint0950b33cf0d664001f05f6da432e4524363a74af pushedFF/native0/
-exactremote ownerborovojarkadij-png verified. CI38340236416 started/all10running;
-inspect actualnewWindows98/alllogs/benchmark without borrowingoldgeneration.
-Durable comparison ledger design/2Taskplan/preflight now prepared:
-TELEGRAM_INTAKE_LEDGER_IMPLEMENTATION.md. NEXT commitdesign/plan/ledger then
-solewriterTask1 schema/migration, scopedreview, Task2repository. Ledger stores
-comparison evidence/carry only; no ingestion/worker/policy activation or grants.
-RootownsCI/docs and no sourceconcurrency/fullgate repetition. Dockerhealthy.
-Both reviews now complete: backup fixallfindingsADDRESSED/no newbreakage;
-kernel finalincrement Compliant/Approved/no findings. Verbatim reports saved.
-NEXT commitrootdocs/checkpoint then fresh guardedFFpush against remotebffda47,
-exactnewCI98/all10; continue durableintegration design while hosted gates run.
-Kernel source920c099 scoped review Compliant/Approved. Root actual Docker
-package at4544143e05d7c8435d934c620e960c2e746bbad2 built and smoked/native0,
-image d4862c940b11d71c5403b1267f72ec8d48dc977b12134bc2a2f6a8edec07dbcb.
-All326 committed backend inputs independently rehashed unchanged; networknone,
-readonly/no volumes/secrets; literal modes/process replay/guard reasons/carry
-PASS, provider0, durable_ingress_verified=false. Final increment review
-/root/intake_selection_final_review active/read-only, no source writer.
-Backup readiness fix4544143 changes test/report only; root actual logs/JUnit
-and frozen test/helper hashes checked: focused15/full98/0FAIL/0ERROR/0SKIP,
-static native0. /root/backup_readiness_review scoped fix review active.
-NEXT accept both reviews, save verbatim/report/ledgers, rootdocs checkpoint,
-fresh guarded FF push against remotebffda47, exact newCI98/all10 acceptance.
-Do not replay localfull/PG/resourceprobe/package. OldCI38338368307 remains
-WindowsFAIL96/1; eight otherSUCCESS/backend running at last snapshot. Retain
-failure; never substitute local98 or old83. Then implement durable ranked
-ingress from documented gap analysis under its own scoped design/test gates.
-No UI/live credentials/operational data changed. PHASE1 not complete.
+Task1 schema writer DONE at9cc1be0d5bedf654023b76a3d247a43e6d6f7d10,
+BASE8fc3c9def7d3b2f09e6b8f40c362fa0daf4e91f7; four product/test paths and
+own report only. Final219PASS27explicitPGSKIP63.40s, Ruff/format/compile/drift0;
+root read complete243line report, matched all four frozen hashes and owned
+commit. Fresh scoped reviewer /root/intake_ledger_schema_review DONE, Compliant/
+Approved/no findings, complete62592byte package; verbatim review retained.
+NEXT rootdocscheckpoint then
+Task2 transactional repository plus append-only existing PostgreSQL CI discovery.
+One source writer; root owns docs/evidence/CI/runtime, no root source fixes.
+Actual seven new schema PG cases and existing sampling exactversion assertion
+remain pending root native gate after Task2; no PG runtime claim yet.
+Ledger only persists comparison evidence/carry, no ingestion/worker/permission.
+
+Remotecheckpoint0950b33cf0d664001f05f6da432e4524363a74af pushedFF/native0/exact
+ownerverified. ExactCI38340236416 completedSUCCESS/alltenSUCCESS: actualnewWindows98
+PASS79.29s/0SKIP/JUnit98/0/0/0/newartifact11785814789/readinessreceipts checked;
+frontend334/33+1+3,guardedadmission/channelsync/illustrationPASS, backend3845/
+174explicitSKIP816.46s, PG892/3nonapplicableSKIP+5concurrency/fullstackrestartPASS.
+Both synthetic provider-mode persistence logs and newartifact11787285750
+24/24matched/unqualified/0provider/0rewrite checked. Alltenactual logs inspected;
+TELEGRAM_INTAKE_SELECTION_CI_20261013.md records hashes. No repeat CI acceptance.
+OldcapCI
+38338368307 terminalFAILWindows96/1; othernineSUCCESS, backend3718/173SKIP/
+24matchedunqualified0callartifact checked. Historicalfailure stays visible.
+Kernel920c099 scoped+finalCompliant/Approved/no findings; actualDockerpackage
+4544143 image d4862c940b11d71c5403b1267f72ec8d48dc977b12134bc2a2f6a8edec07dbcb
+build0/smoke0/all326inputs independentmatched/networknone/readonly/noVolumes/
+secrets, literal3modes/processreplay/guardreasons/carry PASS/provider0.
+Backupfix4544143 scopedreviewallfindingsADDRESSED/no newbreakage; local15/98/
+static0 then actualnewhosted98accepted above. No repeatlocalfull/PG/resource/
+package. Dockerengine29.8Linuxhealthy; C9.59GiB/D138.39GiB, Dtemp/evidence.
+No UI/live credentials/operational data changed; PHASE1 incomplete. Durable
+initialingress/fanout/currentpolicy/source/dedup fences/targetmix still pending.
+
+## Historical checkpoints — superseded by authoritative NEXT_STEP above
 
 LATEST: sampling exactCI38337278244 at2051990 completedSUCCESS/all10SUCCESS,
 allactual logs/new24caseunqualified0callartifact inspected; backend3718/159SKIP,

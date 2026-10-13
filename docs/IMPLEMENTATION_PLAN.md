@@ -6,6 +6,14 @@ remaining-work/progress estimates. This overrides historical master-spec
 YouTube sections without changing the approved Telegram architecture or gates.
 
 AUTHORITATIVE NEXT_STEP2026-10-13: pure intake kernel920c099 scoped Approved;
+Exact0950b33 CI38340236416 completedSUCCESS/alltenSUCCESS; actualtenlogs/new
+Windows98artifact/new24caseunqualifiedzero-callbenchmark accepted in
+TELEGRAM_INTAKE_SELECTION_CI_20261013.md. Task1ledger schema9cc1be0 DONE,
+219PASS27explicitPGSKIP/static0/allfourhashes rootmatched, scopedreviewApproved/
+speccompliant/no findings. NEXT Task2 repository under ledger plan. Seven new
+schema PostgreSQL cases plus existing sampling before/after version proof
+await root actual gate after Task2; no source/UI/operational activation.
+The following earlier progress text is historical, superseded by this block.
 Checkpoint0950b33 pushedFF/native0/exactownerremote verified; newCI38340236416
 running/all10, rootactualnewWindows98/alllogs/artifact acceptance pending.
 Execute TELEGRAM_INTAKE_LEDGER_IMPLEMENTATION.md next: two retainedtables/

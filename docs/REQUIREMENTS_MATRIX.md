@@ -1,5 +1,17 @@
 # Requirements matrix
 
+Current2026-10-13: pure kernel920c099127new/300coveringPASS/scoped+finalApproved,
+actualinstalledDocker4544143/networknone/readonly326inputsunchanged/PASS;
+checkpoint0950b33 pushedFF/exactownerremoteverified, newCI38340236416 actual
+Windows98/0SKIP+frontend334/33+1+3 and alltenjobsSUCCESS. Actualbackend3845/
+174explicitSKIP, PG892/3nonapplicableSKIP+5 and allrecovery/new24caseunqualified
+0callbenchmark inspected; TELEGRAM_INTAKE_SELECTION_CI_20261013.md.
+Historicalcap38338368307 terminalWindows96/1FAIL retained; nineotherSUCCESS.
+Ledger schema9cc1be0 local219PASS27explicitPGSKIP/static0, scopedreviewApproved;
+repository/source/runtime gates still pending, no currentcalleractivation.
+Neither pure comparison nor persistedselection itself grants rewrite/publication
+authority. No durable ranked intake/targetmix/live/model/PHASE completion claim.
+
 Latest exact-generation acceptance2026-10-13: sampling finalintegration review
 Approved/no findings and CI38337278244 at2051990 all10SUCCESS, actualtenlogs/
 24matchedunqualified0callartifact checked. Backend3718/159explicitSKIP,
