@@ -86,7 +86,11 @@ def test_additive_upgrade_and_empty_roundtrip_preserve_all_old_data_without_drif
     config, engine = prepare(migrated)
     before, before_history = sentinels(engine), history(engine)
     command.upgrade(config, HEAD)
+    # Autogenerate compares current metadata, while HEAD remains the historical
+    # migration boundary whose additive/empty roundtrip this test protects.
+    command.upgrade(config, "head")
     command.check(config)
+    command.downgrade(config, HEAD)
     assert sentinels(engine) == before
     assert history(engine) == before_history
     with engine.connect() as connection:
@@ -97,6 +101,7 @@ def test_additive_upgrade_and_empty_roundtrip_preserve_all_old_data_without_drif
     command.downgrade(config, PARENT)
     assert history(engine) == before_history
     command.upgrade(config, HEAD)
+    command.upgrade(config, "head")
     command.check(config)
     assert history(engine) == before_history
 

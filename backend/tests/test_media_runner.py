@@ -145,20 +145,26 @@ def test_media_asset_registration_rolls_back_when_completion_loses_lease(semanti
 
 def test_media_migration_refuses_durable_history_loss(semantic_store, tmp_path, monkeypatch):
     import pytest
+    from sqlalchemy import text
 
     from alembic import command
     from newsflow.migrate import runtime_migration_config
+    from newsflow.persistence.models import MediaAcquisitionJobModel
 
     setup(semantic_store)
     runner = execution(semantic_store, tmp_path, Images())
     runner.enqueue_pending(now=NOW)
     monkeypatch.setenv("DATABASE_URL", str(semantic_store.kw["bind"].url))
     config = runtime_migration_config()
-    # The isolated fixture uses metadata.create_all. Stamp only this test store;
-    # separate migration tests/gates exercise real upgrade/drift on empty stores.
-    command.stamp(config, "head")
+    # create_all does not install later migration triggers. Stamp only the exact
+    # media migration under test; real upgrade/drift gates cover current storage.
+    command.stamp(config, "e93b0a4217d6")
     with pytest.raises(RuntimeError, match="Refusing"):
         command.downgrade(config, "d82f6a190bc4")
+    with semantic_store() as session:
+        job = session.scalars(select(MediaAcquisitionJobModel)).one()
+        assert (job.id, job.state, job.attempts) == (1, "QUEUED", 0)
+        assert session.scalar(text("SELECT version_num FROM alembic_version")) == "e93b0a4217d6"
 
 
 def test_transient_image_failure_has_durable_bounded_retry(semantic_store, tmp_path):

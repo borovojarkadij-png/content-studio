@@ -573,6 +573,72 @@ class IncomingPostModel(Base):
     )
 
 
+class TelegramEngagementSourceModel(Base):
+    """First observed publication time, bound to an existing canonical source."""
+
+    __tablename__ = "telegram_engagement_sources"
+    __table_args__ = (
+        CheckConstraint(
+            "published_at >= '0001-01-01 00:00:00+00' AND published_at <= '9999-12-31 23:59:59.999999+00'",
+            name="ck_engagement_source_time",
+        ),
+        CheckConstraint(
+            "length(published_at) = 26 AND substr(published_at,20,1) = '.' "
+            "AND substr(published_at,21,6) NOT GLOB '*[^0-9]*' "
+            "AND strftime('%Y-%m-%d %H:%M:%S', substr(published_at,1,19), '+0 days') "
+            "IS substr(published_at,1,19)",
+            name="ck_engagement_source_time_sqlite",
+        ).ddl_if(dialect="sqlite"),
+    )
+
+    incoming_post_id: Mapped[int] = mapped_column(
+        ForeignKey("incoming_posts.id", ondelete="RESTRICT"), primary_key=True
+    )
+    published_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class TelegramEngagementSnapshotModel(Base):
+    """Append-only aggregate observations; unknown counts remain SQL NULL."""
+
+    __tablename__ = "telegram_engagement_snapshots"
+    __table_args__ = (
+        CheckConstraint(
+            "observed_at >= '0001-01-01 00:00:00+00' AND observed_at <= '9999-12-31 23:59:59.999999+00'",
+            name="ck_engagement_snapshot_time",
+        ),
+        CheckConstraint(
+            "length(observed_at) = 26 AND substr(observed_at,20,1) = '.' "
+            "AND substr(observed_at,21,6) NOT GLOB '*[^0-9]*' "
+            "AND strftime('%Y-%m-%d %H:%M:%S', substr(observed_at,1,19), '+0 days') "
+            "IS substr(observed_at,1,19)",
+            name="ck_engagement_snapshot_time_sqlite",
+        ).ddl_if(dialect="sqlite"),
+        *(
+            CheckConstraint(
+                f"{metric} IS NULL OR {metric} BETWEEN 0 AND 9223372036854775807",
+                name=f"ck_engagement_{metric}_signed64",
+            )
+            for metric in ("views", "forwards", "reactions")
+        ),
+        *(
+            CheckConstraint(
+                f"{metric} IS NULL OR typeof({metric}) = 'integer'",
+                name=f"ck_engagement_{metric}_type_sqlite",
+            ).ddl_if(dialect="sqlite")
+            for metric in ("views", "forwards", "reactions")
+        ),
+    )
+
+    incoming_post_id: Mapped[int] = mapped_column(
+        ForeignKey("telegram_engagement_sources.incoming_post_id", ondelete="RESTRICT"),
+        primary_key=True,
+    )
+    observed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), primary_key=True)
+    views: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    forwards: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    reactions: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+
+
 class ContentRevisionModel(Base):
     __tablename__ = "incoming_post_revisions"
     __table_args__ = (
