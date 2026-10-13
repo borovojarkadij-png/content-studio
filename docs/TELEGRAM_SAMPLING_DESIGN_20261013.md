@@ -57,6 +57,9 @@ WAIT_SYNC, WAIT_COOLDOWN, RETRY_PROVIDER, FLOOD_WAIT, SOURCE_UNAVAILABLE,
 SESSION_UNAVAILABLE, INVALID_OBSERVATION, ATTEMPTS_EXHAUSTED, INVALID_SCHEDULE.
 Expected user is nullable only outside RUNNING; token/digest are never repr/log
 fields. All dates are stored UTC; naive restoration is internal SQLite-only.
+Row-local time coherence: available_at>=created_at; RUNNING additionally requires
+lease_expires_at>available_at, using actual timestamp ordering. The exact60-second
+lease duration belongs to runner validation, not a SQL wall-clock assumption.
 
 Named state/step/attempt/lease/counter constraints, guarded immutable association
 and delete refusal follow existing dialect conventions. No old data backfill or
@@ -102,6 +105,11 @@ is strictly greater than actual_age, or7. Thus discovery at age60seconds skips
 index1 and schedules step2; step1 acquired at age61seconds skips none; step1
 acquired at age601seconds skips indices2 and3 and schedules step4. No repeated
 counting or decrement of missed_windows. Attempts reset only on advancement.
+
+Pure schedule validation: a scheduled step1..6 cannot be fulfilled before its
+own publication-age threshold; such input raises ValueError. Discovery0 has no
+minimum age. Existing missed_windows must be exact0..6, and accumulated totals
+above6 fail rather than clamp. Step7 is output-only, never an advance input.
 
 ## Claim, execution and recovery
 

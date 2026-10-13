@@ -1,5 +1,40 @@
 # SDD ledger — plan: docs/TELEGRAM_SAMPLING_IMPLEMENTATION.md
 
+Task 1: complete (commits f0ff933..200b5c9, review clean)
+Fresh scoped reviewer /root/telegram_sampling_schema_review approved spec and
+quality, no findings; verbatim task-1-review.md retained. Cross-task/runtime
+limitations resolved as later Task2 actualPG/concurrency, Task3 worker/full,
+root packaged restart/exactCI obligations, not missing Task1 source behavior.
+NEXT root checkpoint then Task2 solewriter; no duplicate Task1 tests.
+
+Task1 writerDONE200b5c9d27436320a248527d53b86173baa8ffd8 exact6pathcommit;
+root full140linereport read/reportSHA CDC446B958638120453FF7188104FEBFE2F34083B66EE430D6394B96E1C201F7,
+5frozenhashesmatch. Actual final322PASS0SKIP46.71s/native0/JUnit0FAILERROR,
+rawSHA07182D295A48B83B9A41575D4DC7681D9224F91F00948893520E51F0C771E24E,
+Ruff0.17/format5/compile0. No existing modelbehavior/fixture/oldmigration edits.
+Fresh scoped /root/telegram_sampling_schema_review,gpt-6.1-sol/high/forknone/
+nohelpers, completef0ff933..200b5c954942bytepackage. No Task2 writer until review.
+
+Task1 solewriter /root/telegram_sampling_schema,gpt-6.1-sol/high/forknone/
+nohelpers dispatched BASEf0ff9336b718cdee1b22594d77233316bf5bd712, own18line
+brief/five sourcepaths+report. Root owns dirty docs/evidence/actualPG/CI;
+source-only writer may not stage root changes. No full backend until Task3.
+Hype exactCI38332599077 runs alongside, source independence not releaseproof.
+
+Task1 Ruling: scheduled step1..6 before its own publication-age threshold raises
+ValueError, discovery0 has no minimumage; accumulated missed>6 rejects, step7
+is output-only — successful acquisition cannot fulfill a future threshold and
+overflow may not silently clamp; cost if wrong: conservative invalid-schedule
+refusal for impossible early jobs, no fabricated historical metric. Writer
+asked before implementation, root clarified spec and requested explicit test.
+
+Task1 Ruling: SQL available_at>=created_at and RUNNING lease_expires_at>
+available_at, actual timestamp ordering; exact60 duration remains runner-owned —
+enqueue sets available=created and dueclaim now>=available then lease=now+60,
+so no valid path violates these row-local constraints; cost if wrong: rejecting
+malformed new rows conservatively, no old-job backfill/data loss. Writer asked,
+root clarified spec and requested raw migrated backward-time/lease tests.
+
 Spec: docs/TELEGRAM_SAMPLING_DESIGN_20261013.md. Prepared only; no sampling
 source writer dispatched before current Hype source/runtime/integration gates.
 Architectural subproject of the already approved Telegram automated planning

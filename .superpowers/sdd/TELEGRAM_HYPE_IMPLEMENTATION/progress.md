@@ -2,15 +2,19 @@
 
 Task 2: complete (commits cd0d858..653e113, review clean).
 
-Final integration review /root/telegram_hype_integration_review complete:
+Root checkpointf0ff9336b718cdee1b22594d77233316bf5bd712 commitnative0/cleantree,
+guarded own pushhelpernative0/exactremote asborovojarkadij-png,87e→f0ff933,
+no merge/force. ExactnewCI38332599077 in_progress/all10started. Root retains
+actual logs/artifacts using inspect-ci.ps1; no predecessorPASS substitution.
 
-Root initial explicit docs+ledger add returnednative1 because SDD directory is
-ignored; no commit/push occurred. Corrected exact own ledger/review paths with
-forceadd only; no broad ignored/untracked additions or check weakening.
+Final integration review /root/telegram_hype_integration_review complete:
 speccompliant/qualityApproved/noCritical/Important/Minor, complete2252line/
 122317byte87e5189..653e113package read. Actual full/WindowsPG/package receipts
 independently inspected, no rerun/mutation. Verbatim integration-review.md.
 Remaining exactpushedgenerationCI is root obligation, not inherited predecessor.
+Root initial explicit docs+ledger add returnednative1 because SDD directory is
+ignored; no commit/push occurred. Corrected exact own ledger/review paths with
+forceadd only; no broad ignored/untracked additions or check weakening.
 Ruling: continue sampling Task1 on isolated branch while Hype exactCI runs —
 clean source/scoped/integration/actualPG/package gates support dependent source
 development, not release/operational acceptance; cost if wrong: rework sampling
@@ -21,7 +25,7 @@ namespaces, public/12inputs unchanged. Packaged build+networknone/readonly/
 noVolumes smoke native0, image8851bc041620..., Python3.12.15/SDK1.45,
 315inputs unchanged; migratedSQLite/reopen/relative2/NULL/stale/REJECT0jobs/
 0rewritecalls independently parsed. See TELEGRAM_HYPE_VERIFICATION_20261013.md.
-Final cross-task review next; exact sourceCI after reviewed rootcheckpoint/push.
+Final cross-task review complete as above; exact sourceCI pending.
 
 Root recovery actual315packagedinputhashes/receipt/smoke/native/JUnit checked,
 no gate replay. Final /root/telegram_hype_integration_review,gpt-6-astra/high/

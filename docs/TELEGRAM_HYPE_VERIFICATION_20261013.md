@@ -15,7 +15,7 @@ Network-none/read-only/no volumes/no secrets migratedSQLite close/reopen proof:
 six synthetic sources/twelve observations, relative velocity2, unknownNULL
 preserved, stale result held, immutable source/revision and REJECT preserved,
 RewriteJob0/RewriteUsage0/forbidden rewrite calls0. This does not enable a worker
- or qualify a model. Fresh final cross-task review speccompliant/qualityApproved,
+or qualify a model. Fresh final cross-task review speccompliant/qualityApproved,
 no Critical/Important/Minor; complete122317byte package and actual receipts
 checked, verbatim integration-review.md retained. Exact pushed CI remains pending.
 
