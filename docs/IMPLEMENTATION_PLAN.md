@@ -18,6 +18,13 @@ Task1 pureboundedkernel under prepared design/ledger; no automatic activation
 or completion claim for durable ingestion/planner targetmix. Root accepts
 actual new97Windows/allten CI independently, no repeated localfull/PG.
 
+Latest: selectionTask1DONE920c099,300targetedPASS/final127/static0/twohashes
+rootmatched; freshscopedreviewactive. Confirmedcapfirst-launch mechanism via
+disposable1800msRED/readinessGREEN/eightcases; apply narrow sessionfixture
+readiness correction under ownfixbrief after rootcheckpoint, no concurrent
+sourcewriter. Freezeallinputs before kernelpackage gate. ActualnewCI after
+fix/review is mandatory, failed38338368307 retained, no fake success.
+
 Current NEXT_STEP2026-10-13: Hype653e113 scoped reviews Approved/no findings;
 combinedfull3496PASS56explicitSKIP/native0, actual ownedWindowsDockerPG4PASS/
 0SKIP/native0/publicretained and packaged image8851bc041620 migratedSQLite/

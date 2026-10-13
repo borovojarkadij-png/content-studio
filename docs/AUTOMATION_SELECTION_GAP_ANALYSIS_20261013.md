@@ -60,6 +60,18 @@ exact owned fingerprint, and add current-selection checks to diagnostic/admissio
 and rewrite boundaries. A post-rewrite planner-only change does not satisfy
 the original intake cost-saving/best-percentage requirement.
 
+Additional verified seam: services/mapping_filters.mapping_filter already has
+keyword intake=False, constructing the same persisted technical policy with
+intake_percent100. candidate_technical_allowed uses it for current downstream
+suitability. Future durable ranked intake can reuse this explicit seam only
+after validating opt-in policy/owned selection; no new ad/link/media filter
+fork is needed and merely setting intake=False is not authorization.
+
+Current next bounded increment is specified in
+TELEGRAM_INTAKE_SELECTION_DESIGN_20261013.md and its singleTask plan: pure
+deterministic bounded kernel first, no caller activation or durable claim.
+This deliberately does not close the observed ingestion/planning obligations.
+
 ## Constraints on the next implementation
 
 - Preserve the current core and accepted UI; add a bounded seam, not a new app.

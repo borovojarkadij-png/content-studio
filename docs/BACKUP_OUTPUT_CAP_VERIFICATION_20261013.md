@@ -23,7 +23,7 @@ instant overflow cancellation or full-application backup coverage.
 | Fresh scoped independent review | Spec compliant; quality Approved; no Critical/Important/Minor |
 | Root original unchanged resource probe | PASS/native0; peak1,048,576; overflow rejected; source unchanged; child/Docker calls0 |
 | Final increment review | Spec compliant; quality Approved; no Critical/Important/Minor; all text callers/lifecycle/receipts inspected |
-| Exact newer GitHub Windows97 contract generation | Pending; earlier sampling generation Windows83 is not this gate |
+| Exact newer GitHub Windows97 contract generation | bffda47/run38338368307:96PASS1FAIL0SKIP67.49s; missing shim PID in overflow-inspect-backup, diagnosis in progress; earlier sampling83 is not this gate |
 
 Tests exercise empty/exact-limit ASCII/exact-limit multibyte/malformed UTF-8,
 one-byte and chunked overflow. Actual synthetic native backup/restore entrypoints
@@ -53,6 +53,14 @@ Root original probe:
 | 02-resource-cap-green.log | 49C5D18C2B905DC84004CAC886B17647AA6C30186D904E4F3F78250C3B7D6700 |
 
 ## Limits and next step
+
+Root checkpointbffda47235cbbda484485b26117f4ee72d7813f0 pushednative0/exactremote
+verified, no force/merge. New actual CI job115103532885/artifact11785736468
+retains failure: timeout1 returned generic private refusal before native trace
+or oversized.pid existed. Original sentinel stayed intact. Do not relabel local
+97PASS as hostedPASS; original writer investigates readonly while the unrelated
+selection sourcewriter is active. Diagnose causal harness startup timing, then
+minimal correction/retest/review/newexactCI; no blind rerun or disabled assertion.
 
 REJECT→rewrite_allowed=false→no new RewriteJob→rewrite calls0 is unchanged;
 this fix grants no editorial/publication authority. Accepted UI and real data

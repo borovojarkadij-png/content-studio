@@ -1,5 +1,11 @@
 # SDD ledger — plan: docs/TELEGRAM_SAMPLING_IMPLEMENTATION.md
 
+ExactCI38337278244 at2051990 completedSUCCESS/all10SUCCESS; alltenactualnative
+logs/new24caseunqualified0callartifact inspected. Backend3718PASS159explicit
+SKIP931.46s; PG892PASS3nonapplicableSKIP+5concurrency; Windows83noSKIP;
+frontend334/33+1+3/allsyntheticrecoveryPASS. TELEGRAM_SAMPLING_CI_20261013.md
+records hashes/negativeSQLlegacy40P01/runnerwarnings/limits. No repeatgates.
+
 Rootcheckpoint205199010669d1c2850e34cc8a0fb41cb67ac94d committed13owned docs/
 review/nextplanpaths/native0/clean; guardedpushnative0 exactremote ownerverified.
 ExactsamplingCI38337278244/2051990 in_progress/alltenstarted, actuallogs/artifacts

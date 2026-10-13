@@ -16,6 +16,29 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
 
 ## Active recovery checkpoint — 2026-10-13
 
+LATEST: sampling exactCI38337278244 at2051990 completedSUCCESS/all10SUCCESS,
+allactual logs/new24caseunqualified0callartifact inspected; backend3718/159SKIP,
+PG892/3nonapplicableSKIP+5,Windows83/frontend334/33+1+3/allrecoveryPASS.
+Cap bffda47 exactCI38338368307 Windows96PASS1FAIL0SKIP: missingnativePID in
+overflow-inspect-backup, artifactretained/no trace. Originalcapwriter READONLY
+diagnosis while selectionwriter owns source; no concurrentedit/no disabledgate.
+SelectionTask1 solewriter /root/intake_selection_kernel,gpt-6.1-sol/high/
+forknone/nohelpers active atBASE639bef0db2b79da2c576581f12de8b980e44a0f3;
+newpurekernel/test+ownreport, rootownsdocs/CI. NEXT writerreport/frozenhashes/
+independentreview/actualnetworknonepackage; no source/rootcommit concurrency.
+Durable selection integration/targetmix/live/model/PHASE remain unfinished.
+
+NEW EXACT NEXT: selectionwriterDONE920c099fe035cc4757c7c7bbf38d829fb26871e1,
+exactnewtwofiles+report/rootreadEOF/bothhashesmatched;300targetedPASS/final127/
+static0. Scopedreview /root/intake_selection_kernel_review active, no kernel
+edits. Root disposablecapstartup experiment readEOF: injected1800ms causalRED/
+assertedSHIM_READY exacttargetGREEN+eightoverflowGREEN, originalassertions/
+1sdeadlineunchanged. NEXT rootcheckpoint then releasecaporiginalwriter own
+test/report fixround1 under fix-1-brief.md; independentkernelreview readonly.
+Kernel packagecontroller prepared/syntaxchecked only, execution after capfix
+writerDONE/sourcefreeze. CapCI38338368307 remainsunaccepted96PASS1FAIL, five
+otherjobsSUCCESS/fourrunning. No blindrerun/no provider/data/UI change.
+
 NEXT_STEP (supersedes chronological entries below): backupcap source21d24d3
 scopedreview speccompliant/qualityApproved/no findings; original unchanged
 rootresourceprobe now PASS/native0/peak1048576/rejectedtrue/sourceunchanged.

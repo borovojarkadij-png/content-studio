@@ -8,9 +8,9 @@ with the existing authorized owner's credential, process-scoped and restored;
 native0, clean tree, exact remote verified, no force/merge/PR. Source increment
 ends at reviewed `fa3564d987f2a9e6414a98b8a0d4cecb24574422`.
 
-Exact workflow run `38337278244` remains IN_PROGRESS. At the retained
-latest retained snapshot, six of ten jobs had completed SUCCESS; four were
-still running. No whole-workflow success or PHASE/live qualification claim.
+Exact workflow run `38337278244` is COMPLETED SUCCESS, all ten jobs SUCCESS.
+Root downloaded and inspected all ten actual native logs and the new benchmark
+artifact, each bound to exact2051990. No PHASE/live qualification claim.
 The newer independent backup output-cap correction is not covered by this
 sampling source generation, even if its local tests subsequently pass.
 
@@ -24,6 +24,10 @@ sampling source generation, even if its local tests subsequently pass.
 | Synthetic guarded admission PostgreSQL restart115100099607 | Encrypted fixture/configuration/unfinishedjob/outbox/media preserved before/after recovery; seed/pending/admit/verify/repeatedreopen PASS; provider_calls0/telegram_publications0 |
 | Synthetic channel sync PostgreSQL restart115100099436 | Actual restart and synthetic rewrite-wait verification PASS; zero real Telegram/AI/send calls |
 | Synthetic unattended full-stack restart115100099445 | Actual down/up and PostgreSQL crash boundary verified;1PASS4deselected354.30s, migration drift clear; no live Telegram/AI/publications |
+| Backend quality gate115100099498 | Lint/format/compile/migration drift PASS;3718PASS159explicitSKIP931.46s; actual new24case contract artifact inspected |
+| Synthetic unattended PostgreSQL vertical slice115100099639 | 892PASS3nonapplicableSKIP729.43s, plus5lock/concurrency contracts PASS7.31s; negative SQL/legacy-deadlock characterization diagnostics retained |
+| Synthetic Docker persistence OPENROUTER115100099419 | Source edit/semantic recover/revoke/publication verify, stack persistence and final worker restart PASS; zero real Telegram/AI/send calls |
+| Synthetic Docker persistence OPENAI115100099425 | Source edit/semantic recover/revoke/publication verify, stack persistence and final worker restart PASS; zero real Telegram/AI/send calls |
 
 Downloaded Windows artifact11784364456 is bound through exact run/head metadata.
 Root independently parsed its JUnit and actual entrypoint receipts. There are
@@ -48,14 +52,29 @@ snapshots may collect newly finished jobs, never overwrite logs or relabel heads
 | job-115100099607-api.log | 3A1721A5AA82656AED6DDA62C704AD92E6FB649F959586167101C8FCCE61531C |
 | job-115100099436-api.log | A30E90CC5396ACD7C2CCD13CD0CD4E92CFB5A09E1521AC818CDDFF16C1245CC9 |
 | job-115100099445-api.log | 39CBCE19B3FCBCE1C0938A789705699A878B4F9BF2993F67D483306D26F59648 |
+| job-115100099419-api.log | 0DAB4B5D86B9B1E1A71041B827AE5ED9ED6541E5381B3EF66C93F0562D1AE5C8 |
+| job-115100099425-api.log | 81FC3237BA8301816AA5ECD4733D82321687B43E3764476F865BB8723C7231F4 |
+| job-115100099498-api.log | 5050A58FF2A198441581639333639DEABF37495C41B2A35942EEC00A892BA648 |
+| job-115100099639-api.log | 02A2F49F2C2A4CB6EF274311B13AFC9E636B8ACA83A27EC15B5E43F5BEDF25DE |
 | artifact-11784364456/junit.xml | DA31129DF83536CAC6D93B8D22AB4957CD53A8F1ADE5C03380580A69B53C6481 |
 | artifact-11784364456/pytest.log | 44BA099A0B09169950E026486BD37100398FBCDC75042B448C11B3B92ABB32B7 |
 
-## Remaining exact-generation gates
+## Exact-generation conclusion and limits
 
-Inspect the other four completed native logs when available: backend quality,
-strict PostgreSQL vertical slice and both provider recovery families.
-Download and inspect the new actual benchmark
-artifact without mistaking synthetic verdicts for real-model qualification.
-Only terminal all-ten SUCCESS with actual logs/artifacts closes this workflow
-gate. No duplicate local full/PG/runtime run or live credential retry is needed.
+New actual artifact11786275778/editorial-contract-report.json SHA256
+318DE43F3C8C0DE9501B324A31B14C3390E6AFE6470A6913571393A0B9896E45:
+24cases/24matched/0mismatch, SYNTHETIC_CONTRACT, real_model_qualified=false,
+provider_calls0/rewrite_calls0/all editorial_allows_rewrite=false. This closes
+the synthetic contract gate only, never real-model automatic approval.
+
+Expected negative SQL trigger/check/immutability exceptions are retained in
+the passing PostgreSQL job log. Its40P01 is the deliberately frozen legacy-order
+characterization in test_planner_media_postgres.py; current-order branch passes.
+No diagnostics are hidden or gates disabled. Runner action Node20/deprecation
+warnings are retained, not product-test failures or justification for an
+unrelated dependency change. No duplicate full/PG/runtime/live call is needed.
+
+Sampling exact-generation CI is accepted. The independently newer backup cap
+bffda47 has its own run38338368307 and requires its own Windows97 evidence.
+Live credentials/manual Telegram/model qualification and PHASE completion
+remain separate and incomplete.

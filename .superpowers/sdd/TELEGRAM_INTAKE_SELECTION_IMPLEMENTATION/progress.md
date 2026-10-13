@@ -1,5 +1,14 @@
 # SDD ledger — plan: docs/TELEGRAM_INTAKE_SELECTION_IMPLEMENTATION.md
 
+Task1 writerDONE920c099fe035cc4757c7c7bbf38d829fb26871e1, exactnewtwofiles+
+own206linereport. RootreadEOF/actual300targeted+final127GREEN/pristine,
+bothhashes matched B94DB875.../4CE4114D...; staticnative0. Retainedinitial
+importability/behavioral/124FAILstubRED and quoting/lint/ignoredreport staging
+diagnostics; no weakenedtest. Fresh scopedreview /root/intake_selection_kernel_review,
+gpt-6.1-sol/high/forknone/nohelpers active, complete639bef0..920c09943513byte
+package. No furtherkernelwrites. Rootpackage gate waits for separate cap
+testharnessfix writerDONE, so packageinputs remain frozen duringbuild.
+
 ## Preflight and scope
 
 | Tasks/interface | Produced/consumed contract | Finding |

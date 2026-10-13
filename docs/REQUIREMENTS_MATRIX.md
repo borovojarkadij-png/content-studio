@@ -1,5 +1,14 @@
 # Requirements matrix
 
+Latest exact-generation acceptance2026-10-13: sampling finalintegration review
+Approved/no findings and CI38337278244 at2051990 all10SUCCESS, actualtenlogs/
+24matchedunqualified0callartifact checked. Backend3718/159explicitSKIP,
+PG892/3nonapplicableSKIP+5,Windows83/frontend334/33+1+3/allrecoveryPASS.
+Backupcap source21d24d3 local97/0SKIP/rootoriginalprobePASS/reviewsApproved,
+but hostedbffda47/38338368307 Windows96PASS1FAIL (missingfirstshimPID under1s
+deadline); retained evidence under diagnosis, NOT exactCIverified. Selection
+purekernel Task1 active; no durable intake/ranking/targetmix success inferred.
+
 Current2026-10-13: protected Settings tasks and optional API-only operator
 Compose64ce1e9 independently accepted. Actual Windows packaged default503,
 mounted privateauth/browser create+update/noop/staleCAS/audit/REJECT0jobs and

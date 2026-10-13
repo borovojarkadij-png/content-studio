@@ -1,5 +1,26 @@
 # SDD ledger — plan: docs/BACKUP_OUTPUT_CAP_IMPLEMENTATION.md
 
+Fixround1 investigation complete readonly/disposable. Rootread full8477byte
+REPORT.md in backup-output-cap-startup-probe-20261013a: injected1800ms first
+launch before trace reproduces exactmissingPID/1FAIL/native1; explicitbounded
+SHIM_READY response before timedcase yields1PASS/native0 andeightoverflowPASS/
+89deselected10.45s/native0, all1s/<8s/ownedPID/privacy/noDB/sentinel assertions
+unchanged. Repohelper/testhashes+HEAD/index untouched. Rootcausemechanism
+confirmed, exacthistorical startupsubstage unproven. Proposedfixbrief retained;
+sourceownership not released until selectionwriterDONE/rootcheckpoint.
+Ruling: asserted native readiness in sessionfixture, no deadline/assertion
+weakening — deterministic mechanism proof; cost if wrong: later arbitraryOS
+starvation remains a timing failure, exact newCI still mandatory.
+
+Exact newerCI38338368307/bffda47 Windows97 native1:96PASS/1FAIL/0SKIP,
+overflow-inspect-backup missingoversized.pid. Retainedactualartifact11785736468
+has config/status/sentinel but no trace/PID; one-second budget expired before
+shim reached instrumented boundary. Do not call CI verified. Originalwriter
+/root/backup_output_cap resumed READONLY investigation only while selection
+solewriter active; no concurrent product edits. NEXT causalharnessdiagnosis/
+test/fix/retest/independentreview after selection writerDONE. Do not weaken
+capacity/privacy/ownedchild/finite-deadline/no-laterDB assertions or retryblindly.
+
 Final increment review complete /root/backup_cap_final_review,gpt-6-astra/high:
 speccompliant/qualityApproved/noCritical/Important/Minor; actual97JUnit/root
 probe/sourcehashes/callers/lifecycle inspected, verbatim finalreview retained.
