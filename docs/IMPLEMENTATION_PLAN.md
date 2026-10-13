@@ -5,15 +5,29 @@ YouTube analysis/distribution/upload is excluded from the deliverable and all
 remaining-work/progress estimates. This overrides historical master-spec
 YouTube sections without changing the approved Telegram architecture or gates.
 
-Current NEXT_STEP2026-10-13: engagement8308f15+344a28a independent task reviews
+Current NEXT_STEP2026-10-13: Hype653e113 scoped reviews Approved/no findings;
+combinedfull3496PASS56explicitSKIP/native0, actual ownedWindowsDockerPG4PASS/
+0SKIP/native0/publicretained and packaged image8851bc041620 migratedSQLite/
+reopen/unknown/relative2/stale/REJECT0jobs/0calls PASS/315inputs unchanged.
+Final cross-task review Approved/speccompliant/no findings; root acceptance commit/guardedpush/
+exactCI and samplingTask1 from TELEGRAM_SAMPLING_IMPLEMENTATION.md. No source
+writer currently active. No PHASE/live/model claim or UI/real-data change.
+
+Retained preceding checkpoint (superseded): engagement8308f15+344a28a independent task reviews
 Approved/no findings; actual owned Windows Docker PostgreSQL26PASS/0SKIP/native0
 and packaged migratedSQLite/read-only/network-none history/REJECT0jobs smoke
 PASS, immutable source hashes unchanged. Final cross-task integration review
 Approved/speccompliant/noCritical/Important/Minor; root87e5189 committed/pushed
-native0/exactremote, exactCI38330110524 in_progress. Hype Task1085d1bf DONE,
+native0/exactremote, exactCI38330110524 completedSUCCESS/all10SUCCESS;
+actual backend3266PASS135SKIP/PG868+5/Windows83/frontend334+33+1+3/
+allrecovery/native/new24caseunqualifiedzero-callartifact checked. Hype Task1085d1bf DONE,
 101focused/178covering/staticnative0; independent speccompliant/qualityApproved/
-no findings. NEXT checkpoint/Task2 bounded SQL projection/PG solewriter, root
-owns docs/evidence; combined full after2, actualPG after Task2 review.
+no findings. NEXT Task2 bounded SQL projection/PG solewriter, root
+owns docs/evidence;625coveringPASS35explicitSKIP/native0, fourhashesfrozen,
+ONE combinedfull completed3496PASS56explicitSKIP586.72s/native0;
+finalreport/commit/freshreview then actualPG.
+Prepared next separate durable sampling three-task design/plan/preflightledger,
+no source dispatched until Hype source/runtime/integration accepted.
 Original local
 full2FAIL/3347PASS52SKIP retained; both historical fixture corrections targeted
 119PASS26PG-onlySKIP, final-generation full requires actual new CI. No live/model/

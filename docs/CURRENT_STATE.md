@@ -16,6 +16,27 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
 
 ## Active recovery checkpoint — 2026-10-13
 
+NEXT_STEP: Hype source653e11331b23d5e14a047530014baccb1a772900 Task1/Task2
+scoped reviews speccompliant/qualityApproved/no findings. Root actual Windows
+owned Docker PostgreSQL4PASS/0SKIP/5.09s/native0,2058retained+4fresh=2062
+namespaces/public/12inputs unchanged. Packaged unchanged-Dockerfile image
+8851bc041620e620871f2decc42d827ea8ee05639821498a7e4db5d9bf36ce33 built0,
+networknone/readonly/noVolumes/noSecrets smoke0/Python3.12.15/SDK1.45:
+migratedSQLite reopen/relative2/NULL/stale/immutableREJECT0jobs/0rewritecalls,
+315inputs unchanged. Sole combinedfull3496PASS56explicitSKIP586.72s/native0.
+Fresh final cross-task /root/telegram_hype_integration_review,gpt-6-astra/high/
+forknone/nohelpers completeApproved/speccompliant/no findings, complete
+87e5189..653e113package122317bytes and runtime receipts checked.
+NEXT root acceptance docs/commit/guardedpush/exactCI; then samplingTask1 sole
+writer from TELEGRAM_SAMPLING_IMPLEMENTATION.md/own19linebrief. No repeated
+completed Hype gate. Root tracks exactHypeCI alongside independent sourcework.
+No source writer currently active, root owns dirty docs/evidence. Origin exactly
+borovojarkadij-png/content-studio, branchcodex/dark-navy-ui. Engine29.8/Linux/
+API1.56 currently healthy, no restart/reset. PHASE1/live/model qualification not
+complete; design/real data unchanged, heartbeat remains disabled.
+
+Chronological checkpoint below is superseded by the NEXT_STEP above:
+
 NEXT_STEP: Engagement Task1 source8308f15 and Task2 source344a28a independently
 speccompliant/qualityApproved/no findings. Root full reports/frozen hashes
 checked. Actual exact344a28a owned Windows Docker PostgreSQL gate PASS:
@@ -27,16 +48,29 @@ Final cross-task /root/telegram_engagement_integration_review Approved/
 speccompliant/noCritical/Important/Minor, complete0bc8ebd..344a28a package148302bytes.
 Root acceptance87e5189a39b09847c1655cecdb64317b8942008d committed/pushednative0/
 exactremote verified as borovojarkadij-png; corrected exactCI38330110524 is
-in_progress. Hype Task1 source085d1bf4cfcf05ed40916809bca81b1bdc411dfc DONE,
+completedSUCCESS/all10SUCCESS. Actual backend3266PASS135explicitSKIP837.69s,
+PG868/3nonapplicableSKIP+5,Windows83/0SKIP,frontend334/33+1+3 and every
+synthetic recovery family/new24casezero-callunqualifiedartifact checked in
+TELEGRAM_ENGAGEMENT_CI_20261013.md. Hype Task1 source085d1bf4cfcf05ed40916809bca81b1bdc411dfc DONE,
 root full155linereport/fourhashes/raw101focused+178covering/staticnative0 checked.
-Fresh independent review speccompliant/qualityApproved/no findings. NEXT commit
-root checkpoint and dispatch Task2 bounded SQL projection/strictPG solewriter
-from TELEGRAM_HYPE_IMPLEMENTATION Task2brief, while monitoring exact predecessor
-CI. Own four service/test/CI paths+report; combined full after2, actual ownedPG
+Fresh independent review speccompliant/qualityApproved/no findings. Root
+checkpointcd0d85847f2fae7e2a17f8ad6970fc9512c7ac38 native0/clean tree.
+NEXT Task2 bounded SQL projection/strictPG solewriter /root/telegram_hype_projection,
+gpt-6.1-sol/high/forknone/nohelpers active at BASEcd0d858, exact own16linebrief,
+while root has completed exact predecessor CI acceptance. Own four service/test/CI paths+report;
+focused45PASS4PGSKIP then final625coveringPASS35explicitSKIP121.75s/native0;
+four source hashes frozen, ONE combinedfull completed3496PASS56explicitSKIP
+586.72s/native0/no warnings or errors, no source/HEAD mutation during run.
+Root read terminalraw/full86linereport/fourhashes, writerDONE653e11331b23d5e14a047530014baccb1a772900
+exact5pathcommit. Fresh scoped /root/telegram_hype_projection_review active,
+completecd0d858..653e113 package50917bytes; clean review then actual ownedPG
 after clean Task2 review. Pure Task1 no IO/authority change; no completeHype claim.
 Root owns docs/evidence, preserve dirty root changes. No duplicate Task1/full suite. Login exact6bc5adc
 CI38326431585 all10SUCCESS, actual ten logs/Windows/benchmark checked.
-No human/live/PHASE/STABLE claim; accepted UI unchanged.
+No human/live/PHASE/STABLE claim; accepted UI unchanged. Root-only next durable
+sampling design/three-taskplan/preflightledger prepared and self-reviewed in
+TELEGRAM_SAMPLING_DESIGN_20261013.md/TELEGRAM_SAMPLING_IMPLEMENTATION.md;
+no collector source dispatch until Hype actualPG/integration acceptance.
 Task2 combined full terminal: D:/Codex-Recovery/telegram-engagement-task2-20261013a/full.log,
 native1/2FAIL/3347PASS/52explicitSKIP/557.10s. Both failures are historical
 fixtures: command.check at previous head and metadata-only media stamp(head)
