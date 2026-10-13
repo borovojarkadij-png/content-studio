@@ -50,3 +50,40 @@ source_updated_at, not original publication time; future collector must obtain
 original date from accepted engagement observation, never relabel edit time or
 fabricate missed historical snapshot times. Existing ingestion uses bounded
 leased network-outside-transaction execution, the pattern for that later task.
+
+Engagement both source tasks/final cross-task review Approved/no findings;
+root actual26PG/0SKIP+packaged network-none smoke native0, acceptance87e5189
+pushednative0/exactremote. Exact correctedCI38330110524 in_progress; full-gate
+acceptance waits actual completion, not inherited PASS.
+Task1 solewriter /root/telegram_hype_domain,gpt-6.1-sol/high/forknone/nohelpers
+dispatched at BASE87e5189a39b09847c1655cecdb64317b8942008d. Four pure new
+domain/test paths+ownreport only; root owns docs/CI/evidence. No Task2 before
+clean review, no full backend Task1. Latest human overnightautonomy honored,
+heartbeat stays disabled. Root guessed requirements traceability filename;
+corrected via rg discovery to actual docs/REQUIREMENTS_MATRIX.md, read-only.
+
+Root prepared actualPG helper only, not executed before reviewed Task2:
+D:/Codex-Recovery/content-studio-20261008/telegram-hype-acceptance-20261013a/verify-postgres.ps1,
+parsernative0/SHA256B4BD179F0F034EDDB448A466EC39CD0339781CB099419D0CED0E2323F77B724D.
+Exact ownership/container/loopback/solevolume/sourceHEAD/12inputhash guards,
+2058namespace baseline/create-only/publicretention/native/JUnit0SKIP required.
+Task1 writer reported actual function-levelRED69FAIL11PASS/native1 against
+inert scaffold (no collection/import errors); full raw report will be inspected.
+No consumer/SQL service/worker implementation or Hype quality claimed yet.
+
+Task1 writerDONE085d1bf4cfcf05ed40916809bca81b1bdc411dfc, root full155line
+report/fourworkinghashes matched, reportSHA63F677704ECD2803B824DE9BB74D8A1DF5FDCA1B7DA0C89D4D7CA8FC1526B2D8.
+Actual final101focusedPASS0.17s/native0; earlier178coveringPASS1.31s/native0,
+static4/native0, actualSDK1.45. TwoC408fixture lint findings corrected/rawretained,
+causal function-levelRED69FAIL11PASS native1. Complete own fivepath commit,
+fresh scoped /root/telegram_hype_domain_review,gpt-6.1-sol/high/forknone/
+nohelpers active, complete87e5189..085d1bf41288byte package. Task2 exact16line
+brief generated/trailingblank corrected only; waits clean review/rootcheckpoint.
+
+Task 1: complete (commits87e5189..085d1bf, review clean).
+Fresh independent speccompliant/qualityApproved/no findings; verbatim review
+retained. CannotverifySQL/PG/combined gate belongs Task2/controller; pure four
+files have no authority/IO paths, Task2 adds explicit retainedREJECTtripwire.
+Root acceptance checkpoint/Task2brief before solewriter dispatch; no duplicate
+Task1covering/full run. Exact predecessorCI38330110524 still in_progress,
+fivecompletedjobsSUCCESS; raw remaining logs wait parent completion.

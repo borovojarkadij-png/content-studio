@@ -22,6 +22,16 @@ cross-task source review Approved with nonblocking Minors. Evidence6bc5adc exact
 CI38326431585 all10SUCCESS; actual ten logs/Windows83/0SKIP and24case zero-call
 benchmark inspected;backend3103/109SKIP,PG842/3SKIP+5,frontend334/33+1+3/allrecovery.
 Live login/restart/rights still pending.
+Engagement observation/rate source8308f15 and append-only history344a28a both
+independently accepted; final cross-task integration Approved/no findings.
+Actual owned Windows Docker migratedPostgreSQL26PASS/0SKIP/native0 and packaged
+network-none record/replay/reopen/NULL/rate/append-only/REJECT0jobs smoke PASS,
+2032original+26fresh=2058namespaces retained/public/source unchanged. Root
+acceptance87e5189 pushednative0/exactremote; exactCI38330110524 in_progress.
+Corrected whole full gate still pending; original full2FAIL/3347PASS52SKIP
+explicitly retained, narrow historical fixtures targeted119PASS/26PG-onlySKIP.
+Transparent donor-relative Hype Task1 now active, no score/collector claim yet.
+See TELEGRAM_ENGAGEMENT_VERIFICATION_20261013.md.
 Supersedes older pending statements below, not their evidence.
 
 2026-10-13 checkpoint: R-001/R-004 remain PARTIAL, not operational acceptance.
@@ -73,3 +83,4 @@ EDITORIAL_OPERATOR_API_VERIFICATION_20261013.md.
 | R-016 | Donor video manual/discard; YouTube excluded before AI | 1 | PARTIAL / SYNTHETIC VERIFIED | Mandatory visible/hidden entity/button URL and video filters, malformed/Unicode/backslash guards, immutable metadata/replay/source equality and guarded migration, zero-classifier/job/provider tests, Connections hint; actual corrected CI 37787946778 PG 85 PASS; live/Windows acceptance pending; DONOR_AUTOMATION_EXCLUSIONS_VERIFICATION.md; HIDDEN_SOURCE_LINKS_VERIFICATION.md |
 | R-017 | Local free library-photo acquisition and honest relevance review | 1 | PARTIAL / AUTHENTICATED SYNTHETIC VERIFIED | Free acquisition/durable media jobs, protected canonical review UI, separate persistent reviewer auth, immutable review/revocation/audit and newest-only publication consumer/version2 snapshot/final bytes; explicit illustration credit, no event-photo claim. Task1-4 independent reviews accepted, actual WindowsPG209 plus owned review/photo/snapshot restart/crash proof, prior dae0e30 all-eight CI SUCCESS. New exact CI, whole-branch and real authorized acquisition/publication pending; ILLUSTRATION_REVIEW_AUTH.md / ILLUSTRATION_CONSUMER_PARENT_20261009.md / ILLUSTRATION_PRESENTATION_PARENT_20261009.md / ILLUSTRATION_RESTART_PARENT_20261009.md |
 | R-018 | Windows backup/restore commands and recovery proof | 1 | PARTIAL / PostgreSQL COPY VERIFIED | Guarded custom archive/strict manifest/explicit target/newDB-only copy independently reviewed after early-list closure fix;83actual Windows native contracts/noSKIP. Actual Windows Docker4.4MiB archive/newDBcopy/exact SQL/ciphertext with originalexternalkey/drift/sourceunchanged/native0 PASS; BACKUP_RESTORE_VERIFICATION_20261013.md. Hosted Windows83PASS/0SKIP/actual artifact verified; exactd7c580a CI38323820316 all10SUCCESS with actual logs/artifacts checked in BACKUP_RESTORE_CI_20261013.md. SQL-only backup is not full secret/media backup or production cutover. |
+| R-019 | Honest donor-relative engagement/Hype evidence | 1 | PARTIAL / SYNTHETIC HISTORY VERIFIED | Separate bounded authenticated read-only aggregate adapter, immutable identity/NULL/zero/rate/acceleration contracts and caller-owned append-only history independently accepted. Actual WindowsDocker26migratedPG cases/0SKIP and packaged network-none reopen/REJECT0jobs PASS at344a28a; exactCI38330110524 pending. Pure/bounded SQL donor-relative Hype increment now implementing; no live collector, complete scoring, candidate-consumer or ranking authority claim. TELEGRAM_ENGAGEMENT_VERIFICATION_20261013.md / TELEGRAM_HYPE_IMPLEMENTATION.md. |

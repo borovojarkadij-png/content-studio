@@ -25,9 +25,16 @@ native0; migratedSQLite record/replay/reopen/append-only/NULL/rate/REJECT0jobs
 PASS/networknone/readonly/noVolumes/Python3.12.15/Telethon1.45/inputsunchanged.
 Final cross-task /root/telegram_engagement_integration_review Approved/
 speccompliant/noCritical/Important/Minor, complete0bc8ebd..344a28a package148302bytes.
-NEXT commit exact acceptance, guarded authorized push and exact corrected CI.
-Then dispatch Hype Task1 at TELEGRAM_HYPE_IMPLEMENTATION.md while that exact CI
-runs; prepared spec/brief, not dispatched. No duplicate Task1/full suite. Login exact6bc5adc
+Root acceptance87e5189a39b09847c1655cecdb64317b8942008d committed/pushednative0/
+exactremote verified as borovojarkadij-png; corrected exactCI38330110524 is
+in_progress. Hype Task1 source085d1bf4cfcf05ed40916809bca81b1bdc411dfc DONE,
+root full155linereport/fourhashes/raw101focused+178covering/staticnative0 checked.
+Fresh independent review speccompliant/qualityApproved/no findings. NEXT commit
+root checkpoint and dispatch Task2 bounded SQL projection/strictPG solewriter
+from TELEGRAM_HYPE_IMPLEMENTATION Task2brief, while monitoring exact predecessor
+CI. Own four service/test/CI paths+report; combined full after2, actual ownedPG
+after clean Task2 review. Pure Task1 no IO/authority change; no completeHype claim.
+Root owns docs/evidence, preserve dirty root changes. No duplicate Task1/full suite. Login exact6bc5adc
 CI38326431585 all10SUCCESS, actual ten logs/Windows/benchmark checked.
 No human/live/PHASE/STABLE claim; accepted UI unchanged.
 Task2 combined full terminal: D:/Codex-Recovery/telegram-engagement-task2-20261013a/full.log,
@@ -40,7 +47,7 @@ Retained history reader does not require still-present
 donor config; new record does. Final changed PG SQLSTATE assertions passed root
 actual26test gate, not full-run SKIP evidence. Healthy Docker29.8/Linux/API1.56 confirmed;
 no restart/reset. Next Hype pure/bounded-SQL spec/plan/ledger/Task1 brief prepared
-only, not dispatched, in TELEGRAM_HYPE_IMPLEMENTATION.md. Root uncommitted docs
+and now Task1 dispatched, in TELEGRAM_HYPE_IMPLEMENTATION.md. Root uncommitted docs
 are controller-owned; engagement source accepted, exact corrected CI pending.
 
 Retained preceding milestones (current NEXT_STEP above supersedes older NEXT
