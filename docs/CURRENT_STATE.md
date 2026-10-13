@@ -23,11 +23,31 @@ own report only. Final219PASS27explicitPGSKIP63.40s, Ruff/format/compile/drift0;
 root read complete243line report, matched all four frozen hashes and owned
 commit. Fresh scoped reviewer /root/intake_ledger_schema_review DONE, Compliant/
 Approved/no findings, complete62592byte package; verbatim review retained.
-NEXT rootdocscheckpoint then
-Task2 transactional repository plus append-only existing PostgreSQL CI discovery.
+Rootdocscheckpointc4bd05c32b08c9bde57b21395d801ca3eb7eaefe committed/clean.
+Task2writer /root/intake_ledger_repository DONE at
+e2f9665580574c5d61ec642bd34bfdb1b73355cd: ownfourfiles+report only,
+360focusedPASS17explicitPGSKIP/1014coveringPASS33explicitSKIP/static0.
+Root readreportEOF/allfourhashesmatched/ownedcommit checked. Originalcovering
+session83515 completion recoveredwithoutrepeat after interruption; no current
+usageblocker. Fresh scoped concurrencyreview /root/intake_ledger_repository_review,
+gpt-6-astra/high/forknone/nohelpers DONE, Compliant/Approved/no findings,
+full80469byte package/verbatimreview retained. Actual frozen e2f9665 Windows
+DockerPG18PASS0SKIP16.44s/native0/2082retained+18fresh=2100/publicunchanged.
+Package3fb1d00d3a02153ffa6734909389472291f79eb899808f12466eb310d941fff1
+build0/smoke0/331inputhashesmatched/networknone/readonly/noVolumes/noSecrets.
+Separate synthetic containerd015cb... threeactualstarts0/0/0/carry20→50→50/
+oldreplay/REJECTfalse0jobs0provider/usage/outbox PASS; retainedstopped.
+Combinedbackend root execution29438 DONE4176PASS93explicitSKIP755.46s/native0,
+JUnit4269/0FAIL/0ERROR/93SKIP/all332sourcehashesmatched. Original78report-format
+warnings retained; one-case RED1/legacy+warnings-as-errors GREEN0/78explicitSKIP
+proves harness correction without product edits, hiding warnings or fullrerun.
+NEXT docscheckpoint/
+guardedpush/exactnewCI. Frozen gates finished; rootdocs-only commit allowed now.
+Finalcross-taskreview Compliant/Approved/no findings: independently matched
+332PG/331package inputs, allseven evidencehashes and three native restartlogs.
 One source writer; root owns docs/evidence/CI/runtime, no root source fixes.
-Actual seven new schema PG cases and existing sampling exactversion assertion
-remain pending root native gate after Task2; no PG runtime claim yet.
+Allseven new schema PG cases/ten repository/one sampling exactversion assertion
+actually passed; no repeated PG/package/container-restart gate needed.
 Ledger only persists comparison evidence/carry, no ingestion/worker/permission.
 
 Remotecheckpoint0950b33cf0d664001f05f6da432e4524363a74af pushedFF/native0/exact

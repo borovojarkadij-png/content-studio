@@ -7,8 +7,14 @@ Windows98/0SKIP+frontend334/33+1+3 and alltenjobsSUCCESS. Actualbackend3845/
 174explicitSKIP, PG892/3nonapplicableSKIP+5 and allrecovery/new24caseunqualified
 0callbenchmark inspected; TELEGRAM_INTAKE_SELECTION_CI_20261013.md.
 Historicalcap38338368307 terminalWindows96/1FAIL retained; nineotherSUCCESS.
-Ledger schema9cc1be0 local219PASS27explicitPGSKIP/static0, scopedreviewApproved;
-repository/source/runtime gates still pending, no currentcalleractivation.
+Ledger schema9cc1be0/repositorye2f9665 scoped+finalCompliantApproved/no findings;
+360focusedPASS17explicitPGSKIP/1014coveringPASS33explicitSKIP/static0;
+actualWindowsDocker18PGPASS0SKIP/2100retainednamespaces, installedpackage331
+inputs and three actualsame-container starts/carry/replay/REJECT0calls PASS.
+ONEfull4176PASS93explicitSKIP755.46s/native0/all332inputsunchanged; original78
+JUnitformat warnings retained, narrowlegacy warning-as-error probe native0/
+78explicitSKIP, notbusinesspasses. ExactnewCI pending/no currentcalleractivation.
+TELEGRAM_INTAKE_LEDGER_VERIFICATION_20261013.md records all runtime/evidence.
 Neither pure comparison nor persistedselection itself grants rewrite/publication
 authority. No durable ranked intake/targetmix/live/model/PHASE completion claim.
 

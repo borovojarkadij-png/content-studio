@@ -5,14 +5,25 @@ YouTube analysis/distribution/upload is excluded from the deliverable and all
 remaining-work/progress estimates. This overrides historical master-spec
 YouTube sections without changing the approved Telegram architecture or gates.
 
-AUTHORITATIVE NEXT_STEP2026-10-13: pure intake kernel920c099 scoped Approved;
-Exact0950b33 CI38340236416 completedSUCCESS/alltenSUCCESS; actualtenlogs/new
-Windows98artifact/new24caseunqualifiedzero-callbenchmark accepted in
-TELEGRAM_INTAKE_SELECTION_CI_20261013.md. Task1ledger schema9cc1be0 DONE,
-219PASS27explicitPGSKIP/static0/allfourhashes rootmatched, scopedreviewApproved/
-speccompliant/no findings. NEXT Task2 repository under ledger plan. Seven new
-schema PostgreSQL cases plus existing sampling before/after version proof
-await root actual gate after Task2; no source/UI/operational activation.
+AUTHORITATIVE NEXT_STEP — 2026-10-13:
+Ledger schema9cc1be0 and repositorye2f9665 are source-complete, scoped and final
+cross-task reviews Compliant/Approved/no findings. Focused360PASS17explicitPGSKIP,
+covering1014PASS33explicitSKIP; static/YAML preservation checks native0.
+Actual WindowsDocker18PGPASS/zero skips/16.44s,2082old+18fresh=2100 namespaces
+retained/public catalog unchanged. Installedimage3fb1d00d...build0/smoke0,
+331frozen inputs matched. Three actual same-container starts native0/0/0 prove
+carry/replay/source/config/REJECTfalse/zero-provider persistence.
+Combined backend execution29438 completed at frozen e2f9665:4176PASS93explicit
+SKIP755.46s/native0/JUnit0FAIL0ERROR/all332inputs matched.78JUnit-format warnings
+retained and diagnosed via RED1/legacy warning-as-error GREEN0/78explicitSKIP,
+not business passes; no source edit/fullrerun. NEXT document/commit, guarded FF
+push and accept exact new hosted CI. Do not repeat completed full/PG/package/
+restart gates. See
+TELEGRAM_INTAKE_LEDGER_VERIFICATION_20261013.md and own SDD ledger.
+Prior0950b33 CI38340236416 completed all ten SUCCESS; actual logs/new Windows98/
+unqualified zero-call24-case artifact accepted separately, never borrowed for
+the newer ledger. Durable pre-AI ingress/fan-out integration and targetmix remain
+unfinished; comparison storage does not activate any caller or grant authority.
 The following earlier progress text is historical, superseded by this block.
 Checkpoint0950b33 pushedFF/native0/exactownerremote verified; newCI38340236416
 running/all10, rootactualnewWindows98/alllogs/artifact acceptance pending.

@@ -85,6 +85,29 @@ its two ingestion/fanout callers must establish current owned selection before
 creating work. No API exists to treat the pure kernel result as authority.
 No integration implementation or permission change is claimed by this trace.
 
+Further caller trace for the next integration (not implemented by the ledger):
+the same DurableIngestionWorkflow is reached from donor_ingestion_runner.execute,
+channel_difference_runner.execute and source_sync_replay.replay. All three must
+retain a durable pre-AI hold before advancing their cursor/replay obligation;
+an ordinary duplicate result cannot silently discard a held fan-out mapping.
+Testing only a donor-history page would miss the difference/replay paths.
+Current Hype evidence needs two fresh observations and a donor-relative baseline;
+one newly retained source can honestly produce NO_ENGAGEMENT or an unknown score.
+The integration must define bounded observation/window closure and unknown
+handling rather than treating that first observation as a zero or a qualified
+score. Existing editorial_admission policy binding and publication_preflight
+request snapshot include mapping intake settings: a new opted-in selection
+policy/receipt must participate in both, so stale qualification and a prepared
+publication envelope cannot survive a changed selection policy unnoticed.
+
+Exact dedup release detail: durable_ingestion._reserve_exact_content currently
+returns false for any existing mapping/fingerprint, including its own retained
+content_key. Replaying a held source through ordinary ingest alone would thus
+drop it as duplicate. Future release needs an explicit current owned-hold/
+selection/immutable-revision proof before accepting that exact reservation;
+it must not turn generic same-fingerprint retry into permission. Tests must
+separately cover held-owner replay, foreign-owner duplicate and changed source.
+
 ## Constraints on the next implementation
 
 - Preserve the current core and accepted UI; add a bounded seam, not a new app.
