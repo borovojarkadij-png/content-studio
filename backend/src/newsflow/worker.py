@@ -40,6 +40,7 @@ from newsflow.services.editorial_classifier_factory import ConfiguredEditorialCl
 from newsflow.services.publication_planning import PlanValidationError, PublicationPlanningService
 from newsflow.services.rewrite_provider_factory import ConfiguredRewriteProviderFactory
 from newsflow.services.semantic_verifier_factory import ConfiguredSemanticVerifierFactory
+from newsflow.services.telegram_engagement_tick import run_telegram_engagement_tick
 from newsflow.services.telegram_provider_factory import (
     ConfiguredTelegramProvider,
     load_telegram_credentials,
@@ -143,6 +144,12 @@ def publication_enabled(value: str) -> bool:
 def channel_sync_enabled(value: str) -> bool:
     if value not in {"0", "1"}:
         raise ValueError("NEWSFLOW_TELEGRAM_CHANNEL_SYNC_ENABLED must be exactly 0 or 1")
+    return value == "1"
+
+
+def telegram_engagement_enabled(value: str) -> bool:
+    if type(value) is not str or value not in {"0", "1"}:
+        raise ValueError("NEWSFLOW_TELEGRAM_ENGAGEMENT_ENABLED must be exactly 0 or 1")
     return value == "1"
 
 
@@ -442,6 +449,9 @@ def main() -> None:
     channel_sync_network_enabled = channel_sync_enabled(
         getenv("NEWSFLOW_TELEGRAM_CHANNEL_SYNC_ENABLED", "0")
     )
+    engagement_enabled = telegram_engagement_enabled(
+        getenv("NEWSFLOW_TELEGRAM_ENGAGEMENT_ENABLED", "0")
+    )
     if channel_sync_network_enabled and not ingestion_enabled:
         raise ValueError("Channel sync requires NEWSFLOW_TELEGRAM_INGESTION_ENABLED=1")
     source_photo_enabled = rewrite_enabled(getenv("NEWSFLOW_SOURCE_PHOTO_ENABLED", "0"))
@@ -455,6 +465,7 @@ def main() -> None:
         or semantic_enabled
         or editorial_enabled
         or ingestion_enabled
+        or engagement_enabled
         or source_photo_enabled
         or publication_network_enabled
         else None
@@ -465,6 +476,7 @@ def main() -> None:
     channel_sync_cursor = 0
     channel_health_cursor = 0
     source_replay_cursor = 0
+    engagement_cursor = 0
     semantic_admission = SemanticAdmissionState()
     media_admission = MediaAdmissionState()
     source_photo_admission = MediaAdmissionState()
@@ -552,6 +564,31 @@ def main() -> None:
                 logger.info("ingestion.tick", outcomes=outcomes)
             except Exception:  # noqa: BLE001 - retain progress/leases, never expose provider secrets
                 logger.warning("ingestion.execution_interrupted", recovery="persisted_lease")
+        if engagement_enabled and not stopped.is_set():
+            try:
+                sampling = run_telegram_engagement_tick(
+                    factory,
+                    enabled=True,
+                    cipher=cipher,
+                    now=datetime.now(UTC),
+                    credentials_path=Path(
+                        getenv(
+                            "NEWSFLOW_TELEGRAM_CREDENTIALS_FILE",
+                            "/run/secrets/telegram_credentials",
+                        )
+                    ),
+                    cursor=engagement_cursor,
+                )
+                engagement_cursor = sampling.cursor
+                logger.info(
+                    "telegram_engagement.tick",
+                    outcome=sampling.outcome,
+                    queued_count=len(sampling.queued_ids),
+                )
+            except Exception:  # noqa: BLE001 -- retain leases, never log private provider data
+                logger.warning(
+                    "telegram_engagement.execution_interrupted", recovery="persisted_lease"
+                )
         if editorial_enabled and not stopped.is_set():
             try:
                 outcome = run_editorial_classification_tick(
