@@ -73,3 +73,82 @@ Fresh independent speccompliant/qualityApproved/no findings; verbatim review
 retained. Cannotverify PG/history belongs Task2/controller; broader source/
 media/editorial authority covered by actual453regression and unchanged paths,
 not presumed live proof. No repeated suites or review changes. Task2 ready.
+Root checkpoint86ba3d2 native0/stageddiff0/clean tree. Task2 solewriter
+/root/telegram_engagement_history,gpt-6.1-sol/high/forknone/nohelpers dispatched
+at BASE86ba3d2f4efb7491da884a70567152d5a37cd8af; exact19linebrief, six listed
+source/test/migration/CI files plus own report. Existing append-only SQLite
+parent/no_replace and PG noTRUNCATE conventions explicitly carried. Root owns
+docs and actualPG, no second writer. Batch authorized push after Task2 review/
+runtime rather than duplicate same-block CI. Do not redispatch Task2.
+Ruling: history() binds and validates retained canonical incoming identity, but
+does not require a still-configured account/donor; record() retains strict current
+configuration validation — audit history must survive donor configuration removal;
+cost if wrong: read-only retained aggregate visibility, never provider or editorial
+authority. Solewriter adds removal/read-versus-record regression before freeze.
+Task2 causal SQLite temporal microsecond regression exposed julianday precision
+loss; strict timestamp comparison/checks corrected. Stale ORM identity reads
+exposed by behavioral regression and corrected with populate_existing. Focused/
+covering/full evidence remains writer-owned until final report, not presumed PASS.
+Root read-only lookups used an unsupported Windows filename glob and guessed
+planning/worker/channel_sync paths; corrected using rg --files discovery to
+publication_planning.py, worker.py and channel_sync_tick.py. No source/runtime
+mutation or failed gate was promoted. Actual Docker29.8/Linux/API1.56 responds;
+authorized branch/origin unchanged, no restart/reset needed. Initial root ledger
+patch context missed the preceding sentence; corrected exact context, no lost edit.
+Ruling: extend Task2 ownership narrowly to
+backend/tests/test_editorial_attempt_migration.py, only the historical additive/
+empty-roundtrip test, after full terminal confirms latest-head drift failure —
+new migration makes command.check at historical f6a head invalid; keep historical
+PARENT/HEAD/sentinels/populated downgrade, check metadata only at actual head;
+cost if wrong: reviewed test-only adjustment, no product guard weakening.
+One combined full continues unchanged after collection; writer changed only
+already-SKIPped PG assertion SQLSTATE specificity during that run before root's
+freeze message arrived. Full generation cannot prove changed PG tests; final
+collection/static plus root actual Windows PG will prove those exact assertions.
+No second unchanged local full: if the confirmed sole failure is this old test,
+retain FAIL and use targeted historical/engagement tests, then exact pushed CI
+full gate for final generation. Any other failure must be diagnosed separately.
+Combined full terminal: native1,2FAIL/3347PASS/52explicitSKIP/557.10s; raw
+D:/Codex-Recovery/telegram-engagement-task2-20261013a/full.log retained. Root read
+actual two tracebacks: historical f6a command.check not latest, and metadata-only
+media fixture stamp(head) falsely claiming new migration triggers installed.
+Ruling: extend eighth path backend/tests/test_media_runner.py only
+test_media_migration_refuses_durable_history_loss — stamp actual media migration
+e93b0a4217d6, retain refusal and strengthen job identity/state/version retention;
+cost if wrong: reviewed historical-fixture correction, no product DROP/TRIGGER
+weakening. Original writer owns both fixes, then targeted modules/engagement,
+static/freeze. Full FAIL remains FAIL until exact final-generation CI executes.
+Root existing owner GitHub credential used only in temporary restored process
+environment; authenticated login borovojarkadij-png and exact remote6bc5adc
+verified native0. No global auth switch, new key or remote write yet.
+Task2 writerDONE_WITH_CONCERNS344a28a15424d2219177ed4e6a5b5c844d67f08f;
+root read full124line report, matched all8owned working-byte hashes and report
+EEE62DC71A5477CF890A3D73B1D9856F492934191BFF2859089E7457B0CF10E9.
+Complete86ba3d2..344a28a review package1commit74132bytes generated. Fresh scoped
+/root/telegram_engagement_history_review,gpt-6.1-sol/high/forknone/nohelpers
+active; no actualPG/package execution before clean source review. Report concerns
+are explicit pending controller gates, not unexplained implementation escalation.
+Root verified actual final119PASS/26PG-onlySKIP raw output/static7/native exits
+recorded in report; full FAIL retained. No repeated old suites or source edits.
+
+Task 2: complete (commits86ba3d2..344a28a, review clean).
+Fresh scoped independent speccompliant/qualityApproved/no findings; cannotverify
+actualPG/package resolved by actual root gates, corrected whole-suite CI remains
+pending. Actual exact344a28a Windows Docker PostgreSQL26PASS/0SKIP/native0/18.93s,
+2032existing+26new=2058namespaces/public unchanged/all12inputs unchanged.
+Actual packaged image5993419c7290... buildnative0/network-none/read-only/noVolumes
+SQLite smoke native0:2snapshots/reopen/replay/NULL/rate/appendonly/REJECT0jobs;
+Python3.12.15/Telethon1.45/allinputs unchanged. Evidence hashes in own verification
+report. No actual source/provider/operational authority activated.
+Fresh final cross-task /root/telegram_engagement_integration_review,
+gpt-6-astra/high/forknone/nohelpers active, complete0bc8ebd..344a28a148302byte
+package. Hype Task1 waits its acceptance; no secondsourcewriter.
+Root read-only mixed-log JSON extraction and guessed skill-reference diagnostics
+corrected without rerunning gates; missing docs patch context applied no changes.
+No result relabeled. Scope remains increment integration, not whole PHASE review.
+
+Final cross-task integration review Approved/speccompliant/noCritical/Important/
+Minor; verbatim integration-review.md retained. No fixwave required. Corrected
+exact CI remains the complete full-gate obligation; original localFAIL retained.
+Root updates precise checkpoint and commits reviewed source acceptance/Hype
+design only before guarded push; no PHASE/live/merge claim or old gate replay.

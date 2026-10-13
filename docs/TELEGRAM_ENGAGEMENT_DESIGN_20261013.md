@@ -76,6 +76,10 @@ without editing old rows. No commits, RPC, outbox/rewrite/approval/publication.
 `history(incoming_post_id,*,limit=60)` returns latest bounded observations in
 chronological order (limit exact int 1..1000); SQLite round-trip naive internal
 timestamps are interpreted as UTC only at this storage boundary.
+The historical reader validates the retained canonical incoming identity, but
+does not require current donor/account configuration. Removing donor settings
+must not hide retained audit observations; record() continues to require an
+existing configured donor/account. Neither reading nor scoring grants authority.
 
 ## Verification and continuation
 

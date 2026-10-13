@@ -16,13 +16,32 @@ do not invent a new goal. NEXT_STEP below remains Telegram-only.
 
 ## Active recovery checkpoint — 2026-10-13
 
-NEXT_STEP: Engagement Task1 source8308f15 independently speccompliant/
-qualityApproved/no findings;88focused/453covering/staticnative0 and frozen hashes
-checked. Dispatch prepared Task2 durable append-only history/migration/PG contracts
-under docs/TELEGRAM_ENGAGEMENT_IMPLEMENTATION.md, then clean source review and
-actual owned Windows PostgreSQL gate. ONE combined backend after Task2; no
-duplicate Task1/full suite. Login exact6bc5adc CI38326431585 all10SUCCESS,
-actual ten logs/Windows/benchmark checked. No human/live/PHASE/STABLE claim.
+NEXT_STEP: Engagement Task1 source8308f15 and Task2 source344a28a independently
+speccompliant/qualityApproved/no findings. Root full reports/frozen hashes
+checked. Actual exact344a28a owned Windows Docker PostgreSQL gate PASS:
+26tests/0SKIP/18.93s/native0;2032existing namespaces retained+26new=2058,
+public catalog/source unchanged. Actual packaged image5993419c7290... built
+native0; migratedSQLite record/replay/reopen/append-only/NULL/rate/REJECT0jobs
+PASS/networknone/readonly/noVolumes/Python3.12.15/Telethon1.45/inputsunchanged.
+Final cross-task /root/telegram_engagement_integration_review Approved/
+speccompliant/noCritical/Important/Minor, complete0bc8ebd..344a28a package148302bytes.
+NEXT commit exact acceptance, guarded authorized push and exact corrected CI.
+Then dispatch Hype Task1 at TELEGRAM_HYPE_IMPLEMENTATION.md while that exact CI
+runs; prepared spec/brief, not dispatched. No duplicate Task1/full suite. Login exact6bc5adc
+CI38326431585 all10SUCCESS, actual ten logs/Windows/benchmark checked.
+No human/live/PHASE/STABLE claim; accepted UI unchanged.
+Task2 combined full terminal: D:/Codex-Recovery/telegram-engagement-task2-20261013a/full.log,
+native1/2FAIL/3347PASS/52explicitSKIP/557.10s. Both failures are historical
+fixtures: command.check at previous head and metadata-only media stamp(head)
+without migrated triggers. Original writer applies two narrowly authorized
+test-only corrections, preserves all guards and verifies targeted modules.
+Final corrected full gate required in exact pushed CI, no inherited PASS.
+Retained history reader does not require still-present
+donor config; new record does. Final changed PG SQLSTATE assertions passed root
+actual26test gate, not full-run SKIP evidence. Healthy Docker29.8/Linux/API1.56 confirmed;
+no restart/reset. Next Hype pure/bounded-SQL spec/plan/ledger/Task1 brief prepared
+only, not dispatched, in TELEGRAM_HYPE_IMPLEMENTATION.md. Root uncommitted docs
+are controller-owned; engagement source accepted, exact corrected CI pending.
 
 Retained preceding milestones (current NEXT_STEP above supersedes older NEXT
 phrasing): Windows backup/restore Task1 source7861c4a+e547e71/report6b96be1
