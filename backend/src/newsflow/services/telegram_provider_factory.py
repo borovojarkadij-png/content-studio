@@ -223,6 +223,14 @@ class ConfiguredTelegramProvider:
             account_id, donor_identifier, message_id
         )
 
+    def fetch_engagement(self, account_id, donor_identifier, message_id, *, observed_at):
+        from newsflow.domain.engagement import validate_engagement_request
+
+        validate_engagement_request(account_id, donor_identifier, message_id, observed_at)
+        return self._adapter(account_id, donor_identifier).fetch_engagement(
+            account_id, donor_identifier, message_id, observed_at=observed_at
+        )
+
     def recent(self, account_id, donor_identifier, *, limit):
         return self._adapter(account_id, donor_identifier).recent(
             account_id, donor_identifier, limit=limit

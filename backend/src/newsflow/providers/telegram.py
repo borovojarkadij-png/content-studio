@@ -757,6 +757,13 @@ class TelethonTelegramProvider:
             self._on_session_updated(account_id, updated)
             self._sessions[account_id] = updated
 
+    def fetch_engagement(self, account_id, donor_identifier, message_id, *, observed_at):
+        from newsflow.providers.telegram_engagement import read_engagement
+
+        return read_engagement(
+            self, account_id, donor_identifier, message_id, observed_at=observed_at
+        )
+
     @staticmethod
     def _channel_id(donor_identifier):
         try:
