@@ -28,16 +28,30 @@ Fresh final cross-task /root/telegram_hype_integration_review,gpt-6-astra/high/
 forknone/nohelpers completeApproved/speccompliant/no findings, complete
 87e5189..653e113package122317bytes and runtime receipts checked.
 Root checkpointf0ff9336b718cdee1b22594d77233316bf5bd712 committed/pushednative0/
-exactremote verified ownerborovojarkadij-png. ExactHypeCI38332599077 in_progress,
-all10jobs started; root inspect helper preserves timestamped actual logs/artifacts.
+exactremote verified ownerborovojarkadij-png. ExactHypeCI38332599077 completed
+SUCCESS/all10SUCCESS; actual backend3413PASS139explicitSKIP882.66s/PG872+5/
+Windows83/frontend334+33+1+3/allrecovery/new24caseunqualified0callartifact
+checked in TELEGRAM_HYPE_CI_20261013.md; no duplicate CI/full/runtime rerun.
 SamplingTask1 writerDONE200b5c9d27436320a248527d53b86173baa8ffd8, own6path
 commit/five frozenhashes rootmatched/full140linereport read; actual322PASS/
 0SKIP46.71s/staticnative0. Fresh scoped /root/telegram_sampling_schema_review,
 gpt-6.1-sol/high/forknone/nohelpers DONE, completef0ff933..200b5c954942byte
 package: speccompliant/qualityApproved/no findings, verbatim review retained.
-NEXT rootcheckpoint then Task2runner solewriter using prepared task-2-brief.md;
+Rootcheckpoint584f4cbde0c2de68a9abbbafe61c8dbcd3fc758c/native0/clean tree;
+Task2 runner DONE084c2d010f964d1edecf4bd579d2b94f58e4818f, own3paths+report;
+root matched three frozen hashes and actual native exits. Final runner103PASS/
+20explicitPGSKIP30.81s; covering215PASS32.16s; schedule/migration153PASS;
+Ruff0.17/format/compile/staged checks/commit native0. Fresh scoped concurrency
+review /root/telegram_sampling_runner_review,gpt-6-astra/high/forknone/nohelpers
+DONE speccompliant/qualityApproved/no findings, complete584f4cb..084c2d0
+package80516bytes. Actual frozen084c2d0 ownedWindowsDocker PostgreSQL gate
+20PASS/0SKIP14.47s/native0;2062retained+20fresh=2082 namespaces/public catalog/
+13inputs unchanged. NEXT: root docs/review checkpoint, then sole Task3 writer
+default-disabled tick/worker/CI seam, one combined backend after source freeze.
+Root package controller+separate-process synthetic smoke and guarded
+push helpers prepared only; no sampling runtime/build/push claim from preparation.
 no duplicate Task1/fullgate, actualPG after runnerreview. Root tracks exact
-HypeCI alongside, currently sixjobsSUCCESS/fourpending; no newsourceCI claim.
+HypeCI accepted; sampling source has no CI/runtime completion claim yet.
 Root owns dirty docs/evidence, do not stage them from writer. Origin exactly
 borovojarkadij-png/content-studio, branchcodex/dark-navy-ui. Engine29.8/Linux/
 API1.56 currently healthy, no restart/reset. PHASE1/live/model qualification not

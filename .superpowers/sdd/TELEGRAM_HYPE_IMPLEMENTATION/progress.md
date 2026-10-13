@@ -1,5 +1,12 @@
 # SDD ledger — plan: docs/TELEGRAM_HYPE_IMPLEMENTATION.md
 
+ExactCI38332599077/headf0ff933 completedSUCCESS/all10SUCCESS; actualtenlogs,
+Windows83native/JUnit and new24matched/0call/unqualifiedartifact rootchecked.
+Backend3413PASS139explicitSKIP882.66s, PG872/3nonapplicableSKIP+5, frontend334+
+33+1+3 and every recovery family PASS. docs/TELEGRAM_HYPE_CI_20261013.md binds
+hashes/limits. No further unchangedpoll/test/build; sampling independent source
+ongoing, wholehistoricalPHASE branch/live/realmodel not accepted by this review.
+
 Task 2: complete (commits cd0d858..653e113, review clean).
 
 Root checkpointf0ff9336b718cdee1b22594d77233316bf5bd712 commitnative0/cleantree,

@@ -80,7 +80,11 @@ short transactions, not the provider's network lifetime.
 `enqueue_window(*, now, after_id=0, limit=16)` returns frozen
 `EngagementSamplingAdmission(cursor, queued_ids)`; canonical positive signed64
 source IDs, cursor0allowed, exact limit1..16 and aware UTC clock required.
-Scan at most16incoming IDs ordered ascending, wrap at0 when exhausted. Admit only
+Scan at most16incoming IDs ordered ascending. If the IDs>after_id page is empty
+and after_id>0, wrap to0 and query the first page in the same call. Never top up
+a nonempty partial tail with wrapped rows; last scanned ID is the next cursor,
+or0 if the table is empty. This bounds actual scanned rows and avoids an idle
+admission tick solely to reset the cursor. Admit only
 canonical existing sources created within the last60minutes, configured same
 account/broadcast donor with at least one mapping, CONNECTED encrypted account,
 no future cooldown, deletion or unresolved synchronization gap. Require an
@@ -124,8 +128,14 @@ FLOOD_WAIT, BLOCKED, FAILED or STALE_CLAIM; no provider exception detail.
 Due QUEUED jobs and expired RUNNING jobs are eligible; attempts3 is terminalFAILED
 without another RPC. Resolve candidate ID without holding a job lock, then lock
 incoming first, job second, account third, matching history's incoming-first
-write order; SKIP LOCKED where supported. Revalidate canonical source/config/
-mapping/deletion/sync/account/session/cooldown freshly. Temporary cooldown/sync
+write order; SKIP LOCKED where supported.
+Each claim_next invocation examines at most16 candidate IDs. If that window is
+locked/unavailable, None/IDLE means no claim acquired in the bounded window, not
+that the durable queue is empty. Do not scan an unbounded queue. Long-held locks
+covering all earliest16 can defer later jobs; subsequent short transactions and
+released locks recover without changing durable queue or provider authority.
+Revalidate canonical source/config/mapping/deletion/sync/account/session/cooldown
+freshly. Temporary cooldown/sync
 wait retains QUEUED with next available time and no new attempt. Permanent
 missing/moved/deleted identity or invalid session yields BLOCKED; no automatic
 reauthorization or terminal revival. A claim commits token/60-second lease,
@@ -151,11 +161,22 @@ claim, not assumed equivalence; unchanged adapter sessions are not rewritten.
 Persist TimeoutError/ConnectionError/OSError as QUEUED/RETRY_PROVIDER with30-second
 delay; after third attempt FAILED. FloodWait persists account COOLDOWN and the
 full required future delay (overflow fails privately), preserving an existing
-longer cooldown; never retry early. SessionUnavailable sets SESSION_INVALID and
-BLOCKED only if claim/session/user still match; stale errors cannot clobber newer
+longer cooldown; never retry early.
+For current owned FloodWait only, a temporary WAIT_COOLDOWN result does not
+discard the new required delay: after every ownership/session/user/source/sync/
+health fence, persist max(existing cooldown, fresh final clock+required delay).
+No other blocked/stale condition is bypassed; other outcome types keep their
+normal WAIT_COOLDOWN behavior.
+SessionUnavailable sets SESSION_INVALID and BLOCKED only if claim/session/user
+still match; stale errors cannot clobber newer
 health. LookupError missing source and malformed/provider-conflict errors become
-BLOCKED with bounded private codes. SQL interruption leaves committed lease for
-restart recovery; no rollback of an unrelated caller or deletion of history.
+BLOCKED with bounded private codes. Unexpected Exception limited to provider
+invocation/response reconstruction becomes current-owner BLOCKED/INVALID_OBSERVATION after the same
+fresh fencing, never raw text or automatic retry. BaseException is not caught;
+SQL/precheck/claim/finalization errors are outside that provider catch. Stale
+unexpected failures cannot change newer state or account health.
+SQL interruption leaves committed lease for restart recovery; no rollback of
+an unrelated caller or deletion of history.
 No successful result or retry can change source text/revision/editorial/rewrite/
 usage/outbox/publication state. REJECT remains rewritefalse/RewriteJob0/calls0.
 

@@ -1,5 +1,31 @@
 # Durable Telegram sampling evidence — 2026-10-13
 
+## Latest Task2 source checkpoint
+
+Fresh scoped concurrency review DONE: speccompliant/qualityApproved/no findings;
+verbatim own task-2-review.md. Root actual frozen084c2d0 Windows ownedDocker
+PostgreSQL gate completed20PASS/0SKIP14.47s/native0. JUnit20/0FAIL/0ERROR/0SKIP;
+2062existingUUIDschemas retained+20createonly=2082; publiccatalog and13source
+inputs unchanged. No reset/drop/reseed/volume removal. Actual evidence:
+`D:/Codex-Recovery/content-studio-20261008/telegram-sampling-acceptance-20261013a/`
+postgres.log/postgres-junit.xml/postgres-receipt.json. Source-level SKIP is now
+resolved by separate actualPG, not relabeled. Next Task3/default-disabled seam,
+then combinedfull/package/integrationreview/exactCI; PHASE/live remain pending.
+
+WriterDONE084c2d010f964d1edecf4bd579d2b94f58e4818f, exact3sourcefiles+ownreport.
+Root read report EOF and matched allthree SHA256 plus retained native exits:
+runner0A3874ADE86E3F30B7CEC84BBCA4D85251C0F890AF2603CF1783556DE598EF7A,
+runner testD894F3A72A06D001BF9F39C881B22DDB9A6970949B2A8EBC781D1B56CE22464F,
+PG test1591E60EC6FA17F5E27DE9D785EEA6917D09E11617073F280FFCD218AC7FA7B3.
+Final legacyJUnit123tests/103PASS/20explicitPGSKIP/0FAIL/0ERROR30.718s,
+native0/rawlog103passed30.81s; covering215PASS32.16s/native0 and
+schedule/migration153PASS. FinalRuff0.17/format3/compile/stagedcheck/commit0.
+Earlier causalRED and initialJUnit warnings remain retained, final output
+pristine; no fullbackend/actualPG/package/worker claim. Complete80516byte
+BASE584f4cb..084c2d0 package passed to fresh scoped concurrency reviewer;
+actual20PG deferred to root after clean source review, not treated as PASS.
+Docker29.8/Linux/API1.56 currently healthy; no restart/reset necessary.
+
 Spec/plan: TELEGRAM_SAMPLING_DESIGN_20261013.md /
 TELEGRAM_SAMPLING_IMPLEMENTATION.md. Approved Telegram automation scope,
 accepted UI unchanged. Sampling observations never grant editorial/rewrite/
@@ -53,3 +79,22 @@ package: speccompliant and qualityApproved, no findings. Verbatim review saved
 in own SDD task-1-review.md. Actual PostgreSQL/concurrency, worker, combinedfull,
 packaged restart and exactCI remain explicit later-task/controller obligations.
 Source is frozen; next Task2 runner, no duplicate Task1/full/actualPG run.
+
+Task2 solewriter /root/telegram_sampling_runner at BASE584f4cbde0c2de68a9abbbafe61c8dbcd3fc758c,
+own3sourcefiles/report. Causal RED executed; focused iteration is ongoing,
+not final source acceptance. Root clarified same-call empty-page cursor wrap
+and private unexpected provider failures before completion; rulings in ledger.
+
+Independent packaged controller/synthetic smoke prepared only/not executed:
+verify-package.ps1 and packaged-sampling-smoke.py in own acceptance evidence
+directory. PowerShell parser and Python AST syntax checked. Designed to run
+actual separate Python processes against a migrated ephemeral SQLite fixture:
+committed unfinished claim, expired takeover/stale-owner zeroIO, actual-time
+thresholds/missed windows, terminal replay, disabled/enabled tick and unchanged
+REJECT/noRewriteJob/0rewritecalls. Networknone/readonly/noVolumes/noSecrets;
+public deterministic synthetic cipher only. This proves no container restart
+yet, and prepared scripts are not runtime acceptance. Execute only after all
+three source tasks are reviewed/frozen; actual owned PostgreSQL separate.
+
+Hype predecessor exactCI38332599077/f0ff933 all10SUCCESS and actual logs/
+artifacts accepted in TELEGRAM_HYPE_CI_20261013.md; not sampling CI evidence.

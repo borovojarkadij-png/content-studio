@@ -3,7 +3,8 @@
 Candidate `f0ff9336b718cdee1b22594d77233316bf5bd712`, source `653e113` plus
 reviewed acceptance/design docs. Authorized guarded push native0/exactremote
 as borovojarkadij-png, no force/merge/PR. Workflow run38332599077 currently
-in_progress/all10jobs started. No CI success claim yet.
+completedSUCCESS/all10jobsSUCCESS. Actual completed logs and selected runtime/
+benchmark artifacts checked below; no real-model/live/PHASE completion claim.
 
 Root evidence:
 `D:/Codex-Recovery/content-studio-20261008/telegram-hype-ci-38332599077-20261013a/`.
@@ -81,3 +82,52 @@ encrypted configuration/jobs/media retained and zero realTelegram/AI/send IO.
 | job-115085490142-api.log | E07C05A193A3CD089212025ECDD2D96620653D5595718FDD0E23F3FFBD027D71 |
 
 Six jobs now completedSUCCESS; other four pending. No all-workflow PASS yet.
+
+## Later completed PostgreSQL and persistence gates
+
+PostgreSQL115085490101SUCCESS: actual872PASS/3nonapplicableSKIP699.08s and
+separate planner/media5PASS6.85s. Server cleanup logs retain deliberately
+rejected raw constraints/append-only writes and one historical-order40P01:
+test_planner_media_postgres.py:47/71/163 explicitly demonstrates old-order
+deadlock, while current-order case requires errors==[]. Not hidden product
+failure or permission to suppress negative SQL diagnostics.
+
+Both persistence115085490133(OPENAI)/115085490214(OPENROUTER)SUCCESS:
+actual media/ingestion/source-photo/publication seed, recover, repeated verify,
+quota/blocked/edit stages all PASS with zero real Telegram/AI/publications.
+Final synthetic persistence completion and encrypted session/configuration/
+unfinished work preservation confirmed in logs. These are fake-provider
+recovery tests, not real model or Telegram qualification.
+
+| Evidence | SHA256 |
+| --- | --- |
+| job-115085490101-api.log | 72F5627856C657A7CF91869EC27CA941A746C3BE8375CEB1DED1BAA794F5D6FC |
+| job-115085490133-api.log | 3A593BBA9204DA3CCEB7479974367EBEA280DB0CCBD3816BE9370A50F289BD37 |
+| job-115085490214-api.log | 29EE610CDB3C522B6F9823C4416813C5196BE679BB66D862F30508F070AEBDB3 |
+
+Nine completedSUCCESS, backend115085490109 remains in_progress. No all-workflow
+success claim. Root read-only diagnostic guessed verify-packaged.ps1 instead
+of discovered verify-package.ps1; no execution/mutation. Docker format query
+used ApiVersion instead of APIVersion and failed formatting only; daemon remains
+available. Native diagnostics retained rather than inferred as test failures.
+
+## Final exact-candidate acceptance
+
+Backend115085490109SUCCESS: actual3413PASS/139explicit environmentSKIP882.66s;
+all source/fixture lint, compile, empty Alembic upgrade/downgrade/re-upgrade and
+drift gate PASS. Hosted-action deprecations retained. Actual offline artifact
+11783653134/1003bytes parsed:24cases/all24matched, provider_calls0/rewrite_calls0,
+real_model_qualified=false. Every effective rewrite_allowed and
+editorial_allows_rewrite remains false, including synthetic diagnostic PASS.
+
+| Evidence | SHA256 |
+| --- | --- |
+| job-115085490109-api.log | E1FBD49DF81F0936B38ED8DA59BB08CB3C6D818CB4A2E93627DBE56C2AA1932F |
+| editorial-contract-report.json | 318DE43F3C8C0DE9501B324A31B14C3390E6AFE6470A6913571393A0B9896E45 |
+
+Exact run38332599077/headf0ff9336b718cdee1b22594d77233316bf5bd712 is
+completedSUCCESS/all10SUCCESS, checked against actual ten logs and Windows/
+editorial artifacts. Native owned WindowsPG and packaged Hype acceptance remain
+in TELEGRAM_HYPE_VERIFICATION_20261013.md; this does not accept later sampling
+source or operational Telegram/realAI qualification. No further unchanged CI
+polling or duplicate full/backend/PG/package execution is required for Hype.
